@@ -1,6 +1,15 @@
 # Geschmacksprofil 50+ · Prototyp
 
-Bedien-Demo für den Zwischencheck am 12.10.2026 (Stand 04.10.2026). Sie zeigt Start, Erklärung, eine Runde mit den 13 Familienkarten aus Stufe 1 und den Zwischenstand. Die adaptive Logik ist bewusst noch ein Platzhalter: Die Karten kommen in fester Reihenfolge.
+Bedien-Demo für den Zwischencheck am 12.10.2026 (Version 0.2, Stand 04.10.2026). Sie zeigt Start, eine animierte Erklärung, eine Runde mit den 13 Familienkarten aus Stufe 1 und den Zwischenstand. Die adaptive Logik ist bewusst noch ein Platzhalter: Die Karten kommen in fester Reihenfolge.
+
+## Gestaltung
+
+- Ruhige, helle Fläche; die Karte ist das einzige laute Element.
+- Titel in Fraunces, Text in Atkinson Hyperlegible Next, einer Schrift, die gezielt für gute Lesbarkeit entwickelt wurde. Grundgrösse 19 px. Beide Schriften liegen im Projekt, es werden keine externen Server angefragt.
+- Jede Wischgeste hat einen gleichwertigen Knopf. Die Knöpfe liegen in Wischrichtung, und beim Wischen wächst der passende Knopf mit.
+- Ein schneller, kurzer Wisch zählt ebenfalls als Antwort; ein langsamer, kurzer Wisch federt zurück.
+- Die Erklärung zeigt die Gesten als Animation. Wer im System „Bewegung reduzieren“ eingestellt hat, sieht sie ohne Animation.
+- Auf Android gibt es bei jeder Antwort ein kurzes Vibrieren (abschaltbar über `FEATURES.haptics`).
 
 ## Starten
 
@@ -10,6 +19,8 @@ npm run dev
 ```
 
 Auf dem Handy im selben WLAN: `npm run dev -- --host` ausführen und die angezeigte Network-Adresse öffnen.
+
+Wie eine App: Auf dem iPhone in Safari „Teilen“ → „Zum Home-Bildschirm“, auf Android in Chrome das Menü → „App installieren“. Der Prototyp startet dann mit eigenem Symbol und ohne Browserleiste.
 
 | Befehl | Zweck |
 | --- | --- |
@@ -30,13 +41,15 @@ Mit GitHub Free funktioniert Pages nur bei öffentlichen Repositories. Für ein 
 ```
 src/
   config.js            Wortlaut, Wischschwellen, Funktionen (Stellschrauben für den Pilot)
-  data/catalog.json    Kartenkatalog Stufe 1 und 2 (nurec v0.2, Anhang A1/A2)
+  data/catalog.json    Kartenkatalog Stufe 1 und 2 (nurec v0.2, Anhang A1/A2), mit Farbton und Bild je Karte
   logic/engine.js      Austauschbare Logik: nextCard(), applyAnswer(), summarize()
   logic/answers.js     Antworttypen DISLIKE, LIKE, PREFER, UNFAMILIAR, UNRATED
   logging/logger.js    Protokoll jeder Antwort, Export als JSON
-  components/          Swipe-Karte, Antwortknöpfe, Fortschritt, Kartenbild
+  components/          Swipe-Karte, Kartenaufbau, Antwortknöpfe, Fortschritt, Bild
   screens/             Start, Erklärung, Runde, Zwischenstand
-public/images/         Fotos der Karten (Anleitung im README dort)
+  styles.css           Gestaltung mit allen Farben und Grössen an einem Ort
+public/illustrations/  Eigene Illustrationen der 13 Karten (SVG)
+public/images/         Platz für Fotos (Anleitung im README dort)
 ```
 
 ## Logik austauschen (Phase 2)
@@ -66,7 +79,8 @@ Die Daten bleiben im Browser. „Protokoll herunterladen“ auf dem Zwischenstan
 - Wortlaut von „Gern“: „mag ich“ oder „würde ich essen“ (nurec v0.2, Kap. 4). Im Pilot prüfen.
 - Ansprache mit Du oder Sie. Im Pilot prüfen.
 - Rückgängig-Knopf: eigene Idee, abschaltbar über `FEATURES.undo`. Im Pilot prüfen.
-- Wischschwellen von 110 px seitlich und 90 px nach oben. Im Pilot prüfen.
+- Wischschwellen von 110 px seitlich und 90 px nach oben sowie die Schnipp-Erkennung. Im Pilot prüfen.
+- Illustrationen oder Fotos: Was erkennen Personen ab 50 schneller und eindeutiger? Lässt sich im Pilot direkt vergleichen.
 - Profilfortschritt in Prozent: Die Berechnung ist Teil des Konzepts (nurec v0.2, Anhang B2).
 - Stufe 0 mit den Ausschlüssen: erst nach Klärung von Datenschutz und Einwilligung (Frage F4).
 

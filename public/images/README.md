@@ -1,6 +1,11 @@
-# Fotos für die Karten
+# Fotos für die Karten (optional)
 
-Legt pro Karte ein Foto mit dem passenden Dateinamen in diesen Ordner. Fehlt eine Datei, zeigt die Karte automatisch einen Platzhalter.
+Standardmässig zeigen die Karten die eigenen Illustrationen aus `public/illustrations`. Sie sind selbst erstellt, deshalb gibt es keine Lizenzfragen. Wer stattdessen Fotos testen möchte, geht pro Karte so vor:
+
+1. Foto in diesen Ordner legen, z. B. `F01.jpg`.
+2. In `src/data/catalog.json` bei der Karte `"image": { "file": "F01.jpg", ... }` setzen und den Nachweis eintragen.
+
+Ohne Eintrag bei `image.file` bleibt die Illustration sichtbar.
 
 | Datei | Karte | Motiv: Beispiele auf der Karte |
 | --- | --- | --- |
@@ -20,7 +25,7 @@ Legt pro Karte ein Foto mit dem passenden Dateinamen in diesen Ordner. Fehlt ein
 
 ## Einheitlicher Stil
 
-Uneinheitliche Fotos können die Bewertung verzerren (Annahme 5 im Projektkern). Deshalb für alle Karten:
+Uneinheitliche Bilder können die Bewertung verzerren (Annahme 5 im Projektkern). Deshalb entweder alle Karten mit Illustrationen oder alle mit Fotos im gleichen Stil:
 
 - Querformat 4:3, mindestens 1200 × 900 px, Dateigrösse unter 300 KB
 - Lebensmittel gross im Bild, ruhiger heller Hintergrund, natürliches Licht
@@ -29,7 +34,7 @@ Uneinheitliche Fotos können die Bewertung verzerren (Annahme 5 im Projektkern).
 
 ## Lizenz und Nachweis
 
-Nur Fotos verwenden, deren Lizenz die Nutzung erlaubt, z. B. von Unsplash, Pexels oder Wikimedia Commons (dort bevorzugt CC0). Pro Foto den Nachweis in `src/data/catalog.json` eintragen:
+Nur Fotos verwenden, deren Lizenz die Nutzung erlaubt, z. B. von Unsplash, Pexels oder Wikimedia Commons (dort bevorzugt CC0). Nachweis pro Foto:
 
 ```json
 "image": {

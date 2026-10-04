@@ -1,32 +1,40 @@
-import { ANSWER_LABELS } from '../config.js';
+import { Hand, Layers, Leaf, Pause } from 'lucide-react';
+import catalog from '../data/catalog.json';
+import CardFace from '../components/CardFace.jsx';
+
+const HERO_IDS = ['F06', 'F12', 'F03'];
 
 export default function StartScreen({ total, onStart }) {
+  const heroCards = HERO_IDS.map((id) => catalog.cards.find((card) => card.id === id));
+
   return (
     <main className="screen screen-start">
-      <div className="start-art" aria-hidden="true">
-        <div className="mini-card mini-card-back" />
-        <div className="mini-card mini-card-middle" />
-        <div className="mini-card mini-card-front">
-          <div className="mini-photo">
-            <span className="stamp stamp-like">{ANSWER_LABELS.LIKE}</span>
+      <p className="brand">
+        <span className="brand-mark" aria-hidden="true"><Leaf strokeWidth={2.2} /></span>
+        Geschmacksprofil
+      </p>
+
+      <div className="hero-fan" aria-hidden="true">
+        {heroCards.map((card, index) => (
+          <div key={card.id} className={`hero-card hero-card-${index}`}>
+            <CardFace card={card} compact />
           </div>
-          <span className="mini-title">Obst</span>
-        </div>
+        ))}
       </div>
 
       <h1>Was isst du gern?</h1>
       <p className="lead">
-        Wir zeigen dir Karten mit Lebensmitteln. Bei jeder Karte sagst du, wie gern du sie isst.
-        So entsteht Schritt für Schritt dein Geschmacksprofil.
+        Wir zeigen dir Lebensmittel auf Karten. Bei jeder Karte sagst du mit einem Wisch oder einem Tipp, wie gern du sie isst.
       </p>
+
       <ul className="facts">
-        <li>Die erste Runde hat {total} Karten.</li>
-        <li>Du kannst wischen oder tippen, wie es dir lieber ist.</li>
-        <li>Du kannst jederzeit aufhören.</li>
+        <li><Layers aria-hidden="true" />Die erste Runde hat {total} Karten</li>
+        <li><Hand aria-hidden="true" />Wischen oder tippen, wie du magst</li>
+        <li><Pause aria-hidden="true" />Du kannst jederzeit aufhören</li>
       </ul>
 
       <div className="screen-actions">
-        <button type="button" className="primary" onClick={onStart}>Starten</button>
+        <button type="button" className="button-primary" onClick={onStart}>Starten</button>
         <p className="fineprint">
           Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten bleiben auf diesem Gerät.
         </p>

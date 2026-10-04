@@ -1,13 +1,11 @@
+import catalog from '../data/catalog.json';
+import CardFace from '../components/CardFace.jsx';
+import { ANSWER_META } from '../components/answerMeta.js';
 import { ANSWER_LABELS } from '../config.js';
 import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
-import { IconArrowLeft, IconArrowRight, IconArrowUp, IconQuestion } from '../components/Icons.jsx';
 
-const ROWS = [
-  { answer: DISLIKE, Icon: IconArrowLeft, how: 'Nach links wischen oder tippen' },
-  { answer: LIKE, Icon: IconArrowRight, how: 'Nach rechts wischen oder tippen' },
-  { answer: PREFER, Icon: IconArrowUp, how: 'Nach oben wischen oder tippen' },
-  { answer: UNFAMILIAR, Icon: IconQuestion, how: 'Tippen, wenn du es nicht kennst' },
-];
+const DEMO_CARD = catalog.cards.find((card) => card.id === 'F12');
+const DEMO = [LIKE, DISLIKE, PREFER];
 
 export default function IntroScreen({ onContinue }) {
   return (
@@ -15,25 +13,42 @@ export default function IntroScreen({ onContinue }) {
       <h1>So antwortest du</h1>
       <p className="lead">Wische die Karte in eine Richtung oder tippe auf den passenden Knopf. Beides zählt gleich.</p>
 
-      <ul className="howto">
-        {ROWS.map(({ answer, Icon, how }) => (
-          <li key={answer} className={`howto-row howto-${answer.toLowerCase()}`}>
-            <span className="howto-icon"><Icon /></span>
-            <span>
-              <span className="howto-label">{ANSWER_LABELS[answer]}</span>
-              <span className="howto-how">{how}</span>
-            </span>
-          </li>
-        ))}
+      <div className="demo" aria-hidden="true">
+        <div className="demo-card">
+          <CardFace card={DEMO_CARD} compact />
+          {DEMO.map((answer) => {
+            const { Icon, label, tone } = ANSWER_META[answer];
+            return (
+              <span key={answer} className={`demo-badge demo-badge-${tone} tone-${tone}`}>
+                <Icon strokeWidth={2.4} />
+                {label}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      <ul className="legend">
+        {[DISLIKE, LIKE, PREFER, UNFAMILIAR].map((answer) => {
+          const { Icon, label, tone, hint } = ANSWER_META[answer];
+          return (
+            <li key={answer} className={`legend-row tone-${tone}`}>
+              <span className="legend-icon"><Icon aria-hidden="true" strokeWidth={2.2} /></span>
+              <span>
+                <strong>{label}</strong>
+                <span className="legend-hint">{hint}</span>
+              </span>
+            </li>
+          );
+        })}
       </ul>
 
-      <p>
-        Es gibt keine falschen Antworten. „{ANSWER_LABELS[DISLIKE]}“ ist kein Verbot:
-        Ausnahmen fragen wir später gezielt nach.
+      <p className="note">
+        Es gibt keine falschen Antworten. „{ANSWER_LABELS.DISLIKE}“ ist kein Verbot: Ausnahmen fragen wir später gezielt nach.
       </p>
 
       <div className="screen-actions">
-        <button type="button" className="primary" onClick={onContinue}>Erste Karte zeigen</button>
+        <button type="button" className="button-primary" onClick={onContinue}>Erste Karte zeigen</button>
       </div>
     </main>
   );
