@@ -10,8 +10,10 @@ import { ANSWER_ORDER, UNRATED } from './answers.js';
 
 export const RULE_VERSION = 'demo-0.1';
 
-export function createRound(catalogCards, level = 1) {
-  const cards = catalogCards.filter((card) => card.level === level);
+// Harte Ausschlüsse aus Stufe 0 werden vor jeder Auswahl entfernt (nurec v0.2, Kap. 2.2).
+export function createRound(catalogCards, level = 1, { excludedIds = [] } = {}) {
+  const excluded = new Set(excludedIds);
+  const cards = catalogCards.filter((card) => card.level === level && !excluded.has(card.id));
   return { level, cards, answers: {}, sequence: [] };
 }
 

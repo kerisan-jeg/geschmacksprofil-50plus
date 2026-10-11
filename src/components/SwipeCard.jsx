@@ -116,7 +116,7 @@ export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
       aria-roledescription="Karte"
-      aria-label={`${card.title}. Zum Beispiel ${card.examples.join(', ')}`}
+      aria-label={[card.title, card.notes?.join(', '), card.examples.length > 0 && `Zum Beispiel ${card.examples.join(', ')}`].filter(Boolean).join('. ')}
     >
       <div className="swipe-card-inner">
         <CardFace card={card}>

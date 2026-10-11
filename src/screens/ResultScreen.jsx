@@ -1,4 +1,4 @@
-import { Check, CircleDashed, Download, RotateCcw } from 'lucide-react';
+import { Check, CircleDashed, Download, Lock, RotateCcw } from 'lucide-react';
 import Artwork from '../components/Artwork.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
 import { progress, summarize } from '../logic/engine.js';
@@ -12,10 +12,12 @@ const GROUPS = [
   { key: UNRATED, label: 'Noch offen', Icon: CircleDashed, tone: 'open' },
 ];
 
-export default function ResultScreen({ round, endedEarly, onRestart, onDownloadLog }) {
+export default function ResultScreen({ round, endedEarly, firstName, rules, unsureTexts = [], onRestart, onDownloadLog }) {
   const groups = summarize(round);
   const { answered, total } = progress(round);
   const credits = round.cards.filter((card) => card.image?.credit);
+  const ruleList = rules?.rules ?? [];
+  const thanks = firstName ? `Danke, ${firstName}. ` : '';
 
   return (
     <main className="screen screen-result">
@@ -25,6 +27,7 @@ export default function ResultScreen({ round, endedEarly, onRestart, onDownloadL
       </p>
       <h1>Dein Zwischenstand</h1>
       <p className="lead">
+        {thanks}
         {endedEarly ? `${answered} von ${total} Karten beantwortet.` : `Alle ${total} Karten beantwortet.`} So hast du geantwortet:
       </p>
 
@@ -47,6 +50,23 @@ export default function ResultScreen({ round, endedEarly, onRestart, onDownloadL
             {note && <p className="note">{note}</p>}
           </section>
         ))}
+
+        {(ruleList.length > 0 || unsureTexts.length > 0) && (
+          <section className="result-group tone-rule">
+            <h2>
+              <span className="group-icon"><Lock aria-hidden="true" strokeWidth={2.2} /></span>
+              Feste Regeln
+              {ruleList.length > 0 && <span className="group-count">{ruleList.length}</span>}
+            </h2>
+            {ruleList.length > 0 && (
+              <ul className="rule-chips">
+                {ruleList.map((rule) => <li key={rule.id}>{rule.text}</li>)}
+              </ul>
+            )}
+            {unsureTexts.map((text) => <p key={text} className="note">{text}</p>)}
+            <p className="note">Aus deinen Angaben vor dem Start. Diese Regeln stehen immer über dem Geschmack.</p>
+          </section>
+        )}
       </div>
 
       <p className="fineprint">

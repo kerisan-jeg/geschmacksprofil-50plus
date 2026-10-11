@@ -1,10 +1,10 @@
-import { Hand, Layers, Leaf, Pause } from 'lucide-react';
+import { Hand, Leaf, Pause, UserRound } from 'lucide-react';
 import catalog from '../data/catalog.json';
 import CardFace from '../components/CardFace.jsx';
 
 const HERO_IDS = ['F06', 'F12', 'F03'];
 
-export default function StartScreen({ total, onStart }) {
+export default function StartScreen({ onStart }) {
   const heroCards = HERO_IDS.map((id) => catalog.cards.find((card) => card.id === id));
 
   return (
@@ -28,13 +28,13 @@ export default function StartScreen({ total, onStart }) {
       </p>
 
       <ul className="facts">
-        <li><Layers aria-hidden="true" />Die erste Runde hat {total} Karten</li>
-        <li><Hand aria-hidden="true" />Wischen oder tippen, wie du magst</li>
+        <li><UserRound aria-hidden="true" />Kurz anmelden und drei Fragen beantworten</li>
+        <li><Hand aria-hidden="true" />Dann Karten wischen oder tippen</li>
         <li><Pause aria-hidden="true" />Du kannst jederzeit aufhören</li>
       </ul>
 
       <div className="screen-actions">
-        <button type="button" className="button-primary" onClick={onStart}>Starten</button>
+        <button type="button" className="button-primary" onClick={onStart}>Los geht’s</button>
         <p className="fineprint">
           Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten bleiben auf diesem Gerät.
         </p>

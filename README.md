@@ -1,6 +1,36 @@
 # Geschmacksprofil 50+ · Prototyp
 
-Bedien-Demo für den Zwischencheck am 12.10.2026 (Version 0.2, Stand 04.10.2026). Sie zeigt Start, eine animierte Erklärung, eine Runde mit den 13 Familienkarten aus Stufe 1 und den Zwischenstand. Die adaptive Logik ist bewusst noch ein Platzhalter: Die Karten kommen in fester Reihenfolge.
+Bedien-Demo für den Zwischencheck am 12.10.2026 (Version 0.3, Stand 11.10.2026). Die adaptive Logik ist bewusst noch ein Platzhalter: Die Karten kommen in fester Reihenfolge.
+
+## Ablauf
+
+1. **Start:** kurze Einführung.
+2. **Anmelden:** Vorname und Alter freiwillig, Einwilligung Pflicht, kein Passwort. Ein aufklappbares Feld „Für die Testleitung“ nimmt die Teilnehmer-Nr. auf.
+3. **Fragebogen (Stufe 0):** drei Fragen zu festen Regeln, eine pro Bildschirm. Details nur bei „Ja“.
+4. **Zusammenfassung:** „Deine festen Regeln“ zum Bestätigen oder Ändern, dazu der Kartenstapel der ersten Runde.
+5. **Erklärung:** animierte Vorführung der Gesten.
+6. **Runde:** die zulässigen Familienkarten aus Stufe 1.
+7. **Zwischenstand:** Antworten nach Gruppen und die festen Regeln.
+
+## Stufe 0: harte Ausschlüsse
+
+Grundlage ist nurec v0.2, Kap. 2: Regeln, die nie durch Geschmack überstimmt werden. Die sechs Bereiche 0.1 bis 0.6 sind als drei Fragen umgesetzt (eigener Vorschlag, damit der Einstieg für Personen ab 50 kurz bleibt):
+
+| Frage im Prototyp | Bereiche im Konzept | Wirkung auf die Karten |
+| --- | --- | --- |
+| Feste Ernährungsweise | 0.4 | Vegan, vegetarisch oder pescetarisch entfernen ganze Familien |
+| Allergien und Unverträglichkeiten | 0.1 bis 0.3 | Schweizer Allergenliste plus Laktose. Ausschluss von Untergruppen oder Hinweis wie „Nur glutenfrei“ |
+| Nie vorschlagen | 0.5 | Einzelne Untergruppen, z. B. Schweinefleisch. Ohne Begründung, „mag ich nicht“ gehört ins Wischen |
+
+Regeln aus dem Konzept, die der Prototyp umsetzt:
+
+- Laktoseintoleranz und Milcheiweissallergie sind getrennt.
+- „Unsicher“ gibt nichts frei und erscheint als offener Punkt.
+- Sind alle Untergruppen einer Familie ausgeschlossen, entfällt die Familie.
+- Bleibt eine Familie, zeigt sie nur erlaubte Beispiele und einen Hinweis wie „Ohne Krebstiere“.
+- Vor der ersten Runde kommt eine Zusammenfassung zum Bestätigen oder Korrigieren (Kap. 2.2).
+
+Bereich 0.6 (Marken und Händler) fehlt bewusst. Die Zuordnung der Antworten zu Karten steht in `src/data/stage0.json` und ist ein Entwurf für das Konzept.
 
 ## Gestaltung
 
@@ -42,11 +72,13 @@ Mit GitHub Free funktioniert Pages nur bei öffentlichen Repositories. Für ein 
 src/
   config.js            Wortlaut, Wischschwellen, Funktionen (Stellschrauben für den Pilot)
   data/catalog.json    Kartenkatalog Stufe 1 und 2 (nurec v0.2, Anhang A1/A2), mit Farbton und Bild je Karte
+  data/stage0.json     Fragebogen Stufe 0 und Zuordnung der Antworten zu Karten
   logic/engine.js      Austauschbare Logik: nextCard(), applyAnswer(), summarize()
+  logic/stage0.js      Harte Ausschlüsse aus dem Fragebogen ableiten, Karten anpassen
   logic/answers.js     Antworttypen DISLIKE, LIKE, PREFER, UNFAMILIAR, UNRATED
   logging/logger.js    Protokoll jeder Antwort, Export als JSON
-  components/          Swipe-Karte, Kartenaufbau, Antwortknöpfe, Fortschritt, Bild
-  screens/             Start, Erklärung, Runde, Zwischenstand
+  components/          Swipe-Karte, Kartenaufbau, Antwortknöpfe, Auswahlfelder, Fortschritt, Bild
+  screens/             Start, Anmelden, Fragebogen, Zusammenfassung, Erklärung, Runde, Zwischenstand
   styles.css           Gestaltung mit allen Farben und Grössen an einem Ort
 public/illustrations/  Eigene Illustrationen der 13 Karten (SVG)
 public/images/         Platz für Fotos (Anleitung im README dort)
@@ -62,7 +94,11 @@ Die Funktionen sind rein, also ohne Zufall und ohne Uhrzeit. So lässt sich jede
 
 Jede Antwort wird mit Karten-ID, Stufe, Position, Auswahlgrund, Regelversion, Antwort, Eingabeart (`swipe`, `button`, `keyboard`) und Antwortzeit gespeichert. Die Felder folgen nurec v0.2, Kap. 6, ergänzt um Eingabeart und Antwortzeit. Dazu kommen Rundenstart, Rückgängig und Rundenende mit der zuletzt offenen Karte.
 
-Die Daten bleiben im Browser. „Protokoll herunterladen“ auf dem Zwischenstand exportiert sie als JSON. Die Eingabeart zeigt später direkt, ob Personen ab 50 lieber wischen oder tippen.
+Aus Anmeldung und Fragebogen kommen hinzu: Teilnehmer-Nr., Altersgruppe, Einwilligung, die abgeleiteten Ausschlüsse (Karten-IDs) und der Kartenstapel der Runde.
+
+Datenschutz: Der Vorname wird nie gespeichert, nur ob einer angegeben wurde. Rohantworten aus dem Fragebogen, also welche Allergie jemand hat, werden nicht gespeichert, solange Frage F4 (Einwilligung, Gesundheitsdaten) offen ist. Umschalten über `PRIVACY.logStage0Answers`.
+
+Die Daten bleiben im Browser. „Protokoll herunterladen“ auf dem Zwischenstand exportiert sie als JSON; der Dateiname enthält die Teilnehmer-Nr. „Nochmals von vorn“ beginnt ein neues Protokoll für die nächste Person. Die Eingabeart zeigt später direkt, ob Personen ab 50 lieber wischen oder tippen.
 
 ## Tastatur für Demos am Laptop
 
@@ -82,8 +118,10 @@ Die Daten bleiben im Browser. „Protokoll herunterladen“ auf dem Zwischenstan
 - Wischschwellen von 110 px seitlich und 90 px nach oben sowie die Schnipp-Erkennung. Im Pilot prüfen.
 - Illustrationen oder Fotos: Was erkennen Personen ab 50 schneller und eindeutiger? Lässt sich im Pilot direkt vergleichen.
 - Profilfortschritt in Prozent: Die Berechnung ist Teil des Konzepts (nurec v0.2, Anhang B2).
-- Stufe 0 mit den Ausschlüssen: erst nach Klärung von Datenschutz und Einwilligung (Frage F4).
+- Stufe 0 im Test: echte oder fiktive Angaben zu Allergien (Frage F4).
+- Drei statt sechs Fragen in Stufe 0: Verständlichkeit und Dauer im Pilot prüfen.
+- Anmeldung ohne Passwort: bewusst, damit der gemessene Aufwand vom Profil stammt und nicht vom Einloggen.
 
 ## Quelle
 
-Kartenkatalog, Antworttypen und Protokollfelder: nurec Präferenzanamnese v0.2, Arbeitsstand 28.09.2026.
+Kartenkatalog, Antworttypen, Stufe 0 und Protokollfelder: nurec Präferenzanamnese v0.2, Arbeitsstand 28.09.2026.

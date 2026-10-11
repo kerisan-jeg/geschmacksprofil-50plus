@@ -34,12 +34,18 @@ export function createLogger() {
       session.events.push({ type, at: new Date().toISOString(), ...data });
       persist();
     },
+    // Angaben zur Sitzung, z. B. Teilnehmer-Nr. und Altersgruppe. Nie den Vornamen übergeben.
+    setMeta(meta) {
+      Object.assign(session, meta);
+      persist();
+    },
     download() {
       const blob = new Blob([JSON.stringify(session, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
+      const code = String(session.participantCode ?? '').replace(/[^a-z0-9-]/gi, '');
       link.href = url;
-      link.download = `protokoll-${session.sessionId}.json`;
+      link.download = `protokoll-${code ? `${code}-` : ''}${session.sessionId}.json`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     },
