@@ -1,4 +1,4 @@
-import { Check, CircleDashed, Download, Lock, RotateCcw } from 'lucide-react';
+import { Check, CircleDashed, Lock, RotateCcw } from 'lucide-react';
 import Artwork from '../components/Artwork.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
 import { buildProfile } from '../logic/engine.js';
@@ -13,7 +13,7 @@ const GROUPS = [
   { key: UNRATED, label: RESULT.unrated, Icon: CircleDashed, tone: 'open' },
 ];
 
-export default function ResultScreen({ round, index, endedEarly, firstName, onboarding, onRestart, onDownloadLog }) {
+export default function ResultScreen({ round, index, endedEarly, firstName, onboarding, onRestart }) {
   const profile = buildProfile(round);
   const toCards = (ids) => ids.map((id) => index.get(id));
   const groups = {
@@ -100,25 +100,18 @@ export default function ResultScreen({ round, index, endedEarly, firstName, onbo
         </button>
       </div>
 
-      <footer className="test-lead">
-        <p>Für die Testleitung</p>
-        <button type="button" className="button-secondary" onClick={onDownloadLog}>
-          <Download aria-hidden="true" />
-          Protokoll herunterladen
-        </button>
-        {credits.length > 0 && (
-          <details className="credits">
-            <summary>Bildnachweise</summary>
-            <ul>
-              {credits.map((card) => (
-                <li key={card.id}>
-                  {card.title}: {card.image.credit.author}, {card.image.credit.source}, {card.image.credit.license}
-                </li>
-              ))}
-            </ul>
-          </details>
-        )}
-      </footer>
+      {credits.length > 0 && (
+        <details className="credits">
+          <summary>Bildnachweise</summary>
+          <ul>
+            {credits.map((card) => (
+              <li key={card.id}>
+                {card.title}: {card.image.credit.author}, {card.image.credit.source}, {card.image.credit.license}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </main>
   );
 }

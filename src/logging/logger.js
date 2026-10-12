@@ -1,53 +1,153 @@
-// Protokoll aller Ereignisse einer Sitzung.
-// Die Daten bleiben im Browser (localStorage), bis die Testleitung sie herunterlädt.
-// Es wird nichts an einen Server gesendet.
+// Protokoll pro Testperson (A9). Gespeichert wird nur im Browser (localStorage), es gibt kein
+// Backend und keine Netzwerkanfrage. Jeder Speicherzugriff steht in try/catch: Ist der Speicher
+// nicht verfügbar (z. B. privater Modus), bleibt die Sitzung im Arbeitsspeicher und die App läuft weiter.
+//
+// Sitzung:  sessionId, participantCode, startedAt, endedAt, appVersion, ruleVersion, config,
+//           onboarding { ageGroup, diet, exclusions (mit source), uncertaintyFlag, freeTextNotes },
+//           profile (wie am Ende angezeigt), events (Antworten inkl. INTOLERANT und UNDO), trace (Bildschirme).
+// Ereignis: sessionId, cardId, stage, parentId, positionInRound, response, timestamp,
+//           responseTimeMs, inputMethod, selectionReason (+ excludedCardIds, ruleVersion).
 
-import { APP_VERSION } from '../config.js';
+import { APP_VERSION, PRIVACY } from '../config.js';
 import { RULE_VERSION } from '../logic/engine.js';
 
-const STORAGE_PREFIX = 'geschmacksprofil:protokoll:';
+export const STORAGE_PREFIX = 'geschmacksprofil:session:';
 
-function newSessionId() {
-  const raw = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}${Math.random()}`;
-  return raw.replace(/[^a-z0-9]/gi, '').slice(0, 12);
+function storage() {
+  try {
+    return globalThis.localStorage ?? null;
+  } catch {
+    return null;
+  }
 }
 
-export function createLogger() {
+function newSessionId() {
+  try {
+    const raw = globalThis.crypto?.randomUUID?.();
+    if (raw) return raw.replace(/-/g, '').slice(0, 12);
+  } catch {
+    // weiter unten
+  }
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export function listSessions() {
+  const store = storage();
+  if (!store) return [];
+  const sessions = [];
+  try {
+    for (let i = 0; i < store.length; i += 1) {
+      const key = store.key(i);
+      if (!key?.startsWith(STORAGE_PREFIX)) continue;
+      try {
+        sessions.push(JSON.parse(store.getItem(key)));
+      } catch {
+        // beschädigter Eintrag: überspringen
+      }
+    }
+  } catch {
+    return [];
+  }
+  return sessions.sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)));
+}
+
+export function deleteAllSessions() {
+  const store = storage();
+  if (!store) return 0;
+  try {
+    const keys = [];
+    for (let i = 0; i < store.length; i += 1) {
+      const key = store.key(i);
+      if (key?.startsWith(STORAGE_PREFIX)) keys.push(key);
+    }
+    for (const key of keys) store.removeItem(key);
+    return keys.length;
+  } catch {
+    return 0;
+  }
+}
+
+function exclusionForLog(entry) {
+  const { type, value, source, origin, label } = entry;
+  return PRIVACY.logExclusionValues ? { type, value, source, origin: origin ?? null, label: label ?? null } : { type, source };
+}
+
+export function createLogger(config) {
   const session = {
     sessionId: newSessionId(),
+    participantCode: null,
     startedAt: new Date().toISOString(),
+    endedAt: null,
     appVersion: APP_VERSION,
     ruleVersion: RULE_VERSION,
+    config: { ...config },
+    onboarding: null,
+    profile: null,
     events: [],
+    trace: [],
   };
+  // Erst speichern, wenn sich jemand angemeldet hat: So entstehen keine leeren Sitzungen.
+  let stored = false;
 
   function persist() {
+    if (!stored) return;
     try {
-      localStorage.setItem(STORAGE_PREFIX + session.sessionId, JSON.stringify(session));
+      storage()?.setItem(STORAGE_PREFIX + session.sessionId, JSON.stringify(session));
     } catch {
-      // Speicher nicht verfügbar (z. B. privater Modus): Protokoll bleibt im Arbeitsspeicher.
+      // Speicher voll oder gesperrt: Sitzung bleibt im Arbeitsspeicher.
     }
   }
 
   return {
-    log(type, data = {}) {
-      session.events.push({ type, at: new Date().toISOString(), ...data });
+    session,
+    // Anmeldung: Teilnehmer-Nr. (optional, von der Testleitung) und Altersgruppe. Nie den Vornamen übergeben.
+    start({ participantCode, ageGroup }) {
+      session.participantCode = participantCode || null;
+      session.onboarding = { ...(session.onboarding ?? {}), ageGroup: ageGroup ?? null };
+      stored = true;
       persist();
     },
-    // Angaben zur Sitzung, z. B. Teilnehmer-Nr. und Altersgruppe. Nie den Vornamen übergeben.
-    setMeta(meta) {
-      Object.assign(session, meta);
+    setOnboarding(onboarding) {
+      session.onboarding = {
+        ageGroup: session.onboarding?.ageGroup ?? null,
+        diet: onboarding.diet ?? null,
+        exclusions: onboarding.exclusions.map(exclusionForLog),
+        uncertaintyFlag: onboarding.uncertain,
+        freeTextNotes: [...onboarding.freeTextNotes],
+      };
       persist();
     },
-    download() {
-      const blob = new Blob([JSON.stringify(session, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      const code = String(session.participantCode ?? '').replace(/[^a-z0-9-]/gi, '');
-      link.href = url;
-      link.download = `protokoll-${code ? `${code}-` : ''}${session.sessionId}.json`;
-      link.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    // Dasselbe Objekt, das auch in den Zustand der App geht (Event-Log als einzige Quelle).
+    recordEvent(event) {
+      const logged = { sessionId: session.sessionId, ...event };
+      session.events.push(logged);
+      persist();
+      return logged;
+    },
+    trace(type, data = {}) {
+      session.trace.push({ type, at: new Date().toISOString(), ...data });
+      persist();
+    },
+    finish(profile) {
+      session.endedAt = new Date().toISOString();
+      session.profile = { ...profile, exclusions: (profile.exclusions ?? []).map(exclusionForLog) };
+      persist();
     },
   };
+}
+
+export function downloadText(filename, text, type) {
+  try {
+    const blob = new Blob([text], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch {
+    // Download nicht möglich: nichts tun.
+  }
 }

@@ -3,11 +3,41 @@
 
 export const APP_VERSION = '0.4.0-demo';
 
-// Standardwerte für den Testablauf. Werden in Commit 3 durch URL-Parameter überschreibbar.
+// Standardwerte für den Testablauf (A10). URL-Parameter überschreiben sie, z. B.
+//   ?limit=6           Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 30
+//   ?tutorial=0        Mini-Tutorial aus (1 = an)
+//   ?admin=1           Ansicht für die Testleitung (Export, Sitzungen)
+// Die effektiven Werte werden in jeder Sitzung gespeichert.
+// Begründung [V]: Kernfrage 2 (Anzahl Abfragen) [A] und die Frage, ob es das Tutorial braucht [K],
+// sollen im Test ohne neuen Build vergleichbar sein.
 export const DEFAULT_CONFIG = {
-  roundCardLimit: 10, // Karten pro Runde (Kernfrage 2: Anzahl Abfragen)
-  tutorial: true, // Mini-Tutorial vor der ersten Runde
+  roundCardLimit: 10,
+  tutorial: true,
 };
+
+export const ROUND_CARD_LIMIT_RANGE = { min: 4, max: 30 };
+
+// Ungültige Werte fallen still auf den Standard zurück.
+export function resolveConfig(search = '') {
+  const params = new URLSearchParams(search);
+  const config = { ...DEFAULT_CONFIG };
+
+  const limit = params.get('limit');
+  if (limit !== null && /^\d+$/.test(limit.trim())) {
+    const value = Number(limit.trim());
+    if (value >= ROUND_CARD_LIMIT_RANGE.min && value <= ROUND_CARD_LIMIT_RANGE.max) config.roundCardLimit = value;
+  }
+
+  const tutorial = params.get('tutorial');
+  if (tutorial === '0') config.tutorial = false;
+  else if (tutorial === '1') config.tutorial = true;
+
+  return config;
+}
+
+export function isAdminMode(search = '') {
+  return new URLSearchParams(search).get('admin') === '1';
+}
 
 // Beschriftungen stehen in src/labels.js.
 
@@ -28,10 +58,10 @@ export const FEATURES = {
   haptics: true, // kurzes Vibrieren bei einer Antwort (nur Android)
 };
 
-// Datenschutz im Protokoll. Solange Einwilligung und Umgang mit Gesundheitsdaten nicht geklärt sind
-// (Frage F4 an Tibor), speichert das Protokoll keine Rohantworten aus dem Fragebogen,
-// also nicht, welche Allergie jemand hat. Es speichert nur die daraus abgeleiteten Karten-IDs,
-// weil die Auswertung wissen muss, welche Karten gezeigt wurden. Der Vorname wird nie gespeichert.
+// Datenschutz im Protokoll. Der Vorname wird nie gespeichert.
+// Seit dem Addendum (A9) speichert jede Sitzung die Ausschlüsse mit source, also z. B. welche Allergie
+// jemand angegeben hat. Das sind Gesundheitsdaten; Einwilligung und Umgang (Frage F4) sind noch offen.
+// Mit false werden statt der Werte nur Typ und Herkunft gespeichert (z. B. "allergen" aus "onboarding").
 export const PRIVACY = {
-  logStage0Answers: false,
+  logExclusionValues: true,
 };

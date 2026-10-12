@@ -55,7 +55,7 @@ export default function DetailPicker({ title, intro, allLabel, sections, initial
       <div className="sheet" role="dialog" aria-modal="true" aria-labelledby={headingId} onClick={(event) => event.stopPropagation()}>
         <div className="sheet-head">
           <h2 id={headingId} ref={headingRef} tabIndex={-1}>{title}</h2>
-          <button type="button" className="icon-button" onClick={onCancel} aria-label={PICKER.cancel}>
+          <button type="button" className="icon-button" onClick={onCancel} aria-label={PICKER.close}>
             <X aria-hidden="true" />
           </button>
         </div>

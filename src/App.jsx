@@ -2,7 +2,7 @@ import { useEffect, useMemo, useReducer, useState } from 'react';
 import catalog from './data/catalog.json';
 import stage0 from './data/stage0.json';
 import allergens from './data/allergens.json';
-import { DEFAULT_CONFIG } from './config.js';
+import { isAdminMode, resolveConfig } from './config.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
 import {
@@ -23,13 +23,16 @@ import SummaryScreen from './screens/SummaryScreen.jsx';
 import IntroScreen from './screens/IntroScreen.jsx';
 import RoundScreen from './screens/RoundScreen.jsx';
 import ResultScreen from './screens/ResultScreen.jsx';
+import AdminScreen from './screens/AdminScreen.jsx';
 
 // Ablauf: Start → Anmelden → Fragebogen (Stufe 0) → Zusammenfassung → Erklärung → Runde → Zwischenstand
 const INDEX = indexCatalog(catalog.cards);
 const FAMILIES = catalog.cards.filter((card) => card.stage === 1);
 const EMPTY_PROFILE = { firstName: '', ageGroup: null, participantCode: '', consent: false };
+// Effektive Werte aus Standard und URL (A10), einmal beim Laden bestimmt.
+const CONFIG = resolveConfig(typeof window === 'undefined' ? '' : window.location.search);
 
-function initialState(config = DEFAULT_CONFIG) {
+function initialState(config = CONFIG) {
   return {
     screen: 'start',
     config,
@@ -79,51 +82,53 @@ function reducer(state, action) {
   }
 }
 
-export default function App() {
+// Ansicht für die Testleitung nur über ?admin=1 (A9); für Testpersonen nicht auffindbar.
+export default function Root() {
+  return isAdminMode(window.location.search) ? <AdminScreen /> : <App />;
+}
+
+function App() {
   // Ein Protokoll pro Testperson. „Nochmals von vorn“ beginnt ein neues.
-  const [logger, setLogger] = useState(() => createLogger());
+  const [logger, setLogger] = useState(() => createLogger(CONFIG));
   const [state, dispatch] = useReducer(reducer, undefined, () => initialState());
   const { screen, config, profile, answers, step, onboarding, events, endedEarly } = state;
   const round = useMemo(() => (onboarding ? roundOf(state) : null), [onboarding, events]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    logger.log('screen', screen === 'questions' ? { screen, step } : { screen });
+    logger.trace('screen', screen === 'questions' ? { screen, step } : { screen });
     window.scrollTo(0, 0);
   }, [screen, step, logger]);
 
   useEffect(() => {
     if (screen !== 'result' || !round) return;
-    logger.log('round_end', { completed: !endedEarly, answered: round.sequence.length, profile: buildProfile(round) });
+    logger.trace('round_end', { completed: !endedEarly, answered: round.sequence.length });
+    logger.finish(buildProfile(round));
     // Nur beim Wechsel auf den Zwischenstand protokollieren.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
   // Der Vorname bleibt nur auf dem Bildschirm; protokolliert wird nur, ob einer angegeben wurde.
   function handleLogin(nextProfile) {
-    const meta = { participantCode: nextProfile.participantCode || null, ageGroup: nextProfile.ageGroup ?? null };
-    logger.setMeta(meta);
-    logger.log('login', { ...meta, consent: true, nameGiven: nextProfile.firstName !== '' });
+    logger.start({ participantCode: nextProfile.participantCode, ageGroup: nextProfile.ageGroup });
+    logger.trace('login', { consent: true, nameGiven: nextProfile.firstName !== '' });
     dispatch({ type: 'login', profile: nextProfile });
   }
 
   function handleConfirmStage0() {
-    logger.log('stage0_confirm', {
-      diet: onboarding.diet,
-      exclusions: onboarding.exclusions,
-      uncertain: onboarding.uncertain,
-      freeTextNotes: onboarding.freeTextNotes,
-      deck: eligibleFamilies(round).map((card) => card.id),
-    });
-    dispatch({ type: 'go', screen: 'intro' });
+    logger.setOnboarding(onboarding);
+    logger.trace('stage0_confirm', { eligible: eligibleFamilies(round).map((card) => card.id) });
+    // Ohne Tutorial (?tutorial=0) direkt zur ersten Karte.
+    if (config.tutorial) dispatch({ type: 'go', screen: 'intro' });
+    else startRound();
   }
 
   function handleEditStage0() {
-    logger.log('stage0_edit');
+    logger.trace('stage0_edit');
     dispatch({ type: 'editStage0' });
   }
 
   function startRound() {
-    logger.log('round_start', { roundCardLimit: config.roundCardLimit });
+    logger.trace('round_start', { roundCardLimit: config.roundCardLimit, tutorial: config.tutorial });
     dispatch({ type: 'go', screen: 'round' });
   }
 
@@ -142,8 +147,7 @@ export default function App() {
       ruleVersion: RULE_VERSION,
       ...(extra.excludedCardIds ? { excludedCardIds: extra.excludedCardIds } : {}),
     };
-    logger.log('answer', event);
-    dispatch({ type: 'event', event });
+    dispatch({ type: 'event', event: logger.recordEvent(event) });
   }
 
   function handleAnswer(card, response, inputMethod, responseTimeMs, positionInRound, excludedCardIds) {
@@ -158,8 +162,8 @@ export default function App() {
   }
 
   function handleRestart() {
-    logger.log('restart');
-    setLogger(createLogger());
+    logger.trace('restart');
+    setLogger(createLogger(config));
     dispatch({ type: 'restart' });
   }
 
@@ -218,7 +222,6 @@ export default function App() {
           firstName={profile.firstName}
           onboarding={onboarding}
           onRestart={handleRestart}
-          onDownloadLog={() => logger.download()}
         />
       );
   }

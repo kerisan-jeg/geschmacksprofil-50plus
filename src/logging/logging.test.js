@@ -1,0 +1,102 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { CSV_COLUMNS, EVENT_FIELDS, sessionsToCsv, summarizeSession } from './export.js';
+
+// localStorage-Ersatz für Node
+function fakeStorage({ broken = false } = {}) {
+  const data = new Map();
+  const fail = () => {
+    if (broken) throw new Error('SecurityError');
+  };
+  return {
+    get length() { fail(); return data.size; },
+    key(i) { fail(); return [...data.keys()][i] ?? null; },
+    getItem(key) { fail(); return data.has(key) ? data.get(key) : null; },
+    setItem(key, value) { fail(); data.set(key, String(value)); },
+    removeItem(key) { fail(); data.delete(key); },
+  };
+}
+
+const { createLogger, deleteAllSessions, listSessions } = await import('./logger.js');
+
+const event = {
+  cardId: 'F13',
+  stage: 1,
+  parentId: null,
+  positionInRound: 2,
+  response: 'INTOLERANT',
+  timestamp: '2026-10-12T10:00:00.000Z',
+  responseTimeMs: 1830,
+  inputMethod: 'link',
+  selectionReason: 'stage1_fixed_order',
+  excludedCardIds: ['F13.1.1'],
+};
+
+test('CSV-Export enthält alle Pflichtfelder und eine Zeile pro Ereignis mit sessionId', () => {
+  for (const field of EVENT_FIELDS) assert.ok(CSV_COLUMNS.includes(field), field);
+  const sessions = [
+    { sessionId: 'abc', participantCode: 'T07', config: { roundCardLimit: 10, tutorial: true }, events: [event, { ...event, response: 'UNDO' }] },
+    { sessionId: 'def', participantCode: null, config: { roundCardLimit: 6, tutorial: false }, events: [{ ...event, cardId: 'F01', response: 'LIKE' }] },
+  ];
+  const lines = sessionsToCsv(sessions).trim().split('\r\n');
+  const header = lines[0].split(',');
+  assert.deepEqual(header, CSV_COLUMNS);
+  assert.equal(lines.length, 4);
+  const rows = lines.slice(1).map((line) => Object.fromEntries(line.split(',').map((cell, i) => [header[i], cell])));
+  assert.deepEqual(rows.map((row) => row.sessionId), ['abc', 'abc', 'def']);
+  assert.equal(rows[0].response, 'INTOLERANT');
+  assert.equal(rows[0].excludedCardIds, 'F13.1.1');
+  assert.equal(rows[0].inputMethod, 'link');
+  assert.equal(rows[0].responseTimeMs, '1830');
+  assert.equal(rows[2].roundCardLimit, '6');
+  for (const row of rows) for (const field of EVENT_FIELDS) assert.ok(field in row, field);
+});
+
+test('CSV maskiert Kommas und Anführungszeichen', () => {
+  const csv = sessionsToCsv([{ sessionId: 'x', participantCode: 'A,"B"', events: [event] }]);
+  assert.ok(csv.includes('"A,""B"""'));
+});
+
+test('Logger speichert erst nach der Anmeldung, dann Onboarding, Ereignisse und Profil', () => {
+  globalThis.localStorage = fakeStorage();
+  const logger = createLogger({ roundCardLimit: 8, tutorial: false });
+  logger.trace('screen', { screen: 'start' });
+  assert.equal(listSessions().length, 0, 'keine leere Sitzung');
+  logger.start({ participantCode: 'T01', ageGroup: '60-69' });
+  logger.setOnboarding({
+    diet: 'vegan',
+    exclusions: [{ type: 'allergen', value: 'hazelnut', source: 'onboarding', origin: 'intolerances', label: 'Haselnuss' }],
+    uncertain: true,
+    freeTextNotes: ['Koriander'],
+  });
+  const logged = logger.recordEvent(event);
+  assert.equal(logged.sessionId, logger.session.sessionId);
+  logger.recordEvent({ ...event, response: 'UNDO' });
+  logger.finish({ taste: {}, exclusions: [] });
+  const [session] = listSessions();
+  assert.equal(session.participantCode, 'T01');
+  assert.deepEqual(session.config, { roundCardLimit: 8, tutorial: false });
+  assert.equal(session.onboarding.ageGroup, '60-69');
+  assert.equal(session.onboarding.diet, 'vegan');
+  assert.equal(session.onboarding.uncertaintyFlag, true);
+  assert.deepEqual(session.onboarding.freeTextNotes, ['Koriander']);
+  assert.equal(session.onboarding.exclusions[0].source, 'onboarding');
+  assert.equal(session.events.length, 2);
+  assert.ok(session.endedAt && session.profile);
+  const summary = summarizeSession(session);
+  assert.equal(summary.finished, true);
+  assert.equal(summary.answers, 0, 'rückgängig gemachte Antwort zählt nicht');
+  assert.equal(summary.undos, 1);
+  assert.equal(deleteAllSessions(), 1);
+  assert.equal(listSessions().length, 0);
+});
+
+test('Gesperrter Speicher bricht nichts ab', () => {
+  globalThis.localStorage = fakeStorage({ broken: true });
+  const logger = createLogger({ roundCardLimit: 10, tutorial: true });
+  logger.start({ participantCode: '', ageGroup: null });
+  logger.recordEvent(event);
+  assert.equal(logger.session.events.length, 1);
+  assert.deepEqual(listSessions(), []);
+  assert.equal(deleteAllSessions(), 0);
+});

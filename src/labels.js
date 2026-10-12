@@ -77,6 +77,7 @@ export const ONBOARDING = {
 export const PICKER = {
   confirm: 'Übernehmen',
   cancel: 'Abbrechen',
+  close: 'Schliessen',
   selectSection: (label) => `Alle ${label}`,
   nothingSelected: 'Bitte wähle mindestens einen Eintrag.',
 };

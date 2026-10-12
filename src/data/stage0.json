@@ -13,7 +13,7 @@
       "covers": "0.4",
       "type": "single",
       "source": "Ernährungsweise",
-      "title": "Hältst du eine feste Ernährungsweise ein?",
+      "title": "Hältst du eine feste Ernährungs\u00ADweise ein?",
       "hint": "Nur was du immer einhältst. Isst du meistens vegetarisch, aber nicht immer, wähle „Nein“.",
       "options": [
         { "id": "none", "label": "Nein, ich esse alles" },
