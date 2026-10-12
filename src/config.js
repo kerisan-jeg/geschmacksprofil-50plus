@@ -1,7 +1,13 @@
 // Zentrale Einstellungen des Prototyps.
 // Alles, was im Pilot variiert werden soll (Wortlaut, Schwellen, Funktionen), steht hier.
 
-export const APP_VERSION = '0.3.0-demo';
+export const APP_VERSION = '0.4.0-demo';
+
+// Standardwerte für den Testablauf. Werden in Commit 3 durch URL-Parameter überschreibbar.
+export const DEFAULT_CONFIG = {
+  roundCardLimit: 10, // Karten pro Runde (Kernfrage 2: Anzahl Abfragen)
+  tutorial: true, // Mini-Tutorial vor der ersten Runde
+};
 
 // Beschriftung der Antworten. Der Wortlaut von LIKE ist laut nurec v0.2 (Kap. 4)
 // noch offen ("mag ich" oder "würde ich essen") und wird im Pilot geprüft.

@@ -1405,3 +1405,440 @@ h1:focus {
     transition: none;
   }
 }
+
+/* Allergene: Kacheln, Suche, Chips (A5) */
+
+.allergen-picker,
+.never-picker {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+  min-height: 4.2rem;
+  padding: 0.6rem 0.6rem 0.6rem 0.8rem;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms, background-color 140ms, transform 120ms;
+}
+
+.tile:hover {
+  border-color: #c2cdc3;
+}
+
+.tile:active {
+  transform: scale(0.985);
+}
+
+.tile.is-checked {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 7%, var(--surface));
+}
+
+.tile-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.tile-label {
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+  hyphens: manual;
+}
+
+.tile-detail {
+  color: var(--ink-2);
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+/* Einzelne Allergene: Häkchen nur bei Auswahl, als Abzeichen in der Ecke (Text bekommt die volle Breite).
+   Auswahl ist so an Rahmen, Hintergrund UND Symbol erkennbar, nicht an Farbe allein. */
+.tile-mark {
+  position: absolute;
+  top: -0.55rem;
+  right: -0.55rem;
+  display: none;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 2px solid var(--canvas);
+  border-radius: 50%;
+  background: var(--brand);
+  color: #fff;
+}
+
+.tile.is-checked .tile-mark {
+  display: grid;
+}
+
+/* Kacheln mit Unterauswahl (Nüsse, Gluten): Pfeil im Fluss */
+.tile[aria-haspopup] .tile-mark {
+  position: static;
+  display: grid;
+  flex: none;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 0;
+  background: none;
+  color: var(--ink-2);
+}
+
+.tile.is-checked[aria-haspopup] .tile-mark {
+  background: var(--brand);
+  color: #fff;
+}
+
+.tile-mark svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.more-button {
+  justify-self: start;
+  margin: -0.2rem -0.55rem 0;
+}
+
+.more-button svg {
+  transition: transform 160ms;
+}
+
+.more-button svg.is-flipped {
+  transform: rotate(180deg);
+}
+
+.search {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.search-label {
+  font-weight: 700;
+}
+
+.search-input-wrap {
+  position: relative;
+}
+
+.search-input-wrap > svg {
+  position: absolute;
+  top: 50%;
+  left: 0.95rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--ink-2);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.search-input {
+  padding-left: 2.8rem;
+}
+
+.search-results {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.search-hit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 3.2rem;
+  padding: 0.5rem 0.9rem;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.search-hit.is-selected {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 7%, var(--surface));
+}
+
+.search-hit svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  color: var(--brand);
+}
+
+.search-hit-text {
+  display: grid;
+  min-width: 0;
+}
+
+.search-hit-label {
+  font-weight: 700;
+}
+
+.search-hit-detail {
+  color: var(--ink-2);
+  font-size: 0.95rem;
+}
+
+.note-offer {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.note-offer .button-secondary {
+  min-height: 3.2rem;
+  padding: 0.4rem 1rem;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.chips-block {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.chips-title {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.chips,
+.quick-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding-left: 0.95rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--brand) 11%, var(--surface));
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.chip.is-note {
+  background: color-mix(in srgb, var(--unknown) 10%, var(--surface));
+  color: #2f3f57;
+}
+
+.chip-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chip-tag {
+  margin-right: 0.4rem;
+  font-weight: 400;
+}
+
+.chip-remove {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.chip-remove svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.pick {
+  min-height: 2.9rem;
+  padding: 0.4rem 1.05rem;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pick.is-checked {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+
+.notice-warn {
+  background: color-mix(in srgb, var(--prefer) 12%, var(--surface));
+  color: #5c3d05;
+}
+
+.notes-panel {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.notes-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.12rem;
+}
+
+.notes-panel h2 svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.notes-panel .rule-chips {
+  margin-top: 0;
+}
+
+/* Detailauswahl als Bottom Sheet */
+
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(22, 36, 29, 0.45);
+  animation: fade-in 160ms ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 28rem;
+  max-height: 92dvh;
+  padding: 1.1rem 1.15rem max(1.1rem, env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
+  background: var(--canvas);
+  box-shadow: 0 -12px 32px -18px rgba(22, 36, 29, 0.5);
+  animation: sheet-in 220ms var(--ease-out);
+}
+
+@keyframes sheet-in {
+  from { transform: translateY(24px); opacity: 0; }
+}
+
+.sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.sheet-head h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.sheet-head h2:focus {
+  outline: none;
+}
+
+.icon-button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -0.3rem -0.4rem 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: rgba(22, 36, 29, 0.06);
+}
+
+.icon-button svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.sheet-body {
+  display: grid;
+  gap: 0.9rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0.2rem 0.15rem 0.4rem;
+}
+
+.sheet-section {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.sheet-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 0.6rem;
+}
+
+.sheet-section-head h3 {
+  font-size: 1.05rem;
+}
+
+.sheet-section-head .link-button {
+  margin: 0;
+}
+
+.sheet-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 0.6rem;
+}
+
+.sheet-actions .button-primary,
+.sheet-actions .button-secondary {
+  min-height: 3.2rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .sheet-backdrop {
+    animation: none;
+  }
+}

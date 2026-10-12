@@ -10,9 +10,9 @@ import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 // Tastatur für Demos am Laptop: Pfeiltasten und K für "Kenne ich nicht".
 const KEY_TO_ANSWER = { ArrowLeft: DISLIKE, ArrowRight: LIKE, ArrowUp: PREFER, k: UNFAMILIAR, K: UNFAMILIAR };
 
-export default function RoundScreen({ round, canUndo, onAnswer, onUndo, onEndRound }) {
-  const card = nextCard(round);
-  const { answered, total } = progress(round);
+export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, onEndRound }) {
+  const card = nextCard(round, config);
+  const { answered, total } = progress(round, config);
   const cardRef = useRef(null);
   const shownAt = useRef(0);
   const [intent, setIntent] = useState(null);

@@ -1,6 +1,12 @@
 {
   "source": "nurec Präferenzanamnese v0.2 (Arbeitsstand 28.09.2026), Kap. 2: Stufe 0 mit den Bereichen 0.1 bis 0.5 und Abschluss 2.2",
-  "note": "Eigener Vorschlag für Personen ab 50: die Bereiche 0.1 bis 0.5 als drei kurze Fragen. Bereich 0.6 (Marken und Händler) ist im Prototyp nicht enthalten. Die Zuordnung zu Karten-IDs ist ein Entwurf und wird im Konzept geprüft.",
+  "note": "Eigener Vorschlag für Personen ab 50 [V]: die Bereiche 0.1 bis 0.5 als drei kurze Fragen. Bereich 0.6 (Marken und Händler) ist im Prototyp nicht enthalten. Ausschlüsse wirken über Tags der Karten (allergens, animalOrigin) oder über Katalog-IDs, nie über fest verdrahtete Kartenlisten.",
+  "diets": {
+    "none": { "excludesAnimalOrigin": [] },
+    "pescetarian": { "excludesAnimalOrigin": ["meat"], "rule": "Pescetarisch: kein Fleisch" },
+    "vegetarian": { "excludesAnimalOrigin": ["meat", "fish", "seafood"], "rule": "Vegetarisch: kein Fleisch und kein Fisch" },
+    "vegan": { "excludesAnimalOrigin": ["meat", "fish", "seafood", "dairy", "egg", "honey"], "rule": "Vegan: nichts vom Tier" }
+  },
   "questions": [
     {
       "id": "diet",
@@ -11,15 +17,15 @@
       "hint": "Nur was du immer einhältst. Isst du meistens vegetarisch, aber nicht immer, wähle „Nein“.",
       "options": [
         { "id": "none", "label": "Nein, ich esse alles" },
-        { "id": "pescetarian", "label": "Pescetarisch", "detail": "Kein Fleisch, aber Fisch", "rule": "Pescetarisch: kein Fleisch", "excludes": ["F01"] },
-        { "id": "vegetarian", "label": "Vegetarisch", "detail": "Kein Fleisch und kein Fisch", "rule": "Vegetarisch: kein Fleisch und kein Fisch", "excludes": ["F01", "F02"] },
-        { "id": "vegan", "label": "Vegan", "detail": "Nichts vom Tier", "rule": "Vegan: nichts vom Tier", "excludes": ["F01", "F02", "F03", "F04"] }
+        { "id": "pescetarian", "label": "Pescetarisch", "detail": "Kein Fleisch, aber Fisch" },
+        { "id": "vegetarian", "label": "Vegetarisch", "detail": "Kein Fleisch und kein Fisch" },
+        { "id": "vegan", "label": "Vegan", "detail": "Nichts vom Tier" }
       ]
     },
     {
       "id": "intolerances",
       "covers": "0.1 bis 0.3",
-      "type": "gate",
+      "type": "allergens",
       "source": "Allergie oder Unverträglichkeit",
       "title": "Gibt es etwas, das du nicht verträgst?",
       "hint": "Zum Beispiel eine Allergie, eine Unverträglichkeit oder eine ärztliche Vorgabe wie bei Zöliakie.",
@@ -29,53 +35,34 @@
         { "id": "unsure", "label": "Unsicher" }
       ],
       "detailTitle": "Was verträgst du nicht?",
-      "detailHint": "Wähle alles, was zutrifft. Die Liste hilft beim Erinnern und ersetzt keine Diagnose.",
-      "unsureText": "Bei den Unverträglichkeiten bist du unsicher. Wir fragen später genauer nach und schlagen bis dahin nichts als sicher vor.",
-      "options": [
-        { "id": "gluten", "label": "Gluten", "detail": "z. B. Zöliakie", "constraint": "gluten-free" },
-        { "id": "lactose", "label": "Laktose", "constraint": "lactose-free" },
-        { "id": "milk", "label": "Milch", "detail": "Allergie auf Milcheiweiss", "excludes": ["F04"] },
-        { "id": "egg", "label": "Eier", "excludes": ["F03"] },
-        { "id": "fish", "label": "Fisch", "excludes": ["F02.1"] },
-        { "id": "crustaceans", "label": "Krebstiere", "detail": "z. B. Garnelen", "excludes": ["F02.2"] },
-        { "id": "molluscs", "label": "Weichtiere", "detail": "z. B. Muscheln", "excludes": ["F02.3"] },
-        { "id": "nuts", "label": "Nüsse", "detail": "z. B. Mandeln", "excludes": ["F13.1"] },
-        { "id": "peanuts", "label": "Erdnüsse" },
-        { "id": "soy", "label": "Soja", "excludes": ["F05.4"] },
-        { "id": "sesame", "label": "Sesam", "hidesExamples": ["Sesam"] },
-        { "id": "celery", "label": "Sellerie" },
-        { "id": "mustard", "label": "Senf" },
-        { "id": "lupins", "label": "Lupinen" },
-        { "id": "sulfites", "label": "Sulfite" }
-      ]
+      "detailHint": "Tippe alles an, was zutrifft. Die Liste hilft beim Erinnern und ersetzt keine Diagnose."
     },
     {
       "id": "never",
       "covers": "0.5",
-      "type": "gate",
+      "type": "never",
       "source": "Nie vorschlagen",
       "title": "Gibt es etwas, das wir dir nie vorschlagen dürfen?",
-      "hint": "Egal aus welchem Grund, du musst nichts begründen. Was du nur nicht so gern isst, kommt später beim Wischen.",
+      "hint": "Egal aus welchem Grund, du musst nichts begründen. Was du einfach nicht magst, kannst du später beim Wischen angeben.",
       "gate": [
         { "id": "yes", "label": "Ja" },
         { "id": "no", "label": "Nein" }
       ],
       "detailTitle": "Was sollen wir weglassen?",
-      "detailHint": "Wähle alles, was zutrifft.",
-      "options": [
-        { "id": "pork", "label": "Schweinefleisch", "excludes": ["F01.3"] },
-        { "id": "beef", "label": "Rindfleisch", "excludes": ["F01.2"] },
-        { "id": "poultry", "label": "Geflügel", "excludes": ["F01.1"] },
-        { "id": "fish", "label": "Fisch", "excludes": ["F02.1"] },
-        { "id": "seafood", "label": "Meeresfrüchte", "excludes": ["F02.2", "F02.3"] },
-        { "id": "eggs", "label": "Eier", "excludes": ["F03"] },
-        { "id": "dairy", "label": "Milchprodukte", "excludes": ["F04"] },
-        { "id": "soy", "label": "Tofu und Soja", "excludes": ["F05.4"] }
-      ]
+      "detailHint": "Tippe auf ein Beispiel oder suche nach einem Lebensmittel.",
+      "quickPicks": [
+        { "key": "card:F01.3", "label": "Schweinefleisch" },
+        { "key": "card:F01.2", "label": "Rindfleisch" },
+        { "key": "animalOrigin:seafood", "label": "Meeresfrüchte" },
+        { "key": "card:F05.4", "label": "Tofu und Soja" }
+      ],
+      "tagLabels": {
+        "animalOrigin:meat": "Fleisch",
+        "animalOrigin:fish": "Fisch",
+        "animalOrigin:seafood": "Meeresfrüchte",
+        "animalOrigin:dairy": "Milchprodukte",
+        "animalOrigin:egg": "Eier"
+      }
     }
-  ],
-  "constraints": {
-    "gluten-free": { "badge": "Nur glutenfrei", "summary": "Brot, Pasta, Reis und Getreide nur glutenfrei", "targets": ["F06", "F07", "F08"] },
-    "lactose-free": { "badge": "Nur laktosefrei", "summary": "Milchprodukte nur laktosefrei", "targets": ["F04"] }
-  }
+  ]
 }

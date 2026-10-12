@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, CircleAlert } from 'lucide-react';
+import { ChevronLeft, CircleAlert, CircleHelp } from 'lucide-react';
 import ChoiceList from '../components/ChoiceList.jsx';
+import AllergenPicker from '../components/AllergenPicker.jsx';
+import NeverPicker from '../components/NeverPicker.jsx';
 import SegmentedProgress from '../components/SegmentedProgress.jsx';
 import { isAnswered } from '../logic/stage0.js';
+import { ONBOARDING } from '../labels.js';
 
 // Stufe 0 als kurzer Fragebogen: eine Frage pro Bildschirm.
 // Erst bei „Ja“ erscheint die Detailauswahl (nurec v0.2, Kap. 2: nur bei „vorhanden“ nachfragen).
-export default function QuestionnaireScreen({ questions, step, answers, firstName, onChange, onStep }) {
+export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, onChange, onStep }) {
   const question = questions[step];
   const answer = answers[question.id];
   const last = step === questions.length - 1;
@@ -28,13 +31,6 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
     setShowError(false);
   }
 
-  function toggle(optionId) {
-    const selected = answer.selected.includes(optionId)
-      ? answer.selected.filter((id) => id !== optionId)
-      : [...answer.selected, optionId];
-    update({ ...answer, selected });
-  }
-
   function handleNext() {
     if (!isAnswered(question, answer)) {
       setShowError(true);
@@ -45,7 +41,7 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
 
   const kicker = step === 0 && firstName ? `Hallo ${firstName}!` : 'Bevor es losgeht';
   const errorText =
-    question.type === 'gate' && answer?.gate === 'yes'
+    question.type !== 'single' && answer?.gate === 'yes'
       ? 'Bitte wähle mindestens einen Punkt aus oder ändere die Antwort oben.'
       : 'Bitte wähle eine Antwort aus.';
 
@@ -89,16 +85,17 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
             <section className="detail-block" aria-labelledby={`d-${question.id}`}>
               <h2 id={`d-${question.id}`}>{question.detailTitle}</h2>
               <p className="note">{question.detailHint}</p>
-              <ChoiceList
-                name={`${question.id}-detail`}
-                multiple
-                layout="wrap"
-                options={question.options}
-                value={answer.selected}
-                onChange={toggle}
-                labelledBy={`d-${question.id}`}
-              />
+              {question.type === 'allergens' && <AllergenPicker data={allergens} answer={answer} onChange={update} />}
+              {question.type === 'never' && (
+                <NeverPicker question={question} catalogIndex={catalogIndex} answer={answer} onChange={update} />
+              )}
             </section>
+          )}
+          {question.type === 'allergens' && answer.gate === 'unsure' && (
+            <p className="notice">
+              <CircleHelp aria-hidden="true" />
+              {ONBOARDING.unsureHint}
+            </p>
           )}
         </>
       )}

@@ -1,12 +1,14 @@
-import { CircleHelp, Lock, PencilLine, ShieldCheck } from 'lucide-react';
+import { CircleAlert, CircleHelp, Lock, NotebookPen, PencilLine, ShieldCheck } from 'lucide-react';
 import Artwork from '../components/Artwork.jsx';
+import { ONBOARDING, SUMMARY } from '../labels.js';
 
 // Abschluss von Stufe 0 (nurec v0.2, Kap. 2.2): verständliche Zusammenfassung vor dem ersten Swipe,
 // die Person bestätigt oder korrigiert. Darunter sieht man, welche Gruppen dadurch wegfallen.
-export default function SummaryScreen({ families, rules, round, unsureTexts, firstName, onConfirm, onEdit }) {
-  const inDeck = new Set(round.cards.map((card) => card.id));
+export default function SummaryScreen({ families, eligibleIds, roundSize, onboarding, firstName, onConfirm, onEdit }) {
+  const inDeck = new Set(eligibleIds);
   const omitted = families.filter((card) => !inDeck.has(card.id));
-  const hasRules = rules.rules.length > 0;
+  const { rules, uncertain, freeTextNotes } = onboarding;
+  const hasRules = rules.length > 0;
 
   return (
     <main className="screen screen-summary">
@@ -23,10 +25,10 @@ export default function SummaryScreen({ families, rules, round, unsureTexts, fir
 
       {hasRules && (
         <ul className="rule-panel">
-          {rules.rules.map((rule) => (
+          {rules.map((rule) => (
             <li key={rule.id} className={`rule rule-${rule.kind}`}>
               <span className="rule-icon">
-                {rule.kind === 'constraint' ? <ShieldCheck aria-hidden="true" /> : <Lock aria-hidden="true" />}
+                <Lock aria-hidden="true" />
               </span>
               <span>
                 <strong>{rule.text}</strong>
@@ -37,12 +39,28 @@ export default function SummaryScreen({ families, rules, round, unsureTexts, fir
         </ul>
       )}
 
-      {unsureTexts.map((text) => (
-        <p key={text} className="notice">
+      {freeTextNotes.length > 0 && (
+        <section className="notes-panel" aria-labelledby="notes-title">
+          <h2 id="notes-title">
+            <NotebookPen aria-hidden="true" />
+            {SUMMARY.notesTitle}
+          </h2>
+          <ul className="rule-chips">
+            {freeTextNotes.map((note) => <li key={note}>{note}</li>)}
+          </ul>
+          <p className="notice notice-warn">
+            <CircleAlert aria-hidden="true" />
+            {ONBOARDING.noteNotApplied}
+          </p>
+        </section>
+      )}
+
+      {uncertain && (
+        <p className="notice">
           <CircleHelp aria-hidden="true" />
-          {text}
+          {ONBOARDING.unsureHint}
         </p>
-      ))}
+      )}
 
       <button type="button" className="button-secondary" onClick={onEdit}>
         <PencilLine aria-hidden="true" />
@@ -50,7 +68,7 @@ export default function SummaryScreen({ families, rules, round, unsureTexts, fir
       </button>
 
       <section className="deck-preview" aria-labelledby="deck-title">
-        <h2 id="deck-title">Deine erste Runde: {round.cards.length} Karten</h2>
+        <h2 id="deck-title">Deine erste Runde: {roundSize} Karten</h2>
         <p className="note">
           {omitted.length > 0
             ? `Weggelassen: ${omitted.map((card) => card.title).join(', ')}.`

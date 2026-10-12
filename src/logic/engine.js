@@ -1,53 +1,132 @@
-// Austauschbare Logik. Die Oberfläche kennt nur die exportierten Funktionen.
+// Engine des Prototyps. Die Oberfläche kennt nur die exportierten Funktionen.
 //
-// Version demo-0.1: feste Reihenfolge der Stufe-1-Karten, keine Vertiefung.
-// In Phase 2 ersetzt die adaptive Logik nextCard() und applyAnswer(),
-// ohne dass die Oberfläche angepasst werden muss. Alle Funktionen sind rein
-// (kein Zufall, keine Uhrzeit), damit sich ein Profil aus dem Protokoll
-// jederzeit nachrechnen lässt.
+// Event-Log als einzige Quelle der Wahrheit (A8): Der Zustand einer Runde wird immer aus der
+// Liste der Antwort-Ereignisse abgeleitet (replay). Rückgängig ist ein eigenes Ereignis (UNDO),
+// nichts wird gelöscht. So laufen Oberfläche, Profil und Protokoll nie auseinander, und jedes
+// Profil lässt sich aus dem exportierten Protokoll nachrechnen.
+//
+// Alle Funktionen sind rein (kein Zufall, keine Uhrzeit).
 
-import { ANSWER_ORDER, UNRATED } from './answers.js';
+import { DISLIKE, INTOLERANT, LIKE, PREFER, RESPONSE_SEMANTICS, RESPONSES, UNDO, UNFAMILIAR, isTasteSignal } from './answers.js';
+import { annotateCard, buildExclusions, isVisible } from './filter.js';
+import { SOURCE_SWIPE } from './stage0.js';
 
-export const RULE_VERSION = 'demo-0.1';
+export const RULE_VERSION = 'demo-0.2';
 
-// Harte Ausschlüsse aus Stufe 0 werden vor jeder Auswahl entfernt (nurec v0.2, Kap. 2.2).
-export function createRound(catalogCards, level = 1, { excludedIds = [] } = {}) {
-  const excluded = new Set(excludedIds);
-  const cards = catalogCards.filter((card) => card.level === level && !excluded.has(card.id));
-  return { level, cards, answers: {}, sequence: [] };
+// Antwort-Ereignis (so wird es auch protokolliert, siehe logging/logger.js):
+// { cardId, stage, parentId, positionInRound, response, timestamp, responseTimeMs,
+//   inputMethod, selectionReason, excludedCardIds? }
+// excludedCardIds nur bei INTOLERANT: welche Karten künftig ausgeschlossen sind
+// (die Karte selbst oder eine Auswahl ihrer Nachkommen).
+
+// Spielt die Ereignisse ab. UNDO nimmt die jeweils letzte noch gültige Antwort zurück.
+export function replay(events) {
+  const active = [];
+  for (const event of events) {
+    if (event.response === UNDO) {
+      active.pop();
+      continue;
+    }
+    if (!RESPONSES.includes(event.response)) continue;
+    if (active.some((earlier) => earlier.cardId === event.cardId)) continue;
+    active.push(event);
+  }
+
+  const answers = {};
+  const sequence = [];
+  const swipeExclusions = [];
+  for (const event of active) {
+    answers[event.cardId] = event.response;
+    sequence.push(event.cardId);
+    if (event.response === INTOLERANT) {
+      const ids = event.excludedCardIds?.length ? event.excludedCardIds : [event.cardId];
+      for (const id of ids) swipeExclusions.push({ type: 'card', value: id, source: SOURCE_SWIPE, origin: event.cardId });
+    }
+  }
+  return { answers, sequence, swipeExclusions, lastEvent: active.at(-1) ?? null };
 }
 
-export function nextCard(state) {
-  return state.cards.find((card) => !(card.id in state.answers)) ?? null;
+// Gesamter Zustand der Runde aus Katalog, Onboarding und Ereignissen.
+// onboarding: Ergebnis von deriveOnboarding() (diet, exclusions, cardLabels, …).
+export function deriveRoundState({ index, onboarding, diets, events = [] }) {
+  const played = replay(events);
+  const entries = [...(onboarding?.exclusions ?? []), ...played.swipeExclusions];
+  const exclusions = buildExclusions(entries, { diet: onboarding?.diet ?? null, diets, index });
+  return { index, onboarding, entries, exclusions, cardLabels: onboarding?.cardLabels ?? {}, ...played };
 }
 
-// Begründung, warum eine Karte gezeigt wird (nurec v0.2, Kap. 6: Auswahlgrund protokollieren).
-export function selectionReason(state, card) {
-  return 'feste Reihenfolge (Demo)';
+function answeredCount(state) {
+  return state.sequence.filter((id) => RESPONSE_SEMANTICS[state.answers[id]]?.countsTowardLimit).length;
 }
 
-export function applyAnswer(state, cardId, answer) {
-  if (cardId in state.answers) return state;
+// Welche Karten als Nächstes gezeigt werden.
+//
+// TODO: Adaptive Logik folgt – Eigenleistung Team.
+// Aktuell bewusst nur: Stufe-1-Karten in fester Katalogreihenfolge, die nach den harten
+// Ausschlüssen sichtbar und noch nicht beantwortet sind, begrenzt auf das Rundenlimit.
+// Nicht umgesetzt (A2): Auswahl Stufe 1 → 2 → 3, Nachtesten von Ausnahmen nach DISLIKE,
+// Unterkarte nach UNFAMILIAR, Favoritensuche nach PREFER.
+export function selectNextCards(state, config) {
+  const remaining = config.roundCardLimit - answeredCount(state);
+  if (remaining <= 0) return [];
+  return state.index.cards
+    .filter((card) => card.stage === 1 && !(card.id in state.answers) && isVisible(card, state.index, state.exclusions))
+    .slice(0, remaining);
+}
+
+export function selectionReason() {
+  return 'stage1_fixed_order';
+}
+
+// Karte für die Anzeige: Familien zeigen nur erlaubte Beispiele und Hinweise wie „Ohne Haselnüsse“.
+export function presentCard(state, card) {
+  return annotateCard(card, state.index, state.exclusions, state.cardLabels);
+}
+
+export function nextCard(state, config) {
+  const card = selectNextCards(state, config)[0];
+  return card ? presentCard(state, card) : null;
+}
+
+export function isRoundComplete(state, config) {
+  return selectNextCards(state, config).length === 0;
+}
+
+export function progress(state, config) {
+  const answered = answeredCount(state);
+  return { answered, total: answered + selectNextCards(state, config).length };
+}
+
+// Stufe-1-Karten, die nach Stufe 0 überhaupt in Frage kommen (für die Vorschau vor dem Start).
+export function eligibleFamilies(state) {
+  return state.index.cards.filter((card) => card.stage === 1 && isVisible(card, state.index, state.exclusions));
+}
+
+// Profil, wie es am Ende angezeigt (und protokolliert) wird.
+// Nur Geschmackssignale (DISLIKE, LIKE, PREFER) erscheinen als Geschmack.
+// UNFAMILIAR und UNRATED sind keine Bewertung; INTOLERANT ist ein Ausschluss, kein Geschmack.
+export function buildProfile(state) {
+  const groups = { [PREFER]: [], [LIKE]: [], [DISLIKE]: [], [UNFAMILIAR]: [] };
+  const intolerant = [];
+  for (const id of state.sequence) {
+    const response = state.answers[id];
+    if (isTasteSignal(response) || response === UNFAMILIAR) groups[response].push(id);
+    else if (response === INTOLERANT) intolerant.push(id);
+  }
+  const unrated = state.index.cards
+    .filter((card) => card.stage === 1 && !(card.id in state.answers) && isVisible(card, state.index, state.exclusions))
+    .map((card) => card.id);
   return {
-    ...state,
-    answers: { ...state.answers, [cardId]: answer },
-    sequence: [...state.sequence, cardId],
+    ruleVersion: RULE_VERSION,
+    taste: { [PREFER]: groups[PREFER], [LIKE]: groups[LIKE], [DISLIKE]: groups[DISLIKE] },
+    unfamiliar: groups[UNFAMILIAR],
+    unrated,
+    intolerant,
+    exclusions: state.entries.map(({ type, value, source, origin, label }) => ({ type, value, source, origin: origin ?? null, label: label ?? null })),
   };
 }
 
-export function isRoundComplete(state) {
-  return nextCard(state) === null;
-}
-
-export function progress(state) {
-  return { answered: state.sequence.length, total: state.cards.length };
-}
-
-// Gruppiert die Karten nach Antwort. Nicht beantwortete Karten bleiben UNRATED.
-export function summarize(state) {
-  const groups = Object.fromEntries([...ANSWER_ORDER, UNRATED].map((key) => [key, []]));
-  for (const card of state.cards) {
-    groups[state.answers[card.id] ?? UNRATED].push(card);
-  }
-  return groups;
+// Alle Antworten, die in einen Geschmacksscore eingehen dürfen. INTOLERANT ist nie dabei.
+export function tasteSignals(state) {
+  return state.sequence.filter((id) => isTasteSignal(state.answers[id])).map((id) => ({ cardId: id, response: state.answers[id] }));
 }

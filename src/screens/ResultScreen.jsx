@@ -1,8 +1,9 @@
 import { Check, CircleDashed, Download, Lock, RotateCcw } from 'lucide-react';
 import Artwork from '../components/Artwork.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
-import { progress, summarize } from '../logic/engine.js';
+import { buildProfile } from '../logic/engine.js';
 import { DISLIKE, LIKE, PREFER, UNFAMILIAR, UNRATED } from '../logic/answers.js';
+import { ONBOARDING } from '../labels.js';
 
 const GROUPS = [
   { key: PREFER, ...ANSWER_META[PREFER] },
@@ -12,11 +13,25 @@ const GROUPS = [
   { key: UNRATED, label: 'Noch offen', Icon: CircleDashed, tone: 'open' },
 ];
 
-export default function ResultScreen({ round, endedEarly, firstName, rules, unsureTexts = [], onRestart, onDownloadLog }) {
-  const groups = summarize(round);
-  const { answered, total } = progress(round);
-  const credits = round.cards.filter((card) => card.image?.credit);
-  const ruleList = rules?.rules ?? [];
+export default function ResultScreen({ round, index, endedEarly, firstName, onboarding, onRestart, onDownloadLog }) {
+  const profile = buildProfile(round);
+  const toCards = (ids) => ids.map((id) => index.get(id));
+  const groups = {
+    [PREFER]: toCards(profile.taste[PREFER]),
+    [LIKE]: toCards(profile.taste[LIKE]),
+    [DISLIKE]: toCards(profile.taste[DISLIKE]),
+    [UNFAMILIAR]: toCards(profile.unfamiliar),
+    [UNRATED]: toCards(profile.unrated),
+  };
+  const answered = round.sequence.length;
+  const shown = [...round.sequence, ...profile.unrated].map((id) => index.get(id));
+  const credits = shown.filter((card) => card.image?.credit);
+  // Feste Regeln: aus dem Onboarding und aus „Vertrage ich nicht“ beim Wischen.
+  const ruleList = [
+    ...onboarding.rules,
+    ...round.swipeExclusions.map((entry) => ({ id: `swipe.${entry.value}`, text: index.get(entry.value).title })),
+  ];
+  const unsureTexts = onboarding.uncertain ? [ONBOARDING.unsureHint] : [];
   const thanks = firstName ? `Danke, ${firstName}. ` : '';
 
   return (
@@ -28,7 +43,7 @@ export default function ResultScreen({ round, endedEarly, firstName, rules, unsu
       <h1>Dein Zwischenstand</h1>
       <p className="lead">
         {thanks}
-        {endedEarly ? `${answered} von ${total} Karten beantwortet.` : `Alle ${total} Karten beantwortet.`} So hast du geantwortet:
+        {endedEarly ? `${answered} Karten beantwortet.` : `Alle ${answered} Karten der Runde beantwortet.`} So hast du geantwortet:
       </p>
 
       <div className="result-panel">
@@ -51,7 +66,7 @@ export default function ResultScreen({ round, endedEarly, firstName, rules, unsu
           </section>
         ))}
 
-        {(ruleList.length > 0 || unsureTexts.length > 0) && (
+        {(ruleList.length > 0 || unsureTexts.length > 0 || onboarding.freeTextNotes.length > 0) && (
           <section className="result-group tone-rule">
             <h2>
               <span className="group-icon"><Lock aria-hidden="true" strokeWidth={2.2} /></span>
@@ -63,8 +78,13 @@ export default function ResultScreen({ round, endedEarly, firstName, rules, unsu
                 {ruleList.map((rule) => <li key={rule.id}>{rule.text}</li>)}
               </ul>
             )}
+            {onboarding.freeTextNotes.length > 0 && (
+              <p className="note">
+                Notizen: {onboarding.freeTextNotes.join(', ')}. {ONBOARDING.noteNotApplied}
+              </p>
+            )}
             {unsureTexts.map((text) => <p key={text} className="note">{text}</p>)}
-            <p className="note">Aus deinen Angaben vor dem Start. Diese Regeln stehen immer über dem Geschmack.</p>
+            <p className="note">Aus deinen Angaben vor dem Start und beim Wischen. Diese Regeln stehen immer über dem Geschmack.</p>
           </section>
         )}
       </div>
