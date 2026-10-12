@@ -9,7 +9,7 @@ import { ONBOARDING } from '../labels.js';
 
 // Stufe 0 als kurzer Fragebogen: eine Frage pro Bildschirm.
 // Erst bei „Ja“ erscheint die Detailauswahl (nurec v0.2, Kap. 2: nur bei „vorhanden“ nachfragen).
-export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, onChange, onStep }) {
+export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, redundancy, onChange, onStep }) {
   const question = questions[step];
   const answer = answers[question.id];
   const last = step === questions.length - 1;
@@ -85,9 +85,11 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
             <section className="detail-block" aria-labelledby={`d-${question.id}`}>
               <h2 id={`d-${question.id}`}>{question.detailTitle}</h2>
               <p className="note">{question.detailHint}</p>
-              {question.type === 'allergens' && <AllergenPicker data={allergens} answer={answer} onChange={update} />}
+              {question.type === 'allergens' && (
+                <AllergenPicker data={allergens} catalogIndex={catalogIndex} answer={answer} redundancy={redundancy} onChange={update} />
+              )}
               {question.type === 'never' && (
-                <NeverPicker question={question} catalogIndex={catalogIndex} answer={answer} onChange={update} />
+                <NeverPicker question={question} catalogIndex={catalogIndex} answer={answer} redundancy={redundancy} onChange={update} />
               )}
             </section>
           )}

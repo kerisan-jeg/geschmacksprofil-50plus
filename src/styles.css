@@ -1045,6 +1045,14 @@ h1:focus {
   transition: border-color 140ms, box-shadow 140ms;
 }
 
+.input.is-invalid {
+  border-color: #8c2433;
+}
+
+.field-error {
+  margin-top: 0.6rem;
+}
+
 .input::placeholder {
   color: #7d8a82;
 }
@@ -1571,11 +1579,13 @@ h1:focus {
 .tile-label {
   font-weight: 700;
   line-height: 1.2;
-  overflow-wrap: break-word;
+  overflow-wrap: anywhere;
   hyphens: manual;
 }
 
 .tile-detail {
+  overflow-wrap: anywhere;
+  hyphens: auto;
   color: var(--ink-2);
   font-size: 0.95rem;
   line-height: 1.25;
@@ -2014,4 +2024,43 @@ a.button-secondary {
   gap: 0.6rem;
   padding-top: 1rem;
   border-top: 1px dashed #c9d3c8;
+}
+
+/* Eintragen ohne Treffer, Marken und Herkunft (Rückmeldung 12.10.) */
+
+.add-entry {
+  justify-content: flex-start;
+  min-height: 3.2rem;
+  margin-top: 0.35rem;
+  padding: 0.4rem 1rem;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.brands-block {
+  display: grid;
+  gap: 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.brands-title {
+  font-size: 1.12rem;
+}
+
+.text-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.text-list-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+}
+
+.text-list-add {
+  width: auto;
+  min-height: 3.4rem;
+  padding: 0 0.9rem;
 }

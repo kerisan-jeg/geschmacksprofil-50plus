@@ -26,11 +26,13 @@ test('Alle Allergen-Tags im Katalog stammen aus allergens.json', () => {
   }
 });
 
-test('Die 14 Hauptallergene sind abgedeckt (Milch getrennt in Laktose und Milcheiweiss)', () => {
-  const ids = allergenData.categories.map((category) => category.id);
+test('Die 14 Hauptallergene sind abgedeckt (Milch getrennt, Erdnüsse unter Nüsse)', () => {
+  const ids = allergenData.categories.flatMap((category) => [category.id, ...(category.items ?? []).map((item) => item.id)]);
   for (const id of ['gluten', 'crustaceans', 'egg', 'fish', 'peanut', 'soy', 'lactose', 'milk_protein', 'tree_nuts', 'celery', 'mustard', 'sesame', 'sulphites', 'lupin', 'molluscs']) {
     assert.ok(ids.includes(id), id);
   }
+  const nuts = allergenData.categories.find((category) => category.id === 'tree_nuts');
+  assert.ok(nuts.items.some((item) => item.id === 'peanut'), 'Erdnuss steht unter Nüsse');
   const common = allergenData.categories.filter((category) => category.common).length;
   assert.ok(common >= 6 && common <= 8, `Kacheln: ${common}`);
 });
@@ -50,6 +52,28 @@ test('vegetarisch → Fleisch und Fisch gefiltert, Eier und Milch erlaubt', () =
   assert.equal(visible('F02', vegetarian), false);
   assert.equal(visible('F03', vegetarian), true);
   assert.equal(visible('F04', vegetarian), true);
+});
+
+test('kein Fisch → Fleisch erlaubt, Fisch und Meeresfrüchte gefiltert', () => {
+  const noFish = excl([], 'no_fish');
+  assert.equal(visible('F01', noFish), true);
+  assert.equal(visible('F01.3', noFish), true);
+  assert.equal(visible('F02', noFish), false);
+  assert.equal(visible('F03', noFish), true);
+});
+
+test('Lebensmittel-Eintrag („Tomate“) entfernt keine Karte, aber das Beispiel', () => {
+  const tomato = excl([{ type: 'food', value: 'Tomaten', source: 'onboarding' }]);
+  assert.equal(visible('F10.2', tomato), true);
+  const raw = annotateCard(card('F10.2'), index, tomato);
+  assert.ok(!raw.examples.includes('Tomate'));
+  assert.deepEqual(raw.examples, ['Gurke', 'Peperoni']);
+  assert.deepEqual(raw.notes, ['Ohne Tomaten']);
+  // Familienkarte: Beispiele werden aus den Kindern nachgefüllt
+  const apple = annotateCard(card('F12'), index, excl([{ type: 'food', value: 'Apfel', source: 'onboarding' }]));
+  assert.ok(!apple.examples.some((example) => /apfel|äpfel/i.test(example)));
+  assert.equal(apple.examples.length, 3);
+  assert.deepEqual(apple.notes, ['Ohne Apfel']);
 });
 
 test('pescetarisch → Fisch erlaubt, Fleisch gefiltert', () => {

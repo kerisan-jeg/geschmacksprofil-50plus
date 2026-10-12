@@ -3,6 +3,7 @@
   "note": "Eigener Vorschlag für Personen ab 50 [V]: die Bereiche 0.1 bis 0.5 als drei kurze Fragen. Bereich 0.6 (Marken und Händler) ist im Prototyp nicht enthalten. Ausschlüsse wirken über Tags der Karten (allergens, animalOrigin) oder über Katalog-IDs, nie über fest verdrahtete Kartenlisten.",
   "diets": {
     "none": { "excludesAnimalOrigin": [] },
+    "no_fish": { "excludesAnimalOrigin": ["fish", "seafood"], "rule": "Kein Fisch: Fleisch ja, aber kein Fisch und keine Meeresfrüchte" },
     "pescetarian": { "excludesAnimalOrigin": ["meat"], "rule": "Pescetarisch: kein Fleisch" },
     "vegetarian": { "excludesAnimalOrigin": ["meat", "fish", "seafood"], "rule": "Vegetarisch: kein Fleisch und kein Fisch" },
     "vegan": { "excludesAnimalOrigin": ["meat", "fish", "seafood", "dairy", "egg", "honey"], "rule": "Vegan: nichts vom Tier" }
@@ -17,6 +18,7 @@
       "hint": "Nur was du immer einhältst. Isst du meistens vegetarisch, aber nicht immer, wähle „Nein“.",
       "options": [
         { "id": "none", "label": "Nein, ich esse alles" },
+        { "id": "no_fish", "label": "Kein Fisch", "detail": "Fleisch ja, aber kein Fisch" },
         { "id": "pescetarian", "label": "Pescetarisch", "detail": "Kein Fleisch, aber Fisch" },
         { "id": "vegetarian", "label": "Vegetarisch", "detail": "Kein Fleisch und kein Fisch" },
         { "id": "vegan", "label": "Vegan", "detail": "Nichts vom Tier" }

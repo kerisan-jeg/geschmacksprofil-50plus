@@ -5,12 +5,17 @@
 //   - type 'allergen':     granulare Allergen-ID aus allergens.json, z. B. "hazelnut"
 //   - type 'animalOrigin': z. B. "seafood" (Frage 3, Schnellauswahl „Meeresfrüchte“)
 //   - type 'card':         Katalog-ID; schliesst die Karte und alle Nachkommen aus
+//   - type 'food':         Lebensmittel als Text ohne eigene Karte, z. B. "Tomate" (Suche oder Freitext).
+//                          Schliesst keine Karte aus, blendet das Wort aber als Beispiel auf allen Karten aus
+//                          und erscheint als Hinweis „Ohne Tomate“ (Rückmeldung Team, 12.10.: Eingetragenes
+//                          soll nicht nochmals vorkommen).
 //   - source:              wo der Ausschluss entstanden ist (Onboarding oder „Vertrage ich nicht“ beim Wischen)
 //
 // Die Ernährungsweise ist kein Eintrag, sondern wird über die Tabelle `diets` (stage0.json)
 // in animalOrigin-Ausschlüsse übersetzt.
 
 import { descendantIds, isFamily } from './catalog.js';
+import { normalizeVariants } from './search.js';
 
 export function dietExclusions(diets, dietId) {
   return diets?.[dietId]?.excludesAnimalOrigin ?? [];
@@ -22,16 +27,19 @@ export function buildExclusions(entries = [], { diet = null, diets = {}, index =
   const allergens = new Set();
   const animalOrigin = new Set(dietExclusions(diets, diet));
   const cardIds = new Set();
+  const foods = [];
 
   for (const entry of entries) {
-    if (entry.type === 'allergen') allergens.add(entry.value);
+    if (entry.type === 'food') {
+      if (!foods.includes(entry.value)) foods.push(entry.value);
+    } else if (entry.type === 'allergen') allergens.add(entry.value);
     else if (entry.type === 'animalOrigin') animalOrigin.add(entry.value);
     else if (entry.type === 'card') {
       cardIds.add(entry.value);
       if (index) for (const id of descendantIds(index, entry.value)) cardIds.add(id);
     }
   }
-  return { allergens, animalOrigin, cardIds };
+  return { allergens, animalOrigin, cardIds, foods };
 }
 
 // Reine Entscheidung für eine einzelne Karte anhand ihrer eigenen Tags und ihrer ID.
@@ -54,15 +62,53 @@ export function visibleCards(cards, index, exclusions) {
   return cards.filter((card) => isVisible(card, index, exclusions));
 }
 
-// Für Familienkarten: Beispiele nur aus sichtbaren Kindern, Hinweise wie „Ohne Haselnüsse“.
+// ---------- Lebensmittel als Text („Tomate“) ----------
+
+function words(text) {
+  return normalizeVariants(text).flatMap((variant) => variant.split(/[\s\-–(),/]+/).filter(Boolean));
+}
+
+// Passt ein Beispiel wie „rohe Tomaten“ zum Eintrag „Tomate“? Wortweise, ohne Gross-/Kleinschreibung
+// und Umlaute; ab 4 Buchstaben zählt auch eine Endung („Tomate“ ↔ „Tomaten“).
+export function foodMatches(example, food) {
+  const targets = words(food);
+  if (targets.length === 0) return false;
+  const candidates = words(example);
+  return targets.some((target) =>
+    candidates.some((word) => word === target || (Math.min(word.length, target.length) >= 4 && (word.startsWith(target) || target.startsWith(word))))
+  );
+}
+
+function isHiddenExample(example, exclusions) {
+  return (exclusions.foods ?? []).some((food) => foodMatches(example, food));
+}
+
+// Alle Beispiele, die eine Karte zeigen könnte: eigene und die ihrer sichtbaren Nachkommen.
+function examplePool(card, index, exclusions) {
+  const own = isFamily(card) ? derivedExamples(card, index, exclusions) : card.examples;
+  const children = index.childrenOf(card.id).filter((child) => isVisible(child, index, exclusions));
+  return [...new Set([...own, ...children.flatMap((child) => examplePool(child, index, exclusions))])];
+}
+
+// Hinweise und Beispiele einer Karte an die Ausschlüsse anpassen:
+// - Familien zeigen nur Beispiele aus sichtbaren Kindern und „Ohne Haselnüsse“.
+// - Lebensmittel-Einträge („Tomate“) verschwinden aus den Beispielen und erscheinen als „Ohne Tomate“.
 // labels: optionale Wörter der Person für eine Karten-ID, z. B. { 'F01.3': 'Schweinefleisch' }.
 export function annotateCard(card, index, exclusions, labels = {}) {
-  if (!isFamily(card)) return card;
-  const hidden = hiddenRoots(card, index, exclusions);
-  if (hidden.length === 0) return card;
+  const hidden = isFamily(card) ? hiddenRoots(card, index, exclusions) : [];
+  const pool = examplePool(card, index, exclusions);
+  const hiddenFoods = (exclusions.foods ?? []).filter((food) => pool.some((example) => foodMatches(example, food)));
+  if (hidden.length === 0 && hiddenFoods.length === 0) return card;
 
-  const examples = derivedExamples(card, index, exclusions).slice(0, 3);
-  const names = hidden.map((id) => labels[id] ?? index.get(id).title);
+  let examples = hidden.length > 0 ? derivedExamples(card, index, exclusions) : card.examples;
+  if (hiddenFoods.length > 0) {
+    const kept = examples.filter((example) => !isHiddenExample(example, exclusions));
+    const refill = pool.filter((example) => !kept.includes(example) && !isHiddenExample(example, exclusions));
+    examples = [...kept, ...refill];
+  }
+  examples = examples.slice(0, 3);
+
+  const names = [...hidden.map((id) => labels[id] ?? index.get(id).title), ...hiddenFoods];
   const notes = names.length <= 2 ? names.map((name) => `Ohne ${name}`) : [`Ohne ${names[0]}`, `und ${names.length - 1} weitere`];
   return { ...card, examples, notes };
 }

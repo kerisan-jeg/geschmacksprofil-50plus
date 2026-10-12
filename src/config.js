@@ -1,7 +1,7 @@
 // Zentrale Einstellungen des Prototyps.
 // Alles, was im Pilot variiert werden soll (Wortlaut, Schwellen, Funktionen), steht hier.
 
-export const APP_VERSION = '0.4.0-demo';
+export const APP_VERSION = '0.4.1-demo';
 
 // Standardwerte für den Testablauf (A10). URL-Parameter überschreiben sie, z. B.
 //   ?limit=6           Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 30

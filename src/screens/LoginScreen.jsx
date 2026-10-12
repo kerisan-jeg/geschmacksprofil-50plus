@@ -3,7 +3,8 @@ import { ChevronLeft, CircleAlert, Lock } from 'lucide-react';
 import ChoiceList from '../components/ChoiceList.jsx';
 
 // Anmeldung ohne Passwort: Für den Test zählt der Aufwand beim Profil, nicht beim Einloggen.
-// Der Vorname dient nur der persönlichen Ansprache und wird nicht protokolliert.
+// Vorname und Alter sind Pflicht (Rückmeldung Team, 12.10.). Der Vorname dient nur der
+// persönlichen Ansprache und wird weiterhin nicht protokolliert; die Altersgruppe schon.
 const AGE_GROUPS = [
   { id: '50-59', label: '50 bis 59' },
   { id: '60-69', label: '60 bis 69' },
@@ -24,16 +25,31 @@ export default function LoginScreen({ profile, onSubmit, onBack }) {
   const [consent, setConsent] = useState(profile.consent);
   const [participantCode, setParticipantCode] = useState(profile.participantCode);
   const [showError, setShowError] = useState(false);
+  const nameRef = useRef(null);
+  const ageRef = useRef(null);
   const consentRef = useRef(null);
 
+  const missing = {
+    name: firstName.trim() === '',
+    age: ageGroup == null,
+    consent: !consent,
+  };
+
+  // Beim ersten fehlenden Feld anfangen: dorthin scrollen, beim Namen auch den Fokus setzen.
   useEffect(() => {
-    if (showError) consentRef.current?.scrollIntoView({ block: 'center' });
+    if (!showError) return;
+    if (missing.name) nameRef.current?.focus();
+    const target = missing.name ? nameRef : missing.age ? ageRef : consentRef;
+    target.current?.scrollIntoView({ block: 'center' });
+    // Nur beim Absenden auslösen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showError]);
 
   function handleSubmit(event) {
     event.preventDefault();
-    if (!consent) {
-      setShowError(true);
+    if (missing.name || missing.age || missing.consent) {
+      setShowError(false);
+      requestAnimationFrame(() => setShowError(true));
       return;
     }
     onSubmit({
@@ -46,7 +62,6 @@ export default function LoginScreen({ profile, onSubmit, onBack }) {
 
   function toggleConsent() {
     setConsent(!consent);
-    setShowError(false);
   }
 
   return (
@@ -63,32 +78,44 @@ export default function LoginScreen({ profile, onSubmit, onBack }) {
 
       <form className="form" onSubmit={handleSubmit} noValidate>
         <div className="field">
-          <label htmlFor="first-name">
-            Vorname <span className="optional">freiwillig</span>
-          </label>
+          <label htmlFor="first-name">Vorname</label>
           <input
             id="first-name"
-            className="input"
+            ref={nameRef}
+            className={`input${showError && missing.name ? ' is-invalid' : ''}`}
             type="text"
             autoComplete="given-name"
             autoCapitalize="words"
             enterKeyHint="next"
             maxLength={30}
+            required
+            aria-invalid={showError && missing.name}
+            aria-describedby={showError && missing.name ? 'name-error' : undefined}
             value={firstName}
             onChange={(event) => setFirstName(event.target.value)}
           />
+          {showError && missing.name && (
+            <p className="form-error" id="name-error" role="alert">
+              <CircleAlert aria-hidden="true" />
+              Bitte gib deinen Vornamen ein.
+            </p>
+          )}
         </div>
 
-        <fieldset className="field field-set">
-          <legend id="age-label">
-            Alter <span className="optional">freiwillig</span>
-          </legend>
+        <fieldset className="field field-set" ref={ageRef}>
+          <legend id="age-label">Alter</legend>
           <ChoiceList name="age" layout="grid" options={AGE_GROUPS} value={ageGroup} onChange={setAgeGroup} labelledBy="age-label" />
+          {showError && missing.age && (
+            <p className="form-error field-error" role="alert">
+              <CircleAlert aria-hidden="true" />
+              Bitte wähle deine Altersgruppe.
+            </p>
+          )}
         </fieldset>
 
         <div className="field" ref={consentRef}>
           <ChoiceList name="consent" multiple options={CONSENT} value={consent ? ['consent'] : []} onChange={toggleConsent} />
-          {showError && !consent && (
+          {showError && missing.consent && (
             <p className="form-error" role="alert">
               <CircleAlert aria-hidden="true" />
               Bitte bestätige die Einwilligung, damit es weitergehen kann.

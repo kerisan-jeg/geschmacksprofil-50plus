@@ -10,7 +10,7 @@ Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (
 ## Ablauf
 
 1. **Start:** kurze Einführung.
-2. **Anmelden:** Vorname und Alter freiwillig, Einwilligung Pflicht, kein Passwort. Unter „Für die Testleitung“ die Teilnehmer-Nr.
+2. **Anmelden:** Vorname, Alter und Einwilligung sind Pflicht, kein Passwort. Der Vorname wird nicht gespeichert. Unter „Für die Testleitung“ die Teilnehmer-Nr.
 3. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“.
 4. **Zusammenfassung:** feste Regeln zum Bestätigen oder Ändern, Notizen und die Karten der ersten Runde.
 5. **Mini-Tutorial:** animierte Gesten, alle fünf Antworten, Rückgängig. Abschaltbar mit `?tutorial=0`.
@@ -42,15 +42,18 @@ Grundlage ist nurec v0.2, Kap. 2 [D]. Die Bereiche 0.1 bis 0.5 sind als drei Fra
 
 | Frage | Bereiche | Umsetzung |
 | --- | --- | --- |
-| Feste Ernährungsweise | 0.4 | Tabelle `diets` in `stage0.json`: vegan, vegetarisch, pescetarisch schliessen Tags aus `animalOrigin` aus |
+| Feste Ernährungsweise | 0.4 | Tabelle `diets` in `stage0.json`: kein Fisch, pescetarisch, vegetarisch, vegan schliessen Tags aus `animalOrigin` aus |
 | Allergien und Unverträglichkeiten | 0.1 bis 0.3 | 14 Hauptallergene (LIV Anhang 6, LMIV Anhang II) in `allergens.json`; 8 als Kacheln, der Rest über „Weitere anzeigen“ und Suche; Auswahl als Chips |
-| Nie vorschlagen | 0.5 | Schnellauswahl, Suche über Karten und Familien, Notizen ohne Treffer |
+| Nie vorschlagen | 0.5, 0.6 | Schnellauswahl, Suche über alle Lebensmittel, Eintragen ohne Treffer; eigener Block für Marken und Herkunft |
 
 - Milch ist getrennt in **Laktose (Unverträglichkeit)** und **Milcheiweiss (Allergie)**.
-- **Erdnüsse** sind eine eigene Kategorie, nicht Teil von Nüsse.
-- **Nüsse** und **Gluten** öffnen eine Unterauswahl mit „Alle Nüsse“ bzw. „Alles mit Gluten (z. B. Zöliakie)“.
+- **Erdnüsse** stehen seit der Rückmeldung vom 12.10. unter **Nüsse** (ersetzt A5). Sie behalten die eigene ID `peanut`, damit eine reine Erdnussallergie einzeln erfasst bleibt; „Alle Nüsse (inkl. Erdnüsse)“ wählt sie mit aus.
+- **Nüsse** und **Gluten** öffnen eine Unterauswahl mit „Alle Nüsse (inkl. Erdnüsse)“ bzw. „Alles mit Gluten (z. B. Zöliakie)“.
 - **„Unsicher“** oder „Ich bin mir nicht sicher, ob es weitere gibt“ setzt nur ein Flag. Es schliesst nichts aus und führt zum Hinweis auf „Vertrage ich nicht“.
-- **Notizen** in Frage 3 filtern nichts. Daneben steht ehrlich: „Diesen Eintrag können wir noch nicht automatisch berücksichtigen.“
+- **Suche** in Frage 2 und 3 findet alle Lebensmittel: Allergene, Karten und die Beispiele auf den Karten (z. B. „Tomate“).
+- **Eintragen ohne Treffer:** Was man eintippt, wird immer eingetragen (ersetzt A7). Ohne eigene Karte wird es ein Lebensmittel-Eintrag (`type: "food"`): Keine Gruppe fällt weg, aber das Wort erscheint nirgends mehr als Beispiel, und die Karte zeigt „Ohne Tomate“. Das steht so auch neben dem Eintrag.
+- **Marken und Herkunft** (Bereich 0.6) werden gespeichert (`avoidBrands`, `avoidOrigins`), wirken im Prototyp aber noch nicht, weil der Katalog keine Marken und keine Herkunft kennt. Das steht so auch in der App.
+- **Nichts doppelt:** Was frühere Angaben schon ausschliessen, wird nicht nochmals angeboten (Kacheln, Schnellauswahl, Suchtreffer). Bei vegan fehlen z. B. die Kacheln Fisch, Eier und Milch; bei pescetarisch die Schnellauswahl Schweinefleisch. Eine Angabe ohne passende Karte (z. B. Sellerie) bleibt immer wählbar.
 - Keine medizinischen Aussagen und keine Diagnosen.
 
 ## Filter über Tags
@@ -164,6 +167,9 @@ Die Prüfung ist wiederholbar: `npm run build && npm run preview`, dann in einem
 
 Ausserdem:
 
+- Erdnüsse: Es gibt keine Erdnuss-Karte. Eine Erdnussallergie blendet beim Wischen deshalb noch nichts aus. Umgekehrt schliesst „Alle Nüsse (inkl. Erdnüsse)“ auch Erdnüsse aus, wer nur Baumnüsse meint.
+- Marken und Herkunft: Wirkung erst mit Produktdaten (z. B. von nurec).
+- Anmeldung: Wie die Anmeldeoption später aussieht, ist noch offen.
 - Glutenfreie Varianten: Früher hiess es „Nur glutenfrei“, mit Tags entfällt die Familie Brot bei „Alles mit Gluten“ ganz.
 - „Alkohol“ als Schnellauswahl in Frage 3 fehlt, weil der Katalog keinen passenden Tag hat.
 - Werden die neuen Begriffe im Pilot verstanden?

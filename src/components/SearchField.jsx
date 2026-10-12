@@ -6,7 +6,7 @@ import { ONBOARDING } from '../labels.js';
 // results: [{ key, label, detail?, matchedTerm?, selected? }]
 // Unter den Vorschlägen kann die aufrufende Komponente eigenen Inhalt zeigen (children),
 // z. B. „Als Notiz hinzufügen“.
-export default function SearchField({ label, placeholder, query, onQuery, results, onPick, children }) {
+export default function SearchField({ label, placeholder, query, onQuery, results, onPick, onSubmitText, children }) {
   const inputId = useId();
   const listId = useId();
   const hasQuery = query.trim() !== '';
@@ -32,7 +32,9 @@ export default function SearchField({ label, placeholder, query, onQuery, result
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
-              if (results[0]) onPick(results[0]);
+              const exact = results.find((item) => item.rank === 0);
+              if (exact) onPick(exact);
+              else onSubmitText?.();
             }
           }}
         />

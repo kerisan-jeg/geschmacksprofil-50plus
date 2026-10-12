@@ -90,7 +90,7 @@ export function allergenSearchItems(data) {
         terms: [category.label, category.tileLabel, ...(category.synonyms ?? [])],
       });
       for (const item of category.items) {
-        items.push({ key: item.id, label: item.label, detail: category.tileLabel, ids: [item.id], terms: [] });
+        items.push({ key: item.id, label: item.label, detail: category.tileLabel, ids: [item.id], terms: item.synonyms ?? [] });
       }
     } else {
       items.push({

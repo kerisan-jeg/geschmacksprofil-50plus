@@ -1,5 +1,5 @@
 {
-  "source": "14 Hauptallergene der Lebensmittelkennzeichnung: Schweiz LIV (SR 817.022.16), Anhang 6; EU LMIV (VO 1169/2011), Anhang II. Milch ist für den Prototyp in Laktose und Milcheiweiss getrennt, Erdnüsse sind eine eigene Kategorie (A5).",
+  "source": "14 Hauptallergene der Lebensmittelkennzeichnung: Schweiz LIV (SR 817.022.16), Anhang 6; EU LMIV (VO 1169/2011), Anhang II. Milch ist für den Prototyp in Laktose und Milcheiweiss getrennt. Erdnüsse stehen seit der Teamrückmeldung vom 12.10.2026 unter Nüsse (ersetzt A5); sie behalten die eigene ID peanut, damit eine reine Erdnussallergie weiter einzeln erfasst wird.",
   "note": "Reihenfolge und Auswahl der Kacheln (common) sind eine eigene Annahme [V] und keine Häufigkeitsangabe. Keine medizinischen Aussagen: Die Liste hilft beim Erinnern und ersetzt keine Diagnose.",
   "categories": [
     { "id": "gluten", "label": "Glutenhaltiges Getreide", "tileLabel": "Gluten", "detail": "Weizen, Dinkel, Roggen, Gerste, Hafer", "common": true,
@@ -13,9 +13,10 @@
       ] },
     { "id": "lactose", "label": "Laktose (Unverträglichkeit)", "tileLabel": "Laktose", "detail": "Unverträg\u00ADlichkeit", "common": true, "synonyms": ["Milch", "Milchzucker"] },
     { "id": "milk_protein", "label": "Milcheiweiss (Allergie)", "tileLabel": "Milch\u00ADeiweiss", "detail": "Allergie", "common": true, "synonyms": ["Milch", "Kuhmilch", "Kasein"] },
-    { "id": "tree_nuts", "label": "Schalenfrüchte (Nüsse)", "tileLabel": "Nüsse", "detail": "Haselnuss, Mandel und weitere", "common": true,
-      "allLabel": "Alle Nüsse", "synonyms": ["Schalenfrüchte", "Baumnüsse"],
+    { "id": "tree_nuts", "label": "Nüsse und Erdnüsse", "tileLabel": "Nüsse", "detail": "inkl. Erdnüsse", "tileDetail": "inkl. Erdnüsse", "common": true,
+      "allLabel": "Alle Nüsse (inkl. Erdnüsse)", "synonyms": ["Schalenfrüchte", "Baumnüsse"],
       "items": [
+        { "id": "peanut", "label": "Erdnuss", "synonyms": ["Erdnüsse", "Erdnussbutter"] },
         { "id": "hazelnut", "label": "Haselnuss" },
         { "id": "walnut", "label": "Walnuss" },
         { "id": "almond", "label": "Mandel" },
@@ -25,11 +26,10 @@
         { "id": "brazil_nut", "label": "Paranuss" },
         { "id": "macadamia", "label": "Macadamia" }
       ] },
-    { "id": "peanut", "label": "Erdnüsse", "tileLabel": "Erdnüsse", "detail": "Keine Nuss", "common": true, "synonyms": ["Erdnuss"] },
     { "id": "egg", "label": "Eier", "tileLabel": "Eier", "common": true, "synonyms": ["Ei", "Hühnerei"] },
     { "id": "fish", "label": "Fisch", "tileLabel": "Fisch", "common": true, "synonyms": [] },
     { "id": "crustaceans", "label": "Krebstiere", "tileLabel": "Krebstiere", "detail": "z. B. Garnelen", "common": true, "synonyms": ["Garnelen", "Crevetten", "Krabben", "Hummer", "Shrimps"] },
-    { "id": "soy", "label": "Soja", "tileLabel": "Soja", "common": false, "synonyms": ["Tofu", "Sojabohnen"] },
+    { "id": "soy", "label": "Soja", "tileLabel": "Soja", "common": true, "synonyms": ["Tofu", "Sojabohnen"] },
     { "id": "celery", "label": "Sellerie", "tileLabel": "Sellerie", "common": false, "synonyms": [] },
     { "id": "mustard", "label": "Senf", "tileLabel": "Senf", "common": false, "synonyms": [] },
     { "id": "sesame", "label": "Sesam", "tileLabel": "Sesam", "common": false, "synonyms": [] },

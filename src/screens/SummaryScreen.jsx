@@ -1,4 +1,4 @@
-import { CircleAlert, CircleHelp, Lock, NotebookPen, PencilLine, ShieldCheck } from 'lucide-react';
+import { CircleHelp, Info, Lock, NotebookPen, PencilLine, ShieldCheck, Tag } from 'lucide-react';
 import Artwork from '../components/Artwork.jsx';
 import { ONBOARDING, SUMMARY } from '../labels.js';
 
@@ -7,8 +7,11 @@ import { ONBOARDING, SUMMARY } from '../labels.js';
 export default function SummaryScreen({ families, eligibleIds, roundSize, onboarding, firstName, onConfirm, onEdit }) {
   const inDeck = new Set(eligibleIds);
   const omitted = families.filter((card) => !inDeck.has(card.id));
-  const { rules, uncertain, freeTextNotes } = onboarding;
-  const hasRules = rules.length > 0;
+  const { uncertain, avoidBrands, avoidOrigins } = onboarding;
+  // Eingetippte Einträge erscheinen gesammelt unter „Deine Notizen“.
+  const rules = onboarding.rules.filter((rule) => rule.kind !== 'note');
+  const freeTextNotes = onboarding.freeTextNotes;
+  const hasRules = rules.length > 0 || freeTextNotes.length > 0;
 
   return (
     <main className="screen screen-summary">
@@ -23,7 +26,7 @@ export default function SummaryScreen({ families, eligibleIds, roundSize, onboar
           : 'Du hast nichts angegeben, das wir weglassen müssen.'}
       </p>
 
-      {hasRules && (
+      {rules.length > 0 && (
         <ul className="rule-panel">
           {rules.map((rule) => (
             <li key={rule.id} className={`rule rule-${rule.kind}`}>
@@ -48,9 +51,23 @@ export default function SummaryScreen({ families, eligibleIds, roundSize, onboar
           <ul className="rule-chips">
             {freeTextNotes.map((note) => <li key={note}>{note}</li>)}
           </ul>
-          <p className="notice notice-warn">
-            <CircleAlert aria-hidden="true" />
-            {ONBOARDING.noteNotApplied}
+          <p className="note">{ONBOARDING.entryEffect}</p>
+        </section>
+      )}
+
+      {(avoidBrands.length > 0 || avoidOrigins.length > 0) && (
+        <section className="notes-panel" aria-labelledby="brands-title">
+          <h2 id="brands-title">
+            <Tag aria-hidden="true" />
+            {SUMMARY.brandsTitle}
+          </h2>
+          <ul className="rule-chips">
+            {avoidBrands.length > 0 && <li>{SUMMARY.brands(avoidBrands)}</li>}
+            {avoidOrigins.length > 0 && <li>{SUMMARY.origins(avoidOrigins)}</li>}
+          </ul>
+          <p className="notice">
+            <Info aria-hidden="true" />
+            {ONBOARDING.brandsNotApplied}
           </p>
         </section>
       )}

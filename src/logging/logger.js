@@ -3,7 +3,8 @@
 // nicht verfügbar (z. B. privater Modus), bleibt die Sitzung im Arbeitsspeicher und die App läuft weiter.
 //
 // Sitzung:  sessionId, participantCode, startedAt, endedAt, appVersion, ruleVersion, config,
-//           onboarding { ageGroup, diet, exclusions (mit source), uncertaintyFlag, freeTextNotes },
+//           onboarding { ageGroup, diet, exclusions (mit source), uncertaintyFlag, freeTextNotes,
+//                        avoidBrands, avoidOrigins },
 //           profile (wie am Ende angezeigt), events (Antworten inkl. INTOLERANT und UNDO), trace (Bildschirme).
 // Ereignis: sessionId, cardId, stage, parentId, positionInRound, response, timestamp,
 //           responseTimeMs, inputMethod, selectionReason (+ excludedCardIds, ruleVersion).
@@ -69,6 +70,7 @@ export function deleteAllSessions() {
 
 function exclusionForLog(entry) {
   const { type, value, source, origin, label } = entry;
+  // Marken und Herkunft sind keine Ausschlüsse und erscheinen separat.
   return PRIVACY.logExclusionValues ? { type, value, source, origin: origin ?? null, label: label ?? null } : { type, source };
 }
 
@@ -114,6 +116,8 @@ export function createLogger(config) {
         exclusions: onboarding.exclusions.map(exclusionForLog),
         uncertaintyFlag: onboarding.uncertain,
         freeTextNotes: [...onboarding.freeTextNotes],
+        avoidBrands: [...(onboarding.avoidBrands ?? [])],
+        avoidOrigins: [...(onboarding.avoidOrigins ?? [])],
       };
       persist();
     },

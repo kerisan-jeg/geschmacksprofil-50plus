@@ -14,7 +14,7 @@ import {
   RULE_VERSION,
   selectionReason,
 } from './logic/engine.js';
-import { deriveOnboarding, emptyAnswers } from './logic/stage0.js';
+import { createRedundancyCheck, deriveOnboarding, emptyAnswers } from './logic/stage0.js';
 import { createLogger } from './logging/logger.js';
 import StartScreen from './screens/StartScreen.jsx';
 import LoginScreen from './screens/LoginScreen.jsx';
@@ -181,6 +181,7 @@ function App() {
           firstName={profile.firstName}
           allergens={allergens}
           catalogIndex={INDEX}
+          redundancy={createRedundancyCheck(stage0, answers, { allergens, catalogIndex: INDEX, upTo: step })}
           onChange={(questionId, value) => dispatch({ type: 'setAnswer', questionId, value })}
           onStep={(to) => dispatch({ type: 'step', to })}
         />

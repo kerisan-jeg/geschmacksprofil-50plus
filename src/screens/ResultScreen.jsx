@@ -3,7 +3,7 @@ import Artwork from '../components/Artwork.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
 import { buildProfile } from '../logic/engine.js';
 import { DISLIKE, LIKE, PREFER, UNFAMILIAR, UNRATED } from '../logic/answers.js';
-import { ANSWER_LABELS, ONBOARDING, RESULT } from '../labels.js';
+import { ANSWER_LABELS, ONBOARDING, RESULT, SUMMARY } from '../labels.js';
 
 const GROUPS = [
   { key: PREFER, ...ANSWER_META[PREFER] },
@@ -28,7 +28,7 @@ export default function ResultScreen({ round, index, endedEarly, firstName, onbo
   const credits = shown.filter((card) => card.image?.credit);
   // Feste Regeln: aus dem Onboarding und aus „Vertrage ich nicht“ beim Wischen.
   const ruleList = [
-    ...onboarding.rules,
+    ...onboarding.rules.filter((rule) => rule.kind !== 'note'),
     ...round.swipeExclusions.map((entry) => ({ id: `swipe.${entry.value}`, text: `${index.get(entry.value).title} (${ANSWER_LABELS.INTOLERANT}, ${RESULT.fromSwipe})` })),
   ];
   const unsureTexts = onboarding.uncertain ? [ONBOARDING.unsureHint] : [];
@@ -80,7 +80,18 @@ export default function ResultScreen({ round, index, endedEarly, firstName, onbo
             )}
             {onboarding.freeTextNotes.length > 0 && (
               <p className="note">
-                Notizen: {onboarding.freeTextNotes.join(', ')}. {ONBOARDING.noteNotApplied}
+                Notizen: {onboarding.freeTextNotes.join(', ')}. {ONBOARDING.entryEffect}
+              </p>
+            )}
+            {(onboarding.avoidBrands.length > 0 || onboarding.avoidOrigins.length > 0) && (
+              <p className="note">
+                {[
+                  onboarding.avoidBrands.length > 0 && SUMMARY.brands(onboarding.avoidBrands),
+                  onboarding.avoidOrigins.length > 0 && SUMMARY.origins(onboarding.avoidOrigins),
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+                . {ONBOARDING.brandsNotApplied}
               </p>
             )}
             {unsureTexts.map((text) => <p key={text} className="note">{text}</p>)}

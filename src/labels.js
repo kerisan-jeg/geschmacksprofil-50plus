@@ -54,7 +54,7 @@ export const ONBOARDING = {
   showMore: (count) => `Weitere anzeigen (${count})`,
   showLess: 'Weniger anzeigen',
   searchAllergensLabel: 'Suchen',
-  searchAllergensPlaceholder: 'z. B. Sellerie oder Mandel',
+  searchAllergensPlaceholder: 'z. B. Sellerie oder Tomate',
   selectedTitle: 'Deine Auswahl',
   removeChip: (text) => `${text} entfernen`,
   tileChooseDetail: 'Auswählen',
@@ -63,13 +63,22 @@ export const ONBOARDING = {
   // A4: Satz bei gesetztem Unsicherheits-Flag. Das Flag selbst schliesst nichts aus.
   unsureHint: 'Merkst du beim Wischen, dass du etwas nicht verträgst, tippe auf «Vertrage ich nicht».',
   noResult: 'Kein Eintrag gefunden.',
-  // Frage 3 (A7)
+  alreadyCovered: 'Das ist durch deine bisherigen Angaben schon ausgeschlossen.',
+  addEntry: (text) => `„${text}“ eintragen`,
+  add: 'Hinzufügen',
+  // Wirkung eines eingetippten Eintrags ohne eigene Karte (z. B. „Tomate“), ehrlich formuliert
+  entryEffect: 'Eingetippte Einträge zeigen wir nirgends mehr als Beispiel. Eine ganze Gruppe fällt dadurch nicht weg.',
+  // Frage 3
   quickPicksTitle: 'Häufige Beispiele',
   searchNeverLabel: 'Anderes Lebensmittel suchen',
-  searchNeverPlaceholder: 'z. B. Speck oder Tofu',
+  searchNeverPlaceholder: 'z. B. Speck oder Tomate',
   matchedVia: (term) => `passt zu „${term}“`,
-  addNote: (text) => `„${text}“ als Notiz hinzufügen`,
-  noteNotApplied: 'Diesen Eintrag können wir noch nicht automatisch berücksichtigen.',
+  brandsBlockTitle: 'Marken und Herkunft',
+  brandsTitle: 'Marken, die du meidest',
+  brandsPlaceholder: 'Marke',
+  originsTitle: 'Herkunft, die du meidest',
+  originsPlaceholder: 'Land, Region',
+  brandsNotApplied: 'Wir speichern das für spätere Produktvorschläge. Auf die Karten hier hat es noch keine Wirkung.',
   noteChip: 'Notiz',
 };
 
@@ -85,4 +94,7 @@ export const PICKER = {
 // Zusammenfassung vor dem Wischen
 export const SUMMARY = {
   notesTitle: 'Deine Notizen',
+  brandsTitle: 'Für spätere Produktvorschläge',
+  brands: (list) => `Marken: ${list.join(', ')}`,
+  origins: (list) => `Herkunft: ${list.join(', ')}`,
 };

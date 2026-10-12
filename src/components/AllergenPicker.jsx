@@ -1,38 +1,72 @@
 import { useState } from 'react';
-import { Check, ChevronDown, ChevronRight, CircleHelp } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, CircleHelp, Plus } from 'lucide-react';
 import ChoiceList from './ChoiceList.jsx';
 import DetailPicker from './DetailPicker.jsx';
 import SearchField from './SearchField.jsx';
 import SelectionChips from './SelectionChips.jsx';
-import { categoryIds, categoryState, describeSelection, searchAllergens, setCategorySelection, toggleIds } from '../logic/allergens.js';
+import { categoryIds, categoryState, describeSelection, setCategorySelection, toggleIds } from '../logic/allergens.js';
+import { cleanText, keyLabel, searchIntolerances } from '../logic/stage0.js';
 import { ONBOARDING } from '../labels.js';
 
-// Allergene und Unverträglichkeiten (A5):
-// - die häufigen als grosse Kacheln, der Rest über „Weitere anzeigen“ und die Suche
-// - Nüsse und Gluten öffnen eine Detailauswahl („Alle Nüsse“ oder einzelne)
-// - die Auswahl ist als Chips sichtbar
+// Allergene und Unverträglichkeiten:
+// - die häufigen als grosse Kacheln, der Rest über „Weitere anzeigen“ und die Suche (A5)
+// - Nüsse (inkl. Erdnüsse) und Gluten öffnen eine Detailauswahl
+// - die Suche findet auch alle Lebensmittel aus dem Katalog; ohne Treffer wird der Text eingetragen
+// - was durch die Ernährungsweise schon ausgeschlossen ist, wird nicht nochmals angeboten
+//   (ausser es ist bereits ausgewählt)
 // - „Ich bin mir nicht sicher, ob es weitere gibt“ setzt nur ein Flag, keinen Ausschluss
-export default function AllergenPicker({ data, answer, onChange }) {
+export default function AllergenPicker({ data, catalogIndex, answer, redundancy, onChange }) {
   const [showAll, setShowAll] = useState(false);
   const [query, setQuery] = useState('');
   const [openCategory, setOpenCategory] = useState(null);
-  const selected = answer.selected;
+  const { selected, items, notes } = answer;
 
-  const common = data.categories.filter((category) => category.common);
-  const more = data.categories.filter((category) => !category.common);
+  const relevant = (category) => categoryState(category, selected).some || !redundancy.category(category);
+  const common = data.categories.filter((category) => category.common && relevant(category));
+  const more = data.categories.filter((category) => !category.common && relevant(category));
   // Bereits gewählte „weitere“ Kategorien bleiben sichtbar, auch wenn die Liste zugeklappt ist.
-  const visible = showAll ? data.categories : [...common, ...more.filter((category) => categoryState(category, selected).some)];
+  const visible = showAll ? [...common, ...more] : [...common, ...more.filter((category) => categoryState(category, selected).some)];
+  const hiddenMore = more.filter((category) => !visible.includes(category)).length;
 
-  function update(nextSelected) {
-    onChange({ ...answer, selected: nextSelected });
+  function update(changes) {
+    onChange({ ...answer, ...changes });
   }
 
   function handleTile(category) {
     if (category.items) setOpenCategory(category);
-    else update(toggleIds(selected, categoryIds(category)));
+    else update({ selected: toggleIds(selected, categoryIds(category)) });
   }
 
-  const results = searchAllergens(data, query).map((hit) => ({ ...hit, selected: hit.ids.every((id) => selected.includes(id)) }));
+  function handlePick(hit) {
+    if (hit.kind === 'allergen') update({ selected: toggleIds(selected, hit.ids) });
+    else update({ items: items.includes(hit.key) ? items.filter((key) => key !== hit.key) : [...items, hit.key] });
+    setQuery('');
+  }
+
+  function addNote() {
+    const text = cleanText(query);
+    if (text && !notes.includes(text)) update({ notes: [...notes, text] });
+    setQuery('');
+  }
+
+  const hits = searchIntolerances(data, catalogIndex, query, 8).map((hit) => ({
+    ...hit,
+    selected: hit.kind === 'allergen' ? hit.ids.every((id) => selected.includes(id)) : items.includes(hit.key),
+  }));
+  const offered = hits.filter((hit) => hit.selected || !redundancy.hit(hit)).slice(0, 6);
+  const alreadyCovered = hits.length > 0 && offered.length === 0;
+
+  const chips = [
+    ...describeSelection(data, selected).map((chip) => ({ ...chip, kind: 'allergen' })),
+    ...items.map((key) => ({ key, text: keyLabel(null, catalogIndex, key), kind: 'item' })),
+    ...notes.map((note) => ({ key: `note:${note}`, text: note, kind: 'note', note })),
+  ];
+
+  function removeChip(chip) {
+    if (chip.kind === 'allergen') update({ selected: selected.filter((id) => !chip.ids.includes(id)) });
+    else if (chip.kind === 'item') update({ items: items.filter((key) => key !== chip.key) });
+    else update({ notes: notes.filter((note) => note !== chip.note) });
+  }
 
   return (
     <div className="allergen-picker">
@@ -52,7 +86,9 @@ export default function AllergenPicker({ data, answer, onChange }) {
               <span className="tile-text">
                 <span className="tile-label">{category.tileLabel}</span>
                 {grouped ? (
-                  <span className="tile-detail">{state.some ? ONBOARDING.tileCount(state.count, state.total) : ONBOARDING.tileChooseDetail}</span>
+                  <span className="tile-detail">
+                    {state.some ? ONBOARDING.tileCount(state.count, state.total) : category.tileDetail ?? ONBOARDING.tileChooseDetail}
+                  </span>
                 ) : (
                   category.detail && <span className="tile-detail">{category.detail}</span>
                 )}
@@ -65,10 +101,10 @@ export default function AllergenPicker({ data, answer, onChange }) {
         })}
       </div>
 
-      {more.length > 0 && (
+      {more.length > 0 && (hiddenMore > 0 || showAll) && (
         <button type="button" className="link-button more-button" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
           <ChevronDown aria-hidden="true" className={showAll ? 'is-flipped' : undefined} />
-          {showAll ? ONBOARDING.showLess : ONBOARDING.showMore(more.length)}
+          {showAll ? ONBOARDING.showLess : ONBOARDING.showMore(hiddenMore)}
         </button>
       )}
 
@@ -77,26 +113,28 @@ export default function AllergenPicker({ data, answer, onChange }) {
         placeholder={ONBOARDING.searchAllergensPlaceholder}
         query={query}
         onQuery={setQuery}
-        results={results}
-        onPick={(hit) => {
-          update(toggleIds(selected, hit.ids));
-          setQuery('');
-        }}
+        results={offered}
+        onPick={handlePick}
+        onSubmitText={addNote}
       >
-        {results.length === 0 && <p className="note">{ONBOARDING.noResult}</p>}
+        {alreadyCovered && <p className="note">{ONBOARDING.alreadyCovered}</p>}
+        {!offered.some((hit) => hit.rank === 0) && !alreadyCovered && cleanText(query) && (
+          <button type="button" className="button-secondary add-entry" onClick={addNote}>
+            <Plus aria-hidden="true" />
+            {ONBOARDING.addEntry(cleanText(query))}
+          </button>
+        )}
       </SearchField>
 
-      <SelectionChips
-        chips={describeSelection(data, selected)}
-        onRemove={(chip) => update(selected.filter((id) => !chip.ids.includes(id)))}
-      />
+      <SelectionChips chips={chips} onRemove={removeChip} />
+      {notes.length > 0 && <p className="note">{ONBOARDING.entryEffect}</p>}
 
       <ChoiceList
         name="unsure-more"
         multiple
         options={[{ id: 'unsure', label: ONBOARDING.unsureMore }]}
         value={answer.unsureMore ? ['unsure'] : []}
-        onChange={() => onChange({ ...answer, unsureMore: !answer.unsureMore })}
+        onChange={() => update({ unsureMore: !answer.unsureMore })}
       />
       {answer.unsureMore && (
         <p className="notice">
@@ -109,12 +147,17 @@ export default function AllergenPicker({ data, answer, onChange }) {
         <DetailPicker
           title={openCategory.label}
           allLabel={openCategory.allLabel}
-          sections={[{ id: openCategory.id, options: openCategory.items }]}
+          sections={[
+            {
+              id: openCategory.id,
+              options: openCategory.items.filter((item) => selected.includes(item.id) || !redundancy.allergenIds([item.id])),
+            },
+          ]}
           initialSelected={selected.filter((id) => categoryIds(openCategory).includes(id))}
           requireSelection={false}
           onCancel={() => setOpenCategory(null)}
           onConfirm={(ids) => {
-            update(setCategorySelection(selected, openCategory, ids));
+            update({ selected: setCategorySelection(selected, openCategory, ids) });
             setOpenCategory(null);
           }}
         />
