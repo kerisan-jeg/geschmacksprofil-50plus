@@ -3,14 +3,14 @@ import Artwork from '../components/Artwork.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
 import { buildProfile } from '../logic/engine.js';
 import { DISLIKE, LIKE, PREFER, UNFAMILIAR, UNRATED } from '../logic/answers.js';
-import { ONBOARDING } from '../labels.js';
+import { ANSWER_LABELS, ONBOARDING, RESULT } from '../labels.js';
 
 const GROUPS = [
   { key: PREFER, ...ANSWER_META[PREFER] },
   { key: LIKE, ...ANSWER_META[LIKE] },
   { key: DISLIKE, ...ANSWER_META[DISLIKE], note: 'Kein Verbot: Ausnahmen fragen wir später gezielt nach.' },
-  { key: UNFAMILIAR, ...ANSWER_META[UNFAMILIAR], label: 'Kennst du nicht' },
-  { key: UNRATED, label: 'Noch offen', Icon: CircleDashed, tone: 'open' },
+  { key: UNFAMILIAR, ...ANSWER_META[UNFAMILIAR], label: RESULT.unfamiliar },
+  { key: UNRATED, label: RESULT.unrated, Icon: CircleDashed, tone: 'open' },
 ];
 
 export default function ResultScreen({ round, index, endedEarly, firstName, onboarding, onRestart, onDownloadLog }) {
@@ -29,7 +29,7 @@ export default function ResultScreen({ round, index, endedEarly, firstName, onbo
   // Feste Regeln: aus dem Onboarding und aus „Vertrage ich nicht“ beim Wischen.
   const ruleList = [
     ...onboarding.rules,
-    ...round.swipeExclusions.map((entry) => ({ id: `swipe.${entry.value}`, text: index.get(entry.value).title })),
+    ...round.swipeExclusions.map((entry) => ({ id: `swipe.${entry.value}`, text: `${index.get(entry.value).title} (${ANSWER_LABELS.INTOLERANT}, ${RESULT.fromSwipe})` })),
   ];
   const unsureTexts = onboarding.uncertain ? [ONBOARDING.unsureHint] : [];
   const thanks = firstName ? `Danke, ${firstName}. ` : '';

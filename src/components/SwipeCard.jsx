@@ -2,13 +2,14 @@ import { useImperativeHandle, useRef, useState } from 'react';
 import CardFace from './CardFace.jsx';
 import { ANSWER_META } from './answerMeta.js';
 import { FEATURES, SWIPE } from '../config.js';
-import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
+import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 
 const EXIT_TRANSFORM = {
   [LIKE]: 'translate(130vw, 4vh) rotate(16deg)',
   [DISLIKE]: 'translate(-130vw, 4vh) rotate(-16deg)',
   [PREFER]: 'translate(0, -115vh) rotate(-2deg)',
   [UNFAMILIAR]: 'translate(0, 5vh) scale(0.9)',
+  [INTOLERANT]: 'translate(0, 5vh) scale(0.9)',
 };
 
 function prefersReducedMotion() {
@@ -40,23 +41,24 @@ function vibrate() {
   }
 }
 
-// Karte, die gewischt oder über commit() von aussen beantwortet wird (Knöpfe, Tastatur).
+// Karte, die gewischt oder über commit() von aussen beantwortet wird (Knöpfe, Link, Tastatur).
+// extra wird unverändert an onCommitted weitergegeben (z. B. excludedCardIds bei INTOLERANT).
 export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [leaving, setLeaving] = useState(null);
   const drag = useRef(null);
 
-  function commit(answer, method) {
+  function commit(answer, method, extra) {
     if (leaving) return;
     drag.current = null;
     setDragging(false);
     setLeaving(answer);
-    onIntent?.({ answer, strength: 1 });
+    onIntent?.(answer === INTOLERANT ? null : { answer, strength: 1 });
     vibrate();
     // Zeitpunkt der Entscheidung festhalten, damit die Animation nicht in die Antwortzeit eingeht.
     const decidedAt = performance.now();
-    window.setTimeout(() => onCommitted(answer, method, decidedAt), prefersReducedMotion() ? 0 : SWIPE.exitMs);
+    window.setTimeout(() => onCommitted(answer, method, decidedAt, extra), prefersReducedMotion() ? 0 : SWIPE.exitMs);
   }
 
   useImperativeHandle(ref, () => ({ commit }));
@@ -98,14 +100,14 @@ export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
     onIntent?.(null);
   }
 
-  const intent = leaving ? { answer: leaving, strength: 1 } : intentFromOffset(offset.x, offset.y);
+  const intent = leaving ? (leaving === INTOLERANT ? null : { answer: leaving, strength: 1 }) : intentFromOffset(offset.x, offset.y);
   const lift = offset.y < 0 ? offset.y : offset.y * 0.25;
   const transform = leaving ? EXIT_TRANSFORM[leaving] : `translate(${offset.x}px, ${lift}px) rotate(${offset.x / 16}deg)`;
   const meta = intent ? ANSWER_META[intent.answer] : null;
 
   const classes = ['swipe-card'];
   if (dragging) classes.push('is-dragging');
-  if (leaving === UNFAMILIAR) classes.push('is-fading');
+  if (leaving === UNFAMILIAR || leaving === INTOLERANT) classes.push('is-fading');
 
   return (
     <article

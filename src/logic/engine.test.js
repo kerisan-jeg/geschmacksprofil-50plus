@@ -83,3 +83,26 @@ test('Eine Karte wird nicht doppelt beantwortet', () => {
   assert.equal(played.answers.F01, LIKE);
   assert.deepEqual(played.sequence, ['F01']);
 });
+
+test('„Vertrage ich nicht“ auf Nüsse und Samen bietet einzelne Nüsse statt nur die ganze Familie', async () => {
+  const { intoleranceOptions, collapseIntolerance } = await import('./engine.js');
+  const current = state([]);
+  const nuts = index.get('F13');
+  const options = intoleranceOptions(current, nuts);
+  assert.deepEqual(options.sections.map((section) => section.label), ['Baumnüsse', 'Kerne und Samen']);
+  const hazelnut = options.sections[0].options.find((option) => option.label === 'Haselnüsse').id;
+  assert.deepEqual(collapseIntolerance(current, nuts, [hazelnut]), [hazelnut]);
+  const treeNuts = options.sections[0].options.map((option) => option.id);
+  assert.deepEqual(collapseIntolerance(current, nuts, treeNuts), ['F13.1']);
+  const everything = options.sections.flatMap((section) => section.options.map((option) => option.id));
+  assert.deepEqual(collapseIntolerance(current, nuts, everything), ['F13']);
+  // Eine Karte ohne Kinder wird direkt ausgeschlossen.
+  assert.equal(intoleranceOptions(current, index.get('F03')), null);
+});
+
+test('Die Detailauswahl zeigt nur, was nach den Ausschlüssen noch sichtbar ist', async () => {
+  const { intoleranceOptions } = await import('./engine.js');
+  const onboarding = { diet: null, exclusions: [{ type: 'allergen', value: 'hazelnut', source: 'onboarding' }], cardLabels: {} };
+  const options = intoleranceOptions(state([], onboarding), index.get('F13'));
+  assert.ok(!options.sections[0].options.some((option) => option.label === 'Haselnüsse'));
+});

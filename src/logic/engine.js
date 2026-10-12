@@ -126,6 +126,49 @@ export function buildProfile(state) {
   };
 }
 
+// ---------- „Vertrage ich nicht“ auf einer Familienkarte (A4) ----------
+
+function visibleLeaves(state, card) {
+  const children = state.index.childrenOf(card.id).filter((child) => isVisible(child, state.index, state.exclusions));
+  if (children.length === 0) return [card];
+  return children.flatMap((child) => visibleLeaves(state, child));
+}
+
+// Optionen für die Detailauswahl: direkte Kinder ohne eigene Kinder in einem Abschnitt,
+// Kinder mit eigenen Kindern (z. B. Baumnüsse) als eigener Abschnitt mit ihren Einträgen.
+// Null, wenn die Karte keine sichtbaren Kinder hat: Dann gilt der Ausschluss direkt für die Karte.
+export function intoleranceOptions(state, card) {
+  const children = state.index.childrenOf(card.id).filter((child) => isVisible(child, state.index, state.exclusions));
+  if (children.length === 0) return null;
+  const direct = [];
+  const sections = [];
+  for (const child of children) {
+    const leaves = visibleLeaves(state, child);
+    if (leaves.length === 1 && leaves[0].id === child.id) direct.push(child);
+    else sections.push({ id: child.id, label: child.title, options: leaves.map((leaf) => ({ id: leaf.id, label: leaf.title })) });
+  }
+  const directSection = direct.length > 0 ? [{ id: `${card.id}-direct`, options: direct.map((leaf) => ({ id: leaf.id, label: leaf.title })) }] : [];
+  return { sections: [...directSection, ...sections] };
+}
+
+// Fasst die gewählten Einträge zusammen: alles gewählt → die Familie selbst,
+// ein ganzer Abschnitt gewählt → die Untergruppe, sonst die einzelnen Einträge.
+export function collapseIntolerance(state, card, selectedIds) {
+  const options = intoleranceOptions(state, card);
+  if (!options) return [card.id];
+  const chosen = new Set(selectedIds);
+  const all = options.sections.flatMap((section) => section.options.map((option) => option.id));
+  if (all.length > 0 && all.every((id) => chosen.has(id))) return [card.id];
+  const out = [];
+  for (const section of options.sections) {
+    const ids = section.options.map((option) => option.id);
+    const isGroup = !section.id.endsWith('-direct');
+    if (isGroup && ids.length > 1 && ids.every((id) => chosen.has(id))) out.push(section.id);
+    else out.push(...ids.filter((id) => chosen.has(id)));
+  }
+  return out;
+}
+
 // Alle Antworten, die in einen Geschmacksscore eingehen dürfen. INTOLERANT ist nie dabei.
 export function tasteSignals(state) {
   return state.sequence.filter((id) => isTasteSignal(state.answers[id])).map((id) => ({ cardId: id, response: state.answers[id] }));

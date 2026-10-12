@@ -9,14 +9,7 @@ export const DEFAULT_CONFIG = {
   tutorial: true, // Mini-Tutorial vor der ersten Runde
 };
 
-// Beschriftung der Antworten. Der Wortlaut von LIKE ist laut nurec v0.2 (Kap. 4)
-// noch offen ("mag ich" oder "würde ich essen") und wird im Pilot geprüft.
-export const ANSWER_LABELS = {
-  DISLIKE: 'Eher ungern',
-  LIKE: 'Gern',
-  PREFER: 'Besonders gern',
-  UNFAMILIAR: 'Kenne ich nicht',
-};
+// Beschriftungen stehen in src/labels.js.
 
 // Wischgesten. Eine Antwort zählt, wenn die Distanz erreicht ist
 // oder die Karte schnell genug in eine Richtung geschnippt wird.
@@ -26,11 +19,12 @@ export const SWIPE = {
   flingVelocity: 0.55, // px pro ms
   flingMinDistance: 36, // px
   exitMs: 280,
+  enterMs: 320, // Einblendung der nächsten Karte (wie .swipe-card-inner in styles.css)
 };
 
 // Eigene Ideen, die im Pilot geprüft werden. Abschalten mit false.
+// Rückgängig ist seit dem Zwischencheck fester Bestandteil (A8) und nicht mehr abschaltbar.
 export const FEATURES = {
-  undo: true, // Rückgängig-Knopf
   haptics: true, // kurzes Vibrieren bei einer Antwort (nur Android)
 };
 

@@ -1,17 +1,18 @@
 import catalog from '../data/catalog.json';
 import CardFace from '../components/CardFace.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
-import { ANSWER_LABELS } from '../config.js';
-import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
+import { ANSWER_LABELS, TUTORIAL } from '../labels.js';
+import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 
 const DEMO_CARD = catalog.cards.find((card) => card.id === 'F12');
 const DEMO = [LIKE, DISLIKE, PREFER];
 
+// Mini-Tutorial vor der ersten Runde. Abschaltbar über ?tutorial=0 (Vergleich im Pilot).
 export default function IntroScreen({ onContinue }) {
   return (
     <main className="screen screen-intro">
-      <h1>So antwortest du</h1>
-      <p className="lead">Wische die Karte in eine Richtung oder tippe auf den passenden Knopf. Beides zählt gleich.</p>
+      <h1>{TUTORIAL.title}</h1>
+      <p className="lead">{TUTORIAL.lead}</p>
 
       <div className="demo" aria-hidden="true">
         <div className="demo-card">
@@ -29,7 +30,7 @@ export default function IntroScreen({ onContinue }) {
       </div>
 
       <ul className="legend">
-        {[DISLIKE, LIKE, PREFER, UNFAMILIAR].map((answer) => {
+        {[DISLIKE, LIKE, PREFER, UNFAMILIAR, INTOLERANT].map((answer) => {
           const { Icon, label, tone, hint } = ANSWER_META[answer];
           return (
             <li key={answer} className={`legend-row tone-${tone}`}>
@@ -43,12 +44,11 @@ export default function IntroScreen({ onContinue }) {
         })}
       </ul>
 
-      <p className="note">
-        Es gibt keine falschen Antworten. „{ANSWER_LABELS.DISLIKE}“ ist kein Verbot: Ausnahmen fragen wir später gezielt nach.
-      </p>
+      <p className="note">{TUTORIAL.noWrong(ANSWER_LABELS.DISLIKE)}</p>
+      <p className="note">{TUTORIAL.undo}</p>
 
       <div className="screen-actions">
-        <button type="button" className="button-primary" onClick={onContinue}>Erste Karte zeigen</button>
+        <button type="button" className="button-primary" onClick={onContinue}>{TUTORIAL.start}</button>
       </div>
     </main>
   );
