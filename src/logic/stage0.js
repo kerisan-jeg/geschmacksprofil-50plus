@@ -36,7 +36,7 @@ export function emptyAnswers(questions) {
 // Bei „Ja“ muss etwas ausgewählt oder eingetragen sein, sonst bleibt unklar, was gemeint ist.
 export function isAnswered(question, answer) {
   if (question.type === 'single') return answer != null;
-  if (!answer || answer.gate == null) return false;
+  if (!answer || !question.gate.some((option) => option.id === answer.gate)) return false;
   if (answer.gate !== 'yes') return true;
   if (question.type === 'never') {
     return answer.selected.length + answer.notes.length + answer.brands.length + answer.origins.length > 0;
@@ -44,12 +44,11 @@ export function isAnswered(question, answer) {
   return answer.selected.length + answer.items.length + answer.notes.length > 0;
 }
 
-// „Unsicher“ als Antwort oder „Ich bin mir nicht sicher, ob es weitere gibt“ nach einer Auswahl.
-// Beides kann zusammen mit bekannten Allergien vorkommen.
+// „Ich bin mir nicht sicher, ob es weitere gibt“ nach einer Auswahl bekannter Allergien.
 export function uncertaintyFlag(answers) {
   const answer = answers.intolerances;
   if (!answer) return false;
-  return answer.gate === 'unsure' || (answer.gate === 'yes' && answer.unsureMore === true);
+  return answer.gate === 'yes' && answer.unsureMore === true;
 }
 
 // ---------- Schlüssel ----------

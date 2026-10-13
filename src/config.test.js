@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_CONFIG, isAdminMode, resolveConfig } from './config.js';
 
-test('Ohne Parameter gelten die Standardwerte (Limit 10, Tutorial an)', () => {
-  assert.deepEqual(resolveConfig(''), { roundCardLimit: 10, tutorial: true });
-  assert.deepEqual(DEFAULT_CONFIG, { roundCardLimit: 10, tutorial: true });
+test('Ohne Parameter gelten die Standardwerte (Limit 10, kein Tutorial)', () => {
+  assert.deepEqual(resolveConfig(''), { roundCardLimit: 10, tutorial: false });
+  assert.deepEqual(DEFAULT_CONFIG, { roundCardLimit: 10, tutorial: false });
 });
 
 test('?limit wird übernommen', () => {
@@ -19,10 +19,10 @@ test('Ungültige Werte für ?limit fallen auf den Standard zurück', () => {
   }
 });
 
-test('?tutorial=0|1 schaltet das Mini-Tutorial, alles andere bleibt Standard', () => {
-  assert.equal(resolveConfig('?tutorial=0').tutorial, false);
-  assert.equal(resolveConfig('?tutorial=1').tutorial, true);
-  assert.equal(resolveConfig('?tutorial=nein').tutorial, true);
+test('Alte ?tutorial-Parameter können das entfernte Tutorial nicht aktivieren', () => {
+  for (const value of ['0', '1', 'nein']) {
+    assert.equal(resolveConfig(`?tutorial=${value}`).tutorial, false);
+  }
   assert.deepEqual(resolveConfig('?limit=8&tutorial=0'), { roundCardLimit: 8, tutorial: false });
 });
 

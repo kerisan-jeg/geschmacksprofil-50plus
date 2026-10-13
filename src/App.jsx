@@ -19,20 +19,17 @@ import { createLogger } from './logging/logger.js';
 import StartScreen from './screens/StartScreen.jsx';
 import LoginScreen from './screens/LoginScreen.jsx';
 import QuestionnaireScreen from './screens/QuestionnaireScreen.jsx';
-import SummaryScreen from './screens/SummaryScreen.jsx';
-import IntroScreen from './screens/IntroScreen.jsx';
 import RoundScreen from './screens/RoundScreen.jsx';
 import ResultScreen from './screens/ResultScreen.jsx';
 import AdminScreen from './screens/AdminScreen.jsx';
 
-// Ablauf: Start → Anmelden → Fragebogen (Stufe 0) → Zusammenfassung → Erklärung → Runde → Zwischenstand
+// Ablauf: Start → Anmelden → Fragebogen (Stufe 0) → Runde → Zwischenstand
 const INDEX = indexCatalog(catalog.cards);
-const FAMILIES = catalog.cards.filter((card) => card.stage === 1);
 const EMPTY_PROFILE = { firstName: '', ageGroup: null, participantCode: '', consent: false };
 // Effektive Werte aus Standard und URL (A10), einmal beim Laden bestimmt.
 const CONFIG = resolveConfig(typeof window === 'undefined' ? '' : window.location.search);
 
-function initialState(config = CONFIG) {
+export function initialState(config = CONFIG) {
   return {
     screen: 'start',
     config,
@@ -52,7 +49,7 @@ function roundOf(state, events = state.events) {
 
 // Alle Zustandswechsel an einem Ort. Der Reducer arbeitet immer mit dem aktuellen Stand,
 // auch wenn eine Antwort erst nach der Wegflug-Animation eintrifft.
-function reducer(state, action) {
+export function reducer(state, action) {
   switch (action.type) {
     case 'go':
       return { ...state, screen: action.screen };
@@ -64,10 +61,9 @@ function reducer(state, action) {
       if (action.to < 0) return { ...state, screen: 'login' };
       if (action.to < stage0.questions.length) return { ...state, step: action.to };
       const onboarding = deriveOnboarding(stage0, state.answers, { allergens, catalogIndex: INDEX });
-      return { ...state, onboarding, events: [], endedEarly: false, screen: 'summary' };
+      const nextState = { ...state, onboarding, events: [], endedEarly: false };
+      return { ...nextState, screen: isRoundComplete(roundOf(nextState), state.config) ? 'result' : 'round' };
     }
-    case 'editStage0':
-      return { ...state, screen: 'questions', step: 0 };
     case 'event': {
       const events = [...state.events, action.event];
       const complete = action.event.response !== UNDO && isRoundComplete(roundOf(state, events), state.config);
@@ -100,6 +96,15 @@ function App() {
   }, [screen, step, logger]);
 
   useEffect(() => {
+    if (!onboarding) return;
+    logger.setOnboarding(onboarding);
+    logger.trace('stage0_confirm', { eligible: eligibleFamilies(round).map((card) => card.id) });
+    logger.trace('round_start', { roundCardLimit: config.roundCardLimit, tutorial: config.tutorial });
+    // Onboarding wird beim Abschluss von Frage 3 einmal übernommen, vor dem ersten Swipe.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboarding, logger]);
+
+  useEffect(() => {
     if (screen !== 'result' || !round) return;
     logger.trace('round_end', { completed: !endedEarly, answered: round.sequence.length });
     logger.finish(buildProfile(round));
@@ -112,24 +117,6 @@ function App() {
     logger.start({ participantCode: nextProfile.participantCode, ageGroup: nextProfile.ageGroup });
     logger.trace('login', { consent: true, nameGiven: nextProfile.firstName !== '' });
     dispatch({ type: 'login', profile: nextProfile });
-  }
-
-  function handleConfirmStage0() {
-    logger.setOnboarding(onboarding);
-    logger.trace('stage0_confirm', { eligible: eligibleFamilies(round).map((card) => card.id) });
-    // Ohne Tutorial (?tutorial=0) direkt zur ersten Karte.
-    if (config.tutorial) dispatch({ type: 'go', screen: 'intro' });
-    else startRound();
-  }
-
-  function handleEditStage0() {
-    logger.trace('stage0_edit');
-    dispatch({ type: 'editStage0' });
-  }
-
-  function startRound() {
-    logger.trace('round_start', { roundCardLimit: config.roundCardLimit, tutorial: config.tutorial });
-    dispatch({ type: 'go', screen: 'round' });
   }
 
   // Ein Antwort-Ereignis: genau dieses Objekt geht ins Protokoll und in den Zustand.
@@ -186,22 +173,6 @@ function App() {
           onStep={(to) => dispatch({ type: 'step', to })}
         />
       );
-    case 'summary': {
-      const eligible = eligibleFamilies(round).map((card) => card.id);
-      return (
-        <SummaryScreen
-          families={FAMILIES}
-          eligibleIds={eligible}
-          roundSize={Math.min(config.roundCardLimit, eligible.length)}
-          onboarding={onboarding}
-          firstName={profile.firstName}
-          onConfirm={handleConfirmStage0}
-          onEdit={handleEditStage0}
-        />
-      );
-    }
-    case 'intro':
-      return <IntroScreen onContinue={startRound} />;
     case 'round':
       if (!nextCard(round, config)) return null;
       return (

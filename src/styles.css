@@ -352,121 +352,6 @@ h1 {
   color: var(--brand);
 }
 
-/* Erklärung */
-
-.demo {
-  display: grid;
-  place-items: center;
-  height: 15rem;
-  padding-top: 2.4rem;
-  overflow: hidden;
-  border-radius: var(--radius-card);
-  background: #e8ede5;
-}
-
-.demo-card {
-  position: relative;
-  width: 9.2rem;
-  animation: demo-swipe 9s var(--ease-out) infinite;
-}
-
-.demo-badge {
-  position: absolute;
-  top: 32%;
-  left: 50%;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  background: #fff;
-  box-shadow: var(--shadow-soft);
-  color: var(--tone);
-  font-size: 0.95rem;
-  font-weight: 700;
-  white-space: nowrap;
-  opacity: 0;
-  transform: translate(-50%, -50%);
-}
-
-.demo-badge svg {
-  width: 1.05rem;
-  height: 1.05rem;
-}
-
-.demo-badge-like { animation: demo-like 9s infinite; }
-.demo-badge-dislike { animation: demo-dislike 9s infinite; }
-.demo-badge-prefer { animation: demo-prefer 9s infinite; }
-
-@keyframes demo-swipe {
-  0%, 8% { transform: none; }
-  16%, 22% { transform: translateX(4.2rem) rotate(9deg); }
-  30%, 38% { transform: none; }
-  46%, 52% { transform: translateX(-4.2rem) rotate(-9deg); }
-  60%, 68% { transform: none; }
-  76%, 82% { transform: translateY(-2rem); }
-  90%, 100% { transform: none; }
-}
-
-@keyframes demo-like {
-  0%, 10% { opacity: 0; }
-  16%, 22% { opacity: 1; }
-  28%, 100% { opacity: 0; }
-}
-
-@keyframes demo-dislike {
-  0%, 40% { opacity: 0; }
-  46%, 52% { opacity: 1; }
-  58%, 100% { opacity: 0; }
-}
-
-@keyframes demo-prefer {
-  0%, 70% { opacity: 0; }
-  76%, 82% { opacity: 1; }
-  88%, 100% { opacity: 0; }
-}
-
-.legend {
-  display: grid;
-  gap: 0.15rem;
-  padding: 0;
-  list-style: none;
-}
-
-.legend-row {
-  display: grid;
-  grid-template-columns: 3rem 1fr;
-  align-items: center;
-  gap: 0.9rem;
-  padding: 0.45rem 0;
-}
-
-.legend-icon {
-  display: grid;
-  place-items: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  background: var(--surface);
-  color: var(--tone);
-  box-shadow: var(--shadow-soft), inset 0 0 0 2px color-mix(in srgb, var(--tone) 24%, transparent);
-}
-
-.legend-icon svg {
-  width: 1.4rem;
-  height: 1.4rem;
-}
-
-.legend-row strong {
-  display: block;
-}
-
-.legend-hint {
-  display: block;
-  color: var(--ink-2);
-  font-size: 0.95rem;
-}
-
 /* Runde */
 
 .screen-round {
@@ -1509,14 +1394,9 @@ h1:focus {
 @media (prefers-reduced-motion: reduce) {
   .screen,
   .swipe-card-inner,
-  .demo-card,
   .detail-block,
   .toast {
     animation: none;
-  }
-
-  .demo-badge {
-    display: none;
   }
 
   .swipe-card,

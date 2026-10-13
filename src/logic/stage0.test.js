@@ -42,8 +42,18 @@ test('Bekannte Allergie und Unsicherheits-Flag gleichzeitig möglich; das Flag s
   const result = derive(answers);
   assert.equal(result.uncertain, true);
   assert.equal(result.exclusions.length, 1);
-  assert.equal(uncertaintyFlag(answersWith({ intolerances: { ...empty.intolerances, gate: 'unsure' } })), true);
-  assert.deepEqual(derive(answersWith({ intolerances: { ...empty.intolerances, gate: 'unsure', selected: ['egg'] } })).exclusions, []);
+});
+
+test('Frage 2 bietet nur Ja und Keine bekannt; eine alte Unsicher-Antwort ist ungültig', () => {
+  assert.deepEqual(intolerances.gate, [{ id: 'yes', label: 'Ja' }, { id: 'no', label: 'Keine bekannt' }]);
+  const legacyAnswer = { ...empty.intolerances, gate: 'unsure', selected: ['egg'] };
+  assert.equal(isAnswered(intolerances, legacyAnswer), false);
+  assert.equal(uncertaintyFlag(answersWith({ intolerances: legacyAnswer })), false);
+  assert.deepEqual(derive(answersWith({ intolerances: legacyAnswer })).exclusions, []);
+});
+
+test('Frage 3 fragt exakt nach etwas Weiterem', () => {
+  assert.equal(never.title, 'Gibt es etwas Weiteres, das wir dir nie vorschlagen dürfen?');
 });
 
 test('„Alle Nüsse“ schliesst Erdnüsse ein; eine Erdnuss allein bleibt einzeln wählbar', () => {

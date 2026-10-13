@@ -33,8 +33,7 @@
       "hint": "Zum Beispiel eine Allergie, eine Unverträglichkeit oder eine ärztliche Vorgabe wie bei Zöliakie.",
       "gate": [
         { "id": "yes", "label": "Ja" },
-        { "id": "no", "label": "Keine bekannt" },
-        { "id": "unsure", "label": "Unsicher" }
+        { "id": "no", "label": "Keine bekannt" }
       ],
       "detailTitle": "Was verträgst du nicht?",
       "detailHint": "Tippe alles an, was zutrifft. Die Liste hilft beim Erinnern und ersetzt keine Diagnose."
@@ -44,7 +43,7 @@
       "covers": "0.5",
       "type": "never",
       "source": "Nie vorschlagen",
-      "title": "Gibt es etwas, das wir dir nie vorschlagen dürfen?",
+      "title": "Gibt es etwas Weiteres, das wir dir nie vorschlagen dürfen?",
       "hint": "Egal aus welchem Grund, du musst nichts begründen. Was du einfach nicht magst, kannst du später beim Wischen angeben.",
       "gate": [
         { "id": "yes", "label": "Ja" },

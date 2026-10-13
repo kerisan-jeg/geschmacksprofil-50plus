@@ -2,9 +2,10 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { ANSWER_LABELS } from './labels.js';
 
-const SRC = new URL('.', import.meta.url).pathname;
+const SRC = fileURLToPath(new URL('.', import.meta.url));
 
 // Code ohne Kommentare: Kommentare dürfen die Begriffe zur Erklärung nennen.
 function codeOf(file) {

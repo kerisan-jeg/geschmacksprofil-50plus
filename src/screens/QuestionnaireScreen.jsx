@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, CircleAlert, CircleHelp } from 'lucide-react';
+import { ChevronLeft, CircleAlert } from 'lucide-react';
 import ChoiceList from '../components/ChoiceList.jsx';
 import AllergenPicker from '../components/AllergenPicker.jsx';
 import NeverPicker from '../components/NeverPicker.jsx';
 import SegmentedProgress from '../components/SegmentedProgress.jsx';
 import { isAnswered } from '../logic/stage0.js';
-import { ONBOARDING } from '../labels.js';
 
 // Stufe 0 als kurzer Fragebogen: eine Frage pro Bildschirm.
 // Erst bei „Ja“ erscheint die Detailauswahl (nurec v0.2, Kap. 2: nur bei „vorhanden“ nachfragen).
@@ -93,12 +92,6 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
               )}
             </section>
           )}
-          {question.type === 'allergens' && answer.gate === 'unsure' && (
-            <p className="notice">
-              <CircleHelp aria-hidden="true" />
-              {ONBOARDING.unsureHint}
-            </p>
-          )}
         </>
       )}
 
@@ -111,7 +104,7 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
 
       <div className="sticky-actions">
         <button type="button" className="button-primary" onClick={handleNext}>
-          {last ? 'Zur Übersicht' : 'Weiter'}
+          {last ? 'Erste Karte zeigen' : 'Weiter'}
         </button>
       </div>
     </main>

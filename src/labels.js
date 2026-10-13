@@ -33,15 +33,6 @@ export const ROUND = {
   intolerantAll: (title) => `Ganze Gruppe: ${title}`,
 };
 
-// Mini-Tutorial
-export const TUTORIAL = {
-  title: 'So antwortest du',
-  lead: 'Wische die Karte in eine Richtung oder tippe auf den passenden Knopf. Beides zählt gleich.',
-  noWrong: (dislike) => `Es gibt keine falschen Antworten. „${dislike}“ ist kein Verbot: Ausnahmen fragen wir später gezielt nach.`,
-  undo: 'Falsch gewischt? Mit „Rückgängig“ oben rechts holst du die Karte zurück.',
-  start: 'Erste Karte zeigen',
-};
-
 // Zwischenstand
 export const RESULT = {
   unfamiliar: 'Kennst du nicht',

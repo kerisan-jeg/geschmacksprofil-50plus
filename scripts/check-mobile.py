@@ -115,8 +115,6 @@ def run(p, W, H):
     check(pg, 'frage3', results)
     pg.locator('.add-entry').click()
     pg.get_by_label('Marken, die du meidest').fill('Marke X'); pg.keyboard.press('Enter')
-    pg.get_by_role('button', name='Zur Übersicht').click(); check(pg, 'zusammenfassung', results)
-    pg.get_by_role('button', name='Stimmt so, weiter').click(); check(pg, 'tutorial', results)
     pg.get_by_role('button', name='Erste Karte zeigen').click(); check(pg, 'runde', results)
     # Reduced motion: Karte verlässt den Stapel ohne Animation
     trans = pg.evaluate("getComputedStyle(document.querySelector('.swipe-card')).transitionDuration + ' / ' + getComputedStyle(document.querySelector('.swipe-card-inner')).animationName")

@@ -5,14 +5,12 @@ export const APP_VERSION = '0.4.1-demo';
 
 // Standardwerte für den Testablauf (A10). URL-Parameter überschreiben sie, z. B.
 //   ?limit=6           Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 30
-//   ?tutorial=0        Mini-Tutorial aus (1 = an)
 //   ?admin=1           Ansicht für die Testleitung (Export, Sitzungen)
 // Die effektiven Werte werden in jeder Sitzung gespeichert.
-// Begründung [V]: Kernfrage 2 (Anzahl Abfragen) [A] und die Frage, ob es das Tutorial braucht [K],
-// sollen im Test ohne neuen Build vergleichbar sein.
+// Begründung [V]: Kernfrage 2 (Anzahl Abfragen) [A] soll im Test ohne neuen Build vergleichbar sein.
 export const DEFAULT_CONFIG = {
   roundCardLimit: 10,
-  tutorial: true,
+  tutorial: false, // Für bestehende Sitzungen und Exporte bleibt das Datenfeld erhalten.
 };
 
 export const ROUND_CARD_LIMIT_RANGE = { min: 4, max: 30 };
@@ -27,10 +25,6 @@ export function resolveConfig(search = '') {
     const value = Number(limit.trim());
     if (value >= ROUND_CARD_LIMIT_RANGE.min && value <= ROUND_CARD_LIMIT_RANGE.max) config.roundCardLimit = value;
   }
-
-  const tutorial = params.get('tutorial');
-  if (tutorial === '0') config.tutorial = false;
-  else if (tutorial === '1') config.tutorial = true;
 
   return config;
 }
