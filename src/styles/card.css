@@ -55,6 +55,45 @@
   opacity: 1;
 }
 
+.artwork-photos {
+  position: absolute;
+  inset: 0;
+}
+
+/* Bildraster einer Gruppe: erstes Beispiel gross links, die anderen zwei rechts übereinander.
+   Jedes Feld schneidet sein Foto selbst zu, so passt das Raster in jede Kartenhöhe. */
+.artwork.is-collage .artwork-photos {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--border-strong);
+  background: var(--color-surface);
+}
+
+.artwork.is-collage .artwork-photo {
+  position: static;
+  min-width: 0;
+  min-height: 0;
+}
+
+.artwork.is-collage .artwork-photo:first-child {
+  grid-row: span 2;
+}
+
+/* Nur noch zwei erlaubte Beispiele: zwei gleich breite Felder */
+.artwork.is-collage[data-count='2'] .artwork-photos {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr;
+}
+
+.artwork.is-collage[data-count='2'] .artwork-photo:first-child {
+  grid-row: auto;
+}
+
+.artwork.thumb.is-collage .artwork-photos {
+  gap: var(--border-hairline);
+}
+
 .artwork[data-state='loaded'] .artwork-placeholder {
   visibility: hidden;
 }

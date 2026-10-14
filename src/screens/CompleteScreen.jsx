@@ -9,9 +9,10 @@ import { COMPLETE } from '../labels.js';
 
 const ROWS = [PREFER, LIKE, DISLIKE, UNFAMILIAR, INTOLERANT];
 
-// Abschluss nach der Runde: kurze Übersicht und Weiterleitung zu „Mein Profil“.
-// Zahlen sind reine Zählungen der Antworten, keine Prozentwerte und keine Berechnung.
-export default function CompleteScreen({ round, endedEarly, firstName, ruleCount, steps, onToProfile }) {
+// Abschluss nach jeder Runde: kurze Übersicht, dann „Weiter mit Runde 2“ (solange es Karten gibt)
+// oder „Mein Profil ansehen“. Zahlen sind reine Zählungen der Antworten, keine Prozentwerte.
+// nextTitles: Titel der Karten der nächsten Runde (leer, wenn alles beantwortet ist).
+export default function CompleteScreen({ round, endedEarly, firstName, ruleCount, steps, nextTitles, onNextRound, onToProfile }) {
   const { groups, intolerant } = computeProfile(round);
   const counts = {
     [PREFER]: groups[PREFER].length,
@@ -20,7 +21,8 @@ export default function CompleteScreen({ round, endedEarly, firstName, ruleCount
     [UNFAMILIAR]: groups[UNFAMILIAR].length,
     [INTOLERANT]: intolerant.length,
   };
-  const answered = round.sequence.length;
+  const answered = round.roundSequence.length;
+  const more = nextTitles.length > 0;
   let lead = COMPLETE.leadDone(answered);
   if (answered === 0) lead = COMPLETE.leadEmpty;
   else if (endedEarly) lead = COMPLETE.leadEnded(answered);
@@ -32,13 +34,13 @@ export default function CompleteScreen({ round, endedEarly, firstName, ruleCount
       <div className="stack">
         <p className="kicker">
           <CircleCheck aria-hidden="true" />
-          {endedEarly ? COMPLETE.kickerEnded : COMPLETE.kickerDone}
+          {endedEarly ? COMPLETE.kickerEnded(round.round) : COMPLETE.kickerDone(round.round)}
         </p>
         <h1>{COMPLETE.title(firstName)}</h1>
-        <p className="lead">{lead}</p>
+        <p className="lead">{more ? lead : `${lead} ${COMPLETE.leadAllDone}`.trim()}</p>
       </div>
 
-      {answered > 0 && (
+      {round.sequence.length > 0 && (
         <section className="panel" aria-labelledby="overview-title">
           <h2 id="overview-title" className="panel-title">
             {COMPLETE.overviewTitle}
@@ -68,10 +70,16 @@ export default function CompleteScreen({ round, endedEarly, firstName, ruleCount
       )}
 
       <div className="action-bar">
-        <p className="fineprint">{COMPLETE.profileHint}</p>
-        <button type="button" className="button-primary" onClick={onToProfile}>
+        <p className="fineprint">{more ? COMPLETE.nextHint(nextTitles.slice(0, 3)) : COMPLETE.profileHint}</p>
+        {more && (
+          <button type="button" className="button-primary" onClick={onNextRound}>
+            {COMPLETE.nextRound(round.round + 1)}
+            <ArrowRight aria-hidden="true" />
+          </button>
+        )}
+        <button type="button" className={more ? 'button-secondary' : 'button-primary'} onClick={onToProfile}>
           {COMPLETE.toProfile}
-          <ArrowRight aria-hidden="true" />
+          {!more && <ArrowRight aria-hidden="true" />}
         </button>
       </div>
     </main>

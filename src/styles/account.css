@@ -83,17 +83,18 @@
 
 /* ---------- Simulierte SMS-Mitteilung ---------- */
 
+/* Im Fluss über dem Bildschirm (kein Overlay): Titel und Eingabefeld bleiben immer sichtbar. */
 .sms-banner {
-  position: fixed;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: var(--z-banner);
   display: flex;
   justify-content: center;
-  padding: calc(env(safe-area-inset-top) + var(--space-2)) var(--space-2) 0;
-  pointer-events: none;
+  padding: max(var(--space-2), env(safe-area-inset-top)) max(var(--space-gutter), env(safe-area-inset-right)) 0
+    max(var(--space-gutter), env(safe-area-inset-left));
   animation: banner-in var(--duration-banner) var(--ease-out);
+}
+
+/* Die sichere Zone oben hat schon die Mitteilung übernommen. */
+.sms-banner + .screen {
+  padding-top: var(--space-4);
 }
 
 @keyframes banner-in {

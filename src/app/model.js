@@ -3,10 +3,11 @@
 // Bereich „Profil erstellen“:
 //   mit Registrierung (AUTH_ENABLED):  start → register-name → register-phone → register-code → about → …
 //   ohne Registrierung:                about (Vorname freiwillig) → …
-//   danach:                            questions → summary → round → complete
+//   danach:                            questions → summary → round → complete → round (Runde 2) → complete …
 // Nach Frage 3 folgt die Zusammenfassung (nurec v0.2, Kap. 2.2): Die Person bestätigt die festen Regeln
 // („Stimmt so“) oder korrigiert sie („Ändern“ führt zur passenden Frage und wieder zurück). Danach kommt
 // direkt die erste Karte; das Tutorial (intro) nur, wenn TUTORIAL_ENABLED eingeschaltet ist.
+// Nach jeder Runde: „Weiter mit Runde 2“ (roundNumber), solange es noch Karten gibt (hasMoreCards).
 // Wiederkehrende Person auf demselben Gerät: welcome-back, dann weiter, wo sie war.
 // Bereich „Mein Profil“: eigener Tab, der Ablauf oben bleibt dabei an seiner Stelle stehen.
 //
@@ -46,11 +47,13 @@ export function firstScreen(config) {
   return config.auth ? SCREENS.START : SCREENS.ABOUT;
 }
 
-// Die untere Navigation erscheint erst nach Anmeldung und „Über dich“. In der Runde ist sie
-// ausgeblendet, damit Karte und Knöpfe den ganzen Bildschirm haben; verlassen lässt sich die Runde oben links.
+// Die untere Navigation erscheint erst nach der ersten Runde (Abschluss) und in „Mein Profil“.
+// Während Registrierung, Fragen, Zusammenfassung und beim Wischen fehlt sie: Dort gibt es nur einen
+// Weg nach vorn, und in der Runde haben Karte und Knöpfe den ganzen Bildschirm. „Mein Profil“ ist
+// vorher über den runden Knopf oben rechts erreichbar; dort führt die Leiste zurück.
 export function isNavVisible(state) {
   if (BEFORE_ONBOARDING.includes(state.screen)) return false;
-  return state.tab === TABS.PROFILE || state.screen !== SCREENS.ROUND;
+  return state.tab === TABS.PROFILE || state.screen === SCREENS.COMPLETE;
 }
 
 // Nach „Stimmt so“: Tutorial nur, wenn es eingeschaltet ist (TUTORIAL_ENABLED), sonst direkt die erste Karte.
@@ -75,14 +78,14 @@ export function creationSteps(state, round) {
   else if (!editingQuestions) roundState = 'current';
   return [
     { id: 'questions', state: editingQuestions ? 'current' : 'done' },
-    { id: 'round', state: roundState, answered, total },
+    { id: 'round', state: roundState, answered, total, number: state.roundNumber ?? 1 },
     { id: 'profile', state: roundDone ? 'done' : 'open' },
   ];
 }
 
 export function createAppModel({ index, stage0, allergens }) {
   function roundOf(state, events = state.events) {
-    return deriveRoundState({ index, onboarding: state.onboarding, diets: stage0.diets, events });
+    return deriveRoundState({ index, onboarding: state.onboarding, diets: stage0.diets, events, round: state.roundNumber ?? 1 });
   }
 
   // saved: gespeicherter Stand (storage/local.js), account: Konto auf diesem Gerät.
@@ -101,6 +104,8 @@ export function createAppModel({ index, stage0, allergens }) {
       editing: false,
       onboarding: null,
       events: [],
+      // Laufende Runde (1, 2, …); jede Antwort trägt sie im Event-Log (event.round).
+      roundNumber: 1,
       endedEarly: false,
       resume: null,
     };
@@ -148,7 +153,7 @@ export function createAppModel({ index, stage0, allergens }) {
         const onboarding = deriveOnboarding(stage0, state.answers, { allergens, catalogIndex: index });
         // Antworten beim Wischen beginnen neu; Profiländerungen und Registrierung bleiben im Log.
         const events = state.events.filter((event) => eventType(event) !== ANSWER);
-        return { ...state, onboarding, events, endedEarly: false, editing: false, screen: SCREENS.SUMMARY };
+        return { ...state, onboarding, events, roundNumber: 1, endedEarly: false, editing: false, screen: SCREENS.SUMMARY };
       }
       // „Ändern“ in der Zusammenfassung: direkt zur Frage, aus der die Regel stammt.
       case 'editAnswers':
@@ -158,6 +163,9 @@ export function createAppModel({ index, stage0, allergens }) {
         return screenAfterSummary(state.config) === SCREENS.ROUND ? enterRound(state) : { ...state, screen: SCREENS.INTRO };
       case 'startRound':
         return enterRound(state);
+      // „Weiter mit Runde 2“ nach dem Abschluss: nächste Runde mit den noch offenen Karten.
+      case 'nextRound':
+        return enterRound({ ...state, roundNumber: (state.roundNumber ?? 1) + 1 });
       // ---------- Ereignisse ----------
       // Antwort beim Wischen: kann die Runde abschliessen.
       case 'event': {

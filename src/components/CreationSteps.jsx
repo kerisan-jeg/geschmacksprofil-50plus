@@ -13,7 +13,7 @@ export default function CreationSteps({ steps }) {
           <span className="step-label">
             {step.state === 'done' && <Check aria-hidden="true" />}
             <span className="step-text">
-              {STEPS[step.id]}
+              {step.id === 'round' ? STEPS.round(step.number) : STEPS[step.id]}
               {step.state === 'current' && step.total > 0 && <span className="step-detail num">{STEPS.detail(step.answered, step.total)}</span>}
             </span>
           </span>

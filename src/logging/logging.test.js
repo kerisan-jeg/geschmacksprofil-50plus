@@ -117,3 +117,20 @@ test('Nach einem Neuladen geht dieselbe Sitzung weiter; ungespeicherte Ereigniss
   assert.deepEqual(seeded.session.events, [{ type: 'AUTH_STARTED', timestamp: 't', sessionId: 'neu123' }]);
   assert.equal(listSessions().length, 1, 'erst nach der Einwilligung gespeichert');
 });
+
+test('CSV: Spalte round für jede Antwort (ältere Antworten ohne Feld = Runde 1), leer bei anderen Ereignissen', () => {
+  const session = {
+    sessionId: 's-rounds',
+    config: { roundCardLimit: 10 },
+    onboarding: {},
+    events: [
+      { type: 'ANSWER', cardId: 'F01', response: 'LIKE' },
+      { type: 'ANSWER', cardId: 'F01.2', response: 'LIKE', round: 2 },
+      { type: 'DIET_CHANGED', source: 'profile', diet: 'vegan', previousDiet: null },
+    ],
+  };
+  const [header, ...rows] = sessionsToCsv([session]).trim().split('\r\n');
+  const column = header.split(',').indexOf('round');
+  assert.ok(column >= 0);
+  assert.deepEqual(rows.map((row) => row.split(',')[column]), ['1', '2', '']);
+});

@@ -1,13 +1,20 @@
 {
-  "note": "Fotos der Stufe-1-Karten. Nur Bilder unter der Unsplash License (keine Unsplash+-Bilder). Pro Bild Quelle, Fotograf und Lizenz; apa enthält den Nachweis nach APA 7 für den Bericht (Namen und Titel vor der Abgabe prüfen). Dateien liegen in public/images (gross und als Vorschaubild).",
+  "note": "Fotos der Karten. Untergruppen (Stufe 2) haben je ein Foto (cardId); die Gruppen (Stufe 1) zeigen ihre drei Beispiele als Bildraster (collages: Schlüssel der Fotos in der Reihenfolge der Beispiele). Nur Bilder unter der Unsplash License (keine Unsplash+-Bilder). Pro Bild Quelle, Fotograf und Lizenz; apa enthält den Nachweis nach APA 7 für den Bericht (Namen und Titel vor der Abgabe prüfen). Dateien liegen in public/images (gross und als Vorschaubild).",
   "photos": [
     {
-      "cardId": "F01",
-      "file": "F01.jpg",
-      "thumb": "F01-480.jpg",
+      "key": "F01.1",
+      "cardId": "F01.1",
+      "file": "F01.1.jpg",
+      "thumb": "F01.1-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F01.1"
+      ],
+      "foods": [
+        "Poulet"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "[Geschnittene Pouletbrust mit Tomaten auf einem weissen Teller]",
@@ -23,12 +30,75 @@
       "apa": "Gusakova, N. (2023). [Geschnittene Pouletbrust mit Tomaten auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/a-white-plate-topped-with-sliced-chicken-and-tomatoes-hJnJQ-iwCZI"
     },
     {
-      "cardId": "F02",
-      "file": "F02.jpg",
-      "thumb": "F02-480.jpg",
+      "key": "F01.2",
+      "cardId": "F01.2",
+      "file": "F01.2.jpg",
+      "thumb": "F01.2-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F01.2"
+      ],
+      "foods": [
+        "Rindfleisch"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Aufgeschnittenes Rindssteak auf einem Holzbrett]",
+      "photographer": "Emerson Vieira",
+      "photographerUrl": "https://unsplash.com/@emersonvieira",
+      "url": "https://unsplash.com/photos/cooked-sliced-meat-cpkPJ-U9eUM",
+      "photoId": "cpkPJ-U9eUM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-05-16",
+      "downloaded": "2026-10-14",
+      "apa": "Vieira, E. (2019). [Aufgeschnittenes Rindssteak auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/cooked-sliced-meat-cpkPJ-U9eUM"
+    },
+    {
+      "key": "F01.3",
+      "cardId": "F01.3",
+      "file": "F01.3.jpg",
+      "thumb": "F01.3-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F01.3"
+      ],
+      "foods": [
+        "Schweinefleisch"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.42,
+      "title": "[Schweinskotelett mit Äpfeln, Kartoffeln und Broccoli auf einem Teller]",
+      "photographer": "Alex Munsell",
+      "photographerUrl": "https://unsplash.com/@alexmunsell",
+      "url": "https://unsplash.com/photos/grilled-steak-with-vegetables-on-white-ceramic-plate-Yr4n8O_3UPc",
+      "photoId": "Yr4n8O_3UPc",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2015-05-20",
+      "downloaded": "2026-10-14",
+      "apa": "Munsell, A. (2015). [Schweinskotelett mit Äpfeln, Kartoffeln und Broccoli auf einem Teller] [Foto]. Unsplash. https://unsplash.com/photos/grilled-steak-with-vegetables-on-white-ceramic-plate-Yr4n8O_3UPc"
+    },
+    {
+      "key": "F02.1",
+      "cardId": "F02.1",
+      "file": "F02.1.jpg",
+      "thumb": "F02.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F02.1"
+      ],
+      "foods": [
+        "Lachs"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "[Rohe Lachsfilets mit grünem Spargel auf einem Backblech]",
@@ -44,12 +114,75 @@
       "apa": "Siracusa, C. (2018). [Rohe Lachsfilets mit grünem Spargel auf einem Backblech] [Foto]. Unsplash. https://unsplash.com/photos/four-raw-fish-meat-065eGbVSNOE"
     },
     {
-      "cardId": "F03",
-      "file": "F03.jpg",
-      "thumb": "F03-480.jpg",
+      "key": "F02.2",
+      "cardId": "F02.2",
+      "file": "F02.2.jpg",
+      "thumb": "F02.2-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F02.2"
+      ],
+      "foods": [
+        "Garnelen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gebratene Garnelen mit Basilikum in einer Pfanne]",
+      "photographer": "Farhad Ibrahimzade",
+      "photographerUrl": "https://unsplash.com/@ferhadd",
+      "url": "https://unsplash.com/photos/cooked-food-on-black-ceramic-bowl-HNmcgpzPHag",
+      "photoId": "HNmcgpzPHag",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-07-10",
+      "downloaded": "2026-10-14",
+      "apa": "Ibrahimzade, F. (2021). [Gebratene Garnelen mit Basilikum in einer Pfanne] [Foto]. Unsplash. https://unsplash.com/photos/cooked-food-on-black-ceramic-bowl-HNmcgpzPHag"
+    },
+    {
+      "key": "F02.3",
+      "cardId": "F02.3",
+      "file": "F02.3.jpg",
+      "thumb": "F02.3-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F02.3"
+      ],
+      "foods": [
+        "Muscheln"
+      ],
+      "focusX": 0.55,
+      "focusY": 0.62,
+      "title": "[Miesmuscheln mit Zitrone in einer weissen Schale]",
+      "photographer": "Christopher Carson",
+      "photographerUrl": "https://unsplash.com/@bhris1017",
+      "url": "https://unsplash.com/photos/shallow-focus-photography-of-seafoods-Ba2tmqEZiFk",
+      "photoId": "Ba2tmqEZiFk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2018-01-23",
+      "downloaded": "2026-10-14",
+      "apa": "Carson, C. (2018). [Miesmuscheln mit Zitrone in einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/shallow-focus-photography-of-seafoods-Ba2tmqEZiFk"
+    },
+    {
+      "key": "F03-a",
+      "cardId": null,
+      "file": "F03-a.jpg",
+      "thumb": "F03-a-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F03"
+      ],
+      "foods": [
+        "Ei"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "[Weisse Eier und ein halbiertes gekochtes Ei]",
@@ -65,12 +198,131 @@
       "apa": "Bashari, M. (2021). [Weisse Eier und ein halbiertes gekochtes Ei] [Foto]. Unsplash. https://unsplash.com/photos/white-egg-lot-on-brown-wooden-table-rKUK4EB8F7s"
     },
     {
-      "cardId": "F04",
-      "file": "F04.jpg",
-      "thumb": "F04-480.jpg",
+      "key": "F03-b",
+      "cardId": null,
+      "file": "F03-b.jpg",
+      "thumb": "F03-b-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F03"
+      ],
+      "foods": [
+        "Rührei"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.52,
+      "title": "[Rührei mit Kräutern in einer weissen Schale]",
+      "photographer": "Imad 786",
+      "photographerUrl": "https://unsplash.com/@imad8321",
+      "url": "https://unsplash.com/photos/a-close-up-of-a-bowl-of-food-on-a-table-6DXfs2sl5pQ",
+      "photoId": "6DXfs2sl5pQ",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-06-24",
+      "downloaded": "2026-10-14",
+      "apa": "Imad 786 (2023). [Rührei mit Kräutern in einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/a-close-up-of-a-bowl-of-food-on-a-table-6DXfs2sl5pQ"
+    },
+    {
+      "key": "F03-c",
+      "cardId": null,
+      "file": "F03-c.jpg",
+      "thumb": "F03-c-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F03"
+      ],
+      "foods": [
+        "Omelett"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Omelett mit Peperoni in einer Bratpfanne]",
+      "photographer": "Haley Truong",
+      "photographerUrl": "https://unsplash.com/@haleytruong",
+      "url": "https://unsplash.com/photos/black-frying-pan-on-stove-d1Z-4emDsAQ",
+      "photoId": "d1Z-4emDsAQ",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-05-04",
+      "downloaded": "2026-10-14",
+      "apa": "Truong, H. (2020). [Omelett mit Peperoni in einer Bratpfanne] [Foto]. Unsplash. https://unsplash.com/photos/black-frying-pan-on-stove-d1Z-4emDsAQ"
+    },
+    {
+      "key": "F04.1",
+      "cardId": "F04.1",
+      "file": "F04.1.jpg",
+      "thumb": "F04.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F04.1"
+      ],
+      "foods": [
+        "Joghurt"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Joghurt mit Erdbeeren und Haferflocken in einer weissen Schale]",
+      "photographer": "Jeffrey Deng",
+      "photographerUrl": "https://unsplash.com/@jeffreydeng",
+      "url": "https://unsplash.com/photos/sliced-strawberry-in-mug-with-flakes-h6t2dbYgDuc",
+      "photoId": "h6t2dbYgDuc",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2014-08-20",
+      "downloaded": "2026-10-14",
+      "apa": "Deng, J. (2014). [Joghurt mit Erdbeeren und Haferflocken in einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/sliced-strawberry-in-mug-with-flakes-h6t2dbYgDuc"
+    },
+    {
+      "key": "F04-b",
+      "cardId": null,
+      "file": "F04-b.jpg",
+      "thumb": "F04-b-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F04.1"
+      ],
+      "foods": [
+        "Quark"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Kräuterquark in einer weissen Form]",
+      "photographer": "Megumi Nachev",
+      "photographerUrl": "https://unsplash.com/@meguminachev",
+      "url": "https://unsplash.com/photos/cooked-food-on-bowl-bBCRrplhhZ4",
+      "photoId": "bBCRrplhhZ4",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-11-15",
+      "downloaded": "2026-10-14",
+      "apa": "Nachev, M. (2019). [Kräuterquark in einer weissen Form] [Foto]. Unsplash. https://unsplash.com/photos/cooked-food-on-bowl-bBCRrplhhZ4"
+    },
+    {
+      "key": "F04.2",
+      "cardId": "F04.2",
+      "file": "F04.2.jpg",
+      "thumb": "F04.2-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F04.2.1"
+      ],
+      "foods": [
+        "Käse"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "[Käsestücke mit Basilikum auf einem Holzbrett]",
@@ -86,12 +338,75 @@
       "apa": "Foodphototasty, D. (2023). [Käsestücke mit Basilikum auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/a-piece-of-cheese-with-a-leaf-on-top-of-it-76eBjRI8rOM"
     },
     {
-      "cardId": "F05",
-      "file": "F05.jpg",
-      "thumb": "F05-480.jpg",
+      "key": "F04.3",
+      "cardId": "F04.3",
+      "file": "F04.3.jpg",
+      "thumb": "F04.3-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F04.3"
+      ],
+      "foods": [
+        "Milch"
+      ],
+      "focusX": 0.6,
+      "focusY": 0.5,
+      "title": "[Milch in einer Glasflasche und einem Glas, daneben Kekse]",
+      "photographer": "Ahmadreza Rezaie",
+      "photographerUrl": "https://unsplash.com/@ahmdrzarzai",
+      "url": "https://unsplash.com/photos/a-bottle-of-milk-and-some-cookies-on-a-table-eU2s_fonJkg",
+      "photoId": "eU2s_fonJkg",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-10-13",
+      "downloaded": "2026-10-14",
+      "apa": "Rezaie, A. (2021). [Milch in einer Glasflasche und einem Glas, daneben Kekse] [Foto]. Unsplash. https://unsplash.com/photos/a-bottle-of-milk-and-some-cookies-on-a-table-eU2s_fonJkg"
+    },
+    {
+      "key": "F05.1",
+      "cardId": "F05.1",
+      "file": "F05.1.jpg",
+      "thumb": "F05.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F05.1"
+      ],
+      "foods": [
+        "Linsen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Linsen in einer Schale]",
+      "photographer": "César Hernández",
+      "photographerUrl": "https://unsplash.com/@cesarphoto",
+      "url": "https://unsplash.com/photos/a-purple-bowl-filled-with-lots-of-food-ezcaFWpDKKM",
+      "photoId": "ezcaFWpDKKM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-12-01",
+      "downloaded": "2026-10-14",
+      "apa": "Hernández, C. (2021). [Linsen in einer Schale] [Foto]. Unsplash. https://unsplash.com/photos/a-purple-bowl-filled-with-lots-of-food-ezcaFWpDKKM"
+    },
+    {
+      "key": "F05.2",
+      "cardId": "F05.2",
+      "file": "F05.2.jpg",
+      "thumb": "F05.2-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F05.2"
+      ],
+      "foods": [
+        "Bohnen"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "Multi-colored beans on a white background",
@@ -107,33 +422,160 @@
       "apa": "Panchenko, K. (2022). Multi-colored beans on a white background [Foto]. Unsplash. https://unsplash.com/photos/a-pile-of-different-colored-beans-on-a-white-surface-CPt2c85fCGg"
     },
     {
-      "cardId": "F06",
-      "file": "F06.jpg",
-      "thumb": "F06-480.jpg",
+      "key": "F05.3",
+      "cardId": "F05.3",
+      "file": "F05.3.jpg",
+      "thumb": "F05.3-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
-      "focusX": 0.5,
+      "shows": [
+        "F05.3"
+      ],
+      "foods": [
+        "Kichererbsen"
+      ],
+      "focusX": 0.53,
       "focusY": 0.5,
-      "title": "[Brot in Scheiben auf hellem Stein]",
-      "photographer": "Debbie Widjaja",
-      "photographerUrl": "https://unsplash.com/@debbiewidjaja",
-      "url": "https://unsplash.com/photos/brown-bread-on-white-and-black-surface-V0E0WHtNu-I",
-      "photoId": "V0E0WHtNu-I",
+      "title": "[Getrocknete Kichererbsen in einer weissen Schale]",
+      "photographer": "Monaz Nazary",
+      "photographerUrl": "https://unsplash.com/@monazme",
+      "url": "https://unsplash.com/photos/bowl-of-dried-chickpeas-on-a-white-background-nVcRfPofw0A",
+      "photoId": "nVcRfPofw0A",
       "source": "Unsplash",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "published": "2020-08-16",
+      "published": "2026-01-08",
       "downloaded": "2026-10-14",
-      "apa": "Widjaja, D. (2020). [Brot in Scheiben auf hellem Stein] [Foto]. Unsplash. https://unsplash.com/photos/brown-bread-on-white-and-black-surface-V0E0WHtNu-I"
+      "apa": "Nazary, M. (2026). [Getrocknete Kichererbsen in einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/bowl-of-dried-chickpeas-on-a-white-background-nVcRfPofw0A"
     },
     {
-      "cardId": "F07",
-      "file": "F07.jpg",
-      "thumb": "F07-480.jpg",
+      "key": "F05.4",
+      "cardId": "F05.4",
+      "file": "F05.4.jpg",
+      "thumb": "F05.4-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F05.4"
+      ],
+      "foods": [
+        "Tofu"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gebratener Tofu mit Quinoa und Avocado in einer Schale]",
+      "photographer": "David Magalhães",
+      "photographerUrl": "https://unsplash.com/@speeddragon35",
+      "url": "https://unsplash.com/photos/bowl-of-quinoa-with-tofu-and-avocado-HGzn4Puc3Hc",
+      "photoId": "HGzn4Puc3Hc",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-11-13",
+      "downloaded": "2026-10-14",
+      "apa": "Magalhães, D. (2025). [Gebratener Tofu mit Quinoa und Avocado in einer Schale] [Foto]. Unsplash. https://unsplash.com/photos/bowl-of-quinoa-with-tofu-and-avocado-HGzn4Puc3Hc"
+    },
+    {
+      "key": "F06.1",
+      "cardId": "F06.1",
+      "file": "F06.1.jpg",
+      "thumb": "F06.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F06.1"
+      ],
+      "foods": [
+        "Weissbrot",
+        "Baguette"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Zwei Baguettes in einer Papiertüte]",
+      "photographer": "Markus Spiske",
+      "photographerUrl": "https://unsplash.com/@markusspiske",
+      "url": "https://unsplash.com/photos/a-piece-of-wood-39-6dSUrlyg",
+      "photoId": "39-6dSUrlyg",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-06-04",
+      "downloaded": "2026-10-14",
+      "apa": "Spiske, M. (2021). [Zwei Baguettes in einer Papiertüte] [Foto]. Unsplash. https://unsplash.com/photos/a-piece-of-wood-39-6dSUrlyg"
+    },
+    {
+      "key": "F06.2",
+      "cardId": "F06.2",
+      "file": "F06.2.jpg",
+      "thumb": "F06.2-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F06.2"
+      ],
+      "foods": [
+        "Vollkornbrot"
+      ],
+      "focusX": 0.62,
+      "focusY": 0.61,
+      "title": "[Scheiben Vollkornbrot auf weissem Grund]",
+      "photographer": "Анна Ширяева",
+      "photographerUrl": "https://unsplash.com/@ann_integra",
+      "url": "https://unsplash.com/photos/a-loaf-of-whole-wheat-bread-on-a-white-surface-h3MVMRHitDU",
+      "photoId": "h3MVMRHitDU",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-08-31",
+      "downloaded": "2026-10-14",
+      "apa": "Ширяева, А. (2023). [Scheiben Vollkornbrot auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/a-loaf-of-whole-wheat-bread-on-a-white-surface-h3MVMRHitDU"
+    },
+    {
+      "key": "F06.3",
+      "cardId": "F06.3",
+      "file": "F06.3.jpg",
+      "thumb": "F06.3-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F06.3"
+      ],
+      "foods": [
+        "Knäckebrot"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gebündeltes Knäckebrot auf einem dunklen Tisch]",
+      "photographer": "Maria Petersson",
+      "photographerUrl": "https://unsplash.com/@mariaspics",
+      "url": "https://unsplash.com/photos/brown-bread-on-black-wooden-table-_BGYvaHGLrI",
+      "photoId": "_BGYvaHGLrI",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-05-24",
+      "downloaded": "2026-10-14",
+      "apa": "Petersson, M. (2020). [Gebündeltes Knäckebrot auf einem dunklen Tisch] [Foto]. Unsplash. https://unsplash.com/photos/brown-bread-on-black-wooden-table-_BGYvaHGLrI"
+    },
+    {
+      "key": "F07.1",
+      "cardId": "F07.1",
+      "file": "F07.1.jpg",
+      "thumb": "F07.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F07.1"
+      ],
+      "foods": [
+        "Spaghetti"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "Plain linguine pasta in a white dish with cutlery",
@@ -149,12 +591,75 @@
       "apa": "Sarlos, S. (2024). Plain linguine pasta in a white dish with cutlery [Foto]. Unsplash. https://unsplash.com/photos/a-plate-of-pasta-on-a-napkin-next-to-a-fork-and-knife-_APGYlRFQ2I"
     },
     {
-      "cardId": "F08",
-      "file": "F08.jpg",
-      "thumb": "F08-480.jpg",
+      "key": "F07-b",
+      "cardId": null,
+      "file": "F07-b.jpg",
+      "thumb": "F07-b-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F07.1"
+      ],
+      "foods": [
+        "Penne"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Penne mit Fleischsauce und Käse auf einem weissen Teller]",
+      "photographer": "Ben Lei",
+      "photographerUrl": "https://unsplash.com/@bleiplays33",
+      "url": "https://unsplash.com/photos/penne-pasta-with-meat-sauce-flFd8L7_B3g",
+      "photoId": "flFd8L7_B3g",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-05-26",
+      "downloaded": "2026-10-14",
+      "apa": "Lei, B. (2021). [Penne mit Fleischsauce und Käse auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/penne-pasta-with-meat-sauce-flFd8L7_B3g"
+    },
+    {
+      "key": "F07-c",
+      "cardId": null,
+      "file": "F07-c.jpg",
+      "thumb": "F07-c-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F07.1"
+      ],
+      "foods": [
+        "Bandnudeln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Nester aus Bandnudeln]",
+      "photographer": "Olesya Yemets",
+      "photographerUrl": "https://unsplash.com/@ladymilkydeer",
+      "url": "https://unsplash.com/photos/cooked-pasta-fzXVmIUsEbM",
+      "photoId": "fzXVmIUsEbM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2018-11-13",
+      "downloaded": "2026-10-14",
+      "apa": "Yemets, O. (2018). [Nester aus Bandnudeln] [Foto]. Unsplash. https://unsplash.com/photos/cooked-pasta-fzXVmIUsEbM"
+    },
+    {
+      "key": "F08.1",
+      "cardId": "F08.1",
+      "file": "F08.1.jpg",
+      "thumb": "F08.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F08.1"
+      ],
+      "foods": [
+        "Reis"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "[Reis in einer Schale auf weissem Hintergrund]",
@@ -170,54 +675,273 @@
       "apa": "Keskin, M. (2024). [Reis in einer Schale auf weissem Hintergrund] [Foto]. Unsplash. https://unsplash.com/photos/a-bowl-of-rice-on-a-white-background-3zplOwmV6v0"
     },
     {
-      "cardId": "F09",
-      "file": "F09.jpg",
-      "thumb": "F09-480.jpg",
+      "key": "F08.2",
+      "cardId": "F08.2",
+      "file": "F08.2.jpg",
+      "thumb": "F08.2-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
-      "focusX": 0.5,
+      "shows": [
+        "F08.2"
+      ],
+      "foods": [
+        "Couscous",
+        "Kichererbsen"
+      ],
+      "focusX": 0.57,
       "focusY": 0.5,
-      "title": "[Rohe Kartoffeln, bildfüllend]",
-      "photographer": "Doğan Alpaslan DEMİR",
-      "photographerUrl": "https://unsplash.com/@izafi",
-      "url": "https://unsplash.com/photos/a-pile-of-potatoes-sitting-next-to-each-other-CIzlt6gK82w",
-      "photoId": "CIzlt6gK82w",
+      "title": "[Couscous mit Kichererbsen-Curry auf einem weissen Teller]",
+      "photographer": "Daniela",
+      "photographerUrl": "https://unsplash.com/@daniela_curly",
+      "url": "https://unsplash.com/photos/rice-with-green-leaf-vegetable-on-white-ceramic-plate-RELOvb0rrCE",
+      "photoId": "RELOvb0rrCE",
       "source": "Unsplash",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "published": "2024-07-06",
+      "published": "2020-02-24",
       "downloaded": "2026-10-14",
-      "apa": "DEMİR, D. A. (2024). [Rohe Kartoffeln, bildfüllend] [Foto]. Unsplash. https://unsplash.com/photos/a-pile-of-potatoes-sitting-next-to-each-other-CIzlt6gK82w"
+      "apa": "Daniela (2020). [Couscous mit Kichererbsen-Curry auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/rice-with-green-leaf-vegetable-on-white-ceramic-plate-RELOvb0rrCE"
     },
     {
-      "cardId": "F10",
-      "file": "F10.jpg",
-      "thumb": "F10-480.jpg",
+      "key": "F08.3",
+      "cardId": "F08.3",
+      "file": "F08.3.jpg",
+      "thumb": "F08.3-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F08.3"
+      ],
+      "foods": [
+        "Quinoa"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
-      "title": "[Rohes Gemüse: Kefen, Kohlrabi, Rüebli, Peperoni und Petersilie]",
-      "photographer": "Philippe Zuber",
-      "photographerUrl": "https://unsplash.com/@philippezuber",
-      "url": "https://unsplash.com/photos/sliced-cucumber-and-red-chili-CAcqADAL32w",
-      "photoId": "CAcqADAL32w",
+      "title": "[Quinoa-Salat mit Tomaten und Kräutern in einer Schale]",
+      "photographer": "Nick Bratanek",
+      "photographerUrl": "https://unsplash.com/@nickb7",
+      "url": "https://unsplash.com/photos/cooked-riced-with-green-leafy-R0lEYv-K8os",
+      "photoId": "R0lEYv-K8os",
       "source": "Unsplash",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "published": "2021-08-30",
+      "published": "2019-07-12",
       "downloaded": "2026-10-14",
-      "apa": "Zuber, P. (2021). [Rohes Gemüse: Kefen, Kohlrabi, Rüebli, Peperoni und Petersilie] [Foto]. Unsplash. https://unsplash.com/photos/sliced-cucumber-and-red-chili-CAcqADAL32w"
+      "apa": "Bratanek, N. (2019). [Quinoa-Salat mit Tomaten und Kräutern in einer Schale] [Foto]. Unsplash. https://unsplash.com/photos/cooked-riced-with-green-leafy-R0lEYv-K8os"
     },
     {
-      "cardId": "F11",
-      "file": "F11.jpg",
-      "thumb": "F11-480.jpg",
+      "key": "F09-a",
+      "cardId": null,
+      "file": "F09-a.jpg",
+      "thumb": "F09-a-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F09"
+      ],
+      "foods": [
+        "Salzkartoffeln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.55,
+      "title": "[Salzkartoffeln mit Dill in einer weissen Schüssel]",
+      "photographer": "Egidijus Bielskis",
+      "photographerUrl": "https://unsplash.com/@wizardwork",
+      "url": "https://unsplash.com/photos/sliced-cucumber-on-white-ceramic-bowl-Wp2DicA5Gi0",
+      "photoId": "Wp2DicA5Gi0",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-07-04",
+      "downloaded": "2026-10-14",
+      "apa": "Bielskis, E. (2020). [Salzkartoffeln mit Dill in einer weissen Schüssel] [Foto]. Unsplash. https://unsplash.com/photos/sliced-cucumber-on-white-ceramic-bowl-Wp2DicA5Gi0"
+    },
+    {
+      "key": "F09-b",
+      "cardId": null,
+      "file": "F09-b.jpg",
+      "thumb": "F09-b-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F09"
+      ],
+      "foods": [
+        "Kartoffelpüree"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Kartoffelpüree mit Schnittlauch in einer Schale]",
+      "photographer": "You Le",
+      "photographerUrl": "https://unsplash.com/@le_y0u",
+      "url": "https://unsplash.com/photos/a-bowl-of-mashed-potatoes-topped-with-chives-l-mqDIEwcKk",
+      "photoId": "l-mqDIEwcKk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2024-02-11",
+      "downloaded": "2026-10-14",
+      "apa": "Le, Y. (2024). [Kartoffelpüree mit Schnittlauch in einer Schale] [Foto]. Unsplash. https://unsplash.com/photos/a-bowl-of-mashed-potatoes-topped-with-chives-l-mqDIEwcKk"
+    },
+    {
+      "key": "F09-c",
+      "cardId": null,
+      "file": "F09-c.jpg",
+      "thumb": "F09-c-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F09"
+      ],
+      "foods": [
+        "Ofenkartoffeln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Ofenkartoffeln auf einem Blech]",
+      "photographer": "Monika Grabkowska",
+      "photographerUrl": "https://unsplash.com/@moniqa",
+      "url": "https://unsplash.com/photos/forks-on-steamed-and-sliced-potatoes-N-xhCO5gY7s",
+      "photoId": "N-xhCO5gY7s",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-03-17",
+      "downloaded": "2026-10-14",
+      "apa": "Grabkowska, M. (2019). [Ofenkartoffeln auf einem Blech] [Foto]. Unsplash. https://unsplash.com/photos/forks-on-steamed-and-sliced-potatoes-N-xhCO5gY7s"
+    },
+    {
+      "key": "F10.1",
+      "cardId": "F10.1",
+      "file": "F10.1.jpg",
+      "thumb": "F10.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F10.1"
+      ],
+      "foods": [
+        "Kopfsalat"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Kopfsalat auf dunklem Grund]",
+      "photographer": "Mae Mu",
+      "photographerUrl": "https://unsplash.com/@picoftasty",
+      "url": "https://unsplash.com/photos/green-cabbage-vegetable-hugb85v0J04",
+      "photoId": "hugb85v0J04",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-05-02",
+      "downloaded": "2026-10-14",
+      "apa": "Mu, M. (2019). [Kopfsalat auf dunklem Grund] [Foto]. Unsplash. https://unsplash.com/photos/green-cabbage-vegetable-hugb85v0J04"
+    },
+    {
+      "key": "F10-b",
+      "cardId": null,
+      "file": "F10-b.jpg",
+      "thumb": "F10-b-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F10.2"
+      ],
+      "foods": [
+        "Gurke"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Zwei Gurken auf weissem Grund]",
+      "photographer": "Mockup Graphics",
+      "photographerUrl": "https://unsplash.com/@mockupgraphics",
+      "url": "https://unsplash.com/photos/green-cucumber-on-white-surface-UrLT3x0x9sA",
+      "photoId": "UrLT3x0x9sA",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-04-20",
+      "downloaded": "2026-10-14",
+      "apa": "Mockup Graphics (2020). [Zwei Gurken auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/green-cucumber-on-white-surface-UrLT3x0x9sA"
+    },
+    {
+      "key": "F10.2",
+      "cardId": "F10.2",
+      "file": "F10.2.jpg",
+      "thumb": "F10.2-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F10.2"
+      ],
+      "foods": [
+        "Tomate",
+        "Peperoni"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Tomaten, Peperoni und Knoblauch auf einem Holzbrett]",
+      "photographer": "Geo Darwin",
+      "photographerUrl": "https://unsplash.com/@geostablephl",
+      "url": "https://unsplash.com/photos/three-tomatoes-beside-garlic-zdunBSAi3P0",
+      "photoId": "zdunBSAi3P0",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2015-10-15",
+      "downloaded": "2026-10-14",
+      "apa": "Darwin, G. (2015). [Tomaten, Peperoni und Knoblauch auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/three-tomatoes-beside-garlic-zdunBSAi3P0"
+    },
+    {
+      "key": "F10.3",
+      "cardId": "F10.3",
+      "file": "F10.3.jpg",
+      "thumb": "F10.3-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F10.3"
+      ],
+      "foods": [
+        "Karotte"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Bund rohe Karotten neben Federkohl]",
+      "photographer": "Brad",
+      "photographerUrl": "https://unsplash.com/@minimdesignco",
+      "url": "https://unsplash.com/photos/orange-carrots-b0IELTWBvT4",
+      "photoId": "b0IELTWBvT4",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2018-08-05",
+      "downloaded": "2026-10-14",
+      "apa": "Brad (2018). [Bund rohe Karotten neben Federkohl] [Foto]. Unsplash. https://unsplash.com/photos/orange-carrots-b0IELTWBvT4"
+    },
+    {
+      "key": "F11.1",
+      "cardId": "F11.1",
+      "file": "F11.1.jpg",
+      "thumb": "F11.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F11.1"
+      ],
+      "foods": [
+        "Broccoli"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "Plate of broccoli ,Healthy nutrition",
@@ -233,33 +957,312 @@
       "apa": "Petruk, N. (2025). Plate of broccoli ,Healthy nutrition [Foto]. Unsplash. https://unsplash.com/photos/broccoli-florets-fill-a-white-bowl-EfsbB3HlmIY"
     },
     {
-      "cardId": "F12",
-      "file": "F12.jpg",
-      "thumb": "F12-480.jpg",
+      "key": "F11.2",
+      "cardId": "F11.2",
+      "file": "F11.2.jpg",
+      "thumb": "F11.2-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F11.2"
+      ],
+      "foods": [
+        "Karotte",
+        "Randen"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
-      "title": "[Heidelbeeren, Erdbeeren und Orangen auf einem Teller]",
-      "photographer": "Katja Ano",
-      "photographerUrl": "https://unsplash.com/@katjaano",
-      "url": "https://unsplash.com/photos/a-white-plate-topped-with-oranges-blueberries-and-strawberries-Gab4QtqDzPM",
-      "photoId": "Gab4QtqDzPM",
+      "title": "[Ofengemüse mit Karotten und Randen auf einem Teller]",
+      "photographer": "Benno Klandt",
+      "photographerUrl": "https://unsplash.com/@bennoklandt",
+      "url": "https://unsplash.com/photos/sweet-potato-fries-on-plate-gMDaK9htYb8",
+      "photoId": "gMDaK9htYb8",
       "source": "Unsplash",
       "license": "Unsplash License",
       "licenseUrl": "https://unsplash.com/license",
-      "published": "2023-04-18",
+      "published": "2019-03-19",
       "downloaded": "2026-10-14",
-      "apa": "Ano, K. (2023). [Heidelbeeren, Erdbeeren und Orangen auf einem Teller] [Foto]. Unsplash. https://unsplash.com/photos/a-white-plate-topped-with-oranges-blueberries-and-strawberries-Gab4QtqDzPM"
+      "apa": "Klandt, B. (2019). [Ofengemüse mit Karotten und Randen auf einem Teller] [Foto]. Unsplash. https://unsplash.com/photos/sweet-potato-fries-on-plate-gMDaK9htYb8"
     },
     {
-      "cardId": "F13",
-      "file": "F13.jpg",
-      "thumb": "F13-480.jpg",
+      "key": "F11.3",
+      "cardId": "F11.3",
+      "file": "F11.3.jpg",
+      "thumb": "F11.3-480.jpg",
       "width": 1200,
       "height": 900,
       "thumbWidth": 480,
+      "shows": [
+        "F11.3"
+      ],
+      "foods": [
+        "Zucchetti",
+        "Aubergine",
+        "Tomate",
+        "Peperoni"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Grilliertes Gemüse: Zucchetti, Auberginen, Tomaten und Peperoni]",
+      "photographer": "Farhad Ibrahimzade",
+      "photographerUrl": "https://unsplash.com/@ferhadd",
+      "url": "https://unsplash.com/photos/sliced-vegetables-on-green-ceramic-plate-AfsZ1KC2huY",
+      "photoId": "AfsZ1KC2huY",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-07-10",
+      "downloaded": "2026-10-14",
+      "apa": "Ibrahimzade, F. (2021). [Grilliertes Gemüse: Zucchetti, Auberginen, Tomaten und Peperoni] [Foto]. Unsplash. https://unsplash.com/photos/sliced-vegetables-on-green-ceramic-plate-AfsZ1KC2huY"
+    },
+    {
+      "key": "F11.4",
+      "cardId": "F11.4",
+      "file": "F11.4.jpg",
+      "thumb": "F11.4-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F11.4"
+      ],
+      "foods": [
+        "Mangold"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Mangoldblätter auf einer Marmorplatte]",
+      "photographer": "Jo Sonn",
+      "photographerUrl": "https://unsplash.com/@foodreich",
+      "url": "https://unsplash.com/photos/five-green-spinach-leaves-on-white-surface-2wy8JIfhwHE",
+      "photoId": "2wy8JIfhwHE",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2018-03-02",
+      "downloaded": "2026-10-14",
+      "apa": "Sonn, J. (2018). [Mangoldblätter auf einer Marmorplatte] [Foto]. Unsplash. https://unsplash.com/photos/five-green-spinach-leaves-on-white-surface-2wy8JIfhwHE"
+    },
+    {
+      "key": "F12.1",
+      "cardId": "F12.1",
+      "file": "F12.1.jpg",
+      "thumb": "F12.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F12.1"
+      ],
+      "foods": [
+        "Erdbeere"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.64,
+      "title": "[Erdbeeren in einer Schale]",
+      "photographer": "Monika Grabkowska",
+      "photographerUrl": "https://unsplash.com/@moniqa",
+      "url": "https://unsplash.com/photos/bowl-of-strawberries-zxZU1Hn3vSU",
+      "photoId": "zxZU1Hn3vSU",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-06-16",
+      "downloaded": "2026-10-14",
+      "apa": "Grabkowska, M. (2019). [Erdbeeren in einer Schale] [Foto]. Unsplash. https://unsplash.com/photos/bowl-of-strawberries-zxZU1Hn3vSU"
+    },
+    {
+      "key": "F12.2",
+      "cardId": "F12.2",
+      "file": "F12.2.jpg",
+      "thumb": "F12.2-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F12.2"
+      ],
+      "foods": [
+        "Apfel"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Äpfel in einer Metallschüssel]",
+      "photographer": "Annie Spratt",
+      "photographerUrl": "https://unsplash.com/@anniespratt",
+      "url": "https://unsplash.com/photos/red-apples-on-stainless-steel-bowl-x4J1oLhB8Z4",
+      "photoId": "x4J1oLhB8Z4",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-10-20",
+      "downloaded": "2026-10-14",
+      "apa": "Spratt, A. (2020). [Äpfel in einer Metallschüssel] [Foto]. Unsplash. https://unsplash.com/photos/red-apples-on-stainless-steel-bowl-x4J1oLhB8Z4"
+    },
+    {
+      "key": "F12.3",
+      "cardId": "F12.3",
+      "file": "F12.3.jpg",
+      "thumb": "F12.3-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F12.3"
+      ],
+      "foods": [
+        "Kirsche"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.6,
+      "title": "[Kirschen mit Blättern auf weissem Grund]",
+      "photographer": "Quaritsch Photography",
+      "photographerUrl": "https://unsplash.com/@quaritsch",
+      "url": "https://unsplash.com/photos/red-cherries-Q_2_Cu_M2kU",
+      "photoId": "Q_2_Cu_M2kU",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2018-06-12",
+      "downloaded": "2026-10-14",
+      "apa": "Quaritsch Photography (2018). [Kirschen mit Blättern auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/red-cherries-Q_2_Cu_M2kU"
+    },
+    {
+      "key": "F12.4",
+      "cardId": "F12.4",
+      "file": "F12.4.jpg",
+      "thumb": "F12.4-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F12.4"
+      ],
+      "foods": [
+        "Orange",
+        "Grapefruit",
+        "Zitrone",
+        "Limette"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Halbierte Orangen, Grapefruits, Zitronen und Limetten]",
+      "photographer": "Bruna Branco",
+      "photographerUrl": "https://unsplash.com/@brunabranco",
+      "url": "https://unsplash.com/photos/flat-lay-photography-of-sliced-pomegranate-lime-and-lemon-7r1HxvVC7AY",
+      "photoId": "7r1HxvVC7AY",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-01-03",
+      "downloaded": "2026-10-14",
+      "apa": "Branco, B. (2019). [Halbierte Orangen, Grapefruits, Zitronen und Limetten] [Foto]. Unsplash. https://unsplash.com/photos/flat-lay-photography-of-sliced-pomegranate-lime-and-lemon-7r1HxvVC7AY"
+    },
+    {
+      "key": "F12.5",
+      "cardId": "F12.5",
+      "file": "F12.5.jpg",
+      "thumb": "F12.5-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F12.5"
+      ],
+      "foods": [
+        "Mango",
+        "Ananas",
+        "Trauben",
+        "Kiwi"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Korb mit Mango, Ananas, Trauben und Kiwi]",
+      "photographer": "Jonas Kakaroto",
+      "photographerUrl": "https://unsplash.com/@jkakaroto",
+      "url": "https://unsplash.com/photos/fresh-fruit-basket-with-assorted-produce-5JQH9Iqnm9o",
+      "photoId": "5JQH9Iqnm9o",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-04-27",
+      "downloaded": "2026-10-14",
+      "apa": "Kakaroto, J. (2021). [Korb mit Mango, Ananas, Trauben und Kiwi] [Foto]. Unsplash. https://unsplash.com/photos/fresh-fruit-basket-with-assorted-produce-5JQH9Iqnm9o"
+    },
+    {
+      "key": "F13-a",
+      "cardId": null,
+      "file": "F13-a.jpg",
+      "thumb": "F13-a-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F13.1.3"
+      ],
+      "foods": [
+        "Mandeln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Mandeln in einer weissen Schale]",
+      "photographer": "Juan José Valencia Antía",
+      "photographerUrl": "https://unsplash.com/@juanantia",
+      "url": "https://unsplash.com/photos/shallow-focus-photography-of-almonds-in-white-ceramic-bowl-TTrJMhrkoeY",
+      "photoId": "TTrJMhrkoeY",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2015-04-27",
+      "downloaded": "2026-10-14",
+      "apa": "Antía, J. J. V. (2015). [Mandeln in einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/shallow-focus-photography-of-almonds-in-white-ceramic-bowl-TTrJMhrkoeY"
+    },
+    {
+      "key": "F13-b",
+      "cardId": null,
+      "file": "F13-b.jpg",
+      "thumb": "F13-b-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F13.1.2"
+      ],
+      "foods": [
+        "Baumnüsse",
+        "Walnüsse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Baumnusskerne]",
+      "photographer": "Tom Hermans",
+      "photographerUrl": "https://unsplash.com/@tomhermans",
+      "url": "https://unsplash.com/photos/brown-nuts-IbL3Zd62Q7Q",
+      "photoId": "IbL3Zd62Q7Q",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2018-04-24",
+      "downloaded": "2026-10-14",
+      "apa": "Hermans, T. (2018). [Baumnusskerne] [Foto]. Unsplash. https://unsplash.com/photos/brown-nuts-IbL3Zd62Q7Q"
+    },
+    {
+      "key": "F13.1",
+      "cardId": "F13.1",
+      "file": "F13.1.jpg",
+      "thumb": "F13.1-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F13.1.3",
+        "F13.1.5"
+      ],
+      "foods": [
+        "Mandeln",
+        "Pistazien"
+      ],
       "focusX": 0.5,
       "focusY": 0.5,
       "title": "Top view composition of healthy organic nuts",
@@ -273,6 +1276,103 @@
       "published": "2026-03-08",
       "downloaded": "2026-10-14",
       "apa": "Rumee, T. (2026). Top view composition of healthy organic nuts [Foto]. Unsplash. https://unsplash.com/photos/a-pile-of-almonds-and-pistachios-on-a-white-background-62R9PTntrqw"
+    },
+    {
+      "key": "F13.2",
+      "cardId": "F13.2",
+      "file": "F13.2.jpg",
+      "thumb": "F13.2-480.jpg",
+      "width": 1200,
+      "height": 900,
+      "thumbWidth": 480,
+      "shows": [
+        "F13.2.1",
+        "F13.1.3"
+      ],
+      "foods": [
+        "Kürbiskerne",
+        "Mandeln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Kürbiskerne mit einer Mandel]",
+      "photographer": "CHUTTERSNAP",
+      "photographerUrl": "https://unsplash.com/@chuttersnap",
+      "url": "https://unsplash.com/photos/almond-seed-on-top-of-green-seeds-J8_U_vokuKk",
+      "photoId": "J8_U_vokuKk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2017-10-15",
+      "downloaded": "2026-10-14",
+      "apa": "CHUTTERSNAP (2017). [Kürbiskerne mit einer Mandel] [Foto]. Unsplash. https://unsplash.com/photos/almond-seed-on-top-of-green-seeds-J8_U_vokuKk"
     }
-  ]
+  ],
+  "collages": {
+    "F01": [
+      "F01.1",
+      "F01.2",
+      "F01.3"
+    ],
+    "F02": [
+      "F02.1",
+      "F02.2",
+      "F02.3"
+    ],
+    "F03": [
+      "F03-a",
+      "F03-b",
+      "F03-c"
+    ],
+    "F04": [
+      "F04.1",
+      "F04-b",
+      "F04.2"
+    ],
+    "F05": [
+      "F05.1",
+      "F05.2",
+      "F05.3"
+    ],
+    "F06": [
+      "F06.1",
+      "F06.2",
+      "F06.3"
+    ],
+    "F07": [
+      "F07.1",
+      "F07-b",
+      "F07-c"
+    ],
+    "F08": [
+      "F08.1",
+      "F08.2",
+      "F08.3"
+    ],
+    "F09": [
+      "F09-a",
+      "F09-b",
+      "F09-c"
+    ],
+    "F10": [
+      "F10.1",
+      "F10-b",
+      "F10.3"
+    ],
+    "F11": [
+      "F11.1",
+      "F11.3",
+      "F11.2"
+    ],
+    "F12": [
+      "F12.2",
+      "F12.1",
+      "F12.4"
+    ],
+    "F13": [
+      "F13-a",
+      "F13-b",
+      "F13.2"
+    ]
+  }
 }

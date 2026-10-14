@@ -48,7 +48,7 @@ export const NAV = {
 export const STEPS = {
   label: 'Fortschritt der Profilerstellung',
   questions: 'Fragen',
-  round: 'Runde 1',
+  round: (number = 1) => `Runde ${number}`,
   profile: 'Profil',
   state: { done: '(erledigt)', current: '(aktuell)', open: '(offen)' },
   detail: (answered, total) => `${answered} von ${total}`,
@@ -303,13 +303,16 @@ export const CARD_NOTES = {
 
 // Abschluss nach der Runde
 export const COMPLETE = {
-  kickerDone: 'Runde 1 abgeschlossen',
-  kickerEnded: 'Runde beendet',
+  kickerDone: (round) => `Runde ${round} abgeschlossen`,
+  kickerEnded: (round) => `Runde ${round} beendet`,
   title: (name) => (name ? `Danke, ${name}!` : 'Danke!'),
   leadDone: (count) => `Du hast alle ${plural(count, 'Karte', 'Karten')} dieser Runde beantwortet.`,
   leadEnded: (count) => `Du hast ${plural(count, 'Karte', 'Karten')} beantwortet.`,
   leadEmpty: 'Nach deinen Angaben gab es in dieser Runde keine passenden Karten.',
-  overviewTitle: 'So hast du geantwortet',
+  leadAllDone: 'Du hast alle Karten beantwortet.',
+  nextHint: (titles) => `Als Nächstes zum Beispiel: ${titles.join(', ')}.`,
+  nextRound: (round) => `Weiter mit Runde ${round}`,
+  overviewTitle: 'So hast du bisher geantwortet',
   rules: (count) => `${plural(count, 'feste Regel', 'feste Regeln')} aus deinen Angaben`,
   profileHint: 'In deinem Profil siehst du alles im Detail.',
   toProfile: 'Mein Profil ansehen',

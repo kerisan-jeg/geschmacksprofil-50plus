@@ -5,7 +5,11 @@ import { fileURLToPath } from 'node:url';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const credits = read('./image-credits.json');
-const families = read('./catalog.json').cards.filter((card) => card.stage === 1);
+const cards = read('./catalog.json').cards;
+const families = cards.filter((card) => card.stage === 1);
+const subgroups = cards.filter((card) => card.stage === 2);
+// Für diese Untergruppen gibt es noch kein passendes freies Foto (README, „Noch offen“): Sie zeigen die Illustration.
+const WITHOUT_PHOTO = ['F07.2', 'F07.3'];
 const imagePath = (file) => fileURLToPath(new URL(`../../public/images/${file}`, import.meta.url));
 
 function jpegSize(buffer) {
@@ -20,16 +24,24 @@ function jpegSize(buffer) {
   return null;
 }
 
-test('Jede Familienkarte hat genau ein Foto', () => {
-  assert.deepEqual(
-    credits.photos.map((photo) => photo.cardId).sort(),
-    families.map((card) => card.id).sort()
-  );
+test('Jede Gruppe zeigt ihre drei Beispiele als Bildraster, jede Untergruppe hat ein eigenes Foto', () => {
+  const keys = new Set(credits.photos.map((photo) => photo.key));
+  assert.deepEqual(Object.keys(credits.collages).sort(), families.map((card) => card.id).sort());
+  for (const [cardId, collage] of Object.entries(credits.collages)) {
+    assert.equal(collage.length, 3, `${cardId}: drei Beispiele`);
+    for (const key of collage) assert.ok(keys.has(key), `${cardId}: ${key} fehlt`);
+  }
+  const withPhoto = credits.photos.filter((photo) => photo.cardId).map((photo) => photo.cardId).sort();
+  assert.deepEqual(withPhoto, subgroups.map((card) => card.id).filter((id) => !WITHOUT_PHOTO.includes(id)).sort());
+  // Jedes Foto erscheint irgendwo, keines doppelt
+  const used = new Set([...withPhoto, ...Object.values(credits.collages).flat()]);
+  for (const photo of credits.photos) assert.ok(used.has(photo.cardId ?? photo.key), `${photo.key} wird nicht verwendet`);
+  assert.equal(new Set(credits.photos.map((photo) => photo.photoId)).size, credits.photos.length, 'kein Foto doppelt');
 });
 
 test('Nachweise sind vollständig: Quelle, Fotograf, Lizenz, Link und APA 7', () => {
   for (const photo of credits.photos) {
-    const name = photo.cardId;
+    const name = photo.key;
     assert.equal(photo.source, 'Unsplash', name);
     assert.equal(photo.license, 'Unsplash License', name);
     assert.equal(photo.licenseUrl, 'https://unsplash.com/license', name);
@@ -60,10 +72,55 @@ test('Dateien liegen lokal im Repo, im gleichen Seitenverhältnis 4:3 und nicht 
 });
 
 test('Bildstil umschaltbar: mit „illustration“ zeigen die Karten die eigenen Illustrationen', async () => {
-  const { photoForCard } = await import('../lib/images.js');
+  const { allPhotos, photosForCard } = await import('../lib/images.js');
   const { IMAGE_STYLE } = await import('../config.js');
+  const { indexCatalog } = await import('../logic/catalog.js');
   assert.equal(IMAGE_STYLE, 'photo', 'Standard: Fotos');
-  assert.equal(photoForCard('F01', 'photo')?.file, 'F01.jpg');
-  assert.equal(photoForCard('F01', 'illustration'), null);
-  for (const card of families) assert.ok(card.illustration, `${card.id}: Illustration als Ersatz vorhanden`);
+  assert.deepEqual(photosForCard('F01', 'photo').map((photo) => photo.file), ['F01.1.jpg', 'F01.2.jpg', 'F01.3.jpg'], 'Poulet, Rind, Schwein');
+  assert.deepEqual(photosForCard('F01.2', 'photo').map((photo) => photo.file), ['F01.2.jpg']);
+  assert.deepEqual(photosForCard('F07.2', 'photo'), [], 'ohne passendes Foto: Illustration');
+  assert.deepEqual(photosForCard('F01', 'illustration'), []);
+  // Jede Karte hat eine Illustration als Ersatz und eine Kartenfarbe; Untergruppen erben sie von ihrer Gruppe.
+  const index = indexCatalog(cards);
+  for (const card of index.cards.filter((entry) => entry.stage <= 2)) {
+    assert.ok(card.illustration, `${card.id}: Illustration`);
+    assert.ok(card.tint, `${card.id}: Kartenfarbe`);
+  }
+  assert.equal(index.get('F01.2').illustration, index.get('F01').illustration);
+  // Bildnachweise nennen die Karten, auf denen ein Foto erscheint
+  const chicken = allPhotos().find((photo) => photo.key === 'F01.1');
+  assert.deepEqual(chicken.usedBy, ['F01.1', 'F01']);
+  assert.deepEqual(allPhotos().find((photo) => photo.key === 'F03-a').usedBy, ['F03']);
+});
+
+test('Jedes Foto nennt, was es zeigt (Karten und sichtbare Lebensmittel)', () => {
+  const ids = new Set(cards.map((card) => card.id));
+  for (const photo of credits.photos) {
+    assert.ok(photo.shows?.length > 0, `${photo.key}: shows`);
+    for (const id of photo.shows) assert.ok(ids.has(id), `${photo.key}: ${id} gibt es nicht`);
+    assert.ok(photo.foods?.length > 0, `${photo.key}: foods`);
+  }
+});
+
+test('Bilder zeigen nie Ausgeschlossenes: Raster ohne das Beispiel, sonst die Illustration', async () => {
+  const { allowedPhotos, photosForCard } = await import('../lib/images.js');
+  const { indexCatalog } = await import('../logic/catalog.js');
+  const { buildExclusions } = await import('../logic/filter.js');
+  const { diets } = read('./stage0.json');
+  const index = indexCatalog(cards);
+  const shown = (cardId, entries, diet = null) =>
+    allowedPhotos(photosForCard(cardId, 'photo'), { index, exclusions: buildExclusions(entries, { diet, diets, index }) }).map((photo) => photo.key);
+
+  assert.deepEqual(shown('F01', []), ['F01.1', 'F01.2', 'F01.3'], 'ohne Ausschlüsse alle drei');
+  assert.deepEqual(shown('F01', [{ type: 'card', value: 'F01.3' }]), ['F01.1', 'F01.2'], 'kein Schweinefleisch im Bild');
+  assert.deepEqual(shown('F01', [], 'vegetarian'), [], 'vegetarisch: kein Fleischfoto');
+  const almond = [{ type: 'allergen', value: 'almond' }];
+  assert.deepEqual(shown('F13', almond), ['F13-b'], 'Mandelallergie: keine Mandeln im Bild');
+  assert.deepEqual(shown('F13.1', almond), []);
+  const tomato = [{ type: 'food', value: 'Tomate', freeText: true }];
+  assert.deepEqual(shown('F10.2', tomato), [], 'eingetippte „Tomate“');
+  assert.deepEqual(shown('F11', tomato), ['F11.1', 'F11.2']);
+  assert.deepEqual(shown('F07', [{ type: 'allergen', value: 'wheat' }]), [], 'ohne Weizen keine Weizenpasta im Bild');
+  // Ohne Filter (z. B. Vorschau) bleibt alles
+  assert.equal(allowedPhotos(photosForCard('F01', 'photo'), null).length, 3);
 });

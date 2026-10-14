@@ -20,6 +20,7 @@ export const EVENT_FIELDS = [
 // Vorname und Telefonnummer gibt es in keiner Sitzung und damit in keiner Spalte.
 export const CSV_COLUMNS = [
   ...EVENT_FIELDS,
+  'round',
   'excludedCardIds',
   'ruleVersion',
   'type',
@@ -71,6 +72,8 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
         ...shared,
         ...event,
         type: event.type ?? 'ANSWER',
+        // Antworten ohne Rundennummer stammen aus Runde 1 (vor Runde 2 protokolliert).
+        round: event.round ?? ((event.type ?? 'ANSWER') === 'ANSWER' ? 1 : null),
         exclusions: (event.exclusions ?? []).map((exclusion) => [exclusion.type, exclusion.value].filter(Boolean).join(':')),
         newDiet: event.type === 'DIET_CHANGED' ? event.diet : null,
         diet: shared.diet,

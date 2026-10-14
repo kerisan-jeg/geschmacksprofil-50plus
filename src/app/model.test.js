@@ -93,7 +93,7 @@ test('Nach Frage 3 kommt die Zusammenfassung; „Ändern“ öffnet nur die pass
   let state = finishQuestions(answered(DEFAULT_CONFIG));
   assert.equal(state.screen, SCREENS.SUMMARY, 'nurec v0.2, Kap. 2.2: erst bestätigen, dann wischen');
   assert.equal(state.onboarding.diet, 'none');
-  assert.equal(isNavVisible(state), true);
+  assert.equal(isNavVisible(state), false, 'keine Leiste während der Profilerstellung');
   assert.deepEqual(creationSteps(state, model.roundOf(state)).map((step) => step.state), ['current', 'open', 'open'], 'gehört noch zu den Fragen');
   state = run(state, { type: 'editAnswers', step: 1 });
   assert.deepEqual([state.screen, state.step, state.editing], [SCREENS.QUESTIONS, 1, true]);
@@ -122,16 +122,39 @@ test('Tutorial standardmässig aus; mit TUTORIAL_ENABLED kommt es vor der ersten
   assert.equal(run(withTutorial, { type: 'startRound' }).screen, SCREENS.ROUND);
 });
 
-test('Untere Navigation erst nach Registrierung und „Über dich“, in der Runde ausgeblendet', () => {
+test('Untere Leiste erst ab dem Abschluss der Runde und in „Mein Profil“', () => {
   for (const screen of [SCREENS.START, SCREENS.REGISTER_NAME, SCREENS.REGISTER_PHONE, SCREENS.REGISTER_CODE, SCREENS.WELCOME_BACK, SCREENS.ABOUT]) {
     assert.equal(isNavVisible({ ...model.initialState(DEFAULT_CONFIG), screen }), false, screen);
   }
   const questions = answered(DEFAULT_CONFIG);
-  assert.equal(isNavVisible(questions), true);
+  assert.equal(isNavVisible(questions), false, 'Fragen: keine Leiste');
+  assert.equal(isNavVisible(finishQuestions(questions)), false, 'Zusammenfassung: keine Leiste');
   const round = toRound(questions);
   assert.equal(round.screen, SCREENS.ROUND);
   assert.equal(isNavVisible(round), false, 'Runde: ganzer Bildschirm für Karte und Knöpfe');
-  assert.equal(isNavVisible(run(round, { type: 'tab', tab: TABS.PROFILE })), true);
+  assert.equal(isNavVisible(run(questions, { type: 'tab', tab: TABS.PROFILE })), true, '„Mein Profil“ über den Knopf oben rechts, zurück über die Leiste');
+  const done = run(round, ...['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10'].map((cardId) => ({ type: 'event', event: { type: 'ANSWER', cardId, response: LIKE, round: 1 } })));
+  assert.equal(done.screen, SCREENS.COMPLETE);
+  assert.equal(isNavVisible(done), true, 'ab dem Abschluss');
+});
+
+test('Nach Runde 1 geht es mit Runde 2 weiter; Rundennummer im Zustand und in den Abschnitten', () => {
+  let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit: 4 }));
+  const answer = (cardId) => ({ type: 'event', event: { type: 'ANSWER', cardId, response: LIKE, round: state.roundNumber } });
+  for (const cardId of ['F01', 'F02', 'F03', 'F04']) state = run(state, answer(cardId));
+  assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 1]);
+  state = run(state, { type: 'nextRound' });
+  assert.deepEqual([state.screen, state.roundNumber], [SCREENS.ROUND, 2]);
+  assert.equal(isNavVisible(state), false);
+  const [, roundStep] = creationSteps(state, model.roundOf(state));
+  assert.deepEqual([roundStep.state, roundStep.number, roundStep.answered, roundStep.total], ['current', 2, 0, 4]);
+  for (const cardId of ['F05', 'F06', 'F07', 'F08']) state = run(state, answer(cardId));
+  assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 2]);
+  // Neues Ausfüllen der Fragen beginnt wieder bei Runde 1
+  assert.equal(finishQuestions({ ...state, screen: SCREENS.QUESTIONS, step: 2 }).roundNumber, 1);
+  // Wiederkehrende Person macht in derselben Runde weiter
+  const back = run(model.initialState(DEFAULT_CONFIG, { account, saved: { sessionId: 'abc', state } }), { type: 'welcomeContinue' });
+  assert.deepEqual([back.screen, back.roundNumber], [SCREENS.COMPLETE, 2]);
 });
 
 test('Nach der letzten Karte folgt der Abschluss, von dort geht es zu „Mein Profil“', () => {

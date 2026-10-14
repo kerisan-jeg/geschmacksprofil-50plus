@@ -70,9 +70,6 @@ export const SWIPE = {
   labelDeadZone: 0.12, // Anteil der Schwelle, ab dem die Beschriftung auf der Karte erscheint
 };
 
-// Simulierte SMS-Mitteilung: so lange bleibt sie oben stehen (ms), wenn niemand sie wegtippt.
-export const SMS_BANNER_MS = 12000;
-
 // Eigene Ideen, die im Pilot geprüft werden. Abschalten mit false.
 // Rückgängig ist seit dem Zwischencheck fester Bestandteil (A8) und nicht mehr abschaltbar.
 export const FEATURES = {

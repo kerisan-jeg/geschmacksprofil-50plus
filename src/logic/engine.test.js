@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { indexCatalog } from './catalog.js';
-import { buildProfile, deriveRoundState, isRoundComplete, nextCard, progress, replay, selectNextCards, tasteSignals } from './engine.js';
+import { buildProfile, deriveRoundState, hasMoreCards, isRoundComplete, nextCard, nextRoundCards, presentCard, progress, replay, selectionReason, selectNextCards, tasteSignals } from './engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
@@ -12,13 +12,24 @@ const config = { roundCardLimit: 10 };
 const noOnboarding = { diet: null, exclusions: [], cardLabels: {} };
 
 const answer = (cardId, response, extra = {}) => ({ cardId, response, ...extra });
-const state = (events, onboarding = noOnboarding) => deriveRoundState({ index, onboarding, diets, events });
+const state = (events, onboarding = noOnboarding, round = 1) => deriveRoundState({ index, onboarding, diets, events, round });
 
-test('selectNextCards liefert nur Stufe-1-Karten in fester Reihenfolge (Platzhalter)', () => {
+test('selectNextCards: feste Reihenfolge, zuerst alle Gruppen, dann die Untergruppen abwechselnd (Platzhalter)', () => {
   const cards = selectNextCards(state([]), { roundCardLimit: 30 });
-  assert.equal(cards.length, 13);
-  assert.ok(cards.every((card) => card.stage === 1));
+  assert.equal(cards.length, 30);
+  assert.deepEqual(cards.slice(0, 13).map((card) => card.stage), Array(13).fill(1));
   assert.deepEqual(cards.slice(0, 3).map((card) => card.id), ['F01', 'F02', 'F03']);
+  // Danach von jeder Gruppe die erste Untergruppe, dann die zweite: nie mehrere aus derselben Gruppe hintereinander
+  assert.deepEqual(cards.slice(13, 18).map((card) => card.id), ['F01.1', 'F02.1', 'F04.1', 'F05.1', 'F06.1']);
+  const subgroups = cards.slice(13);
+  assert.ok(subgroups.every((card) => card.stage === 2));
+  for (let i = 1; i < subgroups.length; i += 1) assert.notEqual(subgroups[i].parentId, subgroups[i - 1].parentId, subgroups[i].id);
+  // Stufe 3 (Team-Ergänzung für einzelne Allergene) kommt in keiner Runde vor
+  const all = selectNextCards(state([]), { roundCardLimit: 100 });
+  assert.equal(all.length, 13 + 36);
+  assert.ok(all.every((card) => card.stage <= 2));
+  assert.equal(selectionReason(state([]), index.get('F01')), 'stage1_fixed_order');
+  assert.equal(selectionReason(state([]), index.get('F01.2')), 'stage2_fixed_order');
 });
 
 test('Das Rundenlimit begrenzt die Karten', () => {
@@ -122,4 +133,47 @@ test('Die Detailauswahl zeigt nur, was nach den Ausschlüssen noch sichtbar ist'
   const onboarding = { diet: null, exclusions: [{ type: 'allergen', value: 'hazelnut', source: 'onboarding' }], cardLabels: {} };
   const options = intoleranceOptions(state([], onboarding), index.get('F13'));
   assert.ok(!options.sections[0].options.some((option) => option.label === 'Haselnüsse'));
+});
+
+// ---------- Runden ----------
+
+const roundOne = ['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10'].map((id) => answer(id, LIKE, { round: 1 }));
+
+test('Runde 2 setzt fort, wo Runde 1 aufgehört hat: übrige Gruppen, dann Untergruppen', () => {
+  assert.equal(isRoundComplete(state(roundOne), config), true, 'Runde 1 ist nach 10 Karten fertig');
+  assert.equal(hasMoreCards(state(roundOne)), true);
+  const second = state(roundOne, noOnboarding, 2);
+  assert.deepEqual(progress(second, config), { answered: 0, total: 10, percent: 0 }, 'Fortschritt zählt je Runde');
+  assert.deepEqual(selectNextCards(second, config).map((card) => card.id), ['F11', 'F12', 'F13', 'F01.1', 'F02.1', 'F04.1', 'F05.1', 'F06.1', 'F07.1', 'F08.1']);
+  assert.deepEqual(nextRoundCards(state(roundOne), config).map((card) => card.id), selectNextCards(second, config).map((card) => card.id));
+  // Antworten ohne Rundennummer zählen zu Runde 1 (ältere Protokolle)
+  assert.deepEqual(state(roundOne.map(({ round, ...event }) => event), noOnboarding, 2).roundSequence, []);
+});
+
+test('Rückgängig wirkt nur in der laufenden Runde', () => {
+  const second = state(roundOne, noOnboarding, 2);
+  assert.equal(second.lastEvent, null, 'zu Beginn von Runde 2 gibt es nichts rückgängig zu machen');
+  const answered = state([...roundOne, answer('F11', LIKE, { round: 2 })], noOnboarding, 2);
+  assert.equal(answered.lastEvent.cardId, 'F11');
+  assert.deepEqual(answered.roundSequence, ['F11']);
+  const undone = state([...roundOne, answer('F11', LIKE, { round: 2 }), answer('F11', UNDO, { round: 2 })], noOnboarding, 2);
+  assert.deepEqual(undone.roundSequence, []);
+  assert.equal(undone.sequence.length, 10, 'Runde 1 bleibt unverändert');
+});
+
+test('Ausschlüsse gelten in jeder Runde: keine Untergruppen von ausgeschlossenen Gruppen', () => {
+  const intolerantFish = roundOne.map((event) => (event.cardId === 'F02' ? answer('F02', INTOLERANT, { round: 1, excludedCardIds: ['F02'] }) : event));
+  const ids = selectNextCards(state(intolerantFish, noOnboarding, 2), { roundCardLimit: 100 }).map((card) => card.id);
+  assert.ok(!ids.some((id) => id.startsWith('F02.')), 'nach „Vertrage ich nicht“ bei Fisch kein Lachs');
+  const vegetarian = { diet: 'vegetarian', exclusions: [], cardLabels: {} };
+  const veggie = selectNextCards(state([], vegetarian), { roundCardLimit: 100 }).map((card) => card.id);
+  assert.ok(!veggie.some((id) => id.startsWith('F01') || id.startsWith('F02')));
+});
+
+test('Untergruppen nennen ihre Gruppe; nach allen Karten gibt es keine weitere Runde', () => {
+  assert.equal(presentCard(state([]), index.get('F01.2')).group, 'Fleisch und Geflügel');
+  assert.equal(presentCard(state([]), index.get('F01')).group, undefined);
+  const everything = selectNextCards(state([]), { roundCardLimit: 100 }).map((card, i) => answer(card.id, LIKE, { round: 1 + Math.floor(i / 10) }));
+  assert.equal(hasMoreCards(state(everything, noOnboarding, 5)), false);
+  assert.deepEqual(nextRoundCards(state(everything, noOnboarding, 5), config), []);
 });

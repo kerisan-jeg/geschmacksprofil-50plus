@@ -1,8 +1,8 @@
 """Misst die Mobile-Kriterien (Addendum A11) auf allen Bildschirmen des Prototyps.
 
 Geprüft bei 360 x 640 und 430 x 932 auf allen Bildschirmen inkl. Registrierung (SMS simuliert),
-Zusammenfassung mit „Ändern“, Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ und
-„Willkommen zurück“:
+Zusammenfassung mit „Ändern“, Runde 2, Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“
+und „Willkommen zurück“:
   - kein horizontaler Scroll
   - Touch-Ziele >= 44 x 44 CSS-px
   - Textkontrast >= 4.5:1 (axe-core, Regel color-contrast)
@@ -151,6 +151,10 @@ def run(p, W, H):
     pg.get_by_role('button', name='Mag ich nicht').click(); pg.wait_for_timeout(150)
     pg.get_by_role('button', name='Mag ich sehr').click(); pg.wait_for_timeout(300)
     check(pg, 'abschluss', results, W)
+    # Runde 2 (feste Reihenfolge): übrige Gruppen und Untergruppen, danach zurück zum Abschluss
+    pg.get_by_role('button', name='Weiter mit Runde 2').click(); check(pg, 'runde_2', results, W)
+    pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(300)
+    pg.get_by_role('button', name='Runde beenden').click(); check(pg, 'abschluss_2', results, W)
     pg.get_by_role('button', name='Mein Profil ansehen').click(); check(pg, 'profil', results, W)
     pg.locator('button.taste-row').first.click(); check(pg, 'profil_bewertung', results, W)
     pg.get_by_role('radio', name='Mag ich', exact=True).click(); pg.wait_for_timeout(200)

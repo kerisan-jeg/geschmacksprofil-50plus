@@ -1,7 +1,22 @@
 // Hilfsfunktionen für den Kartenkatalog (Baum über parentId / children).
 // Alle Funktionen sind rein.
 
-export function indexCatalog(cards) {
+// Untergruppen übernehmen Kartenfarbe (tint) und Illustration ihrer Gruppe, wenn sie keine eigenen haben:
+// für den Platzhalter, solange ein Foto lädt oder fehlt, und für den Bildstil 'illustration'.
+const INHERITED = ['tint', 'illustration'];
+
+export function indexCatalog(rawCards) {
+  const raw = new Map(rawCards.map((card) => [card.id, card]));
+  const inherit = (card, field) => {
+    let current = card;
+    while (current && current[field] == null) current = raw.get(current.parentId);
+    return current?.[field];
+  };
+  const cards = rawCards.map((card) =>
+    !card.parentId || INHERITED.every((field) => card[field] != null)
+      ? card
+      : { ...card, ...Object.fromEntries(INHERITED.map((field) => [field, card[field] ?? inherit(card, field)])) }
+  );
   const byId = new Map(cards.map((card) => [card.id, card]));
   return {
     cards,

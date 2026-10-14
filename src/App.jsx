@@ -3,10 +3,10 @@ import catalog from './data/catalog.json';
 import stage0 from './data/stage0.json';
 import allergens from './data/allergens.json';
 import { isAdminMode, resolveConfig } from './config.js';
-import { ImageStyleContext } from './lib/images.js';
+import { ImageFilterContext, ImageStyleContext } from './lib/images.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
-import { buildProfile, eligibleFamilies, RULE_VERSION, selectionReason } from './logic/engine.js';
+import { buildProfile, eligibleFamilies, nextRoundCards, RULE_VERSION, selectionReason } from './logic/engine.js';
 import { ANSWER, AUTH_COMPLETED, AUTH_STARTED, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED, SOURCE_PROFILE } from './logic/events.js';
 import { createRedundancyCheck } from './logic/stage0.js';
 import { summarySections } from './logic/profile.js';
@@ -33,7 +33,8 @@ import ProfileScreen from './screens/ProfileScreen.jsx';
 import AdminScreen from './screens/AdminScreen.jsx';
 
 // Ablauf „Profil erstellen“: Begrüssung → Registrierung (Vorname, Handynummer, SMS-Code) → Über dich →
-// Fragebogen (Stufe 0) → Zusammenfassung → Runde → Abschluss (Tutorial vor der Runde nur mit TUTORIAL_ENABLED).
+// Fragebogen (Stufe 0) → Zusammenfassung → Runde 1 → Abschluss → Runde 2 → … (Tutorial vor Runde 1 nur mit
+// TUTORIAL_ENABLED).
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
 const FOODS = catalog.foods ?? [];
@@ -70,10 +71,12 @@ function App() {
   const auth = useMemo(() => createAuthService(), []);
   const [sms, setSms] = useState(null);
   const [state, dispatch] = useReducer(MODEL.reducer, initial, ({ config, account, saved }) => MODEL.initialState(config, { account, saved }));
-  const { screen, tab, config, account, person, registration, answers, step, editing, onboarding, events, endedEarly } = state;
-  const round = useMemo(() => (onboarding ? MODEL.roundOf(state) : null), [onboarding, events]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { screen, tab, config, account, person, registration, answers, step, editing, onboarding, events, roundNumber, endedEarly } = state;
+  const round = useMemo(() => (onboarding ? MODEL.roundOf(state) : null), [onboarding, events, roundNumber]); // eslint-disable-line react-hooks/exhaustive-deps
   const navVisible = isNavVisible(state);
   const steps = creationSteps(state, round);
+  // Bilder zeigen nie, was die Person ausgeschlossen hat (siehe allowedPhotos in lib/images.js).
+  const imageFilter = useMemo(() => (round ? { index: INDEX, exclusions: round.exclusions } : null), [round]);
   const firstName = account?.firstName ?? '';
 
   useEffect(() => auth.onSimulatedSms((message) => setSms({ code: message.code, key: message.sentAt })), [auth]);
@@ -99,14 +102,14 @@ function App() {
   }, [onboarding, logger]);
 
   useEffect(() => {
-    if (screen === SCREENS.ROUND) logger.trace('round_start', { roundCardLimit: config.roundCardLimit, tutorial: config.tutorial });
-    // Nur beim Wechsel in die Runde protokollieren.
+    if (screen === SCREENS.ROUND) logger.trace('round_start', { round: roundNumber, roundCardLimit: config.roundCardLimit, tutorial: config.tutorial });
+    // Nur beim Wechsel in eine Runde protokollieren.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen === SCREENS.ROUND]);
+  }, [screen === SCREENS.ROUND, roundNumber]);
 
   useEffect(() => {
     if (screen !== SCREENS.COMPLETE || !round) return;
-    logger.trace('round_end', { completed: !endedEarly, answered: round.sequence.length });
+    logger.trace('round_end', { round: roundNumber, completed: !endedEarly, answered: round.roundSequence.length });
     logger.finish(buildProfile(round));
     // Nur beim Wechsel auf den Abschluss protokollieren.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -191,6 +194,10 @@ function App() {
     dispatch({ type: 'startRound' });
   }
 
+  function handleNextRound() {
+    dispatch({ type: 'nextRound' });
+  }
+
   // Ein Antwort-Ereignis: genau dieses Objekt geht ins Protokoll und in den Zustand.
   function record(card, response, extra) {
     const event = {
@@ -198,6 +205,7 @@ function App() {
       cardId: card.id,
       stage: card.stage,
       parentId: card.parentId,
+      round: roundNumber,
       positionInRound: extra.positionInRound,
       response,
       timestamp: new Date().toISOString(),
@@ -341,6 +349,8 @@ function App() {
             firstName={firstName}
             ruleCount={round.entries.filter((entry) => !entry.freeText).length + (round.diet && round.diet !== 'none' ? 1 : 0)}
             steps={steps}
+            nextTitles={nextRoundCards(round, config).map((card) => card.title)}
+            onNextRound={handleNextRound}
             onToProfile={() => handleTab(TABS.PROFILE)}
           />
         );
@@ -349,29 +359,31 @@ function App() {
 
   return (
     <ImageStyleContext.Provider value={config.imageStyle}>
-      <div className="app" data-nav={navVisible ? '' : undefined}>
-        {tab === TABS.PROFILE && navVisible ? (
-          <ProfileScreen
-            round={round}
-            onboarding={onboarding}
-            account={account}
-            index={INDEX}
-            allergens={allergens}
-            foods={FOODS}
-            dietOptions={STAGE0_FOR_PROFILE}
-            steps={steps}
-            canSignOut={Boolean(account?.phoneMasked)}
-            onCreate={() => handleTab(TABS.CREATE)}
-            onRestart={handleRestart}
-            onSignOut={handleSignOut}
-            onChange={profileHandlers}
-          />
-        ) : (
-          renderCreate()
-        )}
-        {navVisible && <BottomNav active={tab} onSelect={handleTab} />}
-        {sms && <SmsBanner key={sms.key} code={sms.code} onDismiss={dismissSms} />}
-      </div>
+      <ImageFilterContext.Provider value={imageFilter}>
+        <div className="app" data-nav={navVisible ? '' : undefined}>
+          {sms && <SmsBanner key={sms.key} code={sms.code} onDismiss={dismissSms} />}
+          {tab === TABS.PROFILE && navVisible ? (
+            <ProfileScreen
+              round={round}
+              onboarding={onboarding}
+              account={account}
+              index={INDEX}
+              allergens={allergens}
+              foods={FOODS}
+              dietOptions={STAGE0_FOR_PROFILE}
+              steps={steps}
+              canSignOut={Boolean(account?.phoneMasked)}
+              onCreate={() => handleTab(TABS.CREATE)}
+              onRestart={handleRestart}
+              onSignOut={handleSignOut}
+              onChange={profileHandlers}
+            />
+          ) : (
+            renderCreate()
+          )}
+          {navVisible && <BottomNav active={tab} onSelect={handleTab} />}
+        </div>
+      </ImageFilterContext.Provider>
     </ImageStyleContext.Provider>
   );
 }

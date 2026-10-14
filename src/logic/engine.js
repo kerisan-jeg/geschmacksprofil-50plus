@@ -18,10 +18,15 @@ import { SOURCE_SWIPE } from './stage0.js';
 export const RULE_VERSION = 'demo-0.2';
 
 // Antwort-Ereignis (so wird es auch protokolliert, siehe logging/logger.js):
-// { cardId, stage, parentId, positionInRound, response, timestamp, responseTimeMs,
+// { cardId, stage, parentId, round, positionInRound, response, timestamp, responseTimeMs,
 //   inputMethod, selectionReason, excludedCardIds? }
 // excludedCardIds nur bei INTOLERANT: welche Karten künftig ausgeschlossen sind
 // (die Karte selbst oder eine Auswahl ihrer Nachkommen).
+// round: Nummer der Runde (1, 2, …). Ereignisse ohne das Feld stammen aus Runde 1.
+
+export function roundOfEvent(event) {
+  return event?.round ?? 1;
+}
 
 function swipeEntries(event) {
   const ids = event.excludedCardIds?.length ? event.excludedCardIds : [event.cardId];
@@ -45,15 +50,17 @@ export function replay(events) {
 
   const answers = {};
   const answeredAt = {};
+  const answeredInRound = {};
   const sequence = [];
   const swipeExclusions = [];
   for (const { event, at } of active) {
     answers[event.cardId] = event.response;
     answeredAt[event.cardId] = at;
+    answeredInRound[event.cardId] = roundOfEvent(event);
     sequence.push(event.cardId);
     if (event.response === INTOLERANT) swipeExclusions.push(...swipeEntries(event));
   }
-  return { answers, answeredAt, sequence, swipeExclusions, lastEvent: active.at(-1)?.event ?? null };
+  return { answers, answeredAt, answeredInRound, sequence, swipeExclusions, lastEvent: active.at(-1)?.event ?? null };
 }
 
 function matchesRemoval(entry, removal, section) {
@@ -101,39 +108,74 @@ function applyEvents(events, played, onboarding) {
 
 // Gesamter Zustand aus Katalog, Onboarding und Ereignissen.
 // onboarding: Ergebnis von deriveOnboarding() (diet, exclusions, cardLabels, …).
-export function deriveRoundState({ index, onboarding, diets, events = [] }) {
+// round: laufende Runde. roundSequence sind die Karten dieser Runde, lastEvent ist die letzte Antwort
+// dieser Runde (Rückgängig wirkt nie in eine abgeschlossene Runde hinein).
+export function deriveRoundState({ index, onboarding, diets, events = [], round = 1 }) {
   const played = replay(events);
   const { entries, diet, ratings } = applyEvents(events, played, onboarding);
   const exclusions = buildExclusions(entries, { diet, diets, index });
-  return { index, onboarding, entries, exclusions, diet, ratings, cardLabels: onboarding?.cardLabels ?? {}, ...played };
+  const roundSequence = played.sequence.filter((id) => played.answeredInRound[id] === round);
+  const lastEvent = roundOfEvent(played.lastEvent) === round ? played.lastEvent : null;
+  return { index, onboarding, entries, exclusions, diet, ratings, cardLabels: onboarding?.cardLabels ?? {}, ...played, round, roundSequence, lastEvent };
 }
 
 function answeredCount(state) {
-  return state.sequence.filter((id) => RESPONSE_SEMANTICS[state.answers[id]]?.countsTowardLimit).length;
+  return (state.roundSequence ?? state.sequence).filter((id) => RESPONSE_SEMANTICS[state.answers[id]]?.countsTowardLimit).length;
+}
+
+// Feste Reihenfolge über alle Runden: zuerst die Gruppen (Stufe 1) in Katalogreihenfolge, dann die
+// Untergruppen (Stufe 2) abwechselnd aus allen Gruppen (von jeder Gruppe die erste, dann die zweite …),
+// damit eine Runde nicht nur aus einer Gruppe besteht.
+function fixedOrder(index) {
+  const families = index.cards.filter((card) => card.stage === 1);
+  const children = families.map((family) => index.childrenOf(family.id).filter((card) => card.stage === 2));
+  const subgroups = [];
+  const longest = Math.max(0, ...children.map((list) => list.length));
+  for (let position = 0; position < longest; position += 1) {
+    for (const list of children) if (list[position]) subgroups.push(list[position]);
+  }
+  return [...families, ...subgroups];
+}
+
+// Noch offene Karten über alle Runden: sichtbar nach den harten Ausschlüssen und noch nicht beantwortet.
+function openCards(state) {
+  return fixedOrder(state.index).filter((card) => !(card.id in state.answers) && isVisible(card, state.index, state.exclusions));
 }
 
 // Welche Karten als Nächstes gezeigt werden.
 //
 // TODO: Adaptive Logik folgt – Eigenleistung Team.
-// Aktuell bewusst nur: Stufe-1-Karten in fester Katalogreihenfolge, die nach den harten
-// Ausschlüssen sichtbar und noch nicht beantwortet sind, begrenzt auf das Rundenlimit.
-// Nicht umgesetzt (A2): Auswahl Stufe 1 → 2 → 3, Nachtesten von Ausnahmen nach DISLIKE,
-// Unterkarte nach UNFAMILIAR, Favoritensuche nach PREFER.
+// Aktuell bewusst nur: feste Reihenfolge (fixedOrder) ohne Bezug auf die bisherigen Antworten,
+// je Runde höchstens das Rundenlimit. Runde 1 zeigt die Gruppen, die folgenden Runden die übrigen
+// Gruppen und danach die Untergruppen. Harte Ausschlüsse wirken immer (isVisible).
+// Nicht umgesetzt (A2): Auswahl je nach Antwort (Stufe 1 → 2 → 3), Nachtesten von Ausnahmen nach
+// DISLIKE, Unterkarte nach UNFAMILIAR, Favoritensuche nach PREFER.
 export function selectNextCards(state, config) {
   const remaining = config.roundCardLimit - answeredCount(state);
   if (remaining <= 0) return [];
-  return state.index.cards
-    .filter((card) => card.stage === 1 && !(card.id in state.answers) && isVisible(card, state.index, state.exclusions))
-    .slice(0, remaining);
+  return openCards(state).slice(0, remaining);
 }
 
-export function selectionReason() {
-  return 'stage1_fixed_order';
+// Gibt es nach dieser Runde noch Karten für eine weitere Runde? nextRoundCards: die Karten der
+// nächsten Runde (für den Ausblick im Abschluss).
+export function hasMoreCards(state) {
+  return openCards(state).length > 0;
+}
+
+export function nextRoundCards(state, config) {
+  return openCards(state).slice(0, config.roundCardLimit);
+}
+
+export function selectionReason(state, card) {
+  return card?.stage === 2 ? 'stage2_fixed_order' : 'stage1_fixed_order';
 }
 
 // Karte für die Anzeige: Familien zeigen nur erlaubte Beispiele und Hinweise wie „Ohne Haselnüsse“.
+// group: bei Untergruppen der Name der Gruppe (z. B. „Fleisch und Geflügel“ über „Rind“).
 export function presentCard(state, card) {
-  return annotateCard(card, state.index, state.exclusions, state.cardLabels);
+  const presented = annotateCard(card, state.index, state.exclusions, state.cardLabels);
+  const parent = card.stage === 2 ? state.index.get(card.parentId) : null;
+  return parent ? { ...presented, group: parent.title } : presented;
 }
 
 export function nextCard(state, config) {

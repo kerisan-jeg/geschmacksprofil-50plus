@@ -107,7 +107,7 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
   const sections = groupExclusions(round.entries, { allergens, index });
   const diet = dietOptions.options.find((option) => option.id === round.diet);
   const currentAllergens = round.entries.filter((entry) => sectionOf(entry) === 'allergies').map((entry) => entry.value);
-  const credits = allPhotos().map((photo) => ({ ...photo, cardTitle: index.get(photo.cardId)?.title ?? photo.cardId }));
+  const credits = allPhotos().map((photo) => ({ ...photo, cardTitle: photo.usedBy.map((id) => index.get(id)?.title ?? id).join(', ') }));
   const redundancy = redundancyFor(round.exclusions, index);
   // Für die Allergie-Kacheln: nur was Ernährungsweise und andere Abschnitte schon ausschliessen
   const allergyRedundancy = redundancyFor(
@@ -325,7 +325,7 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
             <summary>{PROFILE.credits}</summary>
             <ul>
               {credits.map((photo) => (
-                <li key={photo.cardId}>{PROFILE.creditLine(photo)}</li>
+                <li key={photo.key}>{PROFILE.creditLine(photo)}</li>
               ))}
             </ul>
           </details>
