@@ -14,10 +14,11 @@ Die App hat zwei Bereiche in der unteren Navigation: **Profil erstellen** und **
 1. **Willkommen:** kurze Einführung.
 2. **Registrierung** (`AUTH_ENABLED`, Standard an): Vorname → Handynummer → SMS-Code. Kein echter SMS-Versand, siehe unten.
 3. **Über dich:** Alter und Einwilligung sind Pflicht, unter „Für die Testleitung“ die Teilnehmer-Nr. Ohne Registrierung startet die App hier, der Vorname ist dann freiwillig.
-4. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“. Frage 2 bietet „Ja“ und „Keine bekannt“, Frage 3 fragt nach „etwas Weiterem“. Der letzte Knopf heisst „Erste Karte zeigen“.
-5. **Runde:** direkt nach Frage 3 (Teamentscheid vom 13.10.: keine Zusammenfassung, kein Tutorial). Stufe-1-Karten in fester Reihenfolge, höchstens `ROUND_CARD_LIMIT` (Standard 10). Die untere Navigation ist hier ausgeblendet, damit Karte und Knöpfe den ganzen Bildschirm haben.
-6. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln) und Weiterleitung zu „Mein Profil“.
-7. **Mein Profil:** Geschmack und Ausschlüsse ansehen und bearbeiten.
+4. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“. Frage 2 bietet „Ja“ und „Keine bekannt“, Frage 3 fragt nach „etwas Weiterem“.
+5. **Zusammenfassung** (nurec v0.2, Kap. 2.2 [D]): „Stimmt das so?“ zeigt alle festen Regeln, je Frage ein Abschnitt (Ernährungsweise, Allergien und Unverträglichkeiten, „Möchte ich nicht essen“). „Ändern“ öffnet direkt die passende Frage und führt danach zurück; „Stimmt so“ bestätigt. Ein offenes „Ich bin mir nicht sicher“ steht dort als offen, nicht als Freigabe. Bewusst kurz, ohne Vorschau der Karten.
+6. **Runde:** nach „Stimmt so“ direkt die erste Karte (kein Tutorial, Teamentscheid vom 13.10.). Stufe-1-Karten in fester Reihenfolge, höchstens `ROUND_CARD_LIMIT` (Standard 10). Die untere Navigation ist hier ausgeblendet, damit Karte und Knöpfe den ganzen Bildschirm haben.
+7. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln) und Weiterleitung zu „Mein Profil“.
+8. **Mein Profil:** Geschmack und Ausschlüsse ansehen und bearbeiten.
 
 Das **Mini-Tutorial** (drei kurze Schritte: Wischrichtungen, „Kenne ich nicht“ und „Vertrage ich nicht“, Rückgängig) ist im Code, aber standardmässig aus. Für einen Pilot-Vergleich `TUTORIAL_ENABLED = true` in `src/config.js` setzen; über die URL lässt es sich nicht einschalten.
 
@@ -125,7 +126,7 @@ Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sit
 
 Alles bleibt im Browser (`localStorage`), es gibt kein Backend und keine Netzwerkanfrage. Eine Sitzung wird erst gespeichert, wenn unter „Über dich“ die Einwilligung gegeben ist.
 
-- **Pro Sitzung:** `sessionId`, `participantCode`, `startedAt`, `endedAt`, `appVersion`, `config`, Onboarding (Altersgruppe, Ernährungsweise, Ausschlüsse mit `source`, Unsicherheits-Flag, Notizen) und das am Ende angezeigte Profil.
+- **Pro Sitzung:** `sessionId`, `participantCode`, `startedAt`, `endedAt`, `appVersion`, `config`, Onboarding (Altersgruppe, Ernährungsweise, Ausschlüsse mit `source`, Unsicherheits-Flag, Notizen) und das am Ende angezeigte Profil. Dazu Zeitpunkte im `trace` (nur im JSON-Export), z. B. Bildschirmwechsel, `stage0_edit` („Ändern“ in der Zusammenfassung), `stage0_confirm` („Stimmt so“), Start und Ende der Runde.
 - **Pro Ereignis:** `sessionId`, `cardId`, `stage`, `parentId`, `positionInRound`, `response` (`DISLIKE` | `LIKE` | `PREFER` | `UNFAMILIAR` | `INTOLERANT` | `UNDO`), `timestamp`, `responseTimeMs` (Karte vollständig sichtbar bis Antwort), `inputMethod` (`swipe` | `button` | `link`; `keyboard` nur bei Demos am Laptop), `selectionReason`, bei INTOLERANT zusätzlich `excludedCardIds`.
 - **Weitere Ereignisse im selben Log** (`type`): `RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED` (Profil, `source = "profile"`) und `AUTH_STARTED`, `AUTH_COMPLETED` (Registrierung). Die CSV hat dafür die Spalten `type`, `source`, `rating`, `previousRating`, `section`, `exclusions`, `newDiet`, `previousDiet` und `auth`.
 
@@ -185,7 +186,7 @@ src/
   logging/export.js      CSV- und JSON-Export
   components/            Swipe-Karte, Antwortknöpfe, untere Navigation, Sheets, Suche, Chips, Zustände
   screens/               Willkommen, Registrierung (3), Willkommen zurück, Über dich, Fragebogen,
-                         Tutorial (aus), Runde, Abschluss, Mein Profil, Admin
+                         Zusammenfassung, Tutorial (aus), Runde, Abschluss, Mein Profil, Admin
   test/dom.js            kleine DOM-Umgebung (jsdom) für Komponententests
 scripts/
   test-setup.mjs         lädt JSX, JSON und CSS in node --test wie Vite
@@ -205,7 +206,7 @@ Alle Funktionen sind rein. Bei jeder Änderung der Regeln `RULE_VERSION` erhöhe
 
 ## Mobile-Kriterien
 
-Geprüft bei 360 × 640 und 430 × 932 auf allen 22 Bildschirmen (inkl. Registrierung mit SMS-Mitteilung, Detailauswahl, Bestätigung, Abschluss, Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ sowie „Willkommen zurück“), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
+Geprüft bei 360 × 640 und 430 × 932 auf allen 24 Bildschirmen (inkl. Registrierung mit SMS-Mitteilung, Detailauswahl, Zusammenfassung mit „Ändern“, Bestätigung, Abschluss, Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ sowie „Willkommen zurück“), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
 
 Die Prüfung ist wiederholbar: `npm run build && npm run preview`, dann in einem zweiten Terminal `python3 scripts/check-mobile.py` und `python3 scripts/check-mobile.py 1.3` (130 % Schrift). Voraussetzung: `pip install playwright` und `python -m playwright install chromium`.
 
@@ -246,7 +247,7 @@ Ausserdem:
 - Standardwert für das Kartenlimit (heute 10 von 13 Familienkarten).
 - Wird „Vertrage ich nicht“ übersehen oder mit „Mag ich nicht“ verwechselt? Im Pilot über `inputMethod = link` und Rückgängig-Ereignisse auswertbar.
 - Tutorial: seit dem 13.10. aus. Ein Pilot-Vergleich ist mit `TUTORIAL_ENABLED = true` möglich (nicht über die URL).
-- Zusammenfassung vor dem ersten Swipe: seit dem 13.10. entfernt. nurec v0.2, Kap. 2.2, sieht eine verständliche Zusammenfassung vor dem ersten Swipe vor; mit nurec abstimmen. Die festen Regeln sind weiterhin in „Mein Profil“ sichtbar.
+- Zusammenfassung vor dem ersten Swipe: am 13.10. entfernt, am 14.10. in kurzer Form wieder eingebaut, weil nurec v0.2, Kap. 2.2 [D] sie verlangt („Die Person bestätigt oder korrigiert jede Regel.“). Mit dem Team bestätigen. Wie lange sie dauert, zeigt das Protokoll (Bildschirmwechsel, `stage0_edit`, `stage0_confirm`).
 - Gespeicherter Stand auf dem Testgerät („Willkommen zurück“): Ins Testprotokoll gehört, dass die Testleitung nach jeder Person „Neue Testperson starten“ drückt. Gehört zu Frage F4.
 - „Aus dem Profil entfernen“: Die Karte zählt für die Runde weiter als beantwortet. Für die Auswertung vertretbar, im Bericht erwähnen.
 - Marken und Händler (z. B. Migros, M-Budget): Eine Autovervollständigung fehlt noch; heute freie Eingabe ohne Wirkung auf die Karten.

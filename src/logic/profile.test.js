@@ -6,12 +6,14 @@ import { computeProfile, deriveRoundState, selectNextCards, tasteSignals } from 
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
 import { DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED } from './events.js';
 import { isAllowed, isVisible } from './filter.js';
-import { groupExclusions } from './profile.js';
+import { groupExclusions, hasSummaryRules, summarySections } from './profile.js';
+import { deriveOnboarding, emptyAnswers } from './stage0.js';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const index = indexCatalog(read('../data/catalog.json').cards);
 const allergens = read('../data/allergens.json');
-const { diets } = read('../data/stage0.json');
+const definition = read('../data/stage0.json');
+const { diets } = definition;
 
 const swipe = (cardId, response, extra = {}) => ({ type: 'ANSWER', cardId, response, ...extra });
 const rate = (cardId, rating, previousRating) => ({ type: RATING_CHANGED, source: 'profile', cardId, rating, previousRating });
@@ -125,4 +127,56 @@ test('Ausschlüsse im Profil: Abschnitte und Herkunft (Onboarding, Wischen, Prof
   assert.deepEqual(sections.intolerances.map((item) => [item.label, item.sources]), [['Krebstiere', ['swipe']], ['Laktose', ['profile']]]);
   assert.deepEqual(sections.never.map((item) => item.label), ['Schweinefleisch']);
   assert.deepEqual(sections.notes.map((item) => item.label), ['Koriander']);
+});
+
+// ---------- Zusammenfassung vor der ersten Karte (nurec v0.2, Kap. 2.2) ----------
+
+const blank = emptyAnswers(definition.questions);
+const onboardingFrom = (answers) => deriveOnboarding(definition, { ...blank, ...answers }, { allergens, catalogIndex: index });
+const summaryOf = (onboarding, events = []) =>
+  summarySections(deriveRoundState({ index, onboarding, diets, events }), { onboarding, diets, allergens, index });
+const labels = (section) => section.items.map((item) => item.label);
+const nothing = { diet: 'none', intolerances: { ...blank.intolerances, gate: 'no' }, never: { ...blank.never, gate: 'no' } };
+
+test('Zusammenfassung: ein Abschnitt je Frage; ohne Angaben gibt es nichts zu bestätigen', () => {
+  const sections = summaryOf(onboardingFrom(nothing));
+  assert.deepEqual(sections.map((section) => section.id), ['diet', 'intolerances', 'never']);
+  assert.equal(hasSummaryRules(sections), false);
+  for (const section of sections) {
+    assert.deepEqual([section.items, section.notes, section.brands, section.origins, section.open], [[], [], [], [], false], section.id);
+  }
+});
+
+test('Zusammenfassung: jede Regel steht bei ihrer Frage, Notizen und Marken ebenso; Unsicherheit bleibt offen', () => {
+  const onboarding = onboardingFrom({
+    diet: 'vegetarian',
+    intolerances: { ...blank.intolerances, gate: 'yes', selected: ['hazelnut'], notes: ['Koriander'], unsureMore: true },
+    never: { ...blank.never, gate: 'yes', selected: ['card:F01.3'], notes: ['Rosenkohl'], brands: ['M-Budget'], origins: ['Übersee'] },
+  });
+  const sections = summaryOf(onboarding);
+  const [dietRule, intolerances, never] = sections;
+  assert.deepEqual(labels(dietRule), [diets.vegetarian.rule]);
+  assert.equal(intolerances.items.length, 1, 'Haselnuss als eine Regel');
+  assert.match(intolerances.items[0].label, /Haselnu/);
+  assert.deepEqual(intolerances.notes, ['Koriander'], 'Notiz aus Frage 2 steht bei Frage 2');
+  assert.equal(intolerances.open, true, 'keine Freigabe aus einer offenen Sicherheitsfrage');
+  assert.equal(never.items.length, 1);
+  assert.match(never.items[0].label, /Schwein/);
+  assert.deepEqual(never.notes, ['Rosenkohl']);
+  assert.deepEqual([never.brands, never.origins], [['M-Budget'], ['Übersee']]);
+  assert.equal(hasSummaryRules(sections), true);
+});
+
+test('Zusammenfassung folgt dem wirksamen Stand: Änderungen in „Mein Profil“ erscheinen sofort', () => {
+  const onboarding = onboardingFrom({ ...nothing, diet: 'vegetarian', intolerances: { ...blank.intolerances, gate: 'yes', selected: ['hazelnut'] } });
+  const [dietRule, intolerances, never] = summaryOf(onboarding, [
+    remove('allergies', { type: 'allergen', value: 'hazelnut' }),
+    diet('vegan', 'vegetarian'),
+    add('never', { type: 'card', value: 'F03' }),
+  ]);
+  assert.deepEqual(intolerances.items, [], 'entfernte Allergie steht nicht mehr da, weil sie nicht mehr wirkt');
+  assert.deepEqual(labels(dietRule), [diets.vegan.rule]);
+  assert.deepEqual(labels(never), [index.get('F03').title]);
+  // Ohne Ernährungsweise keine Regel
+  assert.deepEqual(summaryOf(onboarding, [diet('none', 'vegetarian')])[0].items, []);
 });

@@ -162,7 +162,9 @@ export const QUESTIONS = {
   errorChoose: 'Bitte wähle eine Antwort aus.',
   errorDetails: 'Bitte wähle mindestens einen Punkt aus oder ändere die Antwort oben.',
   next: 'Weiter',
-  toRound: 'Erste Karte zeigen',
+  // Nach „Ändern“ in der Zusammenfassung: nur diese Frage, danach zurück zur Übersicht
+  editKicker: 'Angabe ändern',
+  backToSummary: 'Zurück zur Übersicht',
 };
 
 // Onboarding (Stufe 0): Allergien und „Nie vorschlagen“
@@ -221,10 +223,27 @@ export const PICKER = {
   nothingSelected: 'Bitte wähle mindestens einen Eintrag.',
 };
 
-// Marken und Herkunft (Frage 3), wie sie in „Mein Profil“ zusammengefasst werden
+// Marken und Herkunft (Frage 3), wie sie in der Zusammenfassung und in „Mein Profil“ stehen
 export const BRANDS = {
   brands: (list) => `Marken: ${list.join(', ')}`,
   origins: (list) => `Herkunft: ${list.join(', ')}`,
+};
+
+// Zusammenfassung vor der ersten Karte (nurec v0.2, Kap. 2.2): Die Person bestätigt oder korrigiert jede Regel.
+export const SUMMARY = {
+  kicker: 'Fragen beantwortet',
+  thanks: (name) => `Danke, ${name}`,
+  title: 'Stimmt das so?',
+  lead: 'Diese Zutaten, Lebensmittel und Produkte schlagen wir dir nie vor, egal wie du später wischst.',
+  leadNone: 'Du hast nichts angegeben, das wir weglassen müssen.',
+  sections: { diet: 'Ernährungsweise', intolerances: 'Allergien und Unverträglichkeiten', never: 'Möchte ich nicht essen' },
+  none: { diet: 'Keine feste Ernährungsweise', intolerances: 'Keine bekannt', never: 'Nichts angegeben' },
+  edit: 'Ändern',
+  editFor: (section) => `${section} ändern`,
+  // Unsicherheits-Flag aus Frage 2: Die Frage bleibt offen, daraus folgt keine Freigabe (Kap. 2.2).
+  open: 'Offen: Du bist dir nicht sicher, ob es weitere gibt. Merkst du beim Wischen etwas, tippe auf „Vertrage ich nicht“.',
+  noCards: 'Nach deinen Angaben bleibt keine Karte übrig. Prüfe deine Angaben oder schliesse direkt ab.',
+  confirm: 'Stimmt so',
 };
 
 // Mini-Tutorial: höchstens drei kurze Schritte. Standardmässig aus (TUTORIAL_ENABLED in config.js)

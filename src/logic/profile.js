@@ -63,3 +63,50 @@ export function groupExclusions(entries, { allergens, index }) {
   }
   return sections;
 }
+
+// ---------- Zusammenfassung vor der ersten Karte ----------
+
+// nurec v0.2, Kap. 2.2: Vor Stufe 1 sieht die Person alle festen Regeln und bestätigt oder korrigiert sie.
+// Ein Abschnitt je Frage, damit „Ändern“ direkt zur passenden Frage führt. Grundlage ist der aktuelle
+// Stand (state aus deriveRoundState, inkl. Änderungen in „Mein Profil“): Es steht nur da, was der Filter
+// wirklich ausschliesst. Eingetippte Einträge (Notizen) stehen bei der Frage, in der sie eingetragen wurden.
+// Jeder Abschnitt: { id, items: [{ key, label }], notes: [label], open, brands, origins }
+//   open: Unsicherheits-Flag aus Frage 2. Die Frage bleibt offen, daraus folgt keine Freigabe.
+export const SUMMARY_SECTIONS = ['diet', 'intolerances', 'never'];
+
+export function summarySections(state, { onboarding, diets, allergens, index }) {
+  const grouped = groupExclusions(state.entries, { allergens, index });
+  const plain = (items) => items.map(({ key, label }) => ({ key, label }));
+  const notesOf = (question) => [
+    ...new Set(
+      state.entries
+        .filter((entry) => sectionOf(entry) === 'notes' && (entry.origin === 'intolerances' ? 'intolerances' : 'never') === question)
+        .map((entry) => entryLabel(entry, index))
+    ),
+  ];
+  const dietRule = diets?.[state.diet]?.rule;
+  return [
+    { id: 'diet', items: dietRule ? [{ key: `diet:${state.diet}`, label: dietRule }] : [], notes: [], open: false, brands: [], origins: [] },
+    {
+      id: 'intolerances',
+      items: plain([...grouped.allergies, ...grouped.intolerances]),
+      notes: notesOf('intolerances'),
+      open: Boolean(onboarding?.uncertain),
+      brands: [],
+      origins: [],
+    },
+    {
+      id: 'never',
+      items: plain(grouped.never),
+      notes: notesOf('never'),
+      open: false,
+      brands: [...(onboarding?.avoidBrands ?? [])],
+      origins: [...(onboarding?.avoidOrigins ?? [])],
+    },
+  ];
+}
+
+// Gibt es überhaupt etwas zu bestätigen (Regel, Notiz, Marke oder Herkunft)?
+export function hasSummaryRules(sections) {
+  return sections.some((section) => section.items.length + section.notes.length + section.brands.length + section.origins.length > 0);
+}

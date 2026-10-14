@@ -578,6 +578,11 @@
   font-size: var(--font-size-caption);
 }
 
+/* Zusammenfassung: „Ändern“ steht immer rechts, bei langen Titeln in der Zeile darunter */
+.screen-summary .exclusion-head .button-ghost {
+  margin-left: auto;
+}
+
 .profile-footer {
   display: grid;
   gap: var(--space-4);

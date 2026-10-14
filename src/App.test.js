@@ -1,6 +1,7 @@
-// Einstiegsablauf nach dem Teamentscheid vom 13.10. (ursprünglich von Arben, an das App-Modell in
-// src/app/model.js angepasst): Frage 2 ohne „Unsicher“, nach Frage 3 direkt die erste Karte,
-// alte ?tutorial-URLs ändern daran nichts. Statt „Anmelden“ steht seit der Registrierung „Über dich“.
+// Einstiegsablauf (ursprünglich von Arben, Teamentscheid vom 13.10., an das App-Modell in src/app/model.js
+// angepasst): Frage 2 ohne „Unsicher“, alte ?tutorial-URLs ändern nichts. Statt „Anmelden“ steht seit der
+// Registrierung „Über dich“. Nach Frage 3 steht wieder eine kurze Zusammenfassung (nurec v0.2, Kap. 2.2:
+// die Person bestätigt oder korrigiert jede Regel); nach „Stimmt so“ folgt direkt die erste Karte.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -8,9 +9,11 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { indexCatalog } from './logic/catalog.js';
 import { deriveRoundState, nextCard } from './logic/engine.js';
+import { summarySections } from './logic/profile.js';
 import { resolveConfig } from './config.js';
-import { createAppModel, SCREENS } from './app/model.js';
+import { createAppModel, creationSteps, SCREENS } from './app/model.js';
 import QuestionnaireScreen from './screens/QuestionnaireScreen.jsx';
+import SummaryScreen from './screens/SummaryScreen.jsx';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const definition = read('./data/stage0.json');
@@ -35,6 +38,14 @@ function questionnaire(search = '') {
 }
 
 const roundOf = (state) => deriveRoundState({ index, onboarding: state.onboarding, diets: definition.diets, events: state.events });
+const finish = (state) => reducer(state, { type: 'step', to: 3 });
+const confirm = (state) => reducer(state, { type: 'confirmSummary' });
+
+function renderSummary(state) {
+  const sections = summarySections(roundOf(state), { onboarding: state.onboarding, diets: definition.diets, allergens, index });
+  const props = { sections, noCards: false, firstName: 'Anna', steps: creationSteps(state, roundOf(state)), onConfirm() {}, onEdit() {}, onOpenProfile() {} };
+  return { sections, html: renderToStaticMarkup(createElement(SummaryScreen, props)) };
+}
 
 test('Frage 2 rendert genau zwei Hauptoptionen; Frage 3 zeigt die korrigierte Überschrift', () => {
   const props = {
@@ -50,12 +61,14 @@ test('Frage 2 rendert genau zwei Hauptoptionen; Frage 3 zeigt die korrigierte Ü
   assert.ok(!question2.includes('Unsicher'));
   const question3 = renderToStaticMarkup(createElement(QuestionnaireScreen, { ...props, step: 2 }));
   assert.ok(question3.includes('Gibt es etwas Weiteres, das wir dir nie vorschlagen dürfen?'));
-  assert.ok(question3.includes('Erste Karte zeigen'));
+  assert.ok(question3.includes('Weiter'), 'danach folgt die Zusammenfassung, noch keine Karte');
 });
 
-test('Nach Frage 3 erscheint direkt die erste echte Karte, auch mit alten Tutorial-URLs', () => {
+test('Nach Frage 3 erscheint die Zusammenfassung, nach „Stimmt so“ direkt die erste echte Karte, auch mit alten Tutorial-URLs', () => {
   for (const search of ['', '?tutorial=0', '?tutorial=1']) {
-    const state = reducer(questionnaire(search), { type: 'step', to: 3 });
+    const summary = finish(questionnaire(search));
+    assert.equal(summary.screen, SCREENS.SUMMARY);
+    const state = confirm(summary);
     assert.equal(state.screen, SCREENS.ROUND);
     assert.equal(nextCard(roundOf(state), state.config).id, 'F01');
     assert.deepEqual(state.events, []);
@@ -63,12 +76,23 @@ test('Nach Frage 3 erscheint direkt die erste echte Karte, auch mit alten Tutori
   }
 });
 
-test('Der direkte Rundenstart übernimmt Ernährungsweise, Allergien und weitere Ausschlüsse', () => {
+test('Die Zusammenfassung zeigt jede feste Regel mit „Ändern“; der Rundenstart übernimmt sie', () => {
   let state = questionnaire();
   state = answer(state, 'diet', 'vegetarian');
   state = answer(state, 'intolerances', { gate: 'yes', selected: ['hazelnut'] });
   state = answer(state, 'never', { gate: 'yes', selected: ['card:F03'] });
-  state = reducer(state, { type: 'step', to: 3 });
+  state = finish(state);
+  assert.equal(state.screen, SCREENS.SUMMARY);
+  const { sections, html } = renderSummary(state);
+  assert.ok(html.includes('Stimmt das so?'));
+  assert.ok(html.includes('Diese Zutaten, Lebensmittel und Produkte schlagen wir dir nie vor'));
+  const rules = sections.flatMap((section) => section.items.map((item) => item.label));
+  assert.equal(rules.length, 3);
+  for (const rule of rules) assert.ok(html.includes(rule), rule);
+  assert.equal((html.match(/aria-label="[^"]* ändern"/g) ?? []).length, 3, 'ein „Ändern“ je Frage');
+  assert.ok(html.includes('Stimmt so'));
+
+  state = confirm(state);
   assert.equal(state.screen, SCREENS.ROUND);
   assert.equal(state.onboarding.diet, 'vegetarian');
   assert.deepEqual(state.onboarding.exclusions.map(({ type, value }) => [type, value]), [
@@ -92,12 +116,14 @@ test('Zurück führt von Frage 3 über Frage 2 und Frage 1 zu „Über dich“ u
   assert.deepEqual(state.answers, answers);
 });
 
-test('Sind alle Karten ausgeschlossen, erscheint der Abschluss statt eines leeren Screens', () => {
+test('Sind alle Karten ausgeschlossen, erscheint nach der Zusammenfassung der Abschluss statt eines leeren Screens', () => {
   let state = answer(questionnaire(), 'never', {
     gate: 'yes',
     selected: index.cards.filter((card) => card.stage === 1).map((card) => `card:${card.id}`),
   });
-  state = reducer(state, { type: 'step', to: 3 });
+  state = finish(state);
+  assert.equal(state.screen, SCREENS.SUMMARY);
+  state = confirm(state);
   assert.equal(state.screen, SCREENS.COMPLETE);
   assert.equal(nextCard(roundOf(state), state.config), null);
 });

@@ -3,13 +3,13 @@ import catalog from './data/catalog.json';
 import stage0 from './data/stage0.json';
 import allergens from './data/allergens.json';
 import { isAdminMode, resolveConfig } from './config.js';
-import { QUESTIONS } from './labels.js';
 import { ImageStyleContext } from './lib/images.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
 import { buildProfile, eligibleFamilies, RULE_VERSION, selectionReason } from './logic/engine.js';
 import { ANSWER, AUTH_COMPLETED, AUTH_STARTED, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED, SOURCE_PROFILE } from './logic/events.js';
 import { createRedundancyCheck } from './logic/stage0.js';
+import { summarySections } from './logic/profile.js';
 import { createLogger, storageAvailable } from './logging/logger.js';
 import { createAppModel, creationSteps, hasProgress, isNavVisible, SCREENS, TABS } from './app/model.js';
 import { createAuthService } from './auth/AuthService.js';
@@ -25,6 +25,7 @@ import RegisterCodeScreen from './screens/RegisterCodeScreen.jsx';
 import WelcomeBackScreen from './screens/WelcomeBackScreen.jsx';
 import AboutScreen from './screens/AboutScreen.jsx';
 import QuestionnaireScreen from './screens/QuestionnaireScreen.jsx';
+import SummaryScreen from './screens/SummaryScreen.jsx';
 import IntroScreen from './screens/IntroScreen.jsx';
 import RoundScreen from './screens/RoundScreen.jsx';
 import CompleteScreen from './screens/CompleteScreen.jsx';
@@ -32,7 +33,7 @@ import ProfileScreen from './screens/ProfileScreen.jsx';
 import AdminScreen from './screens/AdminScreen.jsx';
 
 // Ablauf „Profil erstellen“: Begrüssung → Registrierung (Vorname, Handynummer, SMS-Code) → Über dich →
-// Fragebogen (Stufe 0) → Runde → Abschluss (Tutorial vor der Runde nur mit TUTORIAL_ENABLED).
+// Fragebogen (Stufe 0) → Zusammenfassung → Runde → Abschluss (Tutorial vor der Runde nur mit TUTORIAL_ENABLED).
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
 const FOODS = catalog.foods ?? [];
@@ -69,7 +70,7 @@ function App() {
   const auth = useMemo(() => createAuthService(), []);
   const [sms, setSms] = useState(null);
   const [state, dispatch] = useReducer(MODEL.reducer, initial, ({ config, account, saved }) => MODEL.initialState(config, { account, saved }));
-  const { screen, tab, config, account, person, registration, answers, step, onboarding, events, endedEarly } = state;
+  const { screen, tab, config, account, person, registration, answers, step, editing, onboarding, events, endedEarly } = state;
   const round = useMemo(() => (onboarding ? MODEL.roundOf(state) : null), [onboarding, events]); // eslint-disable-line react-hooks/exhaustive-deps
   const navVisible = isNavVisible(state);
   const steps = creationSteps(state, round);
@@ -89,11 +90,11 @@ function App() {
     saveAppState(state, logger.session.sessionId);
   }, [state, logger, screen]);
 
-  // Onboarding beim Abschluss von Frage 3 einmal übernehmen, vor dem ersten Swipe.
+  // Angaben aus Stufe 0 ins Protokoll, sobald sie übernommen sind (nach Frage 3 und nach jedem „Ändern“).
+  // Bestätigt werden sie in der Zusammenfassung (stage0_confirm), vor dem ersten Swipe.
   useEffect(() => {
     if (!onboarding || screen === SCREENS.WELCOME_BACK) return;
     logger.setOnboarding(onboarding);
-    logger.trace('stage0_confirm', { eligible: eligibleFamilies(round).map((card) => card.id) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onboarding, logger]);
 
@@ -173,6 +174,17 @@ function App() {
     logger.trace('about', { consent: true, nameGiven: Boolean(givenName || firstName) });
     if (givenName) saveAccount({ ...(account ?? {}), firstName: givenName });
     dispatch({ type: 'about', person: nextPerson, firstName: givenName });
+  }
+
+  // Zusammenfassung: „Stimmt so“ bestätigt die festen Regeln, „Ändern“ öffnet die Frage, aus der sie stammen.
+  function handleConfirmSummary() {
+    logger.trace('stage0_confirm', { eligible: eligibleFamilies(round).map((card) => card.id) });
+    dispatch({ type: 'confirmSummary' });
+  }
+
+  function handleEditAnswers(questionId) {
+    logger.trace('stage0_edit', { question: questionId });
+    dispatch({ type: 'editAnswers', step: stage0.questions.findIndex((question) => question.id === questionId) });
   }
 
   function handleStartRound() {
@@ -293,7 +305,19 @@ function App() {
             onChange={(questionId, value) => dispatch({ type: 'setAnswer', questionId, value })}
             onStep={(to) => dispatch({ type: 'step', to })}
             onOpenProfile={() => handleTab(TABS.PROFILE)}
-            lastLabel={config.tutorial ? QUESTIONS.next : QUESTIONS.toRound}
+            editing={editing}
+          />
+        );
+      case SCREENS.SUMMARY:
+        return (
+          <SummaryScreen
+            sections={summarySections(round, { onboarding, diets: stage0.diets, allergens, index: INDEX })}
+            noCards={eligibleFamilies(round).length === 0}
+            firstName={firstName}
+            steps={steps}
+            onConfirm={handleConfirmSummary}
+            onEdit={handleEditAnswers}
+            onOpenProfile={() => handleTab(TABS.PROFILE)}
           />
         );
       case SCREENS.INTRO:

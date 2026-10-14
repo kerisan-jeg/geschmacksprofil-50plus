@@ -11,10 +11,11 @@ import { QUESTIONS } from '../labels.js';
 
 // Stufe 0 als kurzer Fragebogen: eine Frage pro Bildschirm.
 // Erst bei „Ja“ erscheint die Detailauswahl (nurec v0.2, Kap. 2: nur bei „vorhanden“ nachfragen).
-export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, foods, redundancy, onChange, onStep, onOpenProfile, lastLabel = QUESTIONS.toRound }) {
+// editing: über „Ändern“ aus der Zusammenfassung geöffnet. Dann führen „Zurück“ und der Hauptknopf
+// zurück zur Übersicht, aber erst mit einer gültigen Antwort (keine offene Sicherheitsfrage).
+export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, foods, redundancy, onChange, onStep, onOpenProfile, editing = false }) {
   const question = questions[step];
   const answer = answers[question.id];
-  const last = step === questions.length - 1;
   const [showError, setShowError] = useState(false);
   const headingRef = useRef(null);
   const errorRef = useRef(null);
@@ -38,17 +39,18 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
       setShowError(true);
       return;
     }
-    onStep(step + 1);
+    onStep(editing ? questions.length : step + 1);
   }
 
-  const kicker = step === 0 && firstName ? QUESTIONS.hello(firstName) : QUESTIONS.kicker;
+  let kicker = step === 0 && firstName ? QUESTIONS.hello(firstName) : QUESTIONS.kicker;
+  if (editing) kicker = QUESTIONS.editKicker;
   const errorText = question.type !== 'single' && answer?.gate === 'yes' ? QUESTIONS.errorDetails : QUESTIONS.errorChoose;
   const percent = Math.round((step / questions.length) * 100);
   const counter = QUESTIONS.counter(step + 1, questions.length);
 
   return (
     <main className="screen screen-questions">
-      <TopBar start={<BackButton onClick={() => onStep(step - 1)} />} end={<Avatar name={firstName} onClick={onOpenProfile} />} />
+      <TopBar start={<BackButton onClick={editing ? handleNext : () => onStep(step - 1)} />} end={<Avatar name={firstName} onClick={onOpenProfile} />} />
 
       <SegmentedProgress
         answered={step}
@@ -107,7 +109,7 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
 
       <div className="action-bar">
         <button type="button" className="button-primary" onClick={handleNext}>
-          {last ? lastLabel : QUESTIONS.next}
+          {editing ? QUESTIONS.backToSummary : QUESTIONS.next}
         </button>
       </div>
     </main>

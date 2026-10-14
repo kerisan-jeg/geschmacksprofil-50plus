@@ -3,9 +3,10 @@
 // Bereich „Profil erstellen“:
 //   mit Registrierung (AUTH_ENABLED):  start → register-name → register-phone → register-code → about → …
 //   ohne Registrierung:                about (Vorname freiwillig) → …
-//   danach:                            questions → round → complete
-// Nach Frage 3 erscheint direkt die erste Karte (Teamentscheid 13.10.: keine Zusammenfassung,
-// kein Tutorial). Ist TUTORIAL_ENABLED eingeschaltet, kommt das Tutorial (intro) vor der Runde.
+//   danach:                            questions → summary → round → complete
+// Nach Frage 3 folgt die Zusammenfassung (nurec v0.2, Kap. 2.2): Die Person bestätigt die festen Regeln
+// („Stimmt so“) oder korrigiert sie („Ändern“ führt zur passenden Frage und wieder zurück). Danach kommt
+// direkt die erste Karte; das Tutorial (intro) nur, wenn TUTORIAL_ENABLED eingeschaltet ist.
 // Wiederkehrende Person auf demselben Gerät: welcome-back, dann weiter, wo sie war.
 // Bereich „Mein Profil“: eigener Tab, der Ablauf oben bleibt dabei an seiner Stelle stehen.
 //
@@ -26,6 +27,7 @@ export const SCREENS = {
   WELCOME_BACK: 'welcome-back',
   ABOUT: 'about',
   QUESTIONS: 'questions',
+  SUMMARY: 'summary',
   INTRO: 'intro',
   ROUND: 'round',
   COMPLETE: 'complete',
@@ -51,8 +53,8 @@ export function isNavVisible(state) {
   return state.tab === TABS.PROFILE || state.screen !== SCREENS.ROUND;
 }
 
-// Nach Frage 3: Tutorial nur, wenn es eingeschaltet ist (TUTORIAL_ENABLED), sonst direkt die erste Karte.
-export function screenAfterQuestions(config) {
+// Nach „Stimmt so“: Tutorial nur, wenn es eingeschaltet ist (TUTORIAL_ENABLED), sonst direkt die erste Karte.
+export function screenAfterSummary(config) {
   return config.tutorial ? SCREENS.INTRO : SCREENS.ROUND;
 }
 
@@ -63,8 +65,9 @@ export function hasProgress(state) {
 
 // Abschnitte der Profilerstellung für die Fortschrittsanzeige: Fragen → Runde 1 → Profil.
 // state je Abschnitt: 'done' | 'current' | 'open'; die Runde trägt zusätzlich ihren Kartenfortschritt.
+// Die Zusammenfassung schliesst die Fragen ab und gehört deshalb noch zu ihnen.
 export function creationSteps(state, round) {
-  const editingQuestions = state.screen === SCREENS.QUESTIONS || !state.onboarding;
+  const editingQuestions = state.screen === SCREENS.QUESTIONS || state.screen === SCREENS.SUMMARY || !state.onboarding;
   const roundDone = Boolean(state.onboarding) && state.screen === SCREENS.COMPLETE;
   const { answered, total } = round ? progress(round, state.config) : { answered: 0, total: 0 };
   let roundState = 'open';
@@ -94,6 +97,8 @@ export function createAppModel({ index, stage0, allergens }) {
       registration: EMPTY_REGISTRATION,
       answers: emptyAnswers(stage0.questions),
       step: 0,
+      // true, solange eine Frage über „Ändern“ in der Zusammenfassung offen ist
+      editing: false,
       onboarding: null,
       events: [],
       endedEarly: false,
@@ -131,19 +136,26 @@ export function createAppModel({ index, stage0, allergens }) {
       // ---------- Onboarding ----------
       case 'about': {
         const account = action.firstName ? { ...(state.account ?? { phoneMasked: null, verifiedAt: null }), firstName: action.firstName } : state.account;
-        return { ...state, person: action.person, account, screen: SCREENS.QUESTIONS, step: 0 };
+        return { ...state, person: action.person, account, screen: SCREENS.QUESTIONS, step: 0, editing: false };
       }
       case 'setAnswer':
         return { ...state, answers: { ...state.answers, [action.questionId]: action.value } };
+      // Nach Frage 3 oder nach „Ändern“: Antworten übernehmen und zur Zusammenfassung.
+      // Im Änderungsmodus führt jeder Schritt zurück zur Zusammenfassung.
       case 'step': {
-        if (action.to < 0) return { ...state, screen: SCREENS.ABOUT };
-        if (action.to < stage0.questions.length) return { ...state, step: action.to };
+        if (!state.editing && action.to < 0) return { ...state, screen: SCREENS.ABOUT };
+        if (!state.editing && action.to < stage0.questions.length) return { ...state, step: action.to };
         const onboarding = deriveOnboarding(stage0, state.answers, { allergens, catalogIndex: index });
         // Antworten beim Wischen beginnen neu; Profiländerungen und Registrierung bleiben im Log.
         const events = state.events.filter((event) => eventType(event) !== ANSWER);
-        const next = { ...state, onboarding, events, endedEarly: false };
-        return screenAfterQuestions(state.config) === SCREENS.ROUND ? enterRound(next) : { ...next, screen: SCREENS.INTRO };
+        return { ...state, onboarding, events, endedEarly: false, editing: false, screen: SCREENS.SUMMARY };
       }
+      // „Ändern“ in der Zusammenfassung: direkt zur Frage, aus der die Regel stammt.
+      case 'editAnswers':
+        return { ...state, tab: TABS.CREATE, screen: SCREENS.QUESTIONS, step: action.step, editing: true };
+      // „Stimmt so“: Regeln bestätigt, weiter zur ersten Karte (oder zum Tutorial).
+      case 'confirmSummary':
+        return screenAfterSummary(state.config) === SCREENS.ROUND ? enterRound(state) : { ...state, screen: SCREENS.INTRO };
       case 'startRound':
         return enterRound(state);
       // ---------- Ereignisse ----------

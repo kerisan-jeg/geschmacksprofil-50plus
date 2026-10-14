@@ -1,0 +1,105 @@
+import { after, test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { buttonByText, click, render, setupDom } from '../test/dom.js';
+
+const dom = setupDom();
+after(() => dom.window.close());
+// jsdom kennt kein Scrollen; der Fragebogen scrollt die Fehlermeldung ins Bild.
+dom.window.Element.prototype.scrollIntoView ??= () => {};
+const { createElement: h } = await import('react');
+const { default: SummaryScreen } = await import('./SummaryScreen.jsx');
+const { default: QuestionnaireScreen } = await import('./QuestionnaireScreen.jsx');
+const { COMMON, QUESTIONS, SUMMARY } = await import('../labels.js');
+const { indexCatalog } = await import('../logic/catalog.js');
+const { createRedundancyCheck, emptyAnswers } = await import('../logic/stage0.js');
+
+const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
+const definition = read('../data/stage0.json');
+const allergens = read('../data/allergens.json');
+const index = indexCatalog(read('../data/catalog.json').cards);
+
+const STEPS = [
+  { id: 'questions', state: 'current' },
+  { id: 'round', state: 'open', answered: 0, total: 0 },
+  { id: 'profile', state: 'open' },
+];
+const section = (id, changes = {}) => ({ id, items: [], notes: [], open: false, brands: [], origins: [], ...changes });
+
+function summary(sections, extra = {}) {
+  const calls = { edit: [], confirm: 0 };
+  const element = h(SummaryScreen, {
+    sections,
+    noCards: false,
+    firstName: 'Anna',
+    steps: STEPS,
+    onConfirm: () => (calls.confirm += 1),
+    onEdit: (id) => calls.edit.push(id),
+    onOpenProfile() {},
+    ...extra,
+  });
+  return { element, calls };
+}
+
+test('Zusammenfassung: jede Regel sichtbar, „Ändern“ je Frage, „Stimmt so“ bestätigt', async () => {
+  const { element, calls } = summary([
+    section('diet', { items: [{ key: 'diet:vegan', label: 'Vegan: nichts vom Tier' }] }),
+    section('intolerances', { items: [{ key: 'allergen:hazelnut', label: 'Haselnüsse' }], notes: ['Koriander'], open: true }),
+    section('never', { brands: ['M-Budget'] }),
+  ]);
+  const { container, unmount } = await render(element);
+  const text = container.textContent;
+  assert.ok(text.includes(SUMMARY.lead));
+  for (const expected of ['Vegan: nichts vom Tier', 'Haselnüsse', 'Koriander', 'M-Budget', SUMMARY.open]) assert.ok(text.includes(expected), expected);
+  const editButtons = [...container.querySelectorAll('button')].filter((button) => button.textContent.trim() === SUMMARY.edit);
+  assert.equal(editButtons.length, 3);
+  for (const button of editButtons) await click(button);
+  assert.deepEqual(calls.edit, ['diet', 'intolerances', 'never']);
+  await click(buttonByText(container, SUMMARY.confirm));
+  assert.equal(calls.confirm, 1);
+  await unmount();
+});
+
+test('Zusammenfassung ohne Angaben: verständlich leer; Hinweis, wenn keine Karte übrig bleibt', async () => {
+  const { element } = summary([section('diet'), section('intolerances'), section('never')], { noCards: true });
+  const { container, unmount } = await render(element);
+  const text = container.textContent;
+  assert.ok(text.includes(SUMMARY.leadNone));
+  for (const none of Object.values(SUMMARY.none)) assert.ok(text.includes(none), none);
+  assert.ok(text.includes(SUMMARY.noCards));
+  assert.ok(!text.includes(SUMMARY.open));
+  await unmount();
+});
+
+test('„Ändern“ zeigt nur diese Frage; zurück zur Übersicht erst mit gültiger Antwort', async () => {
+  const blank = emptyAnswers(definition.questions);
+  const answers = { ...blank, diet: 'none', intolerances: { ...blank.intolerances, gate: 'yes' } };
+  const calls = [];
+  const props = (current) => ({
+    questions: definition.questions,
+    step: 1,
+    answers: current,
+    firstName: 'Anna',
+    allergens,
+    catalogIndex: index,
+    foods: [],
+    redundancy: createRedundancyCheck(definition, current, { allergens, catalogIndex: index, upTo: 1 }),
+    onChange() {},
+    onStep: (to) => calls.push(to),
+    onOpenProfile() {},
+    editing: true,
+  });
+  const { container, rerender, unmount } = await render(h(QuestionnaireScreen, props(answers)));
+  assert.ok(container.textContent.includes(QUESTIONS.editKicker));
+  // „Ja“ ohne Auswahl ist keine Antwort: weder der Hauptknopf noch „Zurück“ verlassen die Frage
+  await click(buttonByText(container, QUESTIONS.backToSummary));
+  await click(buttonByText(container, COMMON.back));
+  assert.deepEqual(calls, []);
+  assert.ok(container.querySelector('[role="alert"]'));
+  // Mit Auswahl führen beide zurück zur Übersicht (Schritt nach der letzten Frage)
+  await rerender(h(QuestionnaireScreen, props({ ...answers, intolerances: { ...answers.intolerances, selected: ['hazelnut'] } })));
+  await click(buttonByText(container, QUESTIONS.backToSummary));
+  await click(buttonByText(container, COMMON.back));
+  assert.deepEqual(calls, [definition.questions.length, definition.questions.length]);
+  await unmount();
+});

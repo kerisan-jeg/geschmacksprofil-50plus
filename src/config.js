@@ -8,8 +8,9 @@ export const APP_VERSION = '0.6.0-demo';
 export const ROUND_CARD_LIMIT = 10;
 
 // Mini-Tutorial vor der ersten Runde. Seit dem Teamentscheid vom 13.10. standardmässig aus:
-// Nach Frage 3 erscheint direkt die erste Karte. Der Code bleibt, damit es für einen Pilot-Vergleich
-// wieder eingeschaltet werden kann (hier auf true setzen). Über die URL lässt es sich nicht einschalten.
+// Nach der Zusammenfassung erscheint direkt die erste Karte. Der Code bleibt, damit es für einen
+// Pilot-Vergleich wieder eingeschaltet werden kann (hier auf true setzen). Über die URL lässt es sich
+// nicht einschalten.
 export const TUTORIAL_ENABLED = false;
 
 // Bilder auf den Karten: 'photo' (Fotos aus public/images) oder 'illustration' (eigene Illustrationen).

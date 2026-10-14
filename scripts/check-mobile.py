@@ -1,7 +1,8 @@
 """Misst die Mobile-Kriterien (Addendum A11) auf allen Bildschirmen des Prototyps.
 
 Geprüft bei 360 x 640 und 430 x 932 auf allen Bildschirmen inkl. Registrierung (SMS simuliert),
-Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ und „Willkommen zurück“:
+Zusammenfassung mit „Ändern“, Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ und
+„Willkommen zurück“:
   - kein horizontaler Scroll
   - Touch-Ziele >= 44 x 44 CSS-px
   - Textkontrast >= 4.5:1 (axe-core, Regel color-contrast)
@@ -131,8 +132,12 @@ def run(p, W, H):
     check(pg, 'frage3', results, W)
     pg.locator('.add-entry').click()
     pg.get_by_label('Marken, die du meidest').fill('Marke X'); pg.keyboard.press('Enter')
-    # Nach Frage 3 direkt die erste Karte (keine Zusammenfassung, Tutorial standardmässig aus)
-    pg.get_by_role('button', name='Erste Karte zeigen').click(); check(pg, 'runde', results, W)
+    # Nach Frage 3 die Zusammenfassung (nurec v0.2, Kap. 2.2); „Ändern“ führt zur Frage und zurück.
+    # Danach direkt die erste Karte (Tutorial standardmässig aus).
+    pg.get_by_role('button', name='Weiter', exact=True).click(); check(pg, 'zusammenfassung', results, W)
+    pg.get_by_role('button', name='Allergien und Unverträglichkeiten ändern').click(); check(pg, 'zusammenfassung_aendern', results, W)
+    pg.get_by_role('button', name='Zurück zur Übersicht').click(); pg.wait_for_selector('.screen-summary')
+    pg.get_by_role('button', name='Stimmt so').click(); check(pg, 'runde', results, W)
     # Reduced motion: Karte verlässt den Stapel ohne Animation
     trans = pg.evaluate("getComputedStyle(document.querySelector('.swipe-card')).transitionDuration + ' / ' + getComputedStyle(document.querySelector('.swipe-card-inner')).animationDuration")
     pg.get_by_role('button', name='Mag ich', exact=True).click()
