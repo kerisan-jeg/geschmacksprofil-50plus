@@ -94,7 +94,7 @@ export default function AllergenPicker({ data, catalogIndex, answer, redundancy,
                 )}
               </span>
               <span className="tile-mark" aria-hidden="true">
-                {grouped ? <ChevronRight strokeWidth={2.6} /> : <Check strokeWidth={3.2} />}
+                {grouped ? <ChevronRight /> : <Check />}
               </span>
             </button>
           );
@@ -102,7 +102,7 @@ export default function AllergenPicker({ data, catalogIndex, answer, redundancy,
       </div>
 
       {more.length > 0 && (hiddenMore > 0 || showAll) && (
-        <button type="button" className="link-button more-button" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
+        <button type="button" className="button-ghost is-strong more-button" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
           <ChevronDown aria-hidden="true" className={showAll ? 'is-flipped' : undefined} />
           {showAll ? ONBOARDING.showLess : ONBOARDING.showMore(hiddenMore)}
         </button>

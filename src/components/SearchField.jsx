@@ -53,7 +53,7 @@ export default function SearchField({ label, placeholder, query, onQuery, result
                       </span>
                     )}
                   </span>
-                  {item.selected && <Check aria-hidden="true" strokeWidth={3} />}
+                  {item.selected && <Check aria-hidden="true" />}
                 </button>
               </li>
             ))}

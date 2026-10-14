@@ -1,17 +1,21 @@
-import { Hand, Leaf, Pause, UserRound } from 'lucide-react';
+import { Hand, Leaf, ListChecks, TriangleAlert, UserRound } from 'lucide-react';
 import catalog from '../data/catalog.json';
 import CardFace from '../components/CardFace.jsx';
+import { APP, START } from '../labels.js';
 
 const HERO_IDS = ['F06', 'F12', 'F03'];
+const STEP_ICONS = [UserRound, ListChecks, Hand];
 
-export default function StartScreen({ onStart }) {
+export default function StartScreen({ onStart, storageAvailable = true }) {
   const heroCards = HERO_IDS.map((id) => catalog.cards.find((card) => card.id === id));
 
   return (
     <main className="screen screen-start">
       <p className="brand">
-        <span className="brand-mark" aria-hidden="true"><Leaf strokeWidth={2.2} /></span>
-        Geschmacksprofil
+        <span className="brand-mark" aria-hidden="true">
+          <Leaf />
+        </span>
+        {APP.name}
       </p>
 
       <div className="hero-fan" aria-hidden="true">
@@ -22,22 +26,40 @@ export default function StartScreen({ onStart }) {
         ))}
       </div>
 
-      <h1>Was isst du gern?</h1>
-      <p className="lead">
-        Wir zeigen dir Lebensmittel auf Karten. Bei jeder Karte sagst du mit einem Wisch oder einem Tipp, wie gern du sie isst.
-      </p>
+      <div className="stack">
+        <h1>{START.title}</h1>
+        <p className="lead">{START.lead}</p>
+      </div>
 
-      <ul className="facts">
-        <li><UserRound aria-hidden="true" />Kurz anmelden und drei Fragen beantworten</li>
-        <li><Hand aria-hidden="true" />Dann Karten wischen oder tippen</li>
-        <li><Pause aria-hidden="true" />Du kannst jederzeit aufhören</li>
-      </ul>
+      <div className="stack-tight">
+        <ol className="start-steps">
+          {START.steps.map((text, index) => {
+            const Icon = STEP_ICONS[index];
+            return (
+              <li key={text}>
+                <span className="start-step-icon">
+                  <Icon aria-hidden="true" />
+                </span>
+                <span>{text}</span>
+              </li>
+            );
+          })}
+        </ol>
+        <p className="note">{START.pause}</p>
+      </div>
 
-      <div className="screen-actions">
-        <button type="button" className="button-primary" onClick={onStart}>Los geht’s</button>
-        <p className="fineprint">
-          Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten bleiben auf diesem Gerät.
+      {!storageAvailable && (
+        <p className="notice notice-warn" role="status">
+          <TriangleAlert aria-hidden="true" />
+          {START.storageBlocked}
         </p>
+      )}
+
+      <div className="action-bar">
+        <button type="button" className="button-primary" onClick={onStart}>
+          {START.start}
+        </button>
+        <p className="fineprint">{START.fineprint}</p>
       </div>
     </main>
   );

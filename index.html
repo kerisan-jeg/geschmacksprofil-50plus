@@ -4,14 +4,19 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="description" content="Prototyp zur Erfassung von Geschmacksvorlieben per Swipe für Personen ab 50." />
-    <meta name="theme-color" content="#f3f5f1" />
+    <!-- Muss mit --color-canvas in src/theme/tokens.css übereinstimmen (design.test.js prüft das) -->
+    <meta name="theme-color" content="#f8f5ef" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Geschmack" />
+    <meta name="format-detection" content="telephone=no" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <title>Geschmacksprofil – Prototyp</title>
+    <title>Geschmacksprofil</title>
+    <!-- Hintergrund schon vor dem Laden der Styles: kein weisses Aufblitzen beim Start vom Homescreen -->
+    <style>html,body{background:#f8f5ef}</style>
   </head>
   <body>
     <div id="root"></div>

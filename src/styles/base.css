@@ -1,0 +1,211 @@
+/* Grundlagen: Zurücksetzen, Schrift, Seitengerüst. Werte nur aus src/theme/tokens.css. */
+
+html {
+  font-size: var(--font-size-root);
+  background: var(--color-canvas);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-body);
+  overflow-x: hidden;
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+ol,
+figure,
+fieldset {
+  margin: 0;
+}
+
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+/* Ein Symbolsatz (Lucide), eine Strichstärke */
+svg.lucide {
+  flex: none;
+  stroke-width: var(--icon-stroke);
+}
+
+:focus-visible {
+  outline: var(--border-focus) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+h1:focus,
+h2:focus {
+  outline: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: var(--size-hidden);
+  height: var(--size-hidden);
+  margin: calc(-1 * var(--size-hidden));
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Tabellarische Ziffern für Zähler und Fortschritt (springen nicht beim Hochzählen) */
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Typografie ---------- */
+
+.title-display,
+.screen h1 {
+  font-size: var(--font-size-display);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-title);
+  /* Lange Wörter (z. B. „Ernährungsweise“) trennen statt überlaufen, auch bei 130 % Schrift */
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  /* nur lange Wörter trennen (z. B. „Ernährungs-weise“), kurze wie „Weiteres“ nie */
+  hyphenate-limit-chars: 10 4 4;
+  text-wrap: balance;
+}
+
+.title-section {
+  font-size: var(--font-size-title-s);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+  letter-spacing: var(--letter-spacing-title);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.kicker svg {
+  width: var(--size-icon-m);
+  height: var(--size-icon-m);
+}
+
+.lead {
+  font-size: var(--font-size-lead);
+  line-height: var(--line-height-snug);
+  text-wrap: pretty;
+}
+
+.note,
+.fineprint {
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-snug);
+  text-wrap: pretty;
+}
+
+.tone-dislike { --tone: var(--color-dislike); --tone-soft: var(--color-dislike-soft); }
+.tone-like { --tone: var(--color-like); --tone-soft: var(--color-like-soft); }
+.tone-prefer { --tone: var(--color-prefer); --tone-soft: var(--color-prefer-soft); }
+.tone-unknown { --tone: var(--color-unknown); --tone-soft: var(--color-unknown-soft); }
+.tone-intolerant { --tone: var(--color-intolerant); --tone-soft: var(--color-intolerant-soft); }
+.tone-rule { --tone: var(--color-rule); --tone-soft: var(--color-rule-soft); }
+.tone-primary { --tone: var(--color-primary); --tone-soft: var(--color-primary-soft); }
+
+/* ---------- Seitengerüst ---------- */
+
+.app {
+  min-height: 100dvh;
+  background: var(--color-canvas);
+}
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  min-height: 100dvh;
+  max-width: var(--layout-max-width);
+  margin: 0 auto;
+  padding-top: max(var(--space-4), env(safe-area-inset-top));
+  padding-right: max(var(--space-gutter), env(safe-area-inset-right));
+  padding-bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
+  padding-left: max(var(--space-gutter), env(safe-area-inset-left));
+  animation: screen-in var(--duration-screen) var(--ease-out);
+}
+
+/* Mit unterer Navigation: Platz für die Leiste und die sichere Zone */
+.app[data-nav] .screen {
+  padding-bottom: calc(var(--nav-height, calc(var(--tabbar-height) + env(safe-area-inset-bottom))) + var(--space-5));
+}
+
+@keyframes screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--motion-shift-s));
+  }
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.stack-tight {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.stack-loose {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* Fokussierte Felder nicht unter dem festen Aktionsbereich verstecken */
+input,
+.choice,
+.tile {
+  scroll-margin-bottom: var(--scroll-margin-actions);
+}

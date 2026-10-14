@@ -22,6 +22,21 @@ function storage() {
   }
 }
 
+// Fehlerzustand für den Start: Ist Speichern gesperrt (z. B. privater Modus mit voller Sperre),
+// läuft die App trotzdem, sagt es aber ehrlich.
+export function storageAvailable() {
+  const store = storage();
+  if (!store) return false;
+  try {
+    const key = 'geschmacksprofil:probe';
+    store.setItem(key, '1');
+    store.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function newSessionId() {
   try {
     const raw = globalThis.crypto?.randomUUID?.();

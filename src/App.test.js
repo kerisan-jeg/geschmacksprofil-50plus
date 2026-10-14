@@ -1,21 +1,22 @@
-import { after, test } from 'node:test';
+// Einstiegsablauf nach dem Teamentscheid vom 13.10. (ursprünglich von Arben, an das App-Modell in
+// src/app/model.js angepasst): Frage 2 ohne „Unsicher“, nach Frage 3 direkt die erste Karte,
+// alte ?tutorial-URLs ändern daran nichts.
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { indexCatalog } from './logic/catalog.js';
 import { deriveRoundState, nextCard } from './logic/engine.js';
 import { resolveConfig } from './config.js';
+import { createAppModel, SCREENS } from './app/model.js';
+import QuestionnaireScreen from './screens/QuestionnaireScreen.jsx';
 
-// Vite lädt die bestehende JSX-App, damit die Navigation mit dem echten Reducer geprüft wird.
-const server = await createServer({ server: { middlewareMode: true, hmr: false, watch: null } });
-after(() => server.close());
-const { initialState, reducer } = await server.ssrLoadModule('/src/App.jsx');
-const { default: QuestionnaireScreen } = await server.ssrLoadModule('/src/screens/QuestionnaireScreen.jsx');
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const definition = read('./data/stage0.json');
+const allergens = read('./data/allergens.json');
 const index = indexCatalog(read('./data/catalog.json').cards);
+const { initialState, reducer } = createAppModel({ index, stage0: definition, allergens });
 
 function answer(state, questionId, changes) {
   const value = typeof changes === 'string' ? changes : { ...state.answers[questionId], ...changes };
@@ -23,7 +24,7 @@ function answer(state, questionId, changes) {
 }
 
 function questionnaire(search = '') {
-  let state = reducer(initialState(resolveConfig(search)), { type: 'login', profile: { ageGroup: '60-69' } });
+  let state = reducer(initialState(resolveConfig(search)), { type: 'login', person: { firstName: 'Anna', ageGroup: '60-69', participantCode: '', consent: true } });
   state = answer(state, 'diet', 'none');
   state = reducer(state, { type: 'step', to: 1 });
   state = answer(state, 'intolerances', { gate: 'no' });
@@ -53,7 +54,7 @@ test('Frage 2 rendert genau zwei Hauptoptionen; Frage 3 zeigt die korrigierte Ü
 test('Nach Frage 3 erscheint direkt die erste echte Karte, auch mit alten Tutorial-URLs', () => {
   for (const search of ['', '?tutorial=0', '?tutorial=1']) {
     const state = reducer(questionnaire(search), { type: 'step', to: 3 });
-    assert.equal(state.screen, 'round');
+    assert.equal(state.screen, SCREENS.ROUND);
     assert.equal(nextCard(roundOf(state), state.config).id, 'F01');
     assert.deepEqual(state.events, []);
     assert.equal(state.endedEarly, false);
@@ -66,10 +67,11 @@ test('Der direkte Rundenstart übernimmt Ernährungsweise, Allergien und weitere
   state = answer(state, 'intolerances', { gate: 'yes', selected: ['hazelnut'] });
   state = answer(state, 'never', { gate: 'yes', selected: ['card:F03'] });
   state = reducer(state, { type: 'step', to: 3 });
-  assert.equal(state.screen, 'round');
+  assert.equal(state.screen, SCREENS.ROUND);
   assert.equal(state.onboarding.diet, 'vegetarian');
   assert.deepEqual(state.onboarding.exclusions.map(({ type, value }) => [type, value]), [
-    ['allergen', 'hazelnut'], ['card', 'F03'],
+    ['allergen', 'hazelnut'],
+    ['card', 'F03'],
   ]);
   assert.equal(nextCard(roundOf(state), state.config).id, 'F04');
 });
@@ -79,21 +81,21 @@ test('Zurück führt von Frage 3 über Frage 2 und Frage 1 zur Anmeldung und beh
   const answers = state.answers;
   for (const to of [1, 0]) {
     state = reducer(state, { type: 'step', to });
-    assert.equal(state.screen, 'questions');
+    assert.equal(state.screen, SCREENS.QUESTIONS);
     assert.equal(state.step, to);
     assert.deepEqual(state.answers, answers);
   }
   state = reducer(state, { type: 'step', to: -1 });
-  assert.equal(state.screen, 'login');
+  assert.equal(state.screen, SCREENS.LOGIN);
   assert.deepEqual(state.answers, answers);
 });
 
-test('Sind alle Karten ausgeschlossen, erscheint der Zwischenstand statt eines leeren Screens', () => {
+test('Sind alle Karten ausgeschlossen, erscheint der Abschluss statt eines leeren Screens', () => {
   let state = answer(questionnaire(), 'never', {
     gate: 'yes',
     selected: index.cards.filter((card) => card.stage === 1).map((card) => `card:${card.id}`),
   });
   state = reducer(state, { type: 'step', to: 3 });
-  assert.equal(state.screen, 'result');
+  assert.equal(state.screen, SCREENS.COMPLETE);
   assert.equal(nextCard(roundOf(state), state.config), null);
 });

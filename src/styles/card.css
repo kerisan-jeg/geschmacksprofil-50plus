@@ -1,0 +1,429 @@
+/* Karte, Bild, Kartenstapel, Wisch-Rückmeldung und Antwortknöpfe. */
+
+/* ---------- Bild einer Karte (Foto oder gestalteter Platzhalter) ---------- */
+
+.artwork {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--tint, var(--color-surface-sunken)) 70%, var(--color-surface));
+}
+
+.artwork img {
+  display: block;
+  pointer-events: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Platzhalter: eigene Illustration auf der Kartenfarbe. Bleibt sichtbar, bis das Foto geladen ist,
+   und ersetzt es, wenn es fehlt oder nicht lädt. Nie ein kaputtes Bild. */
+.artwork-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.artwork-illustration {
+  width: 82%;
+  height: 86%;
+  object-fit: contain;
+}
+
+.artwork-fallback-icon {
+  width: var(--size-icon-xl);
+  height: var(--size-icon-xl);
+  color: var(--color-ink-secondary);
+}
+
+.artwork-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: var(--focus-x, 50%) var(--focus-y, 50%);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+
+.artwork[data-state='loaded'] .artwork-photo {
+  opacity: 1;
+}
+
+.artwork[data-state='loaded'] .artwork-placeholder {
+  visibility: hidden;
+}
+
+/* Ladezustand: ruhiges Pulsieren der Platzhalterfläche */
+.artwork[data-state='loading'] .artwork-placeholder {
+  animation: artwork-pulse calc(var(--duration-slow) * 4) var(--ease-standard) infinite alternate;
+}
+
+@keyframes artwork-pulse {
+  to {
+    opacity: 0.55;
+  }
+}
+
+.thumb {
+  flex: none;
+  width: var(--size-thumb);
+  border-radius: var(--radius-m);
+}
+
+.thumb .artwork-illustration {
+  width: 90%;
+  height: 90%;
+}
+
+/* ---------- Kartengesicht ---------- */
+
+.card-face {
+  overflow: hidden;
+  border: var(--border-hairline) solid var(--color-line);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.card-art {
+  position: relative;
+}
+
+.card-kind {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+}
+
+/* Hinweise aus Stufe 0, z. B. „Ohne Haselnüsse“ */
+.card-notes {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  left: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.card-notes li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-rule);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+}
+
+.card-notes svg {
+  width: var(--size-icon-s);
+  height: var(--size-icon-s);
+}
+
+.card-body {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+
+.deck .card-body {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.card-title {
+  font-size: var(--card-title-size);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-title);
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  hyphenate-limit-chars: 10 4 4;
+}
+
+.card-examples {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+}
+
+.card-examples-label {
+  color: var(--color-ink-secondary);
+  font-weight: var(--font-weight-regular);
+}
+
+.card-face.is-compact {
+  border-radius: var(--radius-l);
+}
+
+.card-face.is-compact .card-body {
+  padding: var(--space-2) var(--space-3) var(--space-3);
+}
+
+.card-face.is-compact .card-title {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0;
+}
+
+/* ---------- Kartenstapel in der Runde ---------- */
+
+/* Der Stapel füllt den freien Platz zwischen Fortschritt und Knöpfen. Er wird nie kleiner als
+   Bild-Untergrenze plus Text (automatische Mindesthöhe): Dann scrollt die Seite, nichts wird abgeschnitten. */
+.deck {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr;
+  flex: 1 1 0;
+  /* Auf hohen Handys nicht endlos hoch: Rest des Platzes geht als Rand ober- und unterhalb weg */
+  max-height: calc(100cqw * var(--deck-max-ratio));
+  margin-block: auto;
+}
+
+.deck > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+}
+
+.deck .card-face {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.deck .card-art {
+  flex: 1 1 0;
+  min-height: var(--size-card-art-min);
+}
+
+.deck .card-art .artwork {
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+/* Die nächste Karte liegt leicht dahinter und rückt beim Ziehen nach vorn */
+.deck-behind {
+  pointer-events: none;
+  transform: translateY(calc((1 - var(--lift, 0)) * var(--space-4))) scale(calc(0.94 + var(--lift, 0) * 0.04));
+  transform-origin: 50% 100%;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.deck-behind .card-face {
+  box-shadow: var(--shadow-card-behind);
+}
+
+.swipe-card {
+  position: relative;
+  z-index: var(--z-raised);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: grab;
+  transition:
+    transform var(--duration-swipe-exit) var(--ease-spring),
+    opacity var(--duration-swipe-exit) var(--ease-standard);
+  will-change: transform;
+}
+
+.swipe-card .card-face {
+  box-shadow: var(--shadow-card);
+}
+
+.swipe-card.is-dragging {
+  cursor: grabbing;
+  transition: none;
+}
+
+.swipe-card.is-fading {
+  opacity: 0;
+}
+
+.swipe-card-inner {
+  height: 100%;
+  transform-origin: 50% 100%;
+  animation: card-enter var(--duration-card-enter) var(--ease-out);
+}
+
+/* Startet dort, wo die Karte im Stapel lag */
+@keyframes card-enter {
+  from {
+    transform: translateY(var(--space-4)) scale(0.94);
+  }
+}
+
+/* ---------- Rückmeldung beim Ziehen: Beschriftung, Deckkraft wächst mit der Distanz ---------- */
+
+.feedback {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.feedback-tint {
+  position: absolute;
+  inset: 0;
+  background: var(--tone);
+  opacity: calc(var(--s) * 0.2);
+}
+
+.feedback-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--tone);
+  color: var(--color-on-tone);
+  box-shadow: var(--shadow-raised);
+  font-size: var(--font-size-title-s);
+  font-weight: var(--font-weight-heavy);
+  line-height: var(--line-height-snug);
+  opacity: var(--s);
+  transform: scale(calc(0.86 + var(--s) * 0.14));
+}
+
+.feedback-badge svg {
+  width: var(--size-icon-l);
+  height: var(--size-icon-l);
+}
+
+/* ---------- Antwortknöpfe ---------- */
+
+.answer-bar {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.answer-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.answer {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: var(--space-1);
+  min-height: var(--size-touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.answer-circle {
+  display: grid;
+  place-items: center;
+  width: var(--size-answer);
+  height: var(--size-answer);
+  border: var(--border-strong) solid color-mix(in srgb, var(--tone) 32%, transparent);
+  border-radius: var(--radius-round);
+  background: color-mix(in srgb, var(--tone) calc(var(--s, 0) * 100%), var(--color-surface));
+  color: var(--tone);
+  box-shadow: var(--shadow-raised);
+  transform: scale(calc(1 + var(--s, 0) * 0.1));
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.answer[data-hot] .answer-circle {
+  color: var(--color-on-tone);
+}
+
+.answer-circle svg {
+  width: var(--size-icon-l);
+  height: var(--size-icon-l);
+}
+
+.answer:active .answer-circle {
+  transform: scale(var(--motion-press-scale));
+}
+
+.answer-label {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.answer:focus-visible {
+  outline: none;
+}
+
+.answer:focus-visible .answer-circle {
+  outline: var(--border-focus) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.answer-unknown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--size-control-s);
+  padding: var(--space-1) var(--space-4);
+  border: var(--border-strong) solid color-mix(in srgb, var(--tone) 45%, transparent);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--tone);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.answer-unknown svg {
+  width: var(--size-icon-m);
+  height: var(--size-icon-m);
+}
+
+.answer-unknown:active {
+  transform: scale(var(--motion-press-scale));
+}
+
+/* „Vertrage ich nicht“: bewusst dezent als Textlink, Tippfläche ≥ 44 × 44 px (A4) */
+.answer-intolerant {
+  justify-self: center;
+}
+
+.answer:disabled,
+.answer-unknown:disabled,
+.answer-intolerant:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+@media (hover: hover) {
+  .answer-unknown:hover {
+    border-color: var(--tone);
+  }
+
+  .answer:hover .answer-circle {
+    border-color: var(--tone);
+  }
+}

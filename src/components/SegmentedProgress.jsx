@@ -1,14 +1,33 @@
-// Fortschritt als Segmente, eines pro Karte oder Frage.
-// Kein Profil-Prozentwert: dessen Berechnung ist noch Teil des Konzepts.
-export default function SegmentedProgress({ answered, total, label = 'Fortschritt der Runde' }) {
+// Fortschritt der Runde: ein Segment pro Karte. Erledigte Segmente sind gefüllt, das aktuelle
+// ist hervorgehoben. Anzahl und Prozentwert kommen aus progress() und damit aus dem Rundenlimit
+// (ROUND_CARD_LIMIT), nie fest im Code. Kein Profil-Prozentwert: dessen Berechnung ist Eigenleistung Team.
+export default function SegmentedProgress({ answered, total, percent, label, valueText, counter }) {
   return (
-    <div className="segments" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={total} aria-valuenow={answered}>
-      {Array.from({ length: total }, (_, index) => {
-        let state = '';
-        if (index < answered) state = ' is-done';
-        else if (index === answered) state = ' is-current';
-        return <span key={index} className={`segment${state}`} />;
-      })}
+    <div className="progress">
+      {counter && (
+        <p className="progress-text" aria-hidden="true">
+          <span>
+            <strong>{counter.strong}</strong>
+            {counter.rest}
+          </span>
+        </p>
+      )}
+      <div
+        className="segments"
+        role="progressbar"
+        aria-label={label}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={percent}
+        aria-valuetext={valueText}
+      >
+        {Array.from({ length: total }, (_, index) => {
+          let state = '';
+          if (index < answered) state = ' is-done';
+          else if (index === answered) state = ' is-current';
+          return <span key={index} className={`segment${state}`} />;
+        })}
+      </div>
     </div>
   );
 }

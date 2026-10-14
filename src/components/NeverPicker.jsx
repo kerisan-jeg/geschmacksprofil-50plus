@@ -83,7 +83,7 @@ export default function NeverPicker({ question, catalogIndex, answer, redundancy
 
   const chips = [
     ...selected.map((key) => ({ key, text: keyLabel(question, catalogIndex, key) })),
-    ...notes.map((note) => ({ key: `note:${note}`, text: note, note })),
+    ...notes.map((note) => ({ key: `note:${note}`, text: note, note, kind: 'note' })),
   ];
 
   return (

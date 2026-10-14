@@ -92,9 +92,12 @@ export function isRoundComplete(state, config) {
   return selectNextCards(state, config).length === 0;
 }
 
+// Fortschritt der Runde. total ist höchstens das Rundenlimit (ROUND_CARD_LIMIT, config.roundCardLimit)
+// und kleiner, wenn nach den Ausschlüssen weniger Karten übrig sind. percent wird daraus abgeleitet.
 export function progress(state, config) {
   const answered = answeredCount(state);
-  return { answered, total: answered + selectNextCards(state, config).length };
+  const total = answered + selectNextCards(state, config).length;
+  return { answered, total, percent: total === 0 ? 100 : Math.round((answered / total) * 100) };
 }
 
 // Stufe-1-Karten, die nach Stufe 0 überhaupt in Frage kommen (für die Vorschau vor dem Start).

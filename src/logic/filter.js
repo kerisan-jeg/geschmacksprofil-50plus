@@ -16,6 +16,7 @@
 
 import { descendantIds, isFamily } from './catalog.js';
 import { normalizeVariants } from './search.js';
+import { CARD_NOTES } from '../labels.js';
 
 export function dietExclusions(diets, dietId) {
   return diets?.[dietId]?.excludesAnimalOrigin ?? [];
@@ -109,7 +110,7 @@ export function annotateCard(card, index, exclusions, labels = {}) {
   examples = examples.slice(0, 3);
 
   const names = [...hidden.map((id) => labels[id] ?? index.get(id).title), ...hiddenFoods];
-  const notes = names.length <= 2 ? names.map((name) => `Ohne ${name}`) : [`Ohne ${names[0]}`, `und ${names.length - 1} weitere`];
+  const notes = names.length <= 2 ? names.map(CARD_NOTES.without) : [CARD_NOTES.without(names[0]), CARD_NOTES.more(names.length - 1)];
   return { ...card, examples, notes };
 }
 

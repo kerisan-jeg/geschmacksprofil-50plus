@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, CircleAlert } from 'lucide-react';
+import { CircleAlert } from 'lucide-react';
 import ChoiceList from '../components/ChoiceList.jsx';
 import AllergenPicker from '../components/AllergenPicker.jsx';
 import NeverPicker from '../components/NeverPicker.jsx';
 import SegmentedProgress from '../components/SegmentedProgress.jsx';
+import TopBar, { BackButton } from '../components/TopBar.jsx';
 import { isAnswered } from '../logic/stage0.js';
+import { QUESTIONS } from '../labels.js';
 
 // Stufe 0 als kurzer Fragebogen: eine Frage pro Bildschirm.
 // Erst bei „Ja“ erscheint die Detailauswahl (nurec v0.2, Kap. 2: nur bei „vorhanden“ nachfragen).
-export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, redundancy, onChange, onStep }) {
+export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, redundancy, onChange, onStep, lastLabel = QUESTIONS.toRound }) {
   const question = questions[step];
   const answer = answers[question.id];
   const last = step === questions.length - 1;
@@ -38,29 +40,25 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
     onStep(step + 1);
   }
 
-  const kicker = step === 0 && firstName ? `Hallo ${firstName}!` : 'Bevor es losgeht';
-  const errorText =
-    question.type !== 'single' && answer?.gate === 'yes'
-      ? 'Bitte wähle mindestens einen Punkt aus oder ändere die Antwort oben.'
-      : 'Bitte wähle eine Antwort aus.';
+  const kicker = step === 0 && firstName ? QUESTIONS.hello(firstName) : QUESTIONS.kicker;
+  const errorText = question.type !== 'single' && answer?.gate === 'yes' ? QUESTIONS.errorDetails : QUESTIONS.errorChoose;
+  const percent = Math.round((step / questions.length) * 100);
+  const counter = QUESTIONS.counter(step + 1, questions.length);
 
   return (
     <main className="screen screen-questions">
-      <header className="screen-top">
-        <button type="button" className="link-button" onClick={() => onStep(step - 1)}>
-          <ChevronLeft aria-hidden="true" />
-          Zurück
-        </button>
-      </header>
+      <TopBar start={<BackButton onClick={() => onStep(step - 1)} />} />
 
-      <div className="round-status">
-        <p className="round-count">
-          <strong>Frage {step + 1}</strong> von {questions.length}
-        </p>
-        <SegmentedProgress answered={step} total={questions.length} label="Fortschritt der Fragen" />
-      </div>
+      <SegmentedProgress
+        answered={step}
+        total={questions.length}
+        percent={percent}
+        counter={counter}
+        label={QUESTIONS.progressLabel}
+        valueText={`${counter.strong}${counter.rest}`}
+      />
 
-      <div className="question-head">
+      <div className="stack">
         <p className="kicker">{kicker}</p>
         <h1 id={`q-${question.id}`} ref={headingRef} tabIndex={-1}>
           {question.title}
@@ -82,8 +80,12 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
           />
           {answer.gate === 'yes' && (
             <section className="detail-block" aria-labelledby={`d-${question.id}`}>
-              <h2 id={`d-${question.id}`}>{question.detailTitle}</h2>
-              <p className="note">{question.detailHint}</p>
+              <div className="stack-tight">
+                <h2 id={`d-${question.id}`} className="title-section">
+                  {question.detailTitle}
+                </h2>
+                <p className="note">{question.detailHint}</p>
+              </div>
               {question.type === 'allergens' && (
                 <AllergenPicker data={allergens} catalogIndex={catalogIndex} answer={answer} redundancy={redundancy} onChange={update} />
               )}
@@ -102,9 +104,9 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
         </p>
       )}
 
-      <div className="sticky-actions">
+      <div className="action-bar">
         <button type="button" className="button-primary" onClick={handleNext}>
-          {last ? 'Erste Karte zeigen' : 'Weiter'}
+          {last ? lastLabel : QUESTIONS.next}
         </button>
       </div>
     </main>

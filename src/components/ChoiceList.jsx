@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 
 // Auswahl mit echten Radio- oder Checkbox-Feldern: Tastatur und Screenreader funktionieren wie gewohnt.
-// Der ganze Rahmen ist die Tippfläche; ausgewählt heisst Rahmen, Farbe und Häkchen, nicht Farbe allein.
+// Der ganze Rahmen ist die Tippfläche; ausgewählt heisst Rahmen, Fläche und Häkchen, nicht Farbe allein.
 export default function ChoiceList({ name, options, value, onChange, multiple = false, layout = 'list', labelledBy }) {
   const selected = multiple ? new Set(value) : null;
 
@@ -27,7 +27,7 @@ export default function ChoiceList({ name, options, value, onChange, multiple = 
               onChange={() => onChange(option.id)}
             />
             <span className="choice-mark" aria-hidden="true">
-              <Check strokeWidth={3.2} />
+              <Check />
             </span>
             <span className="choice-text">
               <span className="choice-label">{option.label}</span>

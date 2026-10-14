@@ -3,34 +3,18 @@ import CardFace from './CardFace.jsx';
 import { ANSWER_META } from './answerMeta.js';
 import { FEATURES, SWIPE } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
+import { labelOpacity, releaseMotion, resolveRelease, swipeIntent } from '../logic/swipe.js';
+import { ROUND } from '../labels.js';
+import { readDuration } from '../theme/motion.js';
 
+// Wohin die Karte nach einer Antwort fliegt. Kenne ich nicht / Vertrage ich nicht: ausblenden statt wegwischen.
 const EXIT_TRANSFORM = {
   [LIKE]: 'translate(130vw, 4vh) rotate(16deg)',
   [DISLIKE]: 'translate(-130vw, 4vh) rotate(-16deg)',
   [PREFER]: 'translate(0, -115vh) rotate(-2deg)',
-  [UNFAMILIAR]: 'translate(0, 5vh) scale(0.9)',
-  [INTOLERANT]: 'translate(0, 5vh) scale(0.9)',
+  [UNFAMILIAR]: 'translate(0, 4vh) scale(0.92)',
+  [INTOLERANT]: 'translate(0, 4vh) scale(0.92)',
 };
-
-function prefersReducedMotion() {
-  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-}
-
-// Welche Antwort deutet die Bewegung an, und wie nah ist sie an der Schwelle (0 bis 1)?
-function intentFromOffset(dx, dy) {
-  if (-dy > Math.abs(dx)) return { answer: PREFER, strength: Math.min(1, -dy / SWIPE.thresholdUp) };
-  if (dx > 0) return { answer: LIKE, strength: Math.min(1, dx / SWIPE.thresholdX) };
-  if (dx < 0) return { answer: DISLIKE, strength: Math.min(1, -dx / SWIPE.thresholdX) };
-  return null;
-}
-
-// Ein schneller, kurzer Wisch zählt auch, wenn die Distanz noch nicht erreicht ist.
-function flingAnswer(dx, dy, vx, vy) {
-  const { flingVelocity: v, flingMinDistance: d } = SWIPE;
-  if (-dy > Math.abs(dx) && -dy > d && -vy > v) return PREFER;
-  if (Math.abs(dx) > d && Math.abs(vx) > v && Math.sign(vx) === Math.sign(dx)) return dx > 0 ? LIKE : DISLIKE;
-  return null;
-}
 
 function vibrate() {
   if (!FEATURES.haptics) return;
@@ -42,6 +26,7 @@ function vibrate() {
 }
 
 // Karte, die gewischt oder über commit() von aussen beantwortet wird (Knöpfe, Link, Tastatur).
+// Die Gestenlogik (Schwelle, Rückfederung, Schnippen) steht rein und getestet in logic/swipe.js.
 // extra wird unverändert an onCommitted weitergegeben (z. B. excludedCardIds bei INTOLERANT).
 export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -54,18 +39,21 @@ export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
     drag.current = null;
     setDragging(false);
     setLeaving(answer);
-    onIntent?.(answer === INTOLERANT ? null : { answer, strength: 1 });
+    // Auch bei Knopf und Tastatur: Der passende Knopf leuchtet auf, die nächste Karte rückt nach.
+    onIntent?.({ answer, strength: 1 });
     vibrate();
     // Zeitpunkt der Entscheidung festhalten, damit die Animation nicht in die Antwortzeit eingeht.
     const decidedAt = performance.now();
-    window.setTimeout(() => onCommitted(answer, method, decidedAt, extra), prefersReducedMotion() ? 0 : SWIPE.exitMs);
+    const wait = readDuration('--duration-swipe-exit');
+    if (wait > 0) window.setTimeout(() => onCommitted(answer, method, decidedAt, extra), wait);
+    else onCommitted(answer, method, decidedAt, extra);
   }
 
   useImperativeHandle(ref, () => ({ commit }));
 
   function handlePointerDown(event) {
     if (leaving || event.button > 0) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
     drag.current = { x: event.clientX, y: event.clientY, samples: [{ dx: 0, dy: 0, t: performance.now() }] };
     setDragging(true);
   }
@@ -77,33 +65,30 @@ export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
     const dy = event.clientY - current.y;
     current.samples = [...current.samples.slice(-5), { dx, dy, t: performance.now() }];
     setOffset({ x: dx, y: dy });
-    onIntent?.(intentFromOffset(dx, dy));
+    onIntent?.(swipeIntent(dx, dy, SWIPE));
   }
 
   function handlePointerEnd() {
     const current = drag.current;
     if (!current) return;
     drag.current = null;
-
-    const last = current.samples.at(-1);
-    const first = current.samples.find((sample) => last.t - sample.t < 120) ?? last;
-    const dt = Math.max(1, last.t - first.t);
-    const fling = flingAnswer(last.dx, last.dy, (last.dx - first.dx) / dt, (last.dy - first.dy) / dt);
-    const intent = intentFromOffset(last.dx, last.dy);
-
-    if (fling || (intent && intent.strength >= 1)) {
-      commit(fling ?? intent.answer, 'swipe');
+    const answer = resolveRelease(releaseMotion(current.samples), SWIPE);
+    if (answer) {
+      commit(answer, 'swipe');
       return;
     }
+    // Unter der Schwelle: zurückfedern, keine Antwort.
     setDragging(false);
     setOffset({ x: 0, y: 0 });
     onIntent?.(null);
   }
 
-  const intent = leaving ? (leaving === INTOLERANT ? null : { answer: leaving, strength: 1 }) : intentFromOffset(offset.x, offset.y);
+  // Beim Wegfliegen zeigt die Karte die gewählte Antwort; „Vertrage ich nicht“ bestätigt ein Hinweis oben.
+  const intent = leaving ? (leaving === INTOLERANT ? null : { answer: leaving, strength: 1 }) : swipeIntent(offset.x, offset.y, SWIPE);
   const lift = offset.y < 0 ? offset.y : offset.y * 0.25;
   const transform = leaving ? EXIT_TRANSFORM[leaving] : `translate(${offset.x}px, ${lift}px) rotate(${offset.x / 16}deg)`;
   const meta = intent ? ANSWER_META[intent.answer] : null;
+  const opacity = intent ? labelOpacity(intent.strength, SWIPE) : 0;
 
   const classes = ['swipe-card'];
   if (dragging) classes.push('is-dragging');
@@ -117,16 +102,16 @@ export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerEnd}
       onPointerCancel={handlePointerEnd}
-      aria-roledescription="Karte"
-      aria-label={[card.title, card.notes?.join(', '), card.examples.length > 0 && `Zum Beispiel ${card.examples.join(', ')}`].filter(Boolean).join('. ')}
+      aria-roledescription={ROUND.cardRole}
+      aria-label={ROUND.cardDescription(card)}
     >
       <div className="swipe-card-inner">
         <CardFace card={card}>
-          {meta && intent.strength > 0.12 && (
-            <div className={`feedback tone-${meta.tone}`} style={{ '--s': intent.strength }} aria-hidden="true">
+          {meta && opacity > 0 && (
+            <div className={`feedback tone-${meta.tone}`} style={{ '--s': opacity }} aria-hidden="true" data-answer={intent.answer}>
               <span className="feedback-tint" />
               <span className="feedback-badge">
-                <meta.Icon strokeWidth={2.4} />
+                <meta.Icon />
                 {meta.label}
               </span>
             </div>

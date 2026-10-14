@@ -1,0 +1,392 @@
+/* App-Rahmen: Kopfzeile, untere Navigation, fester Aktionsbereich, Fortschritt, Zustände. */
+
+/* ---------- Kopfzeile ---------- */
+
+/* Bei grosser Schrift auf schmalen Bildschirmen rutscht die rechte Aktion in eine zweite Zeile
+   statt aus dem Bild zu laufen. */
+.top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: var(--space-3);
+  min-height: var(--size-touch);
+}
+
+.top-bar-start,
+.top-bar-end {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.top-bar-end {
+  margin-left: auto;
+}
+
+/* Grosser Seitentitel mit Avatar rechts (Mein Profil) */
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.page-head h1 {
+  min-width: 0;
+}
+
+/* ---------- Untere Navigation ---------- */
+
+.tabbar {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-nav);
+  display: flex;
+  justify-content: center;
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  border-top: var(--border-hairline) solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.tabbar-inner {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  max-width: var(--layout-max-width);
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: var(--tabbar-height);
+  padding: var(--space-2) var(--space-2) var(--space-2);
+  border: 0;
+  background: none;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  text-align: center;
+  cursor: pointer;
+}
+
+.tab-icon {
+  display: grid;
+  place-items: center;
+  width: calc(var(--size-touch) + var(--space-4));
+  height: calc(var(--size-icon-m) + var(--space-2));
+  border-radius: var(--radius-pill);
+  transition: background-color var(--duration-base) var(--ease-standard);
+}
+
+.tab-icon svg {
+  width: var(--size-icon-m);
+  height: var(--size-icon-m);
+}
+
+.tab[aria-current='page'] {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.tab[aria-current='page'] .tab-icon {
+  background: var(--color-primary-soft);
+}
+
+.tab:focus-visible {
+  outline-offset: calc(-1 * var(--border-focus));
+}
+
+/* ---------- Fester Aktionsbereich unten ---------- */
+
+.action-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  display: grid;
+  gap: var(--space-2);
+  margin-top: auto;
+  margin-bottom: calc(-1 * (var(--space-5) + env(safe-area-inset-bottom)));
+  padding: var(--space-4) 0 calc(var(--space-3) + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, var(--color-canvas) 82%, var(--color-scrim-top));
+}
+
+.app[data-nav] .action-bar {
+  bottom: var(--nav-height, calc(var(--tabbar-height) + env(safe-area-inset-bottom)));
+  margin-bottom: calc(-1 * var(--space-5));
+  padding-bottom: var(--space-3);
+}
+
+.action-bar .fineprint {
+  text-align: center;
+}
+
+.privacy-line {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+}
+
+.privacy-line svg {
+  width: var(--size-icon-s);
+  height: var(--size-icon-s);
+}
+
+/* ---------- Avatar (Initiale des Vornamens) ---------- */
+
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--size-avatar);
+  height: var(--size-avatar);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-round);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--font-size-lead);
+  font-weight: var(--font-weight-bold);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.avatar svg {
+  width: var(--size-icon-m);
+  height: var(--size-icon-m);
+}
+
+/* ---------- Fortschritt ---------- */
+
+.progress {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.progress-text {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+.progress-text strong {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-bold);
+}
+
+.segments {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.segment {
+  flex: 1;
+  height: var(--size-segment);
+  border-radius: var(--radius-pill);
+  background: var(--color-line);
+  transition: background-color var(--duration-base) var(--ease-standard);
+}
+
+.segment.is-done {
+  background: var(--color-primary);
+}
+
+.segment.is-current {
+  background: var(--color-progress-current);
+}
+
+/* Durchgehender Balken (Breite aus dem Rundenlimit abgeleitet) */
+.meter {
+  height: var(--size-segment);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-line);
+}
+
+.meter-fill {
+  width: var(--percent);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+  transition: width var(--duration-slow) var(--ease-out);
+}
+
+/* Abschnitte der Profilerstellung: Fragen → Runde → Profil */
+.steps {
+  display: grid;
+  grid-template-columns: repeat(var(--count, 3), minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.step {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-snug);
+}
+
+.step-bar {
+  height: var(--size-segment);
+  border-radius: var(--radius-pill);
+  background: var(--color-line);
+}
+
+.step-label {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.step-label svg {
+  width: var(--size-icon-s);
+  height: var(--size-icon-s);
+  margin-top: calc(var(--space-1) / 2);
+}
+
+.step.is-done .step-bar {
+  background: var(--color-primary);
+}
+
+.step.is-done {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.step.is-current .step-bar {
+  background: var(--color-progress-current);
+}
+
+.step-text {
+  display: grid;
+}
+
+.step-detail {
+  color: var(--color-ink-secondary);
+  font-weight: var(--font-weight-regular);
+}
+
+.step.is-current {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ---------- Leer- und Fehlerzustände ---------- */
+
+.empty-state {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border: var(--border-hairline) dashed var(--color-line-strong);
+  border-radius: var(--radius-xl);
+}
+
+.empty-state-icon {
+  display: grid;
+  place-items: center;
+  width: var(--size-control);
+  height: var(--size-control);
+  border-radius: var(--radius-round);
+  background: var(--color-surface-sunken);
+  color: var(--color-ink-secondary);
+}
+
+.empty-state-icon svg {
+  width: var(--size-icon-l);
+  height: var(--size-icon-l);
+}
+
+.empty-state h2 {
+  font-size: var(--font-size-title-s);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+}
+
+.empty-state .button-primary,
+.empty-state .button-secondary {
+  width: auto;
+}
+
+.screen-error .empty-state {
+  margin-top: var(--space-6);
+}
+
+/* ---------- Kurze Bestätigung (z. B. nach „Vertrage ich nicht“) ---------- */
+
+.toast {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-2);
+  min-height: var(--size-touch);
+  padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4);
+  border-radius: var(--radius-l);
+  background: var(--color-ink);
+  color: var(--color-on-primary);
+  animation: toast-in var(--duration-base) var(--ease-out);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--motion-shift-s)));
+  }
+}
+
+.toast > svg {
+  width: var(--size-icon-m);
+  height: var(--size-icon-m);
+}
+
+.toast p {
+  flex: 1 1 var(--size-text-min);
+  min-width: 0;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+}
+
+.toast-action {
+  min-height: var(--size-touch);
+  margin-left: auto;
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  border-radius: var(--radius-m);
+  background: none;
+  color: var(--color-on-primary);
+  font-weight: var(--font-weight-bold);
+  text-decoration: underline;
+  text-underline-offset: var(--underline-offset);
+  cursor: pointer;
+}
+
+.toast-action:active {
+  background: var(--color-on-dark-hover);
+}
+
+@media (hover: hover) {
+  .tab:hover {
+    color: var(--color-ink);
+  }
+
+  .toast-action:hover {
+    background: var(--color-on-dark-hover);
+  }
+}

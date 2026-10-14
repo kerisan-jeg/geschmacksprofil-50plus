@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_CONFIG, isAdminMode, resolveConfig } from './config.js';
 
-test('Ohne Parameter gelten die Standardwerte (Limit 10, kein Tutorial)', () => {
-  assert.deepEqual(resolveConfig(''), { roundCardLimit: 10, tutorial: false });
-  assert.deepEqual(DEFAULT_CONFIG, { roundCardLimit: 10, tutorial: false });
+test('Ohne Parameter gelten die Standardwerte (Limit 10, kein Tutorial, Fotos)', () => {
+  assert.deepEqual(resolveConfig(''), { roundCardLimit: 10, tutorial: false, imageStyle: 'photo' });
+  assert.deepEqual(DEFAULT_CONFIG, { roundCardLimit: 10, tutorial: false, imageStyle: 'photo' });
 });
 
 test('?limit wird übernommen', () => {
@@ -23,7 +23,7 @@ test('Alte ?tutorial-Parameter können das entfernte Tutorial nicht aktivieren',
   for (const value of ['0', '1', 'nein']) {
     assert.equal(resolveConfig(`?tutorial=${value}`).tutorial, false);
   }
-  assert.deepEqual(resolveConfig('?limit=8&tutorial=0'), { roundCardLimit: 8, tutorial: false });
+  assert.deepEqual(resolveConfig('?limit=8&tutorial=0'), { roundCardLimit: 8, tutorial: false, imageStyle: 'photo' });
 });
 
 test('Admin-Ansicht nur mit ?admin=1', () => {

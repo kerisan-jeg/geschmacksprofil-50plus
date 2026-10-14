@@ -1,29 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, CircleAlert, Lock } from 'lucide-react';
+import { CircleAlert, Lock } from 'lucide-react';
 import ChoiceList from '../components/ChoiceList.jsx';
+import TopBar, { BackButton } from '../components/TopBar.jsx';
+import { LOGIN } from '../labels.js';
 
 // Anmeldung ohne Passwort: Für den Test zählt der Aufwand beim Profil, nicht beim Einloggen.
 // Vorname und Alter sind Pflicht (Rückmeldung Team, 12.10.). Der Vorname dient nur der
 // persönlichen Ansprache und wird weiterhin nicht protokolliert; die Altersgruppe schon.
-const AGE_GROUPS = [
-  { id: '50-59', label: '50 bis 59' },
-  { id: '60-69', label: '60 bis 69' },
-  { id: '70-79', label: '70 bis 79' },
-  { id: '80+', label: '80 und älter' },
-];
-
-const CONSENT = [
-  {
-    id: 'consent',
-    label: 'Ich bin einverstanden, dass meine Antworten ohne Namen für dieses Studierendenprojekt ausgewertet werden.',
-  },
-];
-
-export default function LoginScreen({ profile, onSubmit, onBack }) {
-  const [firstName, setFirstName] = useState(profile.firstName);
-  const [ageGroup, setAgeGroup] = useState(profile.ageGroup);
-  const [consent, setConsent] = useState(profile.consent);
-  const [participantCode, setParticipantCode] = useState(profile.participantCode);
+export default function LoginScreen({ person, onSubmit, onBack }) {
+  const [firstName, setFirstName] = useState(person.firstName);
+  const [ageGroup, setAgeGroup] = useState(person.ageGroup);
+  const [consent, setConsent] = useState(person.consent);
+  const [participantCode, setParticipantCode] = useState(person.participantCode);
   const [showError, setShowError] = useState(false);
   const nameRef = useRef(null);
   const ageRef = useRef(null);
@@ -60,25 +48,18 @@ export default function LoginScreen({ profile, onSubmit, onBack }) {
     });
   }
 
-  function toggleConsent() {
-    setConsent(!consent);
-  }
-
   return (
     <main className="screen screen-login">
-      <header className="screen-top">
-        <button type="button" className="link-button" onClick={onBack}>
-          <ChevronLeft aria-hidden="true" />
-          Zurück
-        </button>
-      </header>
+      <TopBar start={<BackButton onClick={onBack} />} />
 
-      <h1>Anmelden</h1>
-      <p className="lead">Damit wir dich persönlich ansprechen können. Ein Passwort brauchst du nicht.</p>
+      <div className="stack">
+        <h1>{LOGIN.title}</h1>
+        <p className="lead">{LOGIN.lead}</p>
+      </div>
 
       <form className="form" onSubmit={handleSubmit} noValidate>
         <div className="field">
-          <label htmlFor="first-name">Vorname</label>
+          <label htmlFor="first-name">{LOGIN.firstName}</label>
           <input
             id="first-name"
             ref={nameRef}
@@ -97,43 +78,43 @@ export default function LoginScreen({ profile, onSubmit, onBack }) {
           {showError && missing.name && (
             <p className="form-error" id="name-error" role="alert">
               <CircleAlert aria-hidden="true" />
-              Bitte gib deinen Vornamen ein.
+              {LOGIN.errorName}
             </p>
           )}
         </div>
 
-        <fieldset className="field field-set" ref={ageRef}>
-          <legend id="age-label">Alter</legend>
-          <ChoiceList name="age" layout="grid" options={AGE_GROUPS} value={ageGroup} onChange={setAgeGroup} labelledBy="age-label" />
+        <fieldset className="field-set" ref={ageRef}>
+          <legend id="age-label">{LOGIN.age}</legend>
+          <ChoiceList name="age" layout="grid" options={LOGIN.ageGroups} value={ageGroup} onChange={setAgeGroup} labelledBy="age-label" />
           {showError && missing.age && (
-            <p className="form-error field-error" role="alert">
+            <p className="form-error" role="alert">
               <CircleAlert aria-hidden="true" />
-              Bitte wähle deine Altersgruppe.
+              {LOGIN.errorAge}
             </p>
           )}
         </fieldset>
 
         <div className="field" ref={consentRef}>
-          <ChoiceList name="consent" multiple options={CONSENT} value={consent ? ['consent'] : []} onChange={toggleConsent} />
+          <ChoiceList name="consent" multiple options={[{ id: 'consent', label: LOGIN.consent }]} value={consent ? ['consent'] : []} onChange={() => setConsent(!consent)} />
           {showError && missing.consent && (
             <p className="form-error" role="alert">
               <CircleAlert aria-hidden="true" />
-              Bitte bestätige die Einwilligung, damit es weitergehen kann.
+              {LOGIN.errorConsent}
             </p>
           )}
         </div>
 
         <details className="lead-details">
-          <summary>Für die Testleitung</summary>
+          <summary>{LOGIN.leadDetails}</summary>
           <div className="field">
-            <label htmlFor="participant-code">Teilnehmer-Nr.</label>
+            <label htmlFor="participant-code">{LOGIN.participantCode}</label>
             <input
               id="participant-code"
               className="input"
               type="text"
               autoComplete="off"
               autoCapitalize="characters"
-              placeholder="z. B. T07"
+              placeholder={LOGIN.participantPlaceholder}
               maxLength={20}
               value={participantCode}
               onChange={(event) => setParticipantCode(event.target.value)}
@@ -141,11 +122,13 @@ export default function LoginScreen({ profile, onSubmit, onBack }) {
           </div>
         </details>
 
-        <div className="sticky-actions">
-          <button type="submit" className="button-primary">Anmelden</button>
+        <div className="action-bar">
+          <button type="submit" className="button-primary">
+            {LOGIN.submit}
+          </button>
           <p className="privacy-line">
             <Lock aria-hidden="true" />
-            Deine Angaben bleiben auf diesem Gerät.
+            {LOGIN.privacy}
           </p>
         </div>
       </form>

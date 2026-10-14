@@ -1,7 +1,7 @@
 # Geschmacksprofil 50+ · Prototyp
 
 Mobiler Swipe-Prototyp zur Geschmacksprofilerkennung bei Personen ab 50 (WI-Projekt, Auftraggeber nurec).
-Version 0.4 nach dem Zwischencheck vom 12.10.2026. Die adaptive Kartenauswahl ist bewusst noch nicht gebaut:
+Version 0.5: Designsystem und überarbeitete Swipe-Oberfläche. Die adaptive Kartenauswahl ist bewusst noch nicht gebaut:
 Sie ist die nächste Eigenleistung des Teams (siehe „Logik austauschen“).
 
 Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (Kickoff, Zwischencheck),
@@ -9,13 +9,16 @@ Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (
 
 ## Ablauf
 
+Die App hat zwei Bereiche in der unteren Navigation: **Profil erstellen** und **Mein Profil**.
+
 1. **Start:** kurze Einführung.
 2. **Anmelden:** Vorname, Alter und Einwilligung sind Pflicht, kein Passwort. Der Vorname wird nicht gespeichert. Unter „Für die Testleitung“ die Teilnehmer-Nr.
-3. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“.
-4. **Zusammenfassung:** feste Regeln zum Bestätigen oder Ändern, Notizen und die Karten der ersten Runde.
-5. **Mini-Tutorial:** animierte Gesten, alle fünf Antworten, Rückgängig. Abschaltbar mit `?tutorial=0`.
-6. **Runde:** Stufe-1-Karten in fester Reihenfolge, höchstens `ROUND_CARD_LIMIT` (Standard 10).
-7. **Zwischenstand:** Antworten nach Gruppen und alle festen Regeln.
+3. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“. Frage 2 bietet „Ja“ und „Keine bekannt“, Frage 3 fragt nach „etwas Weiterem“. Der letzte Knopf heisst „Erste Karte zeigen“.
+4. **Runde:** direkt nach Frage 3 (Teamentscheid vom 13.10.: keine Zusammenfassung, kein Tutorial). Stufe-1-Karten in fester Reihenfolge, höchstens `ROUND_CARD_LIMIT` (Standard 10). Die untere Navigation ist hier ausgeblendet, damit Karte und Knöpfe den ganzen Bildschirm haben.
+5. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln) und Weiterleitung zu „Mein Profil“.
+6. **Mein Profil:** Geschmack gruppiert nach der Antwort pro Karte, getrennt davon die Ausschlüsse mit Herkunft (im Onboarding, beim Wischen).
+
+Das **Mini-Tutorial** (drei kurze Schritte: Wischrichtungen, „Kenne ich nicht“ und „Vertrage ich nicht“, Rückgängig) ist im Code, aber standardmässig aus. Für einen Pilot-Vergleich `TUTORIAL_ENABLED = true` in `src/config.js` setzen; über die URL lässt es sich nicht einschalten.
 
 ## Antworten auf einer Karte
 
@@ -36,6 +39,25 @@ Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt
 
 **Rückgängig** [V] erscheint, sobald eine Karte beantwortet ist. Technisch ist das Event-Log die einzige Quelle der Wahrheit: Der Zustand wird immer aus den Ereignissen abgeleitet (`replay`), UNDO ist ein eigenes Ereignis. So laufen Oberfläche, Profil und Protokoll nie auseinander.
 
+**Wischen** (reine Logik in `src/logic/swipe.js`, Werte in `SWIPE` in `src/config.js`): Beim Ziehen erscheint auf der Karte die Beschriftung der angedeuteten Antwort mit Symbol; ihre Deckkraft wächst mit der Zugdistanz. Eine Antwort zählt erst ab der Schwelle (110 px seitlich, 90 px nach oben) oder bei schnellem Schnippen; darunter springt die Karte zurück. Die nächste Karte liegt leicht dahinter und rückt beim Ziehen nach vorn. Jede Richtung hat einen gleichwertigen Knopf an der Stelle, wohin die Karte fliegt (Wischen nach oben ist für viele schwierig).
+
+**Fortschritt:** Ein Segment pro Karte, „Karte 3 von 10“ mit tabellarischen Ziffern. Anzahl und Prozentwert kommen aus `progress()` und damit aus dem Rundenlimit, nie fest im Code. Die Abschnitte der Profilerstellung (Fragen, Runde 1, Profil) zeigen erledigte Teile mit Häkchen.
+
+## Designsystem
+
+Ziel: ruhig, warm, viel Weissraum, wie eine veröffentlichte Gesundheits- oder Food-App. Die Swipe-Karte ist das einzige laute Element.
+
+- **Tokens an einer Stelle:** `src/theme/tokens.css` enthält Farben, Schrift, Abstände (8-pt-Raster, 4 und 12 als Halbschritte), Radien, Schatten, Animationsdauern, Grössen und Ebenen. Komponenten-CSS in `src/styles/` verwendet nur `var(--…)`; `src/design.test.js` prüft, dass dort keine Farb-, Pixel-, rem- oder Zeitwerte hart stehen. JavaScript liest Dauern über `src/theme/motion.js` aus denselben Tokens.
+- **Farben:** warmes Off-White als Hintergrund (`#f8f5ef`, auch als `theme-color`), tiefes Grün als Primärfarbe, warmer Terrakotta-Akzent (nur dekorativ, für Text eine dunklere Variante). Alle Textfarben ≥ 4.5:1.
+- **Bewertungen nie nur über Farbe:** Mag ich nicht (Ziegelrot, Daumen runter), Mag ich (Grün, Daumen hoch), Mag ich sehr (Bernstein, Herz), immer mit Symbol und Text.
+- **Schrift:** eine Familie, Atkinson Hyperlegible Next (für gute Lesbarkeit bei Sehschwäche entwickelt). Grundschrift 19 px, kleinster Text 18 px, Fortschrittszahlen mit tabellarischen Ziffern.
+- **Symbole:** nur Lucide, eine Strichstärke für alle (`--icon-stroke`), keine Emojis.
+- **Bilder:** echte Food-Fotos im gleichen Stil, lokal in `public/images`, Nachweise in `src/data/image-credits.json` (siehe `public/images/README.md`). Fehlt ein Foto oder lädt es nicht, erscheint der gestaltete Platzhalter (eigene Illustration auf der Kartenfarbe). Mit `IMAGE_STYLE = 'illustration'` in `src/config.js` zeigen alle Karten die eigenen Illustrationen; so lassen sich beide Varianten im Pilot vergleichen (Annahme 5). Der Bildstil steht in jeder Sitzung und im CSV-Export (`imageStyle`).
+- **Zustände:** Laden (Bild pulsiert ruhig, bis das Foto da ist), Leer (z. B. „Mein Profil“ vor der ersten Antwort, keine Karten nach den Angaben, keine Sitzungen), Fehler (Fehlergrenze mit „Neu laden“ für jeden Bildschirm, Hinweis bei gesperrtem Speicher, Platzhalter bei fehlendem Bild).
+- **App-Gefühl:** sichere Zonen (`env(safe-area-inset-*)`), fester Aktionsbereich unten, untere Navigation, sanfte Seitenübergänge. `prefers-reduced-motion` setzt alle Dauern auf 0.
+- **PWA:** `public/manifest.webmanifest` mit `display: standalone`, App-Icons (rund und maskable) und `theme-color`: Vom Homescreen startet die App im Vollbild.
+- **Texte:** alles in `src/labels.js`, Du-Form, Schweizer Rechtschreibung. `src/labels.test.js` prüft am Syntaxbaum, dass in keiner Komponente Text hart steht.
+
 ## Stufe 0: harte Ausschlüsse
 
 Grundlage ist nurec v0.2, Kap. 2 [D]. Die Bereiche 0.1 bis 0.5 sind als drei Fragen umgesetzt [V]; 0.6 (Marken und Händler) fehlt bewusst.
@@ -49,7 +71,7 @@ Grundlage ist nurec v0.2, Kap. 2 [D]. Die Bereiche 0.1 bis 0.5 sind als drei Fra
 - Milch ist getrennt in **Laktose (Unverträglichkeit)** und **Milcheiweiss (Allergie)**.
 - **Erdnüsse** stehen seit der Rückmeldung vom 12.10. unter **Nüsse** (ersetzt A5). Sie behalten die eigene ID `peanut`, damit eine reine Erdnussallergie einzeln erfasst bleibt; „Alle Nüsse (inkl. Erdnüsse)“ wählt sie mit aus.
 - **Nüsse** und **Gluten** öffnen eine Unterauswahl mit „Alle Nüsse (inkl. Erdnüsse)“ bzw. „Alles mit Gluten (z. B. Zöliakie)“.
-- **„Unsicher“** oder „Ich bin mir nicht sicher, ob es weitere gibt“ setzt nur ein Flag. Es schliesst nichts aus und führt zum Hinweis auf „Vertrage ich nicht“.
+- **„Ich bin mir nicht sicher, ob es weitere gibt“** (nach „Ja“) setzt nur ein Flag. Es schliesst nichts aus und führt zum Hinweis auf „Vertrage ich nicht“. Die frühere Antwort „Unsicher“ gibt es seit dem 13.10. nicht mehr.
 - **Suche** in Frage 2 und 3 findet alle Lebensmittel: Allergene, Karten und die Beispiele auf den Karten (z. B. „Tomate“).
 - **Eintragen ohne Treffer:** Was man eintippt, wird immer eingetragen (ersetzt A7). Ohne eigene Karte wird es ein Lebensmittel-Eintrag (`type: "food"`): Keine Gruppe fällt weg, aber das Wort erscheint nirgends mehr als Beispiel, und die Karte zeigt „Ohne Tomate“. Das steht so auch neben dem Eintrag.
 - **Marken und Herkunft** (Bereich 0.6) werden gespeichert (`avoidBrands`, `avoidOrigins`), wirken im Prototyp aber noch nicht, weil der Katalog keine Marken und keine Herkunft kennt. Das steht so auch in der App.
@@ -67,10 +89,9 @@ Damit einzelne Allergene einzelne Karten treffen, enthält der Katalog Stufe-3-K
 | Parameter | Wirkung | Standard |
 | --- | --- | --- |
 | `?limit=6` | Karten pro Runde (`ROUND_CARD_LIMIT`), gültig 4 bis 30; ungültige Werte fallen auf den Standard zurück | 10 |
-| `?tutorial=0` | Mini-Tutorial aus (`1` = an) | an |
 | `?admin=1` | Ansicht für die Testleitung | – |
 
-Kombinierbar, z. B. `?limit=6&tutorial=0`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] und die Frage, ob es das Tutorial braucht [K], lassen sich so ohne neuen Build vergleichen.
+Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `TUTORIAL_ENABLED` (aus) und `IMAGE_STYLE` (Fotos) in `src/config.js`.
 
 ## Protokoll und Export
 
@@ -82,7 +103,7 @@ Alles bleibt im Browser (`localStorage`), es gibt kein Backend und keine Netzwer
 **Ansicht für die Testleitung:** `?admin=1` anhängen. Sie ist nirgends verlinkt und zeigt alle Sitzungen auf dem Gerät mit:
 
 - Export JSON (alles) und Export CSV (eine Zeile pro Ereignis, `sessionId` in jeder Zeile, UTF-8, Komma als Trennzeichen),
-- „Neue Testperson starten“ (lädt die App neu, behält Sitzungen und die Parameter `limit`/`tutorial`),
+- „Neue Testperson starten“ (lädt die App neu, behält Sitzungen und den Parameter `limit`),
 - „Alle Daten löschen“ mit Bestätigung.
 
 Datenschutz: Der Vorname wird nie gespeichert. Die Ausschlüsse sind Gesundheitsdaten; solange Frage F4 (Einwilligung) offen ist, lassen sie sich mit `PRIVACY.logExclusionValues = false` in `src/config.js` auf Typ und Herkunft reduzieren.
@@ -98,7 +119,7 @@ Auf dem Handy im selben WLAN: `npm run dev -- --host` und die angezeigte Network
 
 | Befehl | Zweck |
 | --- | --- |
-| `npm test` | alle Tests (`src/**/*.test.js`) |
+| `npm test` | alle Tests (`src/**/*.test.js`), inkl. Komponententests mit jsdom |
 | `npm run build` | Produktions-Build in `dist/` |
 | `npm run preview` | Build lokal ansehen |
 
@@ -108,21 +129,32 @@ Jeder Push auf `main` testet, baut und veröffentlicht den Prototyp auf GitHub P
 
 ```
 src/
-  config.js              Standardwerte, URL-Parameter, Wischschwellen, Datenschutz
-  labels.js              alle sichtbaren Antwortbegriffe und Texte, die im Pilot geprüft werden
+  config.js              Standardwerte (ROUND_CARD_LIMIT, TUTORIAL_ENABLED), URL-Parameter, Wischschwellen, Datenschutz
+  labels.js              alle sichtbaren Texte
+  theme/tokens.css       Design-Tokens (einzige Stelle für Gestaltungswerte)
+  theme/motion.js        Animationsdauern aus den Tokens für JavaScript
+  styles/                Komponenten-CSS (nur Tokens): base, controls, app, card, screens
+  app/model.js           Ablauf und Zustand der App (rein, getestet)
   data/catalog.json      Kartenkatalog: id, stage, parentId, children, allergens, animalOrigin, todo
   data/allergens.json    14 Hauptallergene mit Unterauswahl
   data/stage0.json       Fragebogen Stufe 0 und Tabelle der Ernährungsweisen
+  data/image-credits.json  Fotos und Bildnachweise (APA 7)
   logic/answers.js       Antworttypen und ihre Bedeutung
+  logic/swipe.js         Wischgesten: Schwelle, Rückfederung, Deckkraft der Beschriftung
   logic/filter.js        isAllowed, isVisible, Hinweise auf Familienkarten
-  logic/engine.js        replay (Event-Log), selectNextCards (Platzhalter), Profil
+  logic/engine.js        replay (Event-Log), selectNextCards (Platzhalter), Fortschritt, Profil
+  logic/profile.js       Ausschlüsse für „Mein Profil“ gruppieren
   logic/stage0.js        Ausschlüsse aus dem Onboarding ableiten
   logic/allergens.js     Auswahl und Suche in der Allergenliste
   logic/search.js        tolerante Suche (Gross-/Kleinschreibung, ä/ae)
   logging/logger.js      Sitzungen in localStorage
   logging/export.js      CSV- und JSON-Export
-  components/            Swipe-Karte, Knöpfe, Detailauswahl, Suche, Chips, Kacheln
-  screens/               Start, Anmelden, Fragebogen, Zusammenfassung, Tutorial, Runde, Zwischenstand, Admin
+  components/            Swipe-Karte, Antwortknöpfe, untere Navigation, Sheets, Suche, Chips, Zustände
+  screens/               Start, Anmelden, Fragebogen, Tutorial (aus), Runde, Abschluss, Mein Profil, Admin
+  test/dom.js            kleine DOM-Umgebung (jsdom) für Komponententests
+scripts/
+  test-setup.mjs         lädt JSX, JSON und CSS in node --test wie Vite
+  check-mobile.py        Prüfung der Mobile-Kriterien (A11) mit Playwright
 ```
 
 ## Logik austauschen (nächster Schritt)
@@ -138,7 +170,7 @@ Alle Funktionen sind rein. Bei jeder Änderung der Regeln `RULE_VERSION` erhöhe
 
 ## Mobile-Kriterien
 
-Geprüft bei 360 × 640 und 430 × 932 auf allen 13 Bildschirmen (inkl. Detailauswahl und Bestätigung): kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), Fliesstext ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. Auf kleinen Bildschirmen wird in der Runde nur das Kartenbild verkleinert, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben.
+Geprüft bei 360 × 640 und 430 × 932 auf allen 13 Bildschirmen (inkl. Detailauswahl, Bestätigung, Abschluss und Profil), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
 
 Die Prüfung ist wiederholbar: `npm run build && npm run preview`, dann in einem zweiten Terminal `python3 scripts/check-mobile.py` und `python3 scripts/check-mobile.py 1.3` (130 % Schrift). Voraussetzung: `pip install playwright` und `python -m playwright install chromium`.
 
@@ -175,10 +207,12 @@ Ausserdem:
 - Werden die neuen Begriffe im Pilot verstanden?
 - Standardwert für das Kartenlimit (heute 10 von 13 Familienkarten).
 - Wird „Vertrage ich nicht“ übersehen oder mit „Mag ich nicht“ verwechselt? Im Pilot über `inputMethod = link` und Rückgängig-Ereignisse auswertbar.
-- Tutorial an oder aus als Pilot-Vergleich (`?tutorial=0`).
+- Tutorial: seit dem 13.10. aus. Ein Pilot-Vergleich ist mit `TUTORIAL_ENABLED = true` möglich (nicht über die URL).
+- Zusammenfassung vor dem ersten Swipe: seit dem 13.10. entfernt. nurec v0.2, Kap. 2.2, sieht eine verständliche Zusammenfassung vor dem ersten Swipe vor; mit nurec abstimmen. Die festen Regeln sind weiterhin in „Mein Profil“ sichtbar.
 - Kacheln: Die Auswahl der 8 häufigen Allergene ist eine Annahme, keine Häufigkeitsangabe.
 - Frage F4: Einwilligung und Speicherung von Gesundheitsdaten im Test.
-- Ansprache mit Du oder Sie, Wischschwellen, Fotos statt Illustrationen.
+- Ansprache mit Du oder Sie, Wischschwellen.
+- Fotos oder Illustrationen (`IMAGE_STYLE`): mit Tibor abstimmen oder im Pilot vergleichen. Bildlizenzen: alle 13 Fotos unter der Unsplash License (keine Unsplash+-Bilder, Stand 14.10.2026), Nachweise mit APA 7 in `src/data/image-credits.json`; vor der Abgabe Namen und Titel prüfen. Bildstil: Käse ist schräg fotografiert, Kartoffeln sind roh.
 
 ## Quelle
 

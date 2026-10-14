@@ -1,0 +1,218 @@
+/*
+  Design-Tokens: die einzige Stelle für Farben, Schrift, Abstände, Radien, Schatten und Bewegung.
+
+  Regeln
+  - Komponenten-CSS (src/styles) verwendet nur var(--…). Ein Test (src/design.test.js) prüft,
+    dass dort keine Farben, Pixel-, rem- oder Zeitwerte hart stehen.
+  - JavaScript liest Bewegungsdauern über readDuration() (src/theme/motion.js) aus diesen Tokens.
+  - Farben, die ausserhalb von CSS gebraucht werden (theme-color in index.html und im Manifest),
+    müssen mit --color-canvas übereinstimmen. Auch das prüft der Test.
+
+  Leitidee: ruhig, warm, viel Weissraum. Die Swipe-Karte ist das einzige laute Element.
+  Für Personen ab 50: Grundschrift 19 px, kleinster Text 18 px, Kontrast mindestens 4.5:1,
+  Tippflächen mindestens 44 × 44 px. Bewertungen nie nur über Farbe (immer Symbol und Text).
+*/
+
+:root {
+  /* ---------- Farben: Flächen ---------- */
+  --color-canvas: #f8f5ef; /* warmes Off-White: Hintergrund jeder Seite */
+  --color-surface: #ffffff; /* Karten, Listen, Eingabefelder, untere Navigation */
+  --color-surface-sunken: #f1ece3; /* Zähler, Chips, stille Flächen */
+  --color-overlay: rgb(28 38 32 / 0.48); /* hinter Bottom Sheets und Dialogen */
+  --color-scrim-top: rgb(248 245 239 / 0); /* Auslauf über dem festen Aktionsbereich */
+
+  /* ---------- Farben: Text ---------- */
+  --color-ink: #1c2620; /* 14.3:1 auf canvas */
+  --color-ink-secondary: #545e58; /* 6.2:1 auf canvas */
+  --color-ink-placeholder: #6a716b; /* 5.0:1 auf surface, nur in Eingabefeldern */
+  --color-on-primary: #ffffff;
+  --color-on-tone: #ffffff; /* Text auf gefüllten Bewertungsfarben */
+
+  /* ---------- Farben: Linien ---------- */
+  --color-line: #e5dfd4; /* Trennlinien, Kartenränder */
+  --color-line-strong: #cec6b8; /* Rand von Auswahlfeldern */
+  --color-border-input: #8c8477; /* Eingabefelder: 3.7:1 zu surface (Nicht-Text-Kontrast) */
+
+  /* ---------- Farben: Marke ---------- */
+  --color-primary: #1f4d3a; /* tiefes Grün, 8.9:1 auf canvas */
+  --color-primary-pressed: #173b2c;
+  --color-primary-soft: #e2ece5;
+  --color-accent: #c46a3a; /* warmer Akzent, nur dekorativ (3.5:1) */
+  --color-accent-text: #9a4a1f; /* Akzent als Text, 5.7:1 */
+  --color-accent-soft: #f6e6da;
+  --color-focus: #1f4d3a;
+  --color-progress-current: #9db5a6; /* aktuelles Segment: zwischen erledigt und offen */
+
+  /* ---------- Farben: Antworten (immer mit Symbol und Text, siehe answerMeta.js) ---------- */
+  --color-dislike: #a3392f; /* Mag ich nicht */
+  --color-dislike-soft: #f7e3df;
+  --color-like: #2b6c49; /* Mag ich */
+  --color-like-soft: #e0eee5;
+  --color-prefer: #8c5a07; /* Mag ich sehr */
+  --color-prefer-soft: #f7ebd2;
+  --color-unknown: #46597a; /* Kenne ich nicht */
+  --color-unknown-soft: #e6ebf2;
+  --color-intolerant: #6a4a2f; /* Vertrage ich nicht */
+  --color-intolerant-soft: #f2e9e0;
+  --color-rule: #44514a; /* feste Regeln, Ausschlüsse */
+  --color-rule-soft: #e7ece8;
+
+  /* ---------- Farben: Rückmeldungen ---------- */
+  --color-error: #a12a2f;
+  --color-error-soft: #fbe8e7;
+  --color-info: #46597a;
+  --color-info-soft: #e6ebf2;
+  --color-banner: #1c2620; /* simulierte SMS-Mitteilung (dunkel wie eine Systemmitteilung) */
+  --color-on-banner: #ffffff;
+  --color-on-banner-secondary: #c9d1cc;
+  --color-on-dark-hover: rgb(255 255 255 / 0.14);
+  --color-hover: rgb(28 38 32 / 0.06);
+  --color-pressed: rgb(28 38 32 / 0.1);
+
+  /* ---------- Schrift: eine Familie ---------- */
+  /* Atkinson Hyperlegible Next: für gute Lesbarkeit bei Sehschwäche entwickelt, mit tabellarischen Ziffern (tnum). */
+  --font-family: 'Atkinson Hyperlegible Next Variable', 'Atkinson Hyperlegible Next', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-size-root: 118.75%; /* 19 px */
+  --font-size-caption: 0.95rem; /* 18 px: kleinster Text überhaupt */
+  --font-size-body: 1rem; /* 19 px */
+  --font-size-lead: 1.1rem; /* 21 px */
+  --font-size-title-s: 1.2rem; /* 23 px: Abschnittstitel */
+  --font-size-title-m: 1.45rem; /* 28 px: Titel in Sheets, Kartentitel kompakt */
+  --font-size-title-l: 1.75rem; /* 33 px: Kartentitel */
+  --font-size-display: 2.05rem; /* 39 px: Seitentitel */
+  --font-weight-regular: 400;
+  --font-weight-medium: 550;
+  --font-weight-semibold: 650;
+  --font-weight-bold: 750;
+  --font-weight-heavy: 800;
+  --line-height-tight: 1.12;
+  --line-height-snug: 1.3;
+  --line-height-body: 1.5;
+  --letter-spacing-title: -0.02em;
+  --letter-spacing-caps: 0.06em;
+  --underline-offset: 0.22em;
+  --underline-thickness: 0.09em;
+
+  /* ---------- Abstände: 8-pt-Raster (4 und 12 als Halbschritte) ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 48px;
+  --space-9: 64px;
+  --space-gutter: 16px; /* Seitenrand, ab 400 px Breite 24 px (siehe unten) */
+
+  /* ---------- Radien ---------- */
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --radius-round: 50%;
+
+  /* ---------- Linien ---------- */
+  --border-hairline: 1px;
+  --border-strong: 2px;
+  --border-focus: 3px;
+  --focus-offset: 3px;
+
+  /* ---------- Schatten: sparsam, nur die Swipe-Karte ist deutlich erhaben ---------- */
+  --shadow-raised: 0 1px 2px rgb(28 38 32 / 0.06), 0 6px 14px -8px rgb(28 38 32 / 0.16);
+  --shadow-card: 0 2px 4px rgb(28 38 32 / 0.05), 0 24px 44px -26px rgb(28 38 32 / 0.42);
+  --shadow-card-behind: 0 1px 2px rgb(28 38 32 / 0.05);
+  --shadow-sheet: 0 -10px 36px -14px rgb(28 38 32 / 0.32);
+  --shadow-banner: 0 14px 34px -14px rgb(28 38 32 / 0.5);
+  --shadow-button: 0 10px 20px -14px rgb(31 77 58 / 0.75);
+
+  /* ---------- Bewegung ---------- */
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 320ms;
+  --duration-screen: 260ms; /* Seitenübergang */
+  --duration-swipe-exit: 280ms; /* Karte fliegt weg */
+  --duration-card-enter: 320ms; /* nächste Karte rückt nach */
+  --duration-banner: 360ms; /* SMS-Mitteilung fährt ein */
+  --duration-demo: 9s; /* Tutorial: Schleife der Wisch-Demo */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-spring: cubic-bezier(0.3, 0.7, 0.3, 1.08);
+  --motion-shift-s: 8px; /* kleine Verschiebung beim Einblenden */
+  --motion-shift-m: 24px;
+  --motion-press-scale: 0.97;
+
+  /* ---------- Grössen ---------- */
+  --size-touch: 44px; /* Mindestgrösse jeder Tippfläche (A11) */
+  --size-control: 56px; /* Hauptknöpfe */
+  --size-control-s: 48px; /* Nebenknöpfe, Zeilen in Vorschlagslisten */
+  --size-answer: 64px; /* runde Antwortknöpfe in der Runde */
+  --size-answer-compact: 56px;
+  --size-icon-s: 1.05rem;
+  --size-icon-m: 1.3rem;
+  --size-icon-l: 1.6rem;
+  --size-icon-xl: 2.2rem;
+  --size-thumb: 56px; /* Vorschaubild in Listen */
+  --size-thumb-s: 44px;
+  --size-avatar: 44px;
+  --size-mark: 1.6rem; /* Häkchen in Auswahlfeldern */
+  --size-badge: 2.4rem; /* runde Symbolflächen in Listenköpfen */
+  --size-segment: 6px; /* Höhe der Fortschrittssegmente */
+  --size-tile-min: 4.2rem;
+  --size-hero: 11.5rem; /* Höhe des Kartenfächers auf der Startseite */
+  --size-hero-card: 8.8rem;
+  --size-demo: 12rem; /* Fläche der Tutorial-Demo */
+  --size-demo-card: 7.5rem;
+  --size-card-art-min: 6rem; /* Kartenbild in der Runde wird nie kleiner */
+  --deck-max-ratio: 1.38; /* Kartenstapel höchstens so hoch wie Breite × Faktor (hohe Handys) */
+  --card-title-size: var(--font-size-title-l);
+  --size-sheet-max: 92dvh;
+  --icon-stroke: 2; /* eine Strichstärke für alle Symbole (Lucide) */
+  --size-hidden: 1px; /* nur für Screenreader-Texte (.sr-only) */
+  --size-text-min: 9em; /* Mindestbreite für Text neben einer Aktion, bevor umbrochen wird */
+
+  /* ---------- Layout ---------- */
+  --layout-max-width: 30rem;
+  --tabbar-height: 68px;
+  --header-height: 56px;
+  --scroll-margin-actions: 9rem; /* fokussierte Felder nicht unter dem festen Aktionsbereich verstecken */
+
+  /* ---------- Ebenen ---------- */
+  --z-raised: 1;
+  --z-sticky: 10;
+  --z-nav: 20;
+  --z-sheet: 30;
+  --z-banner: 40;
+}
+
+@media (min-width: 400px) {
+  :root {
+    --space-gutter: 24px;
+  }
+}
+
+/* Kleine Bildschirme (z. B. 360 × 640): Antwortknöpfe etwas kompakter, damit die Karte Platz behält */
+@media (max-height: 700px) {
+  :root {
+    --size-answer: var(--size-answer-compact);
+    --size-card-art-min: 4.5rem;
+    --card-title-size: var(--font-size-title-m);
+  }
+}
+
+/* Weniger Bewegung: alle Übergänge auf 0. JavaScript liest dieselben Werte (motion.js). */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-screen: 0ms;
+    --duration-swipe-exit: 0ms;
+    --duration-card-enter: 0ms;
+    --duration-banner: 0ms;
+    --motion-shift-s: 0px;
+    --motion-shift-m: 0px;
+    --motion-press-scale: 1;
+  }
+}

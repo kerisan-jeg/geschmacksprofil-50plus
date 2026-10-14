@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Download, FileJson, Trash2, UserPlus } from 'lucide-react';
+import EmptyState from '../components/EmptyState.jsx';
 import { deleteAllSessions, downloadText, listSessions } from '../logging/logger.js';
 import { sessionsToCsv, sessionsToJson, summarizeSession } from '../logging/export.js';
 import { resolveConfig } from '../config.js';
+import { ADMIN } from '../labels.js';
 
 // Ansicht für die Testleitung (A9). Nur über ?admin=1 erreichbar und nirgends verlinkt.
 // Alles bleibt auf diesem Gerät; Export als JSON (alles) und CSV (eine Zeile pro Ereignis).
@@ -18,10 +20,8 @@ function formatDate(iso) {
 function formatDuration(ms) {
   if (ms == null) return null;
   const seconds = Math.round(ms / 1000);
-  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')} min`;
+  return ADMIN.duration(Math.floor(seconds / 60), seconds % 60);
 }
-
-const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
 
 function stamp() {
   return new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
@@ -45,19 +45,20 @@ export default function AdminScreen() {
 
   return (
     <main className="screen screen-admin">
-      <p className="kicker">Nur für die Testleitung</p>
-      <h1>Sitzungen</h1>
-      <p className="lead">
-        {plural(sessions.length, 'Sitzung', 'Sitzungen')} mit {plural(eventCount, 'Ereignis', 'Ereignissen')} auf diesem Gerät. Nächste Testperson startet mit{' '}
-        {config.roundCardLimit} Karten pro Runde, Tutorial {config.tutorial ? 'an' : 'aus'}.
-      </p>
+      <div className="stack">
+        <p className="kicker">{ADMIN.kicker}</p>
+        <h1>{ADMIN.title}</h1>
+        <p className="lead">
+          {ADMIN.lead({ sessions: sessions.length, events: eventCount, limit: config.roundCardLimit, tutorial: config.tutorial, imageStyle: config.imageStyle })}
+        </p>
+      </div>
 
       <a className="button-primary" href={participantUrl()}>
         <UserPlus aria-hidden="true" />
-        Neue Testperson starten
+        {ADMIN.newParticipant}
       </a>
 
-      <div className="admin-exports">
+      <div className="stack-tight">
         <button
           type="button"
           className="button-secondary"
@@ -65,32 +66,37 @@ export default function AdminScreen() {
           onClick={() => downloadText(`geschmacksprofil-sitzungen-${stamp()}.json`, sessionsToJson(sessions), 'application/json')}
         >
           <FileJson aria-hidden="true" />
-          Export JSON (alles)
+          {ADMIN.exportJson}
         </button>
         <button
           type="button"
           className="button-secondary"
           disabled={sessions.length === 0}
-          onClick={() =>
-            downloadText(`geschmacksprofil-ereignisse-${stamp()}.csv`, `﻿${sessionsToCsv(sessions)}`, 'text/csv;charset=utf-8')
-          }
+          onClick={() => downloadText(`geschmacksprofil-ereignisse-${stamp()}.csv`, `﻿${sessionsToCsv(sessions)}`, 'text/csv;charset=utf-8')}
         >
           <Download aria-hidden="true" />
-          Export CSV (Ereignisse)
+          {ADMIN.exportCsv}
         </button>
       </div>
 
-      {summaries.length > 0 && (
-        <ul className="admin-list">
+      {summaries.length === 0 ? (
+        <EmptyState title={ADMIN.empty} />
+      ) : (
+        <ul className="panel admin-list">
           {summaries.map((summary) => (
             <li key={summary.sessionId}>
-              <strong>{summary.participantCode ?? 'ohne Nr.'}</strong>
+              <strong>{summary.participantCode ?? ADMIN.noCode}</strong>
               <span>
-                {formatDate(summary.startedAt)} · {summary.finished ? `fertig, ${formatDuration(summary.durationMs)}` : 'nicht beendet'}
+                {formatDate(summary.startedAt)} · {summary.finished ? ADMIN.finished(formatDuration(summary.durationMs)) : ADMIN.unfinished}
               </span>
               <span className="note">
-                {summary.answers} Antworten, {summary.undos} × Rückgängig · Limit {summary.config?.roundCardLimit}, Tutorial{' '}
-                {summary.config?.tutorial ? 'an' : 'aus'} · {summary.sessionId}
+                {ADMIN.details({
+                  answers: summary.answers,
+                  undos: summary.undos,
+                  limit: summary.config?.roundCardLimit,
+                  tutorial: summary.config?.tutorial,
+                  sessionId: summary.sessionId,
+                })}
               </span>
             </li>
           ))}
@@ -101,30 +107,29 @@ export default function AdminScreen() {
         {confirmDelete ? (
           <>
             <p className="form-error" role="alert">
-              Wirklich {sessions.length === 1 ? 'die Sitzung' : `alle ${sessions.length} Sitzungen`} auf diesem Gerät löschen? Das lässt sich nicht rückgängig machen. Vorher
-              exportieren.
+              {ADMIN.deleteQuestion(sessions.length)}
             </p>
             <div className="sheet-actions">
               <button type="button" className="button-secondary" onClick={() => setConfirmDelete(false)}>
-                Abbrechen
+                {ADMIN.deleteCancel}
               </button>
               <button
                 type="button"
-                className="button-primary button-danger"
+                className="button-danger"
                 onClick={() => {
                   deleteAllSessions();
                   setSessions(listSessions());
                   setConfirmDelete(false);
                 }}
               >
-                Endgültig löschen
+                {ADMIN.deleteConfirm}
               </button>
             </div>
           </>
         ) : (
           <button type="button" className="button-secondary" disabled={sessions.length === 0} onClick={() => setConfirmDelete(true)}>
             <Trash2 aria-hidden="true" />
-            Alle Daten löschen
+            {ADMIN.deleteAll}
           </button>
         )}
       </section>

@@ -24,7 +24,10 @@ test('selectNextCards liefert nur Stufe-1-Karten in fester Reihenfolge (Platzhal
 test('Das Rundenlimit begrenzt die Karten', () => {
   assert.equal(selectNextCards(state([]), config).length, 10);
   const events = ['F01', 'F02', 'F03', 'F04'].map((id) => answer(id, LIKE));
-  assert.deepEqual(progress(state(events), { roundCardLimit: 4 }), { answered: 4, total: 4 });
+  assert.deepEqual(progress(state(events), { roundCardLimit: 4 }), { answered: 4, total: 4, percent: 100 });
+  // Prozentwert aus dem Rundenlimit abgeleitet, nicht fest codiert
+  assert.deepEqual(progress(state(events.slice(0, 1)), { roundCardLimit: 4 }), { answered: 1, total: 4, percent: 25 });
+  assert.deepEqual(progress(state(events.slice(0, 1)), { roundCardLimit: 8 }), { answered: 1, total: 8, percent: 13 });
   assert.equal(isRoundComplete(state(events), { roundCardLimit: 4 }), true);
 });
 
@@ -72,6 +75,20 @@ test('UNDO stellt den vorherigen Zustand exakt wieder her (inkl. INTOLERANT)', (
   const redone = state([...withIntolerant, answer('F03', UNDO), answer('F03', LIKE)]);
   assert.equal(redone.answers.F03, LIKE);
   assert.ok(!redone.exclusions.cardIds.has('F03'));
+});
+
+test('UNDO nach INTOLERANT auf einer Familie: ausgeschlossene Kinder sind wieder da, kein Ausschluss bleibt', () => {
+  const before = [answer('F01', LIKE)];
+  const intolerant = [...before, answer('F13', INTOLERANT, { excludedCardIds: ['F13.1.1', 'F13.1.3'] })];
+  const excluded = state(intolerant);
+  assert.ok(excluded.exclusions.cardIds.has('F13.1.1') && excluded.exclusions.cardIds.has('F13.1.3'));
+  assert.equal(buildProfile(excluded).intolerant.length, 1);
+  const undone = state([...intolerant, answer('F13', UNDO)]);
+  assert.deepEqual(undone, state(before));
+  assert.deepEqual(undone.swipeExclusions, []);
+  assert.deepEqual(buildProfile(undone).intolerant, []);
+  assert.deepEqual(tasteSignals(undone), [{ cardId: 'F01', response: LIKE }]);
+  assert.ok(selectNextCards(undone, { roundCardLimit: 30 }).some((card) => card.id === 'F13'), 'F13 kommt wieder');
 });
 
 test('UNDO ohne vorherige Antwort ändert nichts', () => {
