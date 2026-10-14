@@ -1,7 +1,9 @@
 import { ArrowRight, CircleCheck, Lock } from 'lucide-react';
 import CreationSteps from '../components/CreationSteps.jsx';
+import Avatar from '../components/Avatar.jsx';
+import TopBar from '../components/TopBar.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
-import { buildProfile } from '../logic/engine.js';
+import { computeProfile } from '../logic/engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 import { COMPLETE } from '../labels.js';
 
@@ -10,13 +12,13 @@ const ROWS = [PREFER, LIKE, DISLIKE, UNFAMILIAR, INTOLERANT];
 // Abschluss nach der Runde: kurze Übersicht und Weiterleitung zu „Mein Profil“.
 // Zahlen sind reine Zählungen der Antworten, keine Prozentwerte und keine Berechnung.
 export default function CompleteScreen({ round, endedEarly, firstName, ruleCount, steps, onToProfile }) {
-  const profile = buildProfile(round);
+  const { groups, intolerant } = computeProfile(round);
   const counts = {
-    [PREFER]: profile.taste[PREFER].length,
-    [LIKE]: profile.taste[LIKE].length,
-    [DISLIKE]: profile.taste[DISLIKE].length,
-    [UNFAMILIAR]: profile.unfamiliar.length,
-    [INTOLERANT]: profile.intolerant.length,
+    [PREFER]: groups[PREFER].length,
+    [LIKE]: groups[LIKE].length,
+    [DISLIKE]: groups[DISLIKE].length,
+    [UNFAMILIAR]: groups[UNFAMILIAR].length,
+    [INTOLERANT]: intolerant.length,
   };
   const answered = round.sequence.length;
   let lead = COMPLETE.leadDone(answered);
@@ -25,7 +27,7 @@ export default function CompleteScreen({ round, endedEarly, firstName, ruleCount
 
   return (
     <main className="screen screen-complete">
-      <CreationSteps steps={steps} />
+      <TopBar start={<CreationSteps steps={steps} />} end={<Avatar name={firstName} onClick={onToProfile} />} />
 
       <div className="stack">
         <p className="kicker">

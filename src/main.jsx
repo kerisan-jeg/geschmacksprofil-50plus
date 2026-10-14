@@ -7,6 +7,7 @@ import './styles/controls.css';
 import './styles/app.css';
 import './styles/card.css';
 import './styles/screens.css';
+import './styles/account.css';
 import App from './App.jsx';
 
 createRoot(document.getElementById('root')).render(

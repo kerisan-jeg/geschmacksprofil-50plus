@@ -100,3 +100,20 @@ test('Gesperrter Speicher bricht nichts ab', () => {
   assert.deepEqual(listSessions(), []);
   assert.equal(deleteAllSessions(), 0);
 });
+
+test('Nach einem Neuladen geht dieselbe Sitzung weiter; ungespeicherte Ereignisse werden übernommen', () => {
+  globalThis.localStorage = fakeStorage();
+  const first = createLogger({ roundCardLimit: 10, tutorial: true });
+  first.start({ participantCode: 'T02', ageGroup: '50-59' });
+  first.recordEvent({ ...event, response: 'LIKE', cardId: 'F01' });
+  const resumed = createLogger({ roundCardLimit: 10, tutorial: true }, { resumeSessionId: first.session.sessionId });
+  assert.equal(resumed.session.sessionId, first.session.sessionId);
+  assert.equal(resumed.session.events.length, 1);
+  resumed.recordEvent({ ...event, response: 'DISLIKE', cardId: 'F02' });
+  assert.equal(listSessions().length, 1);
+  assert.equal(listSessions()[0].events.length, 2);
+  // Sitzung war noch nicht gespeichert (vor der Einwilligung): Ereignisse aus dem gespeicherten Stand übernehmen
+  const seeded = createLogger({ roundCardLimit: 10, tutorial: true }, { resumeSessionId: 'neu123', seedEvents: [{ type: 'AUTH_STARTED', timestamp: 't' }] });
+  assert.deepEqual(seeded.session.events, [{ type: 'AUTH_STARTED', timestamp: 't', sessionId: 'neu123' }]);
+  assert.equal(listSessions().length, 1, 'erst nach der Einwilligung gespeichert');
+});

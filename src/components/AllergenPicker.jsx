@@ -1,25 +1,34 @@
-import { useState } from 'react';
-import { Check, ChevronDown, ChevronRight, CircleHelp, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Check, ChevronDown, ChevronRight, CircleHelp } from 'lucide-react';
 import ChoiceList from './ChoiceList.jsx';
 import DetailPicker from './DetailPicker.jsx';
-import SearchField from './SearchField.jsx';
+import FoodSearch from './FoodSearch.jsx';
 import SelectionChips from './SelectionChips.jsx';
 import { categoryIds, categoryState, describeSelection, setCategorySelection, toggleIds } from '../logic/allergens.js';
-import { cleanText, keyLabel, searchIntolerances } from '../logic/stage0.js';
+import { buildFoodIndex } from '../logic/foodSearch.js';
+import { keyLabel } from '../logic/stage0.js';
 import { ONBOARDING } from '../labels.js';
 
-// Allergene und Unverträglichkeiten:
+const NEVER_REDUNDANT = { category: () => false, allergenIds: () => false, hit: () => false };
+
+// Allergene und Unverträglichkeiten, im Onboarding (Frage 2) und in „Mein Profil“ dieselbe Komponente:
 // - die häufigen als grosse Kacheln, der Rest über „Weitere anzeigen“ und die Suche (A5)
-// - Nüsse (inkl. Erdnüsse) und Gluten öffnen eine Detailauswahl
-// - die Suche findet auch alle Lebensmittel aus dem Katalog; ohne Treffer wird der Text eingetragen
+// - Nüsse (inkl. Erdnüsse) und Gluten öffnen eine Detailauswahl (ganze Familie oder einzelne Einträge)
+// - die Suche (FoodSearch) findet auch alle Lebensmittel aus dem Katalog; ohne Treffer wird eine Notiz
+//   eingetragen (A7). Im Profil (allowFoods = false) sucht sie nur Allergene.
 // - was durch die Ernährungsweise schon ausgeschlossen ist, wird nicht nochmals angeboten
 //   (ausser es ist bereits ausgewählt)
 // - „Ich bin mir nicht sicher, ob es weitere gibt“ setzt nur ein Flag, keinen Ausschluss
-export default function AllergenPicker({ data, catalogIndex, answer, redundancy, onChange }) {
+export default function AllergenPicker({ data, catalogIndex, foods = [], answer, redundancy = NEVER_REDUNDANT, onChange, allowFoods = true, allowUnsure = true }) {
   const [showAll, setShowAll] = useState(false);
-  const [query, setQuery] = useState('');
   const [openCategory, setOpenCategory] = useState(null);
-  const { selected, items, notes } = answer;
+  const { selected } = answer;
+  const items = answer.items ?? [];
+  const notes = answer.notes ?? [];
+  const searchIndex = useMemo(
+    () => buildFoodIndex({ allergens: data, catalogIndex: allowFoods ? catalogIndex : null, foods: allowFoods ? foods : [] }),
+    [data, catalogIndex, foods, allowFoods]
+  );
 
   const relevant = (category) => categoryState(category, selected).some || !redundancy.category(category);
   const common = data.categories.filter((category) => category.common && relevant(category));
@@ -40,21 +49,11 @@ export default function AllergenPicker({ data, catalogIndex, answer, redundancy,
   function handlePick(hit) {
     if (hit.kind === 'allergen') update({ selected: toggleIds(selected, hit.ids) });
     else update({ items: items.includes(hit.key) ? items.filter((key) => key !== hit.key) : [...items, hit.key] });
-    setQuery('');
   }
 
-  function addNote() {
-    const text = cleanText(query);
-    if (text && !notes.includes(text)) update({ notes: [...notes, text] });
-    setQuery('');
+  function addNote(text) {
+    if (!notes.includes(text)) update({ notes: [...notes, text] });
   }
-
-  const hits = searchIntolerances(data, catalogIndex, query, 8).map((hit) => ({
-    ...hit,
-    selected: hit.kind === 'allergen' ? hit.ids.every((id) => selected.includes(id)) : items.includes(hit.key),
-  }));
-  const offered = hits.filter((hit) => hit.selected || !redundancy.hit(hit)).slice(0, 6);
-  const alreadyCovered = hits.length > 0 && offered.length === 0;
 
   const chips = [
     ...describeSelection(data, selected).map((chip) => ({ ...chip, kind: 'allergen' })),
@@ -108,39 +107,35 @@ export default function AllergenPicker({ data, catalogIndex, answer, redundancy,
         </button>
       )}
 
-      <SearchField
+      <FoodSearch
         label={ONBOARDING.searchAllergensLabel}
         placeholder={ONBOARDING.searchAllergensPlaceholder}
-        query={query}
-        onQuery={setQuery}
-        results={offered}
+        items={searchIndex}
+        isSelected={(hit) => (hit.kind === 'allergen' ? hit.ids.every((id) => selected.includes(id)) : items.includes(hit.key))}
+        isOffered={(hit) => !redundancy.hit(hit)}
         onPick={handlePick}
-        onSubmitText={addNote}
-      >
-        {alreadyCovered && <p className="note">{ONBOARDING.alreadyCovered}</p>}
-        {!offered.some((hit) => hit.rank === 0) && !alreadyCovered && cleanText(query) && (
-          <button type="button" className="button-secondary add-entry" onClick={addNote}>
-            <Plus aria-hidden="true" />
-            {ONBOARDING.addEntry(cleanText(query))}
-          </button>
-        )}
-      </SearchField>
+        onAddNote={allowFoods ? addNote : null}
+      />
 
       <SelectionChips chips={chips} onRemove={removeChip} />
       {notes.length > 0 && <p className="note">{ONBOARDING.entryEffect}</p>}
 
-      <ChoiceList
-        name="unsure-more"
-        multiple
-        options={[{ id: 'unsure', label: ONBOARDING.unsureMore }]}
-        value={answer.unsureMore ? ['unsure'] : []}
-        onChange={() => update({ unsureMore: !answer.unsureMore })}
-      />
-      {answer.unsureMore && (
-        <p className="notice">
-          <CircleHelp aria-hidden="true" />
-          {ONBOARDING.unsureHint}
-        </p>
+      {allowUnsure && (
+        <>
+          <ChoiceList
+            name="unsure-more"
+            multiple
+            options={[{ id: 'unsure', label: ONBOARDING.unsureMore }]}
+            value={answer.unsureMore ? ['unsure'] : []}
+            onChange={() => update({ unsureMore: !answer.unsureMore })}
+          />
+          {answer.unsureMore && (
+            <p className="notice">
+              <CircleHelp aria-hidden="true" />
+              {ONBOARDING.unsureHint}
+            </p>
+          )}
+        </>
       )}
 
       {openCategory && (

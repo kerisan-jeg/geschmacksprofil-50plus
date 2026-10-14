@@ -11,7 +11,9 @@ import { describeSelection } from './allergens.js';
 
 export const EXCLUSION_SECTIONS = ['allergies', 'intolerances', 'never', 'notes'];
 
+// Einträge aus dem Profil tragen ihren Abschnitt selbst (section), z. B. Laktose unter „Vertrage ich nicht“.
 export function sectionOf(entry) {
+  if (entry.section && EXCLUSION_SECTIONS.includes(entry.section)) return entry.section;
   if (entry.freeText) return 'notes';
   if (entry.type === 'allergen') return 'allergies';
   if (entry.source === 'swipe' || entry.origin === 'intolerances') return 'intolerances';

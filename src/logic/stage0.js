@@ -16,9 +16,9 @@
 //
 // Alle Funktionen sind rein: Gleiche Antworten ergeben immer dieselben Regeln.
 
-import { allergenLabel, categoryIds, searchAllergens, summarizeSelection } from './allergens.js';
+import { allergenLabel, categoryIds, summarizeSelection } from './allergens.js';
 import { buildExclusions, foodMatches, isVisible } from './filter.js';
-import { matchRank, search } from './search.js';
+import { buildFoodIndex, searchFoods } from './foodSearch.js';
 
 export const SOURCE_ONBOARDING = 'onboarding';
 export const SOURCE_SWIPE = 'swipe';
@@ -65,48 +65,18 @@ function cleanText(text) {
   return String(text ?? '').replace(/\s+/g, ' ').trim().slice(0, 60);
 }
 
-// ---------- Suchindex über den Katalog ----------
+// ---------- Suche ----------
+// Eine Suche für alle Stellen (FoodSearch, siehe foodSearch.js). Diese beiden Funktionen liefern
+// die Treffer für Frage 2 und Frage 3; foods ist das Lexikon aus dem Katalog (Synonyme).
 
-// Karten (Titel und Synonyme), Beispiele auf den Karten und einige Merkmale.
-// Ein Beispiel, das schon Titel oder Synonym einer Karte ist, erscheint nur als Karte.
-export function catalogSearchItems(catalogIndex, tagLabels = {}) {
-  const items = [];
-  const covered = [];
-  for (const card of catalogIndex.cards) {
-    const parent = card.parentId ? catalogIndex.get(card.parentId) : null;
-    items.push({ key: `card:${card.id}`, label: card.title, detail: parent ? `aus „${parent.title}“` : 'ganze Gruppe', terms: card.synonyms ?? [] });
-    covered.push(card.title, ...(card.synonyms ?? []));
-  }
-  const isCovered = (text) => covered.some((term) => matchRank(term, text) === 0 && matchRank(text, term) === 0);
-  const seen = new Set();
-  for (const card of catalogIndex.cards) {
-    for (const example of card.examples) {
-      const label = example.charAt(0).toUpperCase() + example.slice(1);
-      const id = label.toLowerCase();
-      if (seen.has(id) || isCovered(label)) continue;
-      seen.add(id);
-      items.push({ key: `food:${label}`, label, detail: `Beispiel aus „${card.title}“`, terms: [] });
-    }
-  }
-  for (const [key, label] of Object.entries(tagLabels)) {
-    if (!items.some((item) => item.label === label)) items.push({ key, label, detail: 'alles mit diesem Merkmal', terms: [] });
-  }
-  return items;
+// Frage 2: Allergene und alle übrigen Lebensmittel aus dem Katalog.
+export function searchIntolerances(allergens, catalogIndex, query, limit = 6, foods = []) {
+  return searchFoods(buildFoodIndex({ allergens, catalogIndex, foods }), query, { limit });
 }
 
-export function searchCatalog(catalogIndex, query, { tagLabels = {}, limit = 6 } = {}) {
-  return search(catalogSearchItems(catalogIndex, tagLabels), query, limit);
-}
-
-// Frage 2: zuerst Allergene, dann alle übrigen Lebensmittel aus dem Katalog.
-export function searchIntolerances(allergens, catalogIndex, query, limit = 6) {
-  const allergenHits = searchAllergens(allergens, query, limit).map((hit) => ({ ...hit, kind: 'allergen' }));
-  const catalogHits = searchCatalog(catalogIndex, query, { limit }).map((hit) => ({ ...hit, kind: 'catalog' }));
-  return [...allergenHits, ...catalogHits].sort((a, b) => a.rank - b.rank).slice(0, limit);
-}
-
-export function searchNever(question, catalogIndex, query, limit = 6) {
-  return searchCatalog(catalogIndex, query, { tagLabels: question.tagLabels, limit });
+// Frage 3: Lebensmittel aus dem Katalog und Merkmale (z. B. Meeresfrüchte).
+export function searchNever(question, catalogIndex, query, limit = 6, foods = []) {
+  return searchFoods(buildFoodIndex({ catalogIndex, foods, tagLabels: question.tagLabels }), query, { limit });
 }
 
 // Anzeigename eines Schlüssels: Wortlaut der Schnellauswahl, sonst Katalogtitel oder Text.
@@ -214,6 +184,11 @@ function affectedCards(entry, catalogIndex) {
 export function createRedundancyCheck(definition, answers, { allergens, catalogIndex, upTo }) {
   const base = deriveOnboarding(definition, answers, { allergens, catalogIndex, upTo });
   const exclusions = buildExclusions(base.exclusions, { diet: base.diet, diets: definition.diets, index: catalogIndex });
+  return redundancyFor(exclusions, catalogIndex);
+}
+
+// Dieselbe Prüfung für bereits berechnete Ausschlüsse (z. B. in „Mein Profil“).
+export function redundancyFor(exclusions, catalogIndex) {
   const covered = (entry) => {
     const cards = affectedCards(entry, catalogIndex);
     return cards.length > 0 && cards.every((card) => !isVisible(card, catalogIndex, exclusions));

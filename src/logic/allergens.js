@@ -78,25 +78,30 @@ export function allergenLabel(data, id) {
 }
 
 // Suchindex: ganze Kategorien („Alle Nüsse“) und einzelne Einträge („Haselnuss“).
+// category: Gruppe für die Anzeige im Suchtreffer („Haselnuss · Nüsse“).
 export function allergenSearchItems(data) {
   const items = [];
   for (const category of data.categories) {
     if (category.items) {
       items.push({
         key: `all:${category.id}`,
+        kind: 'allergen',
         label: category.allLabel,
         detail: category.label,
+        category: category.tileLabel,
         ids: categoryIds(category),
         terms: [category.label, category.tileLabel, ...(category.synonyms ?? [])],
       });
       for (const item of category.items) {
-        items.push({ key: item.id, label: item.label, detail: category.tileLabel, ids: [item.id], terms: item.synonyms ?? [] });
+        items.push({ key: item.id, kind: 'allergen', label: item.label, detail: category.tileLabel, category: category.tileLabel, ids: [item.id], terms: item.synonyms ?? [] });
       }
     } else {
       items.push({
         key: category.id,
+        kind: 'allergen',
         label: category.label,
         detail: category.detail ?? null,
+        category: null,
         ids: [category.id],
         terms: [category.tileLabel, ...(category.synonyms ?? [])],
       });

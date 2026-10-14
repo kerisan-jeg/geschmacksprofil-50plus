@@ -5,12 +5,13 @@ import AllergenPicker from '../components/AllergenPicker.jsx';
 import NeverPicker from '../components/NeverPicker.jsx';
 import SegmentedProgress from '../components/SegmentedProgress.jsx';
 import TopBar, { BackButton } from '../components/TopBar.jsx';
+import Avatar from '../components/Avatar.jsx';
 import { isAnswered } from '../logic/stage0.js';
 import { QUESTIONS } from '../labels.js';
 
 // Stufe 0 als kurzer Fragebogen: eine Frage pro Bildschirm.
 // Erst bei „Ja“ erscheint die Detailauswahl (nurec v0.2, Kap. 2: nur bei „vorhanden“ nachfragen).
-export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, redundancy, onChange, onStep, lastLabel = QUESTIONS.toRound }) {
+export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, foods, redundancy, onChange, onStep, onOpenProfile, lastLabel = QUESTIONS.toRound }) {
   const question = questions[step];
   const answer = answers[question.id];
   const last = step === questions.length - 1;
@@ -47,7 +48,7 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
 
   return (
     <main className="screen screen-questions">
-      <TopBar start={<BackButton onClick={() => onStep(step - 1)} />} />
+      <TopBar start={<BackButton onClick={() => onStep(step - 1)} />} end={<Avatar name={firstName} onClick={onOpenProfile} />} />
 
       <SegmentedProgress
         answered={step}
@@ -87,10 +88,10 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
                 <p className="note">{question.detailHint}</p>
               </div>
               {question.type === 'allergens' && (
-                <AllergenPicker data={allergens} catalogIndex={catalogIndex} answer={answer} redundancy={redundancy} onChange={update} />
+                <AllergenPicker data={allergens} catalogIndex={catalogIndex} foods={foods} answer={answer} redundancy={redundancy} onChange={update} />
               )}
               {question.type === 'never' && (
-                <NeverPicker question={question} catalogIndex={catalogIndex} answer={answer} redundancy={redundancy} onChange={update} />
+                <NeverPicker question={question} catalogIndex={catalogIndex} foods={foods} answer={answer} redundancy={redundancy} onChange={update} />
               )}
             </section>
           )}

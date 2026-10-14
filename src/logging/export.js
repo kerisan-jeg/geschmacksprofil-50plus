@@ -16,10 +16,20 @@ export const EVENT_FIELDS = [
   'selectionReason',
 ];
 
+// Seit Commit 3: Profiländerungen und Registrierung stehen im selben Log (type, source, …).
+// Vorname und Telefonnummer gibt es in keiner Sitzung und damit in keiner Spalte.
 export const CSV_COLUMNS = [
   ...EVENT_FIELDS,
   'excludedCardIds',
   'ruleVersion',
+  'type',
+  'source',
+  'rating',
+  'previousRating',
+  'section',
+  'exclusions',
+  'newDiet',
+  'previousDiet',
   'participantCode',
   'ageGroup',
   'diet',
@@ -27,6 +37,7 @@ export const CSV_COLUMNS = [
   'roundCardLimit',
   'tutorial',
   'imageStyle',
+  'auth',
   'appVersion',
   'sessionStartedAt',
   'sessionEndedAt',
@@ -50,12 +61,21 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
       roundCardLimit: session.config?.roundCardLimit,
       tutorial: session.config?.tutorial,
       imageStyle: session.config?.imageStyle ?? null,
+      auth: session.config?.auth,
       appVersion: session.appVersion,
       sessionStartedAt: session.startedAt,
       sessionEndedAt: session.endedAt,
     };
     for (const event of session.events ?? []) {
-      const row = { ...shared, ...event, sessionId: session.sessionId };
+      const row = {
+        ...shared,
+        ...event,
+        type: event.type ?? 'ANSWER',
+        exclusions: (event.exclusions ?? []).map((exclusion) => [exclusion.type, exclusion.value].filter(Boolean).join(':')),
+        newDiet: event.type === 'DIET_CHANGED' ? event.diet : null,
+        diet: shared.diet,
+        sessionId: session.sessionId,
+      };
       rows.push(CSV_COLUMNS.map((column) => csvCell(row[column])).join(delimiter));
     }
   }

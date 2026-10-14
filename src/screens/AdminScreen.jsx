@@ -4,6 +4,7 @@ import EmptyState from '../components/EmptyState.jsx';
 import { deleteAllSessions, downloadText, listSessions } from '../logging/logger.js';
 import { sessionsToCsv, sessionsToJson, summarizeSession } from '../logging/export.js';
 import { resolveConfig } from '../config.js';
+import { signOutLocally } from '../storage/local.js';
 import { ADMIN } from '../labels.js';
 
 // Ansicht für die Testleitung (A9). Nur über ?admin=1 erreichbar und nirgends verlinkt.
@@ -27,8 +28,9 @@ function stamp() {
   return new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
 }
 
-// Neue Testperson: App ohne ?admin neu laden. Gespeicherte Sitzungen bleiben erhalten,
-// die übrigen Parameter (limit, tutorial) ebenfalls.
+// Neue Testperson: Konto und Stand der vorherigen Person auf diesem Gerät löschen (sonst begrüsst die App
+// sie mit „Willkommen zurück“) und die App ohne ?admin neu laden. Gespeicherte Sitzungen für die
+// Auswertung bleiben erhalten, die übrigen Parameter (limit, tutorial) ebenfalls.
 function participantUrl() {
   const params = new URLSearchParams(window.location.search);
   params.delete('admin');
@@ -53,10 +55,17 @@ export default function AdminScreen() {
         </p>
       </div>
 
-      <a className="button-primary" href={participantUrl()}>
+      <button
+        type="button"
+        className="button-primary"
+        onClick={() => {
+          signOutLocally();
+          window.location.assign(participantUrl());
+        }}
+      >
         <UserPlus aria-hidden="true" />
         {ADMIN.newParticipant}
-      </a>
+      </button>
 
       <div className="stack-tight">
         <button

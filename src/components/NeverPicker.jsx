@@ -1,8 +1,9 @@
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { Info, Plus } from 'lucide-react';
-import SearchField from './SearchField.jsx';
+import FoodSearch from './FoodSearch.jsx';
 import SelectionChips from './SelectionChips.jsx';
-import { cleanText, keyLabel, searchNever } from '../logic/stage0.js';
+import { buildFoodIndex } from '../logic/foodSearch.js';
+import { cleanText, keyLabel } from '../logic/stage0.js';
 import { ONBOARDING } from '../labels.js';
 
 // Freitext-Liste als Chips, z. B. für Marken oder Herkunft.
@@ -55,12 +56,12 @@ function TextList({ title, hint, placeholder, values, onChange }) {
 
 // Frage 3 „Nie vorschlagen“:
 // - wenige häufige Beispiele als Chips, jedes auf eine Katalog-ID oder einen Tag abgebildet (A7)
-// - Suche über alle Lebensmittel; ohne Treffer wird der Text eingetragen (Rückmeldung 12.10.)
+// - Suche (FoodSearch) über alle Lebensmittel; ohne Treffer wird eine Notiz eingetragen (A7)
 // - was durch frühere Angaben schon ausgeschlossen ist, wird nicht nochmals angeboten
 // - Marken und Herkunft als eigener Block; gespeichert, im Prototyp noch ohne Wirkung
-export default function NeverPicker({ question, catalogIndex, answer, redundancy, onChange }) {
-  const [query, setQuery] = useState('');
+export default function NeverPicker({ question, catalogIndex, foods = [], answer, redundancy, onChange }) {
   const { selected, notes, brands, origins } = answer;
+  const searchIndex = useMemo(() => buildFoodIndex({ catalogIndex, foods, tagLabels: question.tagLabels }), [catalogIndex, foods, question]);
 
   function update(changes) {
     onChange({ ...answer, ...changes });
@@ -70,16 +71,11 @@ export default function NeverPicker({ question, catalogIndex, answer, redundancy
     update({ selected: selected.includes(key) ? selected.filter((entry) => entry !== key) : [...selected, key] });
   }
 
-  function addNote() {
-    const text = cleanText(query);
-    if (text && !notes.includes(text)) update({ notes: [...notes, text] });
-    setQuery('');
+  function addNote(text) {
+    if (!notes.includes(text)) update({ notes: [...notes, text] });
   }
 
   const quickPicks = question.quickPicks.filter((pick) => selected.includes(pick.key) || !redundancy.key(pick.key));
-  const hits = searchNever(question, catalogIndex, query, 8).map((hit) => ({ ...hit, selected: selected.includes(hit.key) }));
-  const offered = hits.filter((hit) => hit.selected || !redundancy.key(hit.key)).slice(0, 6);
-  const alreadyCovered = hits.length > 0 && offered.length === 0;
 
   const chips = [
     ...selected.map((key) => ({ key, text: keyLabel(question, catalogIndex, key) })),
@@ -104,26 +100,15 @@ export default function NeverPicker({ question, catalogIndex, answer, redundancy
         </section>
       )}
 
-      <SearchField
+      <FoodSearch
         label={ONBOARDING.searchNeverLabel}
         placeholder={ONBOARDING.searchNeverPlaceholder}
-        query={query}
-        onQuery={setQuery}
-        results={offered}
-        onPick={(hit) => {
-          toggleKey(hit.key);
-          setQuery('');
-        }}
-        onSubmitText={addNote}
-      >
-        {alreadyCovered && <p className="note">{ONBOARDING.alreadyCovered}</p>}
-        {!offered.some((hit) => hit.rank === 0) && !alreadyCovered && cleanText(query) && (
-          <button type="button" className="button-secondary add-entry" onClick={addNote}>
-            <Plus aria-hidden="true" />
-            {ONBOARDING.addEntry(cleanText(query))}
-          </button>
-        )}
-      </SearchField>
+        items={searchIndex}
+        isSelected={(hit) => selected.includes(hit.key)}
+        isOffered={(hit) => !redundancy.key(hit.key)}
+        onPick={(hit) => toggleKey(hit.key)}
+        onAddNote={addNote}
+      />
 
       <SelectionChips
         chips={chips}

@@ -1,7 +1,7 @@
 # Geschmacksprofil 50+ · Prototyp
 
 Mobiler Swipe-Prototyp zur Geschmacksprofilerkennung bei Personen ab 50 (WI-Projekt, Auftraggeber nurec).
-Version 0.5: Designsystem und überarbeitete Swipe-Oberfläche. Die adaptive Kartenauswahl ist bewusst noch nicht gebaut:
+Version 0.6: Designsystem, Swipe-Oberfläche, Registrierung (SMS simuliert), bearbeitbares Profil und einheitliche Suche. Die adaptive Kartenauswahl ist bewusst noch nicht gebaut:
 Sie ist die nächste Eigenleistung des Teams (siehe „Logik austauschen“).
 
 Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (Kickoff, Zwischencheck),
@@ -9,16 +9,19 @@ Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (
 
 ## Ablauf
 
-Die App hat zwei Bereiche in der unteren Navigation: **Profil erstellen** und **Mein Profil**.
+Die App hat zwei Bereiche in der unteren Navigation: **Profil erstellen** und **Mein Profil**. „Mein Profil“ ist zusätzlich über den runden Knopf oben rechts erreichbar (Initiale des Vornamens).
 
-1. **Start:** kurze Einführung.
-2. **Anmelden:** Vorname, Alter und Einwilligung sind Pflicht, kein Passwort. Der Vorname wird nicht gespeichert. Unter „Für die Testleitung“ die Teilnehmer-Nr.
-3. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“. Frage 2 bietet „Ja“ und „Keine bekannt“, Frage 3 fragt nach „etwas Weiterem“. Der letzte Knopf heisst „Erste Karte zeigen“.
-4. **Runde:** direkt nach Frage 3 (Teamentscheid vom 13.10.: keine Zusammenfassung, kein Tutorial). Stufe-1-Karten in fester Reihenfolge, höchstens `ROUND_CARD_LIMIT` (Standard 10). Die untere Navigation ist hier ausgeblendet, damit Karte und Knöpfe den ganzen Bildschirm haben.
-5. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln) und Weiterleitung zu „Mein Profil“.
-6. **Mein Profil:** Geschmack gruppiert nach der Antwort pro Karte, getrennt davon die Ausschlüsse mit Herkunft (im Onboarding, beim Wischen).
+1. **Willkommen:** kurze Einführung.
+2. **Registrierung** (`AUTH_ENABLED`, Standard an): Vorname → Handynummer → SMS-Code. Kein echter SMS-Versand, siehe unten.
+3. **Über dich:** Alter und Einwilligung sind Pflicht, unter „Für die Testleitung“ die Teilnehmer-Nr. Ohne Registrierung startet die App hier, der Vorname ist dann freiwillig.
+4. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“. Frage 2 bietet „Ja“ und „Keine bekannt“, Frage 3 fragt nach „etwas Weiterem“. Der letzte Knopf heisst „Erste Karte zeigen“.
+5. **Runde:** direkt nach Frage 3 (Teamentscheid vom 13.10.: keine Zusammenfassung, kein Tutorial). Stufe-1-Karten in fester Reihenfolge, höchstens `ROUND_CARD_LIMIT` (Standard 10). Die untere Navigation ist hier ausgeblendet, damit Karte und Knöpfe den ganzen Bildschirm haben.
+6. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln) und Weiterleitung zu „Mein Profil“.
+7. **Mein Profil:** Geschmack und Ausschlüsse ansehen und bearbeiten.
 
 Das **Mini-Tutorial** (drei kurze Schritte: Wischrichtungen, „Kenne ich nicht“ und „Vertrage ich nicht“, Rückgängig) ist im Code, aber standardmässig aus. Für einen Pilot-Vergleich `TUTORIAL_ENABLED = true` in `src/config.js` setzen; über die URL lässt es sich nicht einschalten.
+
+Wer die App auf demselben Gerät wieder öffnet, sieht „Willkommen zurück, [Vorname]“ und macht dort weiter, wo er oder sie war. Auch ein versehentliches Neuladen verliert nichts mehr. Auf einem gemeinsamen Testgerät deshalb nach jeder Person „Neue Testperson starten“ drücken (Ansicht für die Testleitung, siehe unten).
 
 ## Antworten auf einer Karte
 
@@ -42,6 +45,31 @@ Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt
 **Wischen** (reine Logik in `src/logic/swipe.js`, Werte in `SWIPE` in `src/config.js`): Beim Ziehen erscheint auf der Karte die Beschriftung der angedeuteten Antwort mit Symbol; ihre Deckkraft wächst mit der Zugdistanz. Eine Antwort zählt erst ab der Schwelle (110 px seitlich, 90 px nach oben) oder bei schnellem Schnippen; darunter springt die Karte zurück. Die nächste Karte liegt leicht dahinter und rückt beim Ziehen nach vorn. Jede Richtung hat einen gleichwertigen Knopf an der Stelle, wohin die Karte fliegt (Wischen nach oben ist für viele schwierig).
 
 **Fortschritt:** Ein Segment pro Karte, „Karte 3 von 10“ mit tabellarischen Ziffern. Anzahl und Prozentwert kommen aus `progress()` und damit aus dem Rundenlimit, nie fest im Code. Die Abschnitte der Profilerstellung (Fragen, Runde 1, Profil) zeigen erledigte Teile mit Häkchen.
+
+## Registrierung (SMS simuliert)
+
+- **Ablauf:** Vorname (nur Vorname) → Handynummer (Ländervorwahl wählbar, Standard +41, Gliederung beim Tippen „079 123 45 67“, Prüfung mit verständlicher Meldung, `inputmode="tel"`) → SMS-Code (6 Ziffern, ein Feld mit `autocomplete="one-time-code"` und `inputmode="numeric"`, Einfügen möglich, „Code erneut senden“ erst nach 30 s Countdown, bei richtigem Code automatisch weiter).
+- **Kein echter SMS-Versand:** `src/auth/AuthService.js` beschreibt die Schnittstelle, `src/auth/MockAuthService.js` ist die Simulation. Sie erzeugt einen zufälligen Code und zeigt ihn als SMS-Mitteilung oben am Bildschirm. Für einen echten Dienst wird nur `createAuthService()` ausgetauscht. Unter dem Codefeld steht für Testpersonen ehrlich, dass die SMS simuliert ist.
+- **Datenschutz:** Vorname und Telefonnummer bleiben auf dem Gerät (`localStorage`, Schlüssel `geschmacksprofil:account`). Nach der Bestätigung wird die Nummer nur gekürzt gespeichert („+41 79 *** ** 67“); `saveAccount()` lehnt eine volle Nummer ab. Weder Vorname noch Nummer gelangen in Sitzungen, JSON- oder CSV-Exporte; Exporte enthalten nur `sessionId` und optional die Teilnehmer-Nr. Ein Test prüft das (`src/logging/privacy.test.js`).
+- **Abmelden** im Profil löscht Konto und Stand auf dem Gerät; die Sitzung für die Auswertung bleibt (ohne Namen). „Neue Testperson starten“ in der Admin-Ansicht meldet die vorherige Person ebenfalls ab.
+- **Protokoll:** `AUTH_STARTED` (Vorname eingeben) und `AUTH_COMPLETED` (Code bestätigt) stehen im Event-Log. So lässt sich die Dauer der Registrierung getrennt von der Swipe-Dauer auswerten.
+- **Ohne Registrierung:** `AUTH_ENABLED = false` in `src/config.js`. Der URL-Parameter `?auth=0|1` folgt mit der URL-Konfiguration (Commit 4).
+
+## Mein Profil
+
+- **Kopf:** Vorname, gekürzte Nummer, Anzahl beantworteter Karten und die Abschnitte der Profilerstellung.
+- **Geschmack:** gruppiert in „Das magst du besonders“, „Das magst du“, „Das magst du eher nicht“ und „Kennst du nicht“, jeder Eintrag mit Bild und Bewertungs-Chip (Farbe, Symbol, Text). Berechnet von der reinen Funktion `computeProfile(state)` in `src/logic/engine.js`: nur nach der letzten direkten Antwort pro Karte, ohne Score, ohne Prozentwerte, ohne abgeleitete Einträge („TODO: Score-Modell … – Eigenleistung Team“).
+- **Ausschlüsse,** getrennt vom Geschmack: Allergien, Ernährungsweise, „Vertrage ich nicht“, „Möchte ich nicht essen“, Notizen. Bei jedem Eintrag steht die Herkunft (im Onboarding, beim Wischen, im Profil).
+- **Bearbeiten:** Bewertung über ein Segmented Control mit den drei Bewertungen und „Aus dem Profil entfernen“; Allergien mit derselben Komponente wie im Onboarding (inkl. Detailauswahl bei Nüssen und Gluten); Ernährungsweise; „Vertrage ich nicht“ und „Möchte ich nicht essen“ über die Suche. Allergien und Unverträglichkeiten werden nur nach einer Bestätigung entfernt.
+- **Event-Log:** Jede Änderung ist ein Ereignis (`RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED`) mit `source = "profile"` (`src/logic/events.js`). Der Zustand wird weiterhin per Replay abgeleitet; die ursprüngliche Antwort beim Wischen bleibt unverändert im Log. Ein entfernter Ausschluss fehlt danach einfach in den Einträgen, ob eine Karte wieder erlaubt ist, entscheidet `isAllowed()` (keine Sonderlogik).
+
+## Einheitliche Suche (FoodSearch)
+
+- **Eine Komponente** (`src/components/FoodSearch.jsx`, Logik in `src/logic/foodSearch.js`) für Allergien und Unverträglichkeiten (Frage 2), „Nie vorschlagen“ (Frage 3) und „Mein Profil“.
+- Sucht über Allergene, Karten (Familien und Untergruppen), einzelne Lebensmittel und Merkmale. Tolerant gegenüber Gross-/Kleinschreibung und Umlauten (ä = ae).
+- **Synonyme** (`synonyms` bei Karten und Allergenen, Lexikon `foods` im Katalog) inkl. Schweizer Begriffe: Rahm/Sahne, Poulet/Hähnchen, Rüebli/Karotte, Peperoni/Paprika, Nüsslisalat/Feldsalat, Zucchetti, Randen/Rote Bete, Härdöpfel u. a. Unsichere Begriffe stehen als TODO in `synonymTodos`, nicht geraten.
+- Vorschläge ab dem ersten Zeichen, höchstens 6, passender Teil hervorgehoben, Gruppe als Zusatz („Haselnuss · Nüsse“), Zeilen ≥ 48 px. Genau passende Wörter stehen zuerst.
+- **Kein Treffer** (A7): Der Text lässt sich als Notiz eintragen. Sie schliesst keine Gruppe aus; das Wort erscheint aber nirgends mehr als Beispiel (Rückmeldung Team, 12.10.). Der Hinweis daneben sagt das ehrlich.
 
 ## Designsystem
 
@@ -91,22 +119,23 @@ Damit einzelne Allergene einzelne Karten treffen, enthält der Katalog Stufe-3-K
 | `?limit=6` | Karten pro Runde (`ROUND_CARD_LIMIT`), gültig 4 bis 30; ungültige Werte fallen auf den Standard zurück | 10 |
 | `?admin=1` | Ansicht für die Testleitung | – |
 
-Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `TUTORIAL_ENABLED` (aus) und `IMAGE_STYLE` (Fotos) in `src/config.js`.
+Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`.
 
 ## Protokoll und Export
 
-Alles bleibt im Browser (`localStorage`), es gibt kein Backend und keine Netzwerkanfrage. Gespeichert wird erst nach der Anmeldung.
+Alles bleibt im Browser (`localStorage`), es gibt kein Backend und keine Netzwerkanfrage. Eine Sitzung wird erst gespeichert, wenn unter „Über dich“ die Einwilligung gegeben ist.
 
 - **Pro Sitzung:** `sessionId`, `participantCode`, `startedAt`, `endedAt`, `appVersion`, `config`, Onboarding (Altersgruppe, Ernährungsweise, Ausschlüsse mit `source`, Unsicherheits-Flag, Notizen) und das am Ende angezeigte Profil.
 - **Pro Ereignis:** `sessionId`, `cardId`, `stage`, `parentId`, `positionInRound`, `response` (`DISLIKE` | `LIKE` | `PREFER` | `UNFAMILIAR` | `INTOLERANT` | `UNDO`), `timestamp`, `responseTimeMs` (Karte vollständig sichtbar bis Antwort), `inputMethod` (`swipe` | `button` | `link`; `keyboard` nur bei Demos am Laptop), `selectionReason`, bei INTOLERANT zusätzlich `excludedCardIds`.
+- **Weitere Ereignisse im selben Log** (`type`): `RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED` (Profil, `source = "profile"`) und `AUTH_STARTED`, `AUTH_COMPLETED` (Registrierung). Die CSV hat dafür die Spalten `type`, `source`, `rating`, `previousRating`, `section`, `exclusions`, `newDiet`, `previousDiet` und `auth`.
 
 **Ansicht für die Testleitung:** `?admin=1` anhängen. Sie ist nirgends verlinkt und zeigt alle Sitzungen auf dem Gerät mit:
 
 - Export JSON (alles) und Export CSV (eine Zeile pro Ereignis, `sessionId` in jeder Zeile, UTF-8, Komma als Trennzeichen),
-- „Neue Testperson starten“ (lädt die App neu, behält Sitzungen und den Parameter `limit`),
+- „Neue Testperson starten“ (meldet die vorherige Person auf dem Gerät ab und lädt die App neu, behält Sitzungen und den Parameter `limit`). **Nach jeder Testperson drücken:** Sonst sieht die nächste Person „Willkommen zurück“ und das Profil der vorherigen (Gesundheitsdaten, siehe Frage F4).
 - „Alle Daten löschen“ mit Bestätigung.
 
-Datenschutz: Der Vorname wird nie gespeichert. Die Ausschlüsse sind Gesundheitsdaten; solange Frage F4 (Einwilligung) offen ist, lassen sie sich mit `PRIVACY.logExclusionValues = false` in `src/config.js` auf Typ und Herkunft reduzieren.
+Datenschutz: Vorname und Telefonnummer stehen in keiner Sitzung und in keinem Export (nur lokal im Konto auf dem Gerät, die Nummer gekürzt). Die Ausschlüsse sind Gesundheitsdaten; solange Frage F4 (Einwilligung) offen ist, lassen sie sich mit `PRIVACY.logExclusionValues = false` in `src/config.js` auf Typ und Herkunft reduzieren (auch in Profiländerungen).
 
 ## Starten
 
@@ -129,20 +158,25 @@ Jeder Push auf `main` testet, baut und veröffentlicht den Prototyp auf GitHub P
 
 ```
 src/
-  config.js              Standardwerte (ROUND_CARD_LIMIT, TUTORIAL_ENABLED), URL-Parameter, Wischschwellen, Datenschutz
+  config.js              Standardwerte (ROUND_CARD_LIMIT, TUTORIAL_ENABLED, IMAGE_STYLE, AUTH_ENABLED), URL-Parameter, Wischschwellen, Datenschutz
   labels.js              alle sichtbaren Texte
   theme/tokens.css       Design-Tokens (einzige Stelle für Gestaltungswerte)
   theme/motion.js        Animationsdauern aus den Tokens für JavaScript
-  styles/                Komponenten-CSS (nur Tokens): base, controls, app, card, screens
+  styles/                Komponenten-CSS (nur Tokens): base, controls, app, card, screens, account
   app/model.js           Ablauf und Zustand der App (rein, getestet)
   data/catalog.json      Kartenkatalog: id, stage, parentId, children, allergens, animalOrigin, todo
   data/allergens.json    14 Hauptallergene mit Unterauswahl
   data/stage0.json       Fragebogen Stufe 0 und Tabelle der Ernährungsweisen
   data/image-credits.json  Fotos und Bildnachweise (APA 7)
+  lib/images.js          Foto oder Illustration je Karte (Bildstil der Sitzung)
+  auth/                  AuthService (Schnittstelle), MockAuthService (SMS-Simulation), Handynummern
+  storage/local.js       Konto und Stand der App auf dem Gerät (nie in Exporten)
   logic/answers.js       Antworttypen und ihre Bedeutung
+  logic/events.js        Ereignistypen im Event-Log (Antworten, Profiländerungen, Registrierung)
+  logic/foodSearch.js    einheitliche Suche mit Synonymen, Kategorie und Hervorhebung
   logic/swipe.js         Wischgesten: Schwelle, Rückfederung, Deckkraft der Beschriftung
   logic/filter.js        isAllowed, isVisible, Hinweise auf Familienkarten
-  logic/engine.js        replay (Event-Log), selectNextCards (Platzhalter), Fortschritt, Profil
+  logic/engine.js        replay (Event-Log inkl. Profiländerungen), selectNextCards (Platzhalter), Fortschritt, computeProfile
   logic/profile.js       Ausschlüsse für „Mein Profil“ gruppieren
   logic/stage0.js        Ausschlüsse aus dem Onboarding ableiten
   logic/allergens.js     Auswahl und Suche in der Allergenliste
@@ -150,7 +184,8 @@ src/
   logging/logger.js      Sitzungen in localStorage
   logging/export.js      CSV- und JSON-Export
   components/            Swipe-Karte, Antwortknöpfe, untere Navigation, Sheets, Suche, Chips, Zustände
-  screens/               Start, Anmelden, Fragebogen, Tutorial (aus), Runde, Abschluss, Mein Profil, Admin
+  screens/               Willkommen, Registrierung (3), Willkommen zurück, Über dich, Fragebogen,
+                         Tutorial (aus), Runde, Abschluss, Mein Profil, Admin
   test/dom.js            kleine DOM-Umgebung (jsdom) für Komponententests
 scripts/
   test-setup.mjs         lädt JSX, JSON und CSS in node --test wie Vite
@@ -170,7 +205,7 @@ Alle Funktionen sind rein. Bei jeder Änderung der Regeln `RULE_VERSION` erhöhe
 
 ## Mobile-Kriterien
 
-Geprüft bei 360 × 640 und 430 × 932 auf allen 13 Bildschirmen (inkl. Detailauswahl, Bestätigung, Abschluss und Profil), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
+Geprüft bei 360 × 640 und 430 × 932 auf allen 22 Bildschirmen (inkl. Registrierung mit SMS-Mitteilung, Detailauswahl, Bestätigung, Abschluss, Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ sowie „Willkommen zurück“), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
 
 Die Prüfung ist wiederholbar: `npm run build && npm run preview`, dann in einem zweiten Terminal `python3 scripts/check-mobile.py` und `python3 scripts/check-mobile.py 1.3` (130 % Schrift). Voraussetzung: `pip install playwright` und `python -m playwright install chromium`.
 
@@ -201,7 +236,10 @@ Ausserdem:
 
 - Erdnüsse: Es gibt keine Erdnuss-Karte. Eine Erdnussallergie blendet beim Wischen deshalb noch nichts aus. Umgekehrt schliesst „Alle Nüsse (inkl. Erdnüsse)“ auch Erdnüsse aus, wer nur Baumnüsse meint.
 - Marken und Herkunft: Wirkung erst mit Produktdaten (z. B. von nurec).
-- Anmeldung: Wie die Anmeldeoption später aussieht, ist noch offen.
+- Registrierung: echte SMS-Verifizierung oder Simulation? Mit dem Dozenten klären. Heute ist alles simuliert (`MockAuthService`).
+- Soll die Registrierung in der Nutzerstudie aktiv sein? Sie kostet Zeit vor dem Swipen (auswertbar über `AUTH_STARTED`/`AUTH_COMPLETED`). Abschaltbar mit `AUTH_ENABLED = false`.
+- Dürfen Testpersonen ihr Profil während der Studie bearbeiten? Jede Änderung ist im Log nachvollziehbar, verändert aber das angezeigte Profil.
+- Synonyme: unsichere Begriffe in `synonymTodos` (z. B. „Baumnuss“ für Walnuss vs. Kartentitel „Baumnüsse“, Peperoni in Deutschland).
 - Glutenfreie Varianten: Früher hiess es „Nur glutenfrei“, mit Tags entfällt die Familie Brot bei „Alles mit Gluten“ ganz.
 - „Alkohol“ als Schnellauswahl in Frage 3 fehlt, weil der Katalog keinen passenden Tag hat.
 - Werden die neuen Begriffe im Pilot verstanden?
@@ -209,10 +247,15 @@ Ausserdem:
 - Wird „Vertrage ich nicht“ übersehen oder mit „Mag ich nicht“ verwechselt? Im Pilot über `inputMethod = link` und Rückgängig-Ereignisse auswertbar.
 - Tutorial: seit dem 13.10. aus. Ein Pilot-Vergleich ist mit `TUTORIAL_ENABLED = true` möglich (nicht über die URL).
 - Zusammenfassung vor dem ersten Swipe: seit dem 13.10. entfernt. nurec v0.2, Kap. 2.2, sieht eine verständliche Zusammenfassung vor dem ersten Swipe vor; mit nurec abstimmen. Die festen Regeln sind weiterhin in „Mein Profil“ sichtbar.
+- Gespeicherter Stand auf dem Testgerät („Willkommen zurück“): Ins Testprotokoll gehört, dass die Testleitung nach jeder Person „Neue Testperson starten“ drückt. Gehört zu Frage F4.
+- „Aus dem Profil entfernen“: Die Karte zählt für die Runde weiter als beantwortet. Für die Auswertung vertretbar, im Bericht erwähnen.
+- Marken und Händler (z. B. Migros, M-Budget): Eine Autovervollständigung fehlt noch; heute freie Eingabe ohne Wirkung auf die Karten.
 - Kacheln: Die Auswahl der 8 häufigen Allergene ist eine Annahme, keine Häufigkeitsangabe.
 - Frage F4: Einwilligung und Speicherung von Gesundheitsdaten im Test.
 - Ansprache mit Du oder Sie, Wischschwellen.
-- Fotos oder Illustrationen (`IMAGE_STYLE`): mit Tibor abstimmen oder im Pilot vergleichen. Bildlizenzen: alle 13 Fotos unter der Unsplash License (keine Unsplash+-Bilder, Stand 14.10.2026), Nachweise mit APA 7 in `src/data/image-credits.json`; vor der Abgabe Namen und Titel prüfen. Bildstil: Käse ist schräg fotografiert, Kartoffeln sind roh.
+- Bildlizenzen: alle 13 Fotos unter der Unsplash License (keine Unsplash+-Bilder, Stand 14.10.2026); Nachweise mit APA 7 in `src/data/image-credits.json`. Vor der Abgabe Namen und Titel prüfen (z. B. „David Foodphototasty“ ist ein Künstlername) und klären, ob nurec für eine spätere Nutzung eigene Fotos braucht.
+- Fotos oder Illustrationen (`IMAGE_STYLE`): mit Tibor abstimmen oder im Pilot vergleichen. Bildstil: Käse (Milchprodukte) ist schräg fotografiert, Kartoffeln sind roh. Ob die Fotos die Bewertung beeinflussen (Annahme 5), im Pilot beobachten.
+- Rückmeldung Team (12.10.) statt A7: Eingetippte Notizen blenden das Wort als Beispiel aus, schliessen aber keine Gruppe aus. Bestätigen, dass das so bleiben soll.
 
 ## Quelle
 

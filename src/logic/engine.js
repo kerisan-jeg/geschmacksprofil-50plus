@@ -1,14 +1,18 @@
 // Engine des Prototyps. Die Oberfläche kennt nur die exportierten Funktionen.
 //
 // Event-Log als einzige Quelle der Wahrheit (A8): Der Zustand einer Runde wird immer aus der
-// Liste der Antwort-Ereignisse abgeleitet (replay). Rückgängig ist ein eigenes Ereignis (UNDO),
+// Liste der Ereignisse abgeleitet (replay). Rückgängig ist ein eigenes Ereignis (UNDO),
 // nichts wird gelöscht. So laufen Oberfläche, Profil und Protokoll nie auseinander, und jedes
 // Profil lässt sich aus dem exportierten Protokoll nachrechnen.
+// Profiländerungen (RATING_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, DIET_CHANGED, siehe events.js)
+// sind weitere Ereignisse im selben Log. Sie überschreiben nie die ursprüngliche Swipe-Antwort.
 //
 // Alle Funktionen sind rein (kein Zufall, keine Uhrzeit).
 
 import { DISLIKE, INTOLERANT, LIKE, PREFER, RESPONSE_SEMANTICS, RESPONSES, UNDO, UNFAMILIAR, isTasteSignal } from './answers.js';
+import { ANSWER, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED, SOURCE_PROFILE, eventType, isProfileEvent } from './events.js';
 import { annotateCard, buildExclusions, isVisible } from './filter.js';
+import { sectionOf } from './profile.js';
 import { SOURCE_SWIPE } from './stage0.js';
 
 export const RULE_VERSION = 'demo-0.2';
@@ -19,40 +23,89 @@ export const RULE_VERSION = 'demo-0.2';
 // excludedCardIds nur bei INTOLERANT: welche Karten künftig ausgeschlossen sind
 // (die Karte selbst oder eine Auswahl ihrer Nachkommen).
 
-// Spielt die Ereignisse ab. UNDO nimmt die jeweils letzte noch gültige Antwort zurück.
-export function replay(events) {
-  const active = [];
-  for (const event of events) {
-    if (event.response === UNDO) {
-      active.pop();
-      continue;
-    }
-    if (!RESPONSES.includes(event.response)) continue;
-    if (active.some((earlier) => earlier.cardId === event.cardId)) continue;
-    active.push(event);
-  }
-
-  const answers = {};
-  const sequence = [];
-  const swipeExclusions = [];
-  for (const event of active) {
-    answers[event.cardId] = event.response;
-    sequence.push(event.cardId);
-    if (event.response === INTOLERANT) {
-      const ids = event.excludedCardIds?.length ? event.excludedCardIds : [event.cardId];
-      for (const id of ids) swipeExclusions.push({ type: 'card', value: id, source: SOURCE_SWIPE, origin: event.cardId });
-    }
-  }
-  return { answers, sequence, swipeExclusions, lastEvent: active.at(-1) ?? null };
+function swipeEntries(event) {
+  const ids = event.excludedCardIds?.length ? event.excludedCardIds : [event.cardId];
+  return ids.map((id) => ({ type: 'card', value: id, source: SOURCE_SWIPE, origin: event.cardId }));
 }
 
-// Gesamter Zustand der Runde aus Katalog, Onboarding und Ereignissen.
+// Spielt die Antworten beim Wischen ab. UNDO nimmt die jeweils letzte noch gültige Antwort zurück.
+// answeredAt: Position der gültigen Antwort im Log (für spätere Profiländerungen an dieser Karte).
+export function replay(events) {
+  const active = [];
+  events.forEach((event, at) => {
+    if (eventType(event) !== ANSWER) return;
+    if (event.response === UNDO) {
+      active.pop();
+      return;
+    }
+    if (!RESPONSES.includes(event.response)) return;
+    if (active.some((earlier) => earlier.event.cardId === event.cardId)) return;
+    active.push({ event, at });
+  });
+
+  const answers = {};
+  const answeredAt = {};
+  const sequence = [];
+  const swipeExclusions = [];
+  for (const { event, at } of active) {
+    answers[event.cardId] = event.response;
+    answeredAt[event.cardId] = at;
+    sequence.push(event.cardId);
+    if (event.response === INTOLERANT) swipeExclusions.push(...swipeEntries(event));
+  }
+  return { answers, answeredAt, sequence, swipeExclusions, lastEvent: active.at(-1)?.event ?? null };
+}
+
+function matchesRemoval(entry, removal, section) {
+  return entry.type === removal.type && entry.value === removal.value && (!section || sectionOf(entry) === section);
+}
+
+// Ausschlüsse, Ernährungsweise und Bewertungen in zeitlicher Reihenfolge: Grundlage sind die Angaben
+// aus dem Onboarding, dann folgen „Vertrage ich nicht“ beim Wischen und Änderungen im Profil.
+// Ein entfernter Ausschluss fehlt danach einfach in den Einträgen; ob eine Karte wieder erlaubt ist,
+// entscheidet wie immer isAllowed() (keine Sonderlogik).
+function applyEvents(events, played, onboarding) {
+  let entries = [...(onboarding?.exclusions ?? [])];
+  let diet = onboarding?.diet ?? null;
+  const ratingChanges = {};
+  events.forEach((event, at) => {
+    const type = eventType(event);
+    if (type === ANSWER) {
+      if (event.response === INTOLERANT && played.answeredAt[event.cardId] === at) entries.push(...swipeEntries(event));
+      return;
+    }
+    if (!isProfileEvent(event)) return;
+    if (type === EXCLUSION_ADDED) {
+      for (const exclusion of event.exclusions ?? []) {
+        const entry = { ...exclusion, source: SOURCE_PROFILE, section: event.section };
+        if (!entries.some((existing) => matchesRemoval(existing, entry, event.section))) entries.push(entry);
+      }
+    } else if (type === EXCLUSION_REMOVED) {
+      entries = entries.filter((entry) => !(event.exclusions ?? []).some((removal) => matchesRemoval(entry, removal, event.section)));
+    } else if (type === DIET_CHANGED) {
+      diet = event.diet ?? null;
+    } else if (type === RATING_CHANGED) {
+      ratingChanges[event.cardId] = { rating: event.rating ?? null, at };
+    }
+  });
+
+  // Letzte direkte Antwort pro Karte: die Antwort beim Wischen oder eine spätere Änderung im Profil.
+  // Wird die Antwort beim Wischen rückgängig gemacht, gelten auch frühere Änderungen nicht mehr.
+  const ratings = {};
+  for (const cardId of played.sequence) {
+    const change = ratingChanges[cardId];
+    ratings[cardId] = change && change.at > played.answeredAt[cardId] ? change.rating : played.answers[cardId];
+  }
+  return { entries, diet, ratings };
+}
+
+// Gesamter Zustand aus Katalog, Onboarding und Ereignissen.
 // onboarding: Ergebnis von deriveOnboarding() (diet, exclusions, cardLabels, …).
 export function deriveRoundState({ index, onboarding, diets, events = [] }) {
   const played = replay(events);
-  const entries = [...(onboarding?.exclusions ?? []), ...played.swipeExclusions];
-  const exclusions = buildExclusions(entries, { diet: onboarding?.diet ?? null, diets, index });
-  return { index, onboarding, entries, exclusions, cardLabels: onboarding?.cardLabels ?? {}, ...played };
+  const { entries, diet, ratings } = applyEvents(events, played, onboarding);
+  const exclusions = buildExclusions(entries, { diet, diets, index });
+  return { index, onboarding, entries, exclusions, diet, ratings, cardLabels: onboarding?.cardLabels ?? {}, ...played };
 }
 
 function answeredCount(state) {
@@ -105,17 +158,28 @@ export function eligibleFamilies(state) {
   return state.index.cards.filter((card) => card.stage === 1 && isVisible(card, state.index, state.exclusions));
 }
 
+// Geschmacksprofil für „Mein Profil“: gruppiert nur nach der letzten direkten Antwort pro Karte
+// (beim Wischen oder später im Profil geändert). Reine Funktion.
+// TODO: Score-Modell, Gewichtung und Ableitung nicht abgefragter Lebensmittel folgen – Eigenleistung Team
+// Bewusst ohne Prozentwerte, ohne abgeleitete Einträge und ohne Gewichtung.
+export function computeProfile(state) {
+  const groups = { [PREFER]: [], [LIKE]: [], [DISLIKE]: [], [UNFAMILIAR]: [] };
+  const intolerant = [];
+  const removed = [];
+  for (const id of state.sequence) {
+    const rating = state.ratings ? state.ratings[id] : state.answers[id];
+    if (rating === null) removed.push(id);
+    else if (rating in groups) groups[rating].push(id);
+    else if (rating === INTOLERANT) intolerant.push(id);
+  }
+  return { groups, intolerant, removed, answered: state.sequence.length };
+}
+
 // Profil, wie es am Ende angezeigt (und protokolliert) wird.
 // Nur Geschmackssignale (DISLIKE, LIKE, PREFER) erscheinen als Geschmack.
 // UNFAMILIAR und UNRATED sind keine Bewertung; INTOLERANT ist ein Ausschluss, kein Geschmack.
 export function buildProfile(state) {
-  const groups = { [PREFER]: [], [LIKE]: [], [DISLIKE]: [], [UNFAMILIAR]: [] };
-  const intolerant = [];
-  for (const id of state.sequence) {
-    const response = state.answers[id];
-    if (isTasteSignal(response) || response === UNFAMILIAR) groups[response].push(id);
-    else if (response === INTOLERANT) intolerant.push(id);
-  }
+  const { groups, intolerant, removed } = computeProfile(state);
   const unrated = state.index.cards
     .filter((card) => card.stage === 1 && !(card.id in state.answers) && isVisible(card, state.index, state.exclusions))
     .map((card) => card.id);
@@ -125,6 +189,8 @@ export function buildProfile(state) {
     unfamiliar: groups[UNFAMILIAR],
     unrated,
     intolerant,
+    removed,
+    diet: state.diet ?? null,
     exclusions: state.entries.map(({ type, value, source, origin, label }) => ({ type, value, source, origin: origin ?? null, label: label ?? null })),
   };
 }
@@ -172,7 +238,9 @@ export function collapseIntolerance(state, card, selectedIds) {
   return out;
 }
 
-// Alle Antworten, die in einen Geschmacksscore eingehen dürfen. INTOLERANT ist nie dabei.
+// Alle Antworten, die in einen Geschmacksscore eingehen dürfen (letzte direkte Antwort pro Karte).
+// INTOLERANT ist nie dabei.
 export function tasteSignals(state) {
-  return state.sequence.filter((id) => isTasteSignal(state.answers[id])).map((id) => ({ cardId: id, response: state.answers[id] }));
+  const current = (id) => (state.ratings ? state.ratings[id] : state.answers[id]);
+  return state.sequence.filter((id) => isTasteSignal(current(id))).map((id) => ({ cardId: id, response: current(id) }));
 }

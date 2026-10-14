@@ -1,6 +1,6 @@
 // Einstiegsablauf nach dem Teamentscheid vom 13.10. (ursprünglich von Arben, an das App-Modell in
 // src/app/model.js angepasst): Frage 2 ohne „Unsicher“, nach Frage 3 direkt die erste Karte,
-// alte ?tutorial-URLs ändern daran nichts.
+// alte ?tutorial-URLs ändern daran nichts. Statt „Anmelden“ steht seit der Registrierung „Über dich“.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -23,8 +23,10 @@ function answer(state, questionId, changes) {
   return reducer(state, { type: 'setAnswer', questionId, value });
 }
 
+const account = { firstName: 'Anna', phoneMasked: '+41 79 *** ** 67', verifiedAt: null };
+
 function questionnaire(search = '') {
-  let state = reducer(initialState(resolveConfig(search)), { type: 'login', person: { firstName: 'Anna', ageGroup: '60-69', participantCode: '', consent: true } });
+  let state = reducer(initialState(resolveConfig(search), { account }), { type: 'about', person: { ageGroup: '60-69', participantCode: '', consent: true } });
   state = answer(state, 'diet', 'none');
   state = reducer(state, { type: 'step', to: 1 });
   state = answer(state, 'intolerances', { gate: 'no' });
@@ -76,7 +78,7 @@ test('Der direkte Rundenstart übernimmt Ernährungsweise, Allergien und weitere
   assert.equal(nextCard(roundOf(state), state.config).id, 'F04');
 });
 
-test('Zurück führt von Frage 3 über Frage 2 und Frage 1 zur Anmeldung und behält die Antworten', () => {
+test('Zurück führt von Frage 3 über Frage 2 und Frage 1 zu „Über dich“ und behält die Antworten', () => {
   let state = questionnaire();
   const answers = state.answers;
   for (const to of [1, 0]) {
@@ -86,7 +88,7 @@ test('Zurück führt von Frage 3 über Frage 2 und Frage 1 zur Anmeldung und beh
     assert.deepEqual(state.answers, answers);
   }
   state = reducer(state, { type: 'step', to: -1 });
-  assert.equal(state.screen, SCREENS.LOGIN);
+  assert.equal(state.screen, SCREENS.ABOUT);
   assert.deepEqual(state.answers, answers);
 });
 

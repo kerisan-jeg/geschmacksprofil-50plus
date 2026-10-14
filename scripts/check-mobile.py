@@ -1,6 +1,7 @@
 """Misst die Mobile-Kriterien (Addendum A11) auf allen Bildschirmen des Prototyps.
 
-Geprüft bei 360 x 640 und 430 x 932:
+Geprüft bei 360 x 640 und 430 x 932 auf allen Bildschirmen inkl. Registrierung (SMS simuliert),
+Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ und „Willkommen zurück“:
   - kein horizontaler Scroll
   - Touch-Ziele >= 44 x 44 CSS-px
   - Textkontrast >= 4.5:1 (axe-core, Regel color-contrast)
@@ -15,6 +16,7 @@ Aufruf (in einem zweiten Terminal läuft `npm run build && npm run preview`):
 Optional als zweites Argument ein Ordner für Screenshots, z. B. `python3 scripts/check-mobile.py 1 shots`.
 """
 import json
+import re
 import sys
 from pathlib import Path
 from playwright.sync_api import sync_playwright
@@ -93,17 +95,30 @@ def run(p, W, H):
     results = {}
     pg.goto(BASE + '?limit=4')
     check(pg, 'start', results, W)
-    pg.get_by_role('button', name='Los geht’s').click(); check(pg, 'login', results, W)
-    pg.get_by_text('Für die Testleitung').click()
+    # Registrierung (SMS simuliert: Code aus der Mitteilung oben)
+    pg.get_by_role('button', name='Los geht’s').click(); check(pg, 'reg_vorname', results, W)
     pg.get_by_label('Vorname').fill('Test')
+    pg.get_by_role('button', name='Weiter', exact=True).click()
+    pg.get_by_label('Handynummer').fill('044 123 45 67')
+    pg.get_by_role('button', name='Code senden').click(); check(pg, 'reg_nummer_fehler', results, W)
+    pg.get_by_label('Handynummer').fill('079 123 45 67')
+    pg.get_by_role('button', name='Code senden').click()
+    pg.wait_for_selector('.sms-banner')
+    check(pg, 'reg_code_mitteilung', results, W)
+    code = re.search(r'\d{6}', pg.locator('.sms-text').inner_text()).group(0)
+    pg.get_by_label('Code aus der SMS').fill('000000' if code != '000000' else '111111')
+    pg.wait_for_timeout(600); check(pg, 'reg_code_falsch', results, W)
+    pg.get_by_label('Code aus der SMS').fill(code)
+    pg.wait_for_selector('.screen-about'); check(pg, 'ueber_dich', results, W)
+    pg.get_by_text('Für die Testleitung').click()
     pg.get_by_text('60 bis 69').click()
-    pg.get_by_text('Ich bin einverstanden').click(); pg.get_by_role('button', name='Anmelden').click()
+    pg.get_by_text('Ich bin einverstanden').click(); pg.get_by_role('button', name='Weiter', exact=True).click()
     check(pg, 'frage1', results, W)
     pg.get_by_text('Nein, ich esse alles').click(); pg.get_by_role('button', name='Weiter', exact=True).click()
     pg.get_by_text('Ja', exact=True).click()
     pg.get_by_role('button', name='Weitere anzeigen').click()
     pg.get_by_role('button', name='Soja').click()
-    pg.get_by_label('Suchen').fill('mandel')
+    pg.get_by_label('Suchen').fill('rüebli')
     pg.get_by_text('Ich bin mir nicht sicher').click()
     check(pg, 'frage2', results, W)
     pg.get_by_label('Suchen').fill('')
@@ -132,7 +147,18 @@ def run(p, W, H):
     pg.get_by_role('button', name='Mag ich sehr').click(); pg.wait_for_timeout(300)
     check(pg, 'abschluss', results, W)
     pg.get_by_role('button', name='Mein Profil ansehen').click(); check(pg, 'profil', results, W)
+    pg.locator('button.taste-row').first.click(); check(pg, 'profil_bewertung', results, W)
+    pg.get_by_role('radio', name='Mag ich', exact=True).click(); pg.wait_for_timeout(200)
+    pg.get_by_role('button', name='Ändern', exact=True).first.click(); check(pg, 'profil_allergien', results, W)
+    pg.get_by_role('button', name='Abbrechen').click()
+    pg.locator('.exclusion-section').nth(2).get_by_role('button', name='Hinzufügen').click()
+    pg.get_by_label('Lebensmittel suchen').fill('Sahne'); check(pg, 'profil_suche', results, W)
+    pg.locator('.search-hit').first.click(); pg.wait_for_timeout(200)
+    pg.locator('.exclusion-section').first.get_by_role('button', name=re.compile('entfernen')).first.click()
+    check(pg, 'profil_bestaetigen', results, W)
+    pg.get_by_role('button', name='Abbrechen').click()
     pg.mouse.wheel(0, 4000); check(pg, 'profil_unten', results, W)
+    pg.reload(); pg.wait_for_selector('.screen-welcome'); check(pg, 'willkommen_zurueck', results, W)
     pg.goto(BASE + '?admin=1'); check(pg, 'admin', results, W)
     b.close()
     return results, errors, trans, after

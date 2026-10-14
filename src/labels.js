@@ -57,18 +57,80 @@ export const STEPS = {
 export const START = {
   title: 'Was isst du gern?',
   lead: 'Wir zeigen dir Lebensmittel auf Karten. Bei jeder Karte sagst du mit einem Wisch oder einem Tipp, wie gern du sie isst.',
-  steps: ['Kurz anmelden', 'Drei Fragen zu Allergien und Ernährung', 'Karten wischen oder tippen'],
+  steps: ['Kurz anmelden mit Vorname und Handynummer', 'Drei Fragen zu Allergien und Ernährung', 'Karten wischen oder tippen'],
   pause: 'Aufhören kannst du jederzeit.',
   start: 'Los geht’s',
   fineprint: 'Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten bleiben auf diesem Gerät.',
   storageBlocked: 'Dein Browser erlaubt hier kein Speichern. Die App funktioniert, aber beim Schliessen gehen deine Antworten verloren.',
 };
 
-// Anmeldung ohne Passwort (vor dem Fragebogen)
-export const LOGIN = {
-  title: 'Anmelden',
-  lead: 'Damit wir dich persönlich ansprechen können. Ein Passwort brauchst du nicht.',
+// Registrierung: Vorname → Handynummer → SMS-Code (simuliert, siehe src/auth/MockAuthService.js)
+export const REGISTER = {
+  stepOf: (position, total) => `Schritt ${position} von ${total}`,
+  nameTitle: 'Wie heisst du?',
+  nameLead: 'Nur dein Vorname, kein Nachname. So sprechen wir dich in der App an.',
+  nameLabel: 'Vorname',
+  nameError: 'Bitte gib deinen Vornamen ein.',
+  nameNext: 'Weiter',
+  phoneTitle: 'Deine Handynummer',
+  phoneLead: 'Wir schicken dir einen Code per SMS. Damit findest du dein Profil auf diesem Gerät wieder.',
+  countryLabel: 'Ländervorwahl',
+  countries: { CH: 'Schweiz', DE: 'Deutschland', AT: 'Österreich', LI: 'Liechtenstein', FR: 'Frankreich', IT: 'Italien' },
+  countryOption: (name, dial) => `${name} (${dial})`,
+  phoneLabel: 'Handynummer',
+  phonePlaceholder: '079 123 45 67',
+  phoneErrors: {
+    empty: 'Bitte gib deine Handynummer ein.',
+    too_short: 'Die Nummer ist zu kurz. Prüfe, ob alle Ziffern stimmen.',
+    too_long: 'Die Nummer ist zu lang. Prüfe, ob alle Ziffern stimmen.',
+    not_mobile: 'Das ist keine Handynummer. In der Schweiz beginnt sie mit 07, z. B. 079 123 45 67.',
+  },
+  phonePrivacy: 'Deine Nummer bleibt auf diesem Gerät. Nach der Bestätigung behalten wir sie nur gekürzt.',
+  sendCode: 'Code senden',
+  sending: 'Code wird gesendet …',
+  sendError: 'Der Code konnte nicht gesendet werden. Bitte versuche es nochmals.',
+  codeTitle: 'Code eingeben',
+  codeLead: (masked) => `Wir haben dir einen Code mit 6 Ziffern an ${masked} geschickt.`,
+  codeLabel: 'Code aus der SMS',
+  codeHint: 'Du kannst den Code auch einfügen.',
+  checking: 'Code wird geprüft …',
+  confirmCode: 'Bestätigen',
+  codeWrong: 'Der Code stimmt nicht. Prüfe die SMS und gib ihn nochmals ein.',
+  codeExpired: 'Der Code ist abgelaufen. Lass dir einen neuen schicken.',
+  resend: 'Code erneut senden',
+  resendIn: (seconds) => `Neuen Code in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`,
+  resent: 'Wir haben dir einen neuen Code geschickt.',
+  changeNumber: 'Nummer ändern',
+  simulationNote: 'Prototyp: Es wird keine echte SMS verschickt. Der Code erscheint oben als Mitteilung.',
+};
+
+// Simulierte SMS-Mitteilung oben am Bildschirm
+export const SMS = {
+  region: 'Mitteilung',
+  app: 'Nachrichten',
+  time: 'jetzt',
+  sender: 'Geschmack',
+  text: (code) => `${code} ist dein Code für Geschmacksprofil. Gib ihn nicht weiter.`,
+  dismiss: 'Mitteilung schliessen',
+};
+
+// Wiederkehrende Person auf demselben Gerät
+export const WELCOME_BACK = {
+  title: (name) => (name ? `Willkommen zurück, ${name}` : 'Willkommen zurück'),
+  lead: 'Schön, dass du wieder da bist. Du machst dort weiter, wo du aufgehört hast.',
+  phone: (masked) => `Angemeldet mit ${masked}`,
+  continue: 'Weiter',
+  notMe: (name) => (name ? `Ich bin nicht ${name}` : 'Jemand anderes möchte die App nutzen'),
+};
+
+// Über dich: erster Schritt im Onboarding (Alter und Einwilligung; Vorname nur ohne Registrierung)
+export const ABOUT = {
+  title: 'Über dich',
+  lead: 'Zwei kurze Angaben, dann geht es mit den Fragen weiter.',
+  leadNoAuth: 'Ein paar kurze Angaben, dann geht es mit den Fragen weiter.',
   firstName: 'Vorname',
+  optional: 'freiwillig',
+  firstNameHint: 'Damit wir dich persönlich ansprechen können.',
   age: 'Alter',
   ageGroups: [
     { id: '50-59', label: '50 bis 59' },
@@ -77,14 +139,18 @@ export const LOGIN = {
     { id: '80+', label: '80 und älter' },
   ],
   consent: 'Ich bin einverstanden, dass meine Antworten ohne Namen für dieses Studierendenprojekt ausgewertet werden.',
-  errorName: 'Bitte gib deinen Vornamen ein.',
   errorAge: 'Bitte wähle deine Altersgruppe.',
   errorConsent: 'Bitte bestätige die Einwilligung, damit es weitergehen kann.',
   leadDetails: 'Für die Testleitung',
   participantCode: 'Teilnehmer-Nr.',
   participantPlaceholder: 'z. B. T07',
-  submit: 'Anmelden',
+  submit: 'Weiter',
   privacy: 'Deine Angaben bleiben auf diesem Gerät.',
+};
+
+// Profil-Knopf oben rechts (Kreis mit Initiale)
+export const AVATAR = {
+  open: (name) => (name ? `Mein Profil (${name})` : 'Mein Profil'),
 };
 
 // Fragebogen Stufe 0
@@ -130,6 +196,20 @@ export const ONBOARDING = {
   originsPlaceholder: 'Land, Region',
   brandsNotApplied: 'Wir speichern das für spätere Produktvorschläge. Auf die Karten hier hat es noch keine Wirkung.',
   noteChip: 'Notiz',
+};
+
+// Einheitliche Suche (FoodSearch): Onboarding und Profil
+export const SEARCH = {
+  family: 'Lebensmittelgruppe',
+  tag: 'alles mit diesem Merkmal',
+  allergen: 'Allergen',
+  matchedVia: (term) => `passt zu „${term}“`,
+  matchedViaStart: 'passt zu „',
+  matchedViaEnd: '“',
+  results: (count) => (count === 1 ? '1 Vorschlag' : `${count} Vorschläge`),
+  noResult: 'Kein Eintrag gefunden.',
+  addNote: (text) => `„${text}“ als Notiz eintragen`,
+  selected: 'ausgewählt',
 };
 
 // Detailauswahl (Onboarding und „Vertrage ich nicht“ beim Wischen)
@@ -219,6 +299,7 @@ export const COMPLETE = {
 // Mein Profil
 export const PROFILE = {
   title: 'Mein Profil',
+  greeting: (name) => (name ? `Hallo ${name}` : 'Hallo'),
   answered: (count) => `${plural(count, 'Karte', 'Karten')} beantwortet`,
   tasteTitle: 'Dein Geschmack',
   tasteLead: 'Direkt aus deinen Antworten, ohne Berechnung.',
@@ -256,6 +337,36 @@ export const PROFILE = {
   restartTitle: 'Wirklich von vorn beginnen?',
   restartText: 'Deine Antworten in dieser App werden zurückgesetzt. Für die Auswertung bleiben sie auf diesem Gerät gespeichert.',
   restartConfirm: 'Ja, von vorn beginnen',
+  signOut: 'Abmelden',
+  signOutTitle: 'Abmelden?',
+  signOutText: 'Dein Profil wird von diesem Gerät gelöscht. Für die Auswertung bleiben deine Antworten ohne Namen und ohne Nummer gespeichert.',
+  signOutConfirm: 'Ja, abmelden',
+  // Bearbeiten
+  editRating: 'Bewertung ändern',
+  editRatingFor: (title) => `${title}: Bewertung ändern`,
+  ratingLabel: 'Wie gern isst du das?',
+  ratingRemove: 'Aus dem Profil entfernen',
+  ratingNote: 'Deine ursprüngliche Antwort beim Wischen bleibt im Protokoll erhalten.',
+  removed: (title) => `${title} ist nicht mehr in deinem Profil.`,
+  changed: 'Gespeichert.',
+  undoChange: 'Rückgängig',
+  editAllergies: 'Allergien ändern',
+  allergiesHint: 'Tippe an, was zutrifft. Bei Nüssen und Gluten kannst du einzelne Einträge wählen.',
+  change: 'Ändern',
+  changeDietFor: (label) => `Ernährungsweise ändern: ${label}`,
+  add: 'Hinzufügen',
+  remove: (label) => `${label} entfernen`,
+  searchIntolerances: 'Was verträgst du nicht?',
+  searchNever: 'Was möchtest du nicht essen?',
+  searchLabel: 'Lebensmittel suchen',
+  searchPlaceholder: 'z. B. Rahm oder Rüebli',
+  done: 'Fertig',
+  confirmRemoveTitle: (label) => `${label} entfernen?`,
+  confirmRemoveAllergy: 'Dann schlagen wir dir Lebensmittel damit wieder vor, auch in allen weiteren Runden.',
+  confirmRemoveIntolerance: 'Dann schlagen wir es dir wieder vor, auch in allen weiteren Runden.',
+  confirmRemove: 'Ja, entfernen',
+  allergiesRemovedTitle: (count) => (count === 1 ? 'Eine Allergie entfernen?' : `${count} Allergien entfernen?`),
+  allergiesRemovedText: (names) => `${names.join(', ')}: Diese Lebensmittel schlagen wir dir dann wieder vor.`,
   credits: 'Bildnachweise',
   creditLine: (photo) => `${photo.cardTitle}: Foto von ${photo.photographer}, ${photo.source} (${photo.license})`,
 };
@@ -263,7 +374,7 @@ export const PROFILE = {
 // Fehlerzustand für jeden Bildschirm (ErrorBoundary)
 export const ERRORS = {
   title: 'Da ist etwas schiefgelaufen',
-  text: 'Lade die Seite neu, um es nochmals zu versuchen.',
+  text: 'Lade die Seite neu. Deine Angaben auf diesem Gerät bleiben erhalten.',
   reload: 'Neu laden',
 };
 

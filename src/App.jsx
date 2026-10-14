@@ -1,20 +1,29 @@
-import { useEffect, useMemo, useReducer, useState } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import catalog from './data/catalog.json';
 import stage0 from './data/stage0.json';
 import allergens from './data/allergens.json';
 import { isAdminMode, resolveConfig } from './config.js';
 import { QUESTIONS } from './labels.js';
+import { ImageStyleContext } from './lib/images.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
 import { buildProfile, eligibleFamilies, RULE_VERSION, selectionReason } from './logic/engine.js';
+import { ANSWER, AUTH_COMPLETED, AUTH_STARTED, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED, SOURCE_PROFILE } from './logic/events.js';
 import { createRedundancyCheck } from './logic/stage0.js';
 import { createLogger, storageAvailable } from './logging/logger.js';
-import { createAppModel, creationSteps, isNavVisible, SCREENS, TABS } from './app/model.js';
-import { ImageStyleContext } from './lib/images.js';
+import { createAppModel, creationSteps, hasProgress, isNavVisible, SCREENS, TABS } from './app/model.js';
+import { createAuthService } from './auth/AuthService.js';
+import { countryById, formatPhoneInput, maskPhone } from './auth/phone.js';
+import { clearAppState, loadAccount, loadAppState, saveAccount, saveAppState, signOutLocally } from './storage/local.js';
 import BottomNav from './components/BottomNav.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import SmsBanner from './components/SmsBanner.jsx';
 import StartScreen from './screens/StartScreen.jsx';
-import LoginScreen from './screens/LoginScreen.jsx';
+import RegisterNameScreen from './screens/RegisterNameScreen.jsx';
+import RegisterPhoneScreen from './screens/RegisterPhoneScreen.jsx';
+import RegisterCodeScreen from './screens/RegisterCodeScreen.jsx';
+import WelcomeBackScreen from './screens/WelcomeBackScreen.jsx';
+import AboutScreen from './screens/AboutScreen.jsx';
 import QuestionnaireScreen from './screens/QuestionnaireScreen.jsx';
 import IntroScreen from './screens/IntroScreen.jsx';
 import RoundScreen from './screens/RoundScreen.jsx';
@@ -22,11 +31,16 @@ import CompleteScreen from './screens/CompleteScreen.jsx';
 import ProfileScreen from './screens/ProfileScreen.jsx';
 import AdminScreen from './screens/AdminScreen.jsx';
 
-// Ablauf „Profil erstellen“: Start → Anmelden → Fragebogen (Stufe 0) → Runde → Abschluss
-// (Tutorial vor der Runde nur mit TUTORIAL_ENABLED). Daneben „Mein Profil“ als zweiter Bereich der
-// unteren Navigation. Zustandswechsel: app/model.js.
+// Ablauf „Profil erstellen“: Begrüssung → Registrierung (Vorname, Handynummer, SMS-Code) → Über dich →
+// Fragebogen (Stufe 0) → Runde → Abschluss (Tutorial vor der Runde nur mit TUTORIAL_ENABLED).
+// Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
-const DIET_OPTIONS = stage0.questions.find((question) => question.id === 'diet')?.options ?? [];
+const FOODS = catalog.foods ?? [];
+const STAGE0_FOR_PROFILE = {
+  options: stage0.questions.find((question) => question.id === 'diet')?.options ?? [],
+  diets: stage0.diets,
+  tagLabels: stage0.questions.find((question) => question.id === 'never')?.tagLabels ?? {},
+};
 const MODEL = createAppModel({ index: INDEX, stage0, allergens });
 // Effektive Werte aus Standard und URL (A10), einmal beim Laden bestimmt.
 const CONFIG = resolveConfig(typeof window === 'undefined' ? '' : window.location.search);
@@ -36,24 +50,48 @@ export default function Root() {
   return <ErrorBoundary>{isAdminMode(window.location.search) ? <AdminScreen /> : <App />}</ErrorBoundary>;
 }
 
+// Gespeicherter Stand beim Öffnen: Wer schon da war, wird mit Namen begrüsst und macht weiter.
+function boot() {
+  const saved = loadAppState();
+  const account = loadAccount();
+  const config = saved?.state?.config ?? CONFIG;
+  return { saved, account, config };
+}
+
 function App() {
-  // Ein Protokoll pro Testperson. „Von vorn beginnen“ beginnt ein neues.
-  const [logger, setLogger] = useState(() => createLogger(CONFIG));
+  const [initial] = useState(boot);
+  // Ein Protokoll pro Testperson; nach einem Neuladen geht dieselbe Sitzung weiter.
+  const [logger, setLogger] = useState(() =>
+    createLogger(initial.config, { resumeSessionId: initial.saved?.sessionId ?? null, seedEvents: initial.saved?.state?.events ?? [] })
+  );
   const [storageOk] = useState(() => storageAvailable());
-  const [state, dispatch] = useReducer(MODEL.reducer, CONFIG, MODEL.initialState);
-  const { screen, tab, config, person, answers, step, onboarding, events, endedEarly } = state;
+  // SIMULATION: kein echter SMS-Versand, siehe auth/MockAuthService.js
+  const auth = useMemo(() => createAuthService(), []);
+  const [sms, setSms] = useState(null);
+  const [state, dispatch] = useReducer(MODEL.reducer, initial, ({ config, account, saved }) => MODEL.initialState(config, { account, saved }));
+  const { screen, tab, config, account, person, registration, answers, step, onboarding, events, endedEarly } = state;
   const round = useMemo(() => (onboarding ? MODEL.roundOf(state) : null), [onboarding, events]); // eslint-disable-line react-hooks/exhaustive-deps
   const navVisible = isNavVisible(state);
   const steps = creationSteps(state, round);
+  const firstName = account?.firstName ?? '';
+
+  useEffect(() => auth.onSimulatedSms((message) => setSms({ code: message.code, key: message.sentAt })), [auth]);
+  const dismissSms = useCallback(() => setSms(null), []);
 
   useEffect(() => {
     logger.trace('screen', screen === SCREENS.QUESTIONS ? { screen, step, tab } : { screen, tab });
     window.scrollTo(0, 0);
   }, [screen, step, tab, logger]);
 
+  // Stand nur lokal speichern, sobald es etwas zum Weitermachen gibt (nie die volle Telefonnummer).
+  useEffect(() => {
+    if (screen === SCREENS.WELCOME_BACK || !hasProgress(state)) return;
+    saveAppState(state, logger.session.sessionId);
+  }, [state, logger, screen]);
+
   // Onboarding beim Abschluss von Frage 3 einmal übernehmen, vor dem ersten Swipe.
   useEffect(() => {
-    if (!onboarding) return;
+    if (!onboarding || screen === SCREENS.WELCOME_BACK) return;
     logger.setOnboarding(onboarding);
     logger.trace('stage0_confirm', { eligible: eligibleFamilies(round).map((card) => card.id) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -73,11 +111,68 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
-  // Der Vorname bleibt nur auf dem Bildschirm; protokolliert wird nur, ob einer angegeben wurde.
-  function handleLogin(nextPerson) {
+  // ---------- Ereignisse ----------
+
+  // Ereignis ohne Antwort beim Wischen (Registrierung, Profil): ins Protokoll und ins Event-Log.
+  function log(event) {
+    dispatch({ type: 'log', event: logger.recordEvent({ timestamp: new Date().toISOString(), ...event }) });
+  }
+
+  // Profiländerung: immer source "profile". Die ursprüngliche Antwort beim Wischen bleibt unverändert.
+  function profileChange(event) {
+    log({ ...event, source: SOURCE_PROFILE });
+  }
+
+  const profileHandlers = {
+    rating: (cardId, rating, previousRating) => profileChange({ type: RATING_CHANGED, cardId, rating, previousRating: previousRating ?? null }),
+    addExclusions: (section, exclusions) => exclusions.length && profileChange({ type: EXCLUSION_ADDED, section, exclusions }),
+    removeExclusions: (section, exclusions) => exclusions.length && profileChange({ type: EXCLUSION_REMOVED, section, exclusions }),
+    diet: (diet, previousDiet) => profileChange({ type: DIET_CHANGED, diet, previousDiet }),
+  };
+
+  // Das protokollierte Profil folgt Änderungen in „Mein Profil“ (nach Ende der Runde).
+  useEffect(() => {
+    if (round && logger.session.endedAt) logger.updateProfile(buildProfile(round));
+  }, [round, logger]);
+
+  // ---------- Registrierung (simuliert) ----------
+
+  function handleStart() {
+    log({ type: AUTH_STARTED });
+    dispatch({ type: 'go', screen: SCREENS.REGISTER_NAME });
+  }
+
+  async function handleSendCode(e164) {
+    const request = await auth.sendCode(e164);
+    dispatch({ type: 'codeSent', request: { ...request, e164 } });
+  }
+
+  async function handleResend() {
+    const request = await auth.sendCode(registration.e164);
+    dispatch({ type: 'registration', changes: request });
+    return request;
+  }
+
+  async function handleVerify(code) {
+    const result = await auth.verifyCode(registration.requestId, code);
+    if (!result.ok) return result;
+    // Nach der Bestätigung nur noch die gekürzte Nummer behalten.
+    const nextAccount = { firstName: registration.firstName.trim(), phoneMasked: maskPhone(registration.e164), verifiedAt: new Date().toISOString() };
+    saveAccount(nextAccount);
+    log({ type: AUTH_COMPLETED, method: 'sms-simulated' });
+    setSms(null);
+    dispatch({ type: 'verified', account: nextAccount });
+    return result;
+  }
+
+  // ---------- Onboarding und Runde ----------
+
+  // Für die Auswertung: Teilnehmer-Nr. und Altersgruppe. Vorname und Telefonnummer nie.
+  function handleAbout({ person: nextPerson, firstName: givenName }) {
     logger.start({ participantCode: nextPerson.participantCode, ageGroup: nextPerson.ageGroup });
-    logger.trace('login', { consent: true, nameGiven: nextPerson.firstName !== '' });
-    dispatch({ type: 'login', person: nextPerson });
+    logger.trace('about', { consent: true, nameGiven: Boolean(givenName || firstName) });
+    if (givenName) saveAccount({ ...(account ?? {}), firstName: givenName });
+    dispatch({ type: 'about', person: nextPerson, firstName: givenName });
   }
 
   function handleStartRound() {
@@ -87,6 +182,7 @@ function App() {
   // Ein Antwort-Ereignis: genau dieses Objekt geht ins Protokoll und in den Zustand.
   function record(card, response, extra) {
     const event = {
+      type: ANSWER,
       cardId: card.id,
       stage: card.stage,
       parentId: card.parentId,
@@ -97,6 +193,7 @@ function App() {
       inputMethod: extra.inputMethod,
       selectionReason: extra.selectionReason ?? selectionReason(round, card),
       ruleVersion: RULE_VERSION,
+      source: 'swipe',
       ...(extra.excludedCardIds ? { excludedCardIds: extra.excludedCardIds } : {}),
     };
     dispatch({ type: 'event', event: logger.recordEvent(event) });
@@ -118,8 +215,18 @@ function App() {
     dispatch({ type: 'tab', tab: nextTab });
   }
 
+  // Abmelden: Konto und Stand auf diesem Gerät löschen. Die Sitzung für die Auswertung bleibt (ohne Namen).
+  function handleSignOut() {
+    logger.trace('sign_out');
+    signOutLocally();
+    setSms(null);
+    setLogger(createLogger(CONFIG));
+    dispatch({ type: 'signOut', config: CONFIG });
+  }
+
   function handleRestart() {
     logger.trace('restart');
+    clearAppState();
     setLogger(createLogger(config));
     dispatch({ type: 'restart' });
   }
@@ -127,9 +234,50 @@ function App() {
   function renderCreate() {
     switch (screen) {
       case SCREENS.START:
-        return <StartScreen storageAvailable={storageOk} onStart={() => dispatch({ type: 'go', screen: SCREENS.LOGIN })} />;
-      case SCREENS.LOGIN:
-        return <LoginScreen person={person} onSubmit={handleLogin} onBack={() => dispatch({ type: 'go', screen: SCREENS.START })} />;
+        return <StartScreen storageAvailable={storageOk} onStart={handleStart} />;
+      case SCREENS.REGISTER_NAME:
+        return (
+          <RegisterNameScreen
+            firstName={registration.firstName}
+            onChange={(value) => dispatch({ type: 'registration', changes: { firstName: value } })}
+            onNext={(value) => {
+              dispatch({ type: 'registration', changes: { firstName: value } });
+              dispatch({ type: 'go', screen: SCREENS.REGISTER_PHONE });
+            }}
+            onBack={() => dispatch({ type: 'go', screen: SCREENS.START })}
+          />
+        );
+      case SCREENS.REGISTER_PHONE:
+        return (
+          <RegisterPhoneScreen
+            country={registration.country}
+            phoneInput={registration.phoneInput}
+            onChange={(changes) => dispatch({ type: 'registration', changes })}
+            onSend={handleSendCode}
+            onBack={() => dispatch({ type: 'go', screen: SCREENS.REGISTER_NAME })}
+          />
+        );
+      case SCREENS.REGISTER_CODE:
+        return (
+          <RegisterCodeScreen
+            phoneDisplay={`${countryById(registration.country).dial} ${formatPhoneInput(registration.phoneInput, countryById(registration.country)).replace(/^0/, '')}`}
+            request={registration}
+            onVerify={handleVerify}
+            onResend={handleResend}
+            onBack={() => dispatch({ type: 'go', screen: SCREENS.REGISTER_PHONE })}
+          />
+        );
+      case SCREENS.WELCOME_BACK:
+        return <WelcomeBackScreen account={account} onContinue={() => dispatch({ type: 'welcomeContinue' })} onSignOut={handleSignOut} />;
+      case SCREENS.ABOUT:
+        return (
+          <AboutScreen
+            person={person}
+            askName={!config.auth}
+            firstName={firstName}
+            onSubmit={handleAbout}
+          />
+        );
       case SCREENS.QUESTIONS:
         return (
           <QuestionnaireScreen
@@ -137,12 +285,14 @@ function App() {
             questions={stage0.questions}
             step={step}
             answers={answers}
-            firstName={person.firstName}
+            firstName={firstName}
             allergens={allergens}
             catalogIndex={INDEX}
+            foods={FOODS}
             redundancy={createRedundancyCheck(stage0, answers, { allergens, catalogIndex: INDEX, upTo: step })}
             onChange={(questionId, value) => dispatch({ type: 'setAnswer', questionId, value })}
             onStep={(to) => dispatch({ type: 'step', to })}
+            onOpenProfile={() => handleTab(TABS.PROFILE)}
             lastLabel={config.tutorial ? QUESTIONS.next : QUESTIONS.toRound}
           />
         );
@@ -164,8 +314,8 @@ function App() {
           <CompleteScreen
             round={round}
             endedEarly={endedEarly}
-            firstName={person.firstName}
-            ruleCount={onboarding.rules.filter((rule) => rule.kind !== 'note').length + round.swipeExclusions.length}
+            firstName={firstName}
+            ruleCount={round.entries.filter((entry) => !entry.freeText).length + (round.diet && round.diet !== 'none' ? 1 : 0)}
             steps={steps}
             onToProfile={() => handleTab(TABS.PROFILE)}
           />
@@ -180,17 +330,23 @@ function App() {
           <ProfileScreen
             round={round}
             onboarding={onboarding}
+            account={account}
             index={INDEX}
             allergens={allergens}
-            dietOptions={DIET_OPTIONS}
+            foods={FOODS}
+            dietOptions={STAGE0_FOR_PROFILE}
             steps={steps}
+            canSignOut={Boolean(account?.phoneMasked)}
             onCreate={() => handleTab(TABS.CREATE)}
             onRestart={handleRestart}
+            onSignOut={handleSignOut}
+            onChange={profileHandlers}
           />
         ) : (
           renderCreate()
         )}
         {navVisible && <BottomNav active={tab} onSelect={handleTab} />}
+        {sms && <SmsBanner key={sms.key} code={sms.code} onDismiss={dismissSms} />}
       </div>
     </ImageStyleContext.Provider>
   );

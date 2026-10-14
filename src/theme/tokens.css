@@ -90,6 +90,7 @@
   --line-height-body: 1.5;
   --letter-spacing-title: -0.02em;
   --letter-spacing-caps: 0.06em;
+  --letter-spacing-code: 0.3em; /* SMS-Code: Ziffern gut unterscheidbar */
   --underline-offset: 0.22em;
   --underline-thickness: 0.09em;
 
@@ -136,6 +137,7 @@
   --duration-card-enter: 320ms; /* nächste Karte rückt nach */
   --duration-banner: 360ms; /* SMS-Mitteilung fährt ein */
   --duration-demo: 9s; /* Tutorial: Schleife der Wisch-Demo */
+  --duration-spin: 900ms; /* Ladeanzeige */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-spring: cubic-bezier(0.3, 0.7, 0.3, 1.08);
@@ -156,6 +158,9 @@
   --size-thumb: 56px; /* Vorschaubild in Listen */
   --size-thumb-s: 44px;
   --size-avatar: 44px;
+  --size-avatar-large: 64px;
+  --size-spinner: 1.1rem;
+  --size-phone-min: 9rem; /* Mindestbreite der Nummer, sonst rutscht sie unter die Ländervorwahl */
   --size-mark: 1.6rem; /* Häkchen in Auswahlfeldern */
   --size-badge: 2.4rem; /* runde Symbolflächen in Listenköpfen */
   --size-segment: 6px; /* Höhe der Fortschrittssegmente */
@@ -211,6 +216,7 @@
     --duration-swipe-exit: 0ms;
     --duration-card-enter: 0ms;
     --duration-banner: 0ms;
+    --duration-spin: 0ms;
     --motion-shift-s: 0px;
     --motion-shift-m: 0px;
     --motion-press-scale: 1;

@@ -5,9 +5,12 @@
 // Sitzung:  sessionId, participantCode, startedAt, endedAt, appVersion, ruleVersion, config,
 //           onboarding { ageGroup, diet, exclusions (mit source), uncertaintyFlag, freeTextNotes,
 //                        avoidBrands, avoidOrigins },
-//           profile (wie am Ende angezeigt), events (Antworten inkl. INTOLERANT und UNDO), trace (Bildschirme).
+//           profile (aktuell angezeigt), events (Antworten inkl. INTOLERANT und UNDO, Profiländerungen,
+//           AUTH_STARTED/AUTH_COMPLETED), trace (Bildschirme).
 // Ereignis: sessionId, cardId, stage, parentId, positionInRound, response, timestamp,
 //           responseTimeMs, inputMethod, selectionReason (+ excludedCardIds, ruleVersion).
+// Datenschutz: Vorname und Telefonnummer gelangen nie hierher (sie stehen nur im Konto auf dem Gerät,
+// siehe storage/local.js). Exportiert werden nur sessionId und optional die Teilnehmer-Nr.
 
 import { APP_VERSION, PRIVACY } from '../config.js';
 import { RULE_VERSION } from '../logic/engine.js';
@@ -89,9 +92,28 @@ function exclusionForLog(entry) {
   return PRIVACY.logExclusionValues ? { type, value, source, origin: origin ?? null, label: label ?? null } : { type, source };
 }
 
-export function createLogger(config) {
-  const session = {
-    sessionId: newSessionId(),
+function loadSession(sessionId) {
+  try {
+    const raw = storage()?.getItem(STORAGE_PREFIX + sessionId);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+// Ausschlüsse in Profiländerungen wie im Onboarding behandeln (PRIVACY.logExclusionValues).
+function eventForLog(event) {
+  if (!event.exclusions || PRIVACY.logExclusionValues) return event;
+  return { ...event, exclusions: event.exclusions.map(({ type }) => ({ type })) };
+}
+
+// resumeSessionId: Sitzung nach einem Neuladen fortsetzen (gleiche Person, gleiches Protokoll).
+// seedEvents: Ereignisse aus dem gespeicherten Stand, falls die Sitzung noch nicht gespeichert war
+// (z. B. Neuladen zwischen Registrierung und Einwilligung), damit AUTH_STARTED nicht verloren geht.
+export function createLogger(config, { resumeSessionId = null, seedEvents = [] } = {}) {
+  const existing = resumeSessionId ? loadSession(resumeSessionId) : null;
+  const session = existing ?? {
+    sessionId: resumeSessionId ?? newSessionId(),
     participantCode: null,
     startedAt: new Date().toISOString(),
     endedAt: null,
@@ -103,8 +125,9 @@ export function createLogger(config) {
     events: [],
     trace: [],
   };
+  if (!existing && seedEvents.length > 0) session.events = seedEvents.map((event) => eventForLog({ ...event, sessionId: session.sessionId }));
   // Erst speichern, wenn sich jemand angemeldet hat: So entstehen keine leeren Sitzungen.
-  let stored = false;
+  let stored = Boolean(existing);
 
   function persist() {
     if (!stored) return;
@@ -139,7 +162,7 @@ export function createLogger(config) {
     // Dasselbe Objekt, das auch in den Zustand der App geht (Event-Log als einzige Quelle).
     recordEvent(event) {
       const logged = { sessionId: session.sessionId, ...event };
-      session.events.push(logged);
+      session.events.push(eventForLog(logged));
       persist();
       return logged;
     },
@@ -149,6 +172,11 @@ export function createLogger(config) {
     },
     finish(profile) {
       session.endedAt = new Date().toISOString();
+      session.profile = { ...profile, exclusions: (profile.exclusions ?? []).map(exclusionForLog) };
+      persist();
+    },
+    // Profil nach Änderungen in „Mein Profil“ aktuell halten, ohne das Ende der Runde zu verschieben.
+    updateProfile(profile) {
       session.profile = { ...profile, exclusions: (profile.exclusions ?? []).map(exclusionForLog) };
       persist();
     },
