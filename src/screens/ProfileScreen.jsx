@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import foodList from '../data/foods.json';
 import { Ban, ChevronRight, CircleHelp, Layers, LogOut, NotebookPen, Pencil, Plus, RotateCcw, Salad, ShieldAlert, Smartphone, Utensils, X } from 'lucide-react';
 import AllergenPicker from '../components/AllergenPicker.jsx';
 import Artwork from '../components/Artwork.jsx';
@@ -327,6 +328,7 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
               {credits.map((photo) => (
                 <li key={photo.key}>{PROFILE.creditLine(photo)}</li>
               ))}
+              <li>{PROFILE.foodSource(foodList.source.version)}</li>
             </ul>
           </details>
         )}

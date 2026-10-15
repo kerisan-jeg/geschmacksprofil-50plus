@@ -2,3 +2,6 @@ node_modules
 dist
 .DS_Store
 *.log
+# Firebase-Werte für die lokale Entwicklung (siehe README)
+.env.local
+__pycache__/

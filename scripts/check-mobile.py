@@ -128,8 +128,12 @@ def run(p, W, H):
     pg.get_by_role('button', name='Weiter', exact=True).click()
     pg.get_by_text('Ja', exact=True).click()
     pg.get_by_role('button', name='Schweinefleisch').click()
-    pg.get_by_label('Anderes Lebensmittel suchen').fill('Koriander')
+    # Alle Zutaten und Getränke sind wählbar (Schweizer Nährwertdatenbank), auch in der Mehrzahl
+    pg.get_by_label('Anderes Lebensmittel suchen').fill('Oliven')
     check(pg, 'frage3', results, W)
+    pg.locator('.search-hit').first.click()
+    # Nur was in keiner Liste steht, wird eine Notiz
+    pg.get_by_label('Anderes Lebensmittel suchen').fill('Omas Spezialsauce')
     pg.locator('.add-entry').click()
     pg.get_by_label('Marken, die du meidest').fill('Marke X'); pg.keyboard.press('Enter')
     # Nach Frage 3 die Zusammenfassung (nurec v0.2, Kap. 2.2); „Ändern“ führt zur Frage und zurück.

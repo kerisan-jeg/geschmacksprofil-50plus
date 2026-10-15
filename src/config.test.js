@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_CONFIG, isAdminMode, resolveConfig } from './config.js';
 
-const DEFAULTS = { roundCardLimit: 10, tutorial: false, imageStyle: 'photo', auth: true };
+const DEFAULTS = { roundCardLimit: 10, tutorial: false, imageStyle: 'photo', auth: true, sms: 'simulation' };
 
 test('Ohne Parameter gelten die Standardwerte (Limit 10, kein Tutorial, Fotos, Registrierung an)', () => {
   assert.deepEqual(resolveConfig(''), DEFAULTS);

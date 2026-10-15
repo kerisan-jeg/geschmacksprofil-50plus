@@ -21,15 +21,31 @@ export const TUTORIAL_ENABLED = false;
 // im Pilot vergleichen. Der Wert steht in jeder Sitzung (config.imageStyle) und im CSV-Export.
 export const IMAGE_STYLE = 'photo';
 
-// Registrierung mit Vorname, Handynummer und SMS-Code (simuliert, siehe src/auth/MockAuthService.js).
+// Registrierung mit Vorname, Handynummer und SMS-Code (echte SMS über Firebase oder Simulation, siehe unten).
 // false: Die App startet direkt beim Onboarding („Über dich“), der Vorname ist dort freiwillig.
 // Ob die Registrierung in der Nutzerstudie aktiv sein soll, ist offen (Aufwand vor dem Swipen).
 // Der URL-Parameter ?auth=0|1 folgt mit der URL-Konfiguration (Commit 4).
 export const AUTH_ENABLED = true;
 
+// Echte SMS über Firebase (src/auth/FirebaseAuthService.js), sobald das Projekt eingerichtet ist.
+// Die Werte kommen beim Build aus VITE_FIREBASE_API_KEY, _AUTH_DOMAIN, _PROJECT_ID, _APP_ID (GitHub-Variablen
+// bzw. .env.local), nie aus dem Code. Fehlen sie, läuft die Simulation (MockAuthService).
+export function firebaseConfigFrom(env = {}) {
+  const config = {
+    apiKey: env.VITE_FIREBASE_API_KEY,
+    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: env.VITE_FIREBASE_PROJECT_ID,
+    appId: env.VITE_FIREBASE_APP_ID,
+  };
+  return Object.values(config).every((value) => typeof value === 'string' && value.trim()) ? config : null;
+}
+
+export const FIREBASE_CONFIG = firebaseConfigFrom(import.meta.env ?? {});
+
 // Standardwerte für den Testablauf (A10). URL-Parameter überschreiben sie, z. B.
 //   ?limit=6           Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 30
 //   ?admin=1           Ansicht für die Testleitung (Export, Sitzungen)
+//   ?sms=sim           SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne Handy)
 // ?tutorial wirkt seit dem 13.10. nicht mehr (Tutorial nur über TUTORIAL_ENABLED).
 // Die effektiven Werte werden in jeder Sitzung gespeichert.
 // Begründung [V]: Kernfrage 2 (Anzahl Abfragen) [A] soll im Test ohne neuen Build vergleichbar sein.
@@ -38,6 +54,7 @@ export const DEFAULT_CONFIG = {
   tutorial: TUTORIAL_ENABLED, // Für bestehende Sitzungen und Exporte bleibt das Datenfeld erhalten.
   imageStyle: IMAGE_STYLE,
   auth: AUTH_ENABLED,
+  sms: FIREBASE_CONFIG ? 'firebase' : 'simulation', // echte SMS oder Simulation
 };
 
 export const ROUND_CARD_LIMIT_RANGE = { min: 4, max: 30 };
@@ -52,6 +69,8 @@ export function resolveConfig(search = '') {
     const value = Number(limit.trim());
     if (value >= ROUND_CARD_LIMIT_RANGE.min && value <= ROUND_CARD_LIMIT_RANGE.max) config.roundCardLimit = value;
   }
+
+  if (params.get('sms') === 'sim') config.sms = 'simulation';
 
   return config;
 }

@@ -11,6 +11,8 @@
     "test": "node --import ./scripts/test-setup.mjs --test \"src/**/*.test.js\""
   },
   "dependencies": {
+    "@firebase/app": "0.16.2",
+    "@firebase/auth": "1.13.6",
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",
     "lucide-react": "^1.52.0",
     "react": "^19.3.0",

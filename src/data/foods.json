@@ -1,0 +1,2940 @@
+{
+ "source": {
+  "name": "Schweizer Nährwertdatenbank, Generische Lebensmittel",
+  "version": "Schweizer Nährwertdatenbank – Generische Lebensmittel V 7.1 (01.07.2026)",
+  "publisher": "Bundesamt für Lebensmittelsicherheit und Veterinärwesen (BLV)",
+  "url": "https://naehrwertdaten.ch",
+  "license": "Frei verwendbar mit Quellenvermerk",
+  "note": "Zutaten und Getränke, Varianten zusammengefasst (scripts/import-foods.py). Gerichte gehören in Stufe 4. Einträge mit \"team\": true sind eine Ergänzung des Teams (häufige Kräuter, Gewürze, Alkohol), nicht aus der Datenbank."
+ },
+ "foods": [
+  {
+   "name": "Agar Agar",
+   "category": "Zutaten"
+  },
+  {
+   "name": "Agavensirup",
+   "category": "Süsses",
+   "synonyms": [
+    "Agavendicksaft"
+   ]
+  },
+  {
+   "name": "Ahornsirup",
+   "category": "Süsses"
+  },
+  {
+   "name": "Alge",
+   "category": "Gemüse",
+   "synonyms": [
+    "Nori"
+   ]
+  },
+  {
+   "name": "Alkohol",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Alkoholische Getränke"
+   ],
+   "team": true
+  },
+  {
+   "name": "Amaranth",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Amaretti",
+   "category": "Süsses"
+  },
+  {
+   "name": "Ananas",
+   "category": "Obst"
+  },
+  {
+   "name": "Ananassaft",
+   "category": "Getränke"
+  },
+  {
+   "name": "Apfel",
+   "category": "Obst",
+   "synonyms": [
+    "Dörrapfel"
+   ]
+  },
+  {
+   "name": "Apfelmus",
+   "category": "Obst"
+  },
+  {
+   "name": "Apfelsaft",
+   "category": "Getränke",
+   "synonyms": [
+    "Süssmost"
+   ]
+  },
+  {
+   "name": "Apfelwein",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Apfelmost",
+    "Saurer Most",
+    "Cider"
+   ]
+  },
+  {
+   "name": "Appenzeller",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Aprikose",
+   "category": "Obst",
+   "synonyms": [
+    "Marille",
+    "Dörraprikose"
+   ]
+  },
+  {
+   "name": "Artischocken",
+   "category": "Gemüse",
+   "synonyms": [
+    "Herz"
+   ]
+  },
+  {
+   "name": "Aubergine",
+   "category": "Gemüse",
+   "synonyms": [
+    "Eierfrucht"
+   ]
+  },
+  {
+   "name": "Avocado",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Balsamicoessig",
+   "category": "Gewürze",
+   "synonyms": [
+    "Balsamessig",
+    "Aceto Balsamico"
+   ]
+  },
+  {
+   "name": "Banane",
+   "category": "Obst",
+   "synonyms": [
+    "Bananenchips"
+   ]
+  },
+  {
+   "name": "Barbecue Grillsauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Basilikum",
+   "category": "Kräuter"
+  },
+  {
+   "name": "Basler Leckerli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Bauernbrot",
+   "category": "Brot",
+   "synonyms": [
+    "Burebrot"
+   ]
+  },
+  {
+   "name": "Bauernschüblig",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Baumnuss",
+   "category": "Nüsse und Samen",
+   "synonyms": [
+    "Walnuss"
+   ]
+  },
+  {
+   "name": "Baumnussbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Baumnussöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Berliner",
+   "category": "Süsses",
+   "synonyms": [
+    "Pfannkuchen"
+   ]
+  },
+  {
+   "name": "Berner Alpkäse",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Berner Hobelkäse",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Berner Zungenwurst",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Biber",
+   "category": "Süsses",
+   "synonyms": [
+    "Biberli"
+   ]
+  },
+  {
+   "name": "Bier",
+   "category": "Getränke mit Alkohol"
+  },
+  {
+   "name": "Bierwurst",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Birne",
+   "category": "Obst",
+   "synonyms": [
+    "Dörrbirne",
+    "Trockenbirne"
+   ]
+  },
+  {
+   "name": "Birnendicksaft",
+   "category": "Süsses"
+  },
+  {
+   "name": "Birnensaft",
+   "category": "Getränke"
+  },
+  {
+   "name": "Birnwegge",
+   "category": "Süsses",
+   "synonyms": [
+    "Birewegge",
+    "Birnenwegggen"
+   ]
+  },
+  {
+   "name": "Blanc battu",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Blumenkohl",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Blutwurst",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Blätterteig",
+   "category": "Teig",
+   "synonyms": [
+    "Butter"
+   ]
+  },
+  {
+   "name": "Blätterteigstängel",
+   "category": "Snacks",
+   "synonyms": [
+    "Flûtes"
+   ]
+  },
+  {
+   "name": "Bohne",
+   "category": "Hülsenfrüchte",
+   "synonyms": [
+    "Weisse Bohne",
+    "Rote Bohne",
+    "Borlotti Bohne",
+    "Gartenbohne",
+    "Dörrbohne"
+   ]
+  },
+  {
+   "name": "Bolognaisesauce",
+   "category": "Fette, Öle und Saucen",
+   "synonyms": [
+    "Tomaten-Hackfleischsauce"
+   ]
+  },
+  {
+   "name": "Branchli",
+   "category": "Süsses",
+   "synonyms": [
+    "Schokoladenstängeli"
+   ]
+  },
+  {
+   "name": "Branntwein",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Getreideschnaps",
+    "Whisky",
+    "Cognac",
+    "Brandy",
+    "Zuckerrohrschnaps",
+    "Rum"
+   ]
+  },
+  {
+   "name": "Bratbutter",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Bratensauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Bresaola",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Brie",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Broccoli",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Brombeere",
+   "category": "Obst"
+  },
+  {
+   "name": "Brunnenkresse",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Brunsli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Buchweizen",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Buchweizenmehl",
+   "category": "Mehl"
+  },
+  {
+   "name": "Butter",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Buttergipfeli",
+   "category": "Brot",
+   "synonyms": [
+    "Rusticogipfeli"
+   ]
+  },
+  {
+   "name": "Buttermilch",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Butterweggli",
+   "category": "Brot"
+  },
+  {
+   "name": "Butterzopf",
+   "category": "Brot"
+  },
+  {
+   "name": "Bäckerhefe",
+   "category": "Zutaten",
+   "synonyms": [
+    "Bierhefe"
+   ]
+  },
+  {
+   "name": "Béchamelsauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Bürli",
+   "category": "Brot"
+  },
+  {
+   "name": "Café crème",
+   "category": "Getränke"
+  },
+  {
+   "name": "Calimocho",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Rotwein mit Cola"
+   ]
+  },
+  {
+   "name": "Camembert",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Tomme léger"
+   ]
+  },
+  {
+   "name": "Cappuccino",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Cashewnuss",
+   "category": "Nüsse und Samen",
+   "synonyms": [
+    "Cashewkern"
+   ]
+  },
+  {
+   "name": "Cervelat",
+   "category": "Wurstwaren",
+   "synonyms": [
+    "Chlöpfer",
+    "Stumpen",
+    "Bockwurst"
+   ]
+  },
+  {
+   "name": "Champignon",
+   "category": "Pilze"
+  },
+  {
+   "name": "Chia-Samen",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Chicorée",
+   "category": "Gemüse",
+   "synonyms": [
+    "Brüsseler Endivie"
+   ]
+  },
+  {
+   "name": "Chili",
+   "category": "Gewürze",
+   "synonyms": [
+    "Peperoncini",
+    "Peperoncino"
+   ],
+   "team": true
+  },
+  {
+   "name": "Chinakohl",
+   "category": "Gemüse",
+   "synonyms": [
+    "Pekingkohl",
+    "Selleriekohl",
+    "Japankohl"
+   ]
+  },
+  {
+   "name": "Chräbeli",
+   "category": "Süsses",
+   "synonyms": [
+    "Anisgebäck"
+   ]
+  },
+  {
+   "name": "Cicorino",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Cocktailsauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Colagetränk",
+   "category": "Getränke"
+  },
+  {
+   "name": "Cookie",
+   "category": "Süsses"
+  },
+  {
+   "name": "Coppa",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Cornet Glace",
+   "category": "Süsses"
+  },
+  {
+   "name": "Cornflakes",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Cotechino",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Cotto",
+   "category": "Wurstwaren",
+   "synonyms": [
+    "Fleischerzeugnis"
+   ]
+  },
+  {
+   "name": "Couscous",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Cracker",
+   "category": "Snacks"
+  },
+  {
+   "name": "Crèmeschnitte",
+   "category": "Süsses"
+  },
+  {
+   "name": "Curry",
+   "category": "Gewürze",
+   "synonyms": [
+    "Currypulver"
+   ],
+   "team": true
+  },
+  {
+   "name": "Dattel",
+   "category": "Obst"
+  },
+  {
+   "name": "Dill",
+   "category": "Kräuter",
+   "team": true
+  },
+  {
+   "name": "Dinkelmehl",
+   "category": "Mehl"
+  },
+  {
+   "name": "Distelöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Donut",
+   "category": "Süsses"
+  },
+  {
+   "name": "Doppelrahm",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Dorsch",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Filet",
+    "Kabeljau"
+   ]
+  },
+  {
+   "name": "Dulce de Leche",
+   "category": "Süsses",
+   "synonyms": [
+    "Milchkonfitüre"
+   ]
+  },
+  {
+   "name": "Dörrbohne",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Edamame",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Edelkastanie",
+   "category": "Nüsse und Samen",
+   "synonyms": [
+    "Marroni"
+   ]
+  },
+  {
+   "name": "Egli",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Flussbarsch"
+   ]
+  },
+  {
+   "name": "Ei",
+   "category": "Eier"
+  },
+  {
+   "name": "Eierlikör",
+   "category": "Getränke mit Alkohol"
+  },
+  {
+   "name": "Eierschwamm",
+   "category": "Pilze",
+   "synonyms": [
+    "Pfifferling"
+   ]
+  },
+  {
+   "name": "Eigelb",
+   "category": "Eier"
+  },
+  {
+   "name": "Eisbergsalat",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Eistee",
+   "category": "Getränke"
+  },
+  {
+   "name": "Eiweiss",
+   "category": "Eier"
+  },
+  {
+   "name": "Emmentaler",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Endivie",
+   "category": "Gemüse",
+   "synonyms": [
+    "Frisée Salat"
+   ]
+  },
+  {
+   "name": "Energy Drink",
+   "category": "Getränke"
+  },
+  {
+   "name": "Erbse",
+   "category": "Gemüse",
+   "synonyms": [
+    "Erbsli"
+   ]
+  },
+  {
+   "name": "Erdbeere",
+   "category": "Obst"
+  },
+  {
+   "name": "Erdnuss",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Erdnuss-Flips",
+   "category": "Snacks"
+  },
+  {
+   "name": "Erdnussbutter",
+   "category": "Zutaten"
+  },
+  {
+   "name": "Erdnussöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Espresso crème",
+   "category": "Getränke"
+  },
+  {
+   "name": "Essig",
+   "category": "Gewürze"
+  },
+  {
+   "name": "Essig-Öl-Salatsauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Estragon",
+   "category": "Kräuter",
+   "team": true
+  },
+  {
+   "name": "Fasnachtschüechli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Federkohl",
+   "category": "Gemüse",
+   "synonyms": [
+    "Grünkohl"
+   ]
+  },
+  {
+   "name": "Feige",
+   "category": "Obst",
+   "synonyms": [
+    "Dörrfeige"
+   ]
+  },
+  {
+   "name": "Felche",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Fenchel",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Fermentierter Teig",
+   "category": "Teig"
+  },
+  {
+   "name": "Fischstäbchen",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Flammkuchenteig",
+   "category": "Teig"
+  },
+  {
+   "name": "Fleischkäse",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Florentiner",
+   "category": "Süsses"
+  },
+  {
+   "name": "Flunder",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Filet"
+   ]
+  },
+  {
+   "name": "Forelle",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Bachforelle"
+   ]
+  },
+  {
+   "name": "Freiburger Vacherin",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Frischkäse",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Frischkäsezubereitung zum Streichen",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Fruchtcocktail",
+   "category": "Obst"
+  },
+  {
+   "name": "Fünfkornbier",
+   "category": "Getränke mit Alkohol"
+  },
+  {
+   "name": "Garnele",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Shrimp",
+    "Scampi",
+    "Crevetten"
+   ]
+  },
+  {
+   "name": "Geflügellyoner",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Gepuffter Weizen",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Gepufftes oder extrudiertes Getreide",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Gerstenflocken",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Getreide-Flakes",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Getreide-Kissen",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Getreideriegel",
+   "category": "Süsses"
+  },
+  {
+   "name": "Gewürznelken",
+   "category": "Gewürze",
+   "synonyms": [
+    "Nelken"
+   ],
+   "team": true
+  },
+  {
+   "name": "Glaceriegel oder Stängel",
+   "category": "Süsses",
+   "synonyms": [
+    "Rahmglace"
+   ]
+  },
+  {
+   "name": "Glarner Schabziger",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Glarner Kräuterkäse"
+   ]
+  },
+  {
+   "name": "Gorgonzola",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Granatapfel",
+   "category": "Obst"
+  },
+  {
+   "name": "Grapefruit",
+   "category": "Obst",
+   "synonyms": [
+    "Pampelmuse"
+   ]
+  },
+  {
+   "name": "Greyerzer",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Gruyère"
+   ]
+  },
+  {
+   "name": "Griessköpfli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Grissini",
+   "category": "Snacks"
+  },
+  {
+   "name": "Grittibänz",
+   "category": "Süsses"
+  },
+  {
+   "name": "Guacamole",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Gummibonbon",
+   "category": "Süsses"
+  },
+  {
+   "name": "Gurke",
+   "category": "Gemüse",
+   "synonyms": [
+    "Essiggurke",
+    "Cornichon",
+    "Salatgurke"
+   ]
+  },
+  {
+   "name": "Haferflocken",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Hafergetränk",
+   "category": "Pflanzliche Alternativen",
+   "synonyms": [
+    "Hafermilch"
+   ]
+  },
+  {
+   "name": "Haferkleie",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Halbentrahmte Milch",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Halbfettbutter",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Halbrahm",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Halbweissbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Hanföl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Hartkaramellen",
+   "category": "Süsses"
+  },
+  {
+   "name": "Hartweizen",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Hartweizengriess",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Haselnuss",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Haselnuss-Schokolade-Brotaufstrich",
+   "category": "Süsses"
+  },
+  {
+   "name": "Haselnusskeks",
+   "category": "Süsses",
+   "synonyms": [
+    "Haselnussguetzli",
+    "Sablé mit Haselnuss"
+   ]
+  },
+  {
+   "name": "Haselnussmakrone",
+   "category": "Süsses"
+  },
+  {
+   "name": "Haselnussstängeli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Haselnussöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Hecht",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Hefeteig",
+   "category": "Teig"
+  },
+  {
+   "name": "Heidelbeere",
+   "category": "Obst"
+  },
+  {
+   "name": "Heilbutt",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Weisser Heilbutt",
+    "Atlantisch"
+   ]
+  },
+  {
+   "name": "Himbeere",
+   "category": "Obst"
+  },
+  {
+   "name": "Hinterschinken",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Hirsch",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Entrecôte"
+   ]
+  },
+  {
+   "name": "Hirse",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Hirseflocken",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Hollandaisesauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Holunderbeere",
+   "category": "Obst"
+  },
+  {
+   "name": "Honig",
+   "category": "Süsses",
+   "synonyms": [
+    "Blütenhonig"
+   ]
+  },
+  {
+   "name": "Hummus",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Hüttenkäse",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Cottage cheese"
+   ]
+  },
+  {
+   "name": "Ingwer",
+   "category": "Gewürze"
+  },
+  {
+   "name": "Instant-Kaffee",
+   "category": "Getränke"
+  },
+  {
+   "name": "Instant-Kartoffelstock",
+   "category": "Kartoffeln"
+  },
+  {
+   "name": "Joghurt",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Joghurt Bifidus",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Joghurt-Butter",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Joghurt-Salatsauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Joghurtalternative",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Johannisbeere",
+   "category": "Obst"
+  },
+  {
+   "name": "Jägersauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Kaffee",
+   "category": "Getränke"
+  },
+  {
+   "name": "Kaffeerahm",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Kakaobutter",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Kakaogetränk",
+   "category": "Süsses"
+  },
+  {
+   "name": "Kakaopulver",
+   "category": "Süsses"
+  },
+  {
+   "name": "Kaki",
+   "category": "Obst"
+  },
+  {
+   "name": "Kalb",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Brust",
+    "Plätzli",
+    "Eckstück",
+    "Filet",
+    "Hackfleisch",
+    "Gehacktes",
+    "Geschnetzeltes",
+    "Haxe",
+    "Kotelett",
+    "Leber",
+    "Bries",
+    "Milken",
+    "Niere",
+    "Nierstück",
+    "Steak",
+    "Saftplätzli",
+    "Runder Mocken",
+    "Schulter",
+    "Braten",
+    "Ragout",
+    "Voressen",
+    "Zunge"
+   ]
+  },
+  {
+   "name": "Kalbsbratwurst",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Kalbsplätzli",
+   "category": "Fleisch und Geflügel"
+  },
+  {
+   "name": "Kalmar",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Seppia",
+    "Polpo",
+    "Calamare",
+    "Tintenfisch"
+   ]
+  },
+  {
+   "name": "Kandierte Kastanien",
+   "category": "Süsses"
+  },
+  {
+   "name": "Kaninchen",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Filet"
+   ]
+  },
+  {
+   "name": "Kapern",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Karotte",
+   "category": "Gemüse",
+   "synonyms": [
+    "Rüebli",
+    "Möhre"
+   ]
+  },
+  {
+   "name": "Karottensaft",
+   "category": "Getränke",
+   "synonyms": [
+    "Rüeblisaft"
+   ]
+  },
+  {
+   "name": "Kartoffel",
+   "category": "Kartoffeln",
+   "synonyms": [
+    "Gschwellti",
+    "Kartoffeln"
+   ]
+  },
+  {
+   "name": "Kartoffelflocken",
+   "category": "Kartoffeln",
+   "synonyms": [
+    "Instant-Kartoffelstock"
+   ]
+  },
+  {
+   "name": "Kartoffelgnocchi",
+   "category": "Kartoffeln"
+  },
+  {
+   "name": "Kartoffelstock",
+   "category": "Kartoffeln"
+  },
+  {
+   "name": "Kartoffelstärke",
+   "category": "Mehl"
+  },
+  {
+   "name": "Kefe",
+   "category": "Gemüse",
+   "synonyms": [
+    "Kiefelerbse",
+    "Zuckerschote"
+   ]
+  },
+  {
+   "name": "Ketchup",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Kichererbse",
+   "category": "Hülsenfrüchte"
+  },
+  {
+   "name": "Kirsch",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Kirschbranntwein",
+    "Kirschwasser",
+    "Kirschschnaps",
+    "Kirschenbrand"
+   ]
+  },
+  {
+   "name": "Kirsche",
+   "category": "Obst"
+  },
+  {
+   "name": "Kiwi",
+   "category": "Obst"
+  },
+  {
+   "name": "Knoblauch",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Knoblauchpulver",
+   "category": "Gewürze",
+   "team": true
+  },
+  {
+   "name": "Knollensellerie",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Knuspermüeslimischung",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Knäckebrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Knöpflimehl",
+   "category": "Mehl",
+   "synonyms": [
+    "Spätzlimehl"
+   ]
+  },
+  {
+   "name": "Kochbutter",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Kochspeck",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Kohlrabi",
+   "category": "Gemüse",
+   "synonyms": [
+    "Rübkohl"
+   ]
+  },
+  {
+   "name": "Kokosfett",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Kokosmakrone",
+   "category": "Süsses"
+  },
+  {
+   "name": "Kokosmilch",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Kokosnuss",
+   "category": "Nüsse und Samen",
+   "synonyms": [
+    "Kokosrapseln",
+    "Kokosflocken"
+   ]
+  },
+  {
+   "name": "Kokosnussgetränk",
+   "category": "Pflanzliche Alternativen",
+   "synonyms": [
+    "Kokosdrink"
+   ]
+  },
+  {
+   "name": "Kokoswasser",
+   "category": "Getränke"
+  },
+  {
+   "name": "Kondensmilch",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Konfitüre",
+   "category": "Süsses",
+   "synonyms": [
+    "Marmelade"
+   ]
+  },
+  {
+   "name": "Kopfsalat",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Koriander",
+   "category": "Kräuter",
+   "synonyms": [
+    "Cilantro"
+   ],
+   "team": true
+  },
+  {
+   "name": "Kreuzkümmel",
+   "category": "Gewürze",
+   "synonyms": [
+    "Cumin"
+   ],
+   "team": true
+  },
+  {
+   "name": "Kuchenteig",
+   "category": "Teig",
+   "synonyms": [
+    "Wähenteig"
+   ]
+  },
+  {
+   "name": "Käse",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Kuhmilch",
+    "Feta"
+   ]
+  },
+  {
+   "name": "Käsealternative",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Käsereibutter",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Kümmel",
+   "category": "Gewürze",
+   "team": true
+  },
+  {
+   "name": "Kürbis",
+   "category": "Gemüse",
+   "synonyms": [
+    "Riesenkürbis"
+   ]
+  },
+  {
+   "name": "Kürbiskerne",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Kürbiskernöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Lachs",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Wildfang",
+    "Zucht",
+    "Filet"
+   ]
+  },
+  {
+   "name": "Lamm",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Filet",
+    "Gigot",
+    "Keule",
+    "Kotelett",
+    "Nierstück",
+    "Australien",
+    "Racks",
+    "Ragout",
+    "Voressen"
+   ]
+  },
+  {
+   "name": "Landjäger",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Latte macchiato",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Lattich",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Lauch",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Laugenbrötli",
+   "category": "Brot",
+   "synonyms": [
+    "Silserli"
+   ]
+  },
+  {
+   "name": "Laugengebäck",
+   "category": "Snacks",
+   "synonyms": [
+    "Bretzel",
+    "Sticks"
+   ]
+  },
+  {
+   "name": "Laugengipfeli",
+   "category": "Brot",
+   "synonyms": [
+    "Silsergipfeli"
+   ]
+  },
+  {
+   "name": "Leberwurst",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Lebkuchen",
+   "category": "Süsses",
+   "synonyms": [
+    "Honiglebkuchen"
+   ]
+  },
+  {
+   "name": "Leinsamen",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Leinöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Lemon Curd",
+   "category": "Süsses",
+   "synonyms": [
+    "Zitronencrème"
+   ]
+  },
+  {
+   "name": "Liebstöckel",
+   "category": "Kräuter",
+   "synonyms": [
+    "Maggikraut"
+   ],
+   "team": true
+  },
+  {
+   "name": "Limburger",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Münster"
+   ]
+  },
+  {
+   "name": "Limonade",
+   "category": "Getränke"
+  },
+  {
+   "name": "Linse",
+   "category": "Hülsenfrüchte",
+   "synonyms": [
+    "Linsen"
+   ]
+  },
+  {
+   "name": "Litschi",
+   "category": "Obst",
+   "synonyms": [
+    "Litchi"
+   ]
+  },
+  {
+   "name": "Luganighe",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Lyoner",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Löffelbiscuit",
+   "category": "Süsses"
+  },
+  {
+   "name": "Madeleine",
+   "category": "Süsses"
+  },
+  {
+   "name": "Magermilch",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Magermilchpulver",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Mailänderli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Mais",
+   "category": "Gemüse",
+   "synonyms": [
+    "Zuckermais",
+    "Gemüsemais"
+   ]
+  },
+  {
+   "name": "Mais-Bällchen",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Mais-Chips",
+   "category": "Snacks",
+   "synonyms": [
+    "Apérogebäck"
+   ]
+  },
+  {
+   "name": "Maisgriess",
+   "category": "Reis und andere Getreide",
+   "synonyms": [
+    "Polenta"
+   ]
+  },
+  {
+   "name": "Maiskeimöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Maiskölbchen",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Maisstärke",
+   "category": "Mehl"
+  },
+  {
+   "name": "Maiswaffel",
+   "category": "Brot"
+  },
+  {
+   "name": "Majoran",
+   "category": "Kräuter",
+   "team": true
+  },
+  {
+   "name": "Malzgetränk",
+   "category": "Süsses"
+  },
+  {
+   "name": "Mandarine",
+   "category": "Obst"
+  },
+  {
+   "name": "Mandel",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Mandelgetränk",
+   "category": "Pflanzliche Alternativen",
+   "synonyms": [
+    "Mandelmilch"
+   ]
+  },
+  {
+   "name": "Mango",
+   "category": "Obst"
+  },
+  {
+   "name": "Mangold",
+   "category": "Gemüse",
+   "synonyms": [
+    "Krautstiel",
+    "Krautstiele"
+   ]
+  },
+  {
+   "name": "Maniok",
+   "category": "Kartoffeln",
+   "synonyms": [
+    "Cassava",
+    "Kassave",
+    "Yuca"
+   ]
+  },
+  {
+   "name": "Margarine",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Marroni-Püree",
+   "category": "Süsses"
+  },
+  {
+   "name": "Marzipan",
+   "category": "Süsses"
+  },
+  {
+   "name": "Mascarpone",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Mayonnaise",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Melasse",
+   "category": "Süsses"
+  },
+  {
+   "name": "Meringue-Schale",
+   "category": "Süsses"
+  },
+  {
+   "name": "Miesmuschel",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Milchkaffee",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Schale"
+   ]
+  },
+  {
+   "name": "Milchschokolade",
+   "category": "Süsses",
+   "synonyms": [
+    "Gianduja",
+    "Nougat"
+   ]
+  },
+  {
+   "name": "Minipic Würstchen",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Mirabelle",
+   "category": "Obst"
+  },
+  {
+   "name": "Molke",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Süssmolke"
+   ]
+  },
+  {
+   "name": "Morchel",
+   "category": "Pilze"
+  },
+  {
+   "name": "Mortadella",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Mostbröckli",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Mozzarella",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Muskatnuss",
+   "category": "Gewürze",
+   "synonyms": [
+    "Muskat"
+   ],
+   "team": true
+  },
+  {
+   "name": "Mykoprotein",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Müeslimischung",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Mürbeteig",
+   "category": "Teig"
+  },
+  {
+   "name": "Mütschli",
+   "category": "Brot"
+  },
+  {
+   "name": "Nektarine",
+   "category": "Obst"
+  },
+  {
+   "name": "Nuss-Stängeli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Nussgipfel",
+   "category": "Süsses"
+  },
+  {
+   "name": "Nussschnecke",
+   "category": "Süsses",
+   "synonyms": [
+    "Hefeschnecke"
+   ]
+  },
+  {
+   "name": "Nüsslisalat",
+   "category": "Gemüse",
+   "synonyms": [
+    "Feldsalat",
+    "Rapunzelsalat"
+   ]
+  },
+  {
+   "name": "Ofen-Frites",
+   "category": "Kartoffeln",
+   "synonyms": [
+    "Ofen-Pommes"
+   ]
+  },
+  {
+   "name": "Olive",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Olivenöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Orange",
+   "category": "Obst",
+   "synonyms": [
+    "Apfelsine"
+   ]
+  },
+  {
+   "name": "Orangeat",
+   "category": "Süsses"
+  },
+  {
+   "name": "Orangennektar",
+   "category": "Getränke"
+  },
+  {
+   "name": "Orangensaft",
+   "category": "Getränke"
+  },
+  {
+   "name": "Oregano",
+   "category": "Kräuter",
+   "team": true
+  },
+  {
+   "name": "Palmöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Panettone",
+   "category": "Süsses"
+  },
+  {
+   "name": "Paniermehl",
+   "category": "Mehl",
+   "synonyms": [
+    "Semmelmehl"
+   ]
+  },
+  {
+   "name": "Pantli",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Papaya",
+   "category": "Obst"
+  },
+  {
+   "name": "Paprika",
+   "category": "Gewürze"
+  },
+  {
+   "name": "Paranuss",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Pariserbrot",
+   "category": "Brot",
+   "synonyms": [
+    "Baguette",
+    "Parisette"
+   ]
+  },
+  {
+   "name": "Parmesan",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Parmiggiano"
+   ]
+  },
+  {
+   "name": "Passionsfrucht",
+   "category": "Obst",
+   "synonyms": [
+    "Maracuja"
+   ]
+  },
+  {
+   "name": "Pastinake",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Peperoni",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Pestosauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Petersilie",
+   "category": "Kräuter",
+   "synonyms": [
+    "Peterli"
+   ]
+  },
+  {
+   "name": "Petit Beurre",
+   "category": "Süsses"
+  },
+  {
+   "name": "Pfeffer",
+   "category": "Gewürze",
+   "team": true
+  },
+  {
+   "name": "Pfefferminze",
+   "category": "Kräuter"
+  },
+  {
+   "name": "Pferd",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Filet"
+   ]
+  },
+  {
+   "name": "Pfirsich",
+   "category": "Obst"
+  },
+  {
+   "name": "Pflaume",
+   "category": "Obst",
+   "synonyms": [
+    "Dörrpflaume",
+    "Backpflaume"
+   ]
+  },
+  {
+   "name": "Pilzsauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Pinienkerne",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Pistazie",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Pizzateig",
+   "category": "Teig"
+  },
+  {
+   "name": "Polenta",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Pommes Chips",
+   "category": "Snacks"
+  },
+  {
+   "name": "Pommes Frites",
+   "category": "Kartoffeln",
+   "synonyms": [
+    "Ofen-Pommes"
+   ]
+  },
+  {
+   "name": "Popcorn",
+   "category": "Snacks",
+   "synonyms": [
+    "Puffmais"
+   ]
+  },
+  {
+   "name": "Portwein",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Porto"
+   ]
+  },
+  {
+   "name": "Poulet",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Brust",
+    "Pouletschnitzel",
+    "Schenkel"
+   ]
+  },
+  {
+   "name": "Preiselbeere",
+   "category": "Obst",
+   "synonyms": [
+    "Moosbeere"
+   ]
+  },
+  {
+   "name": "Prussien",
+   "category": "Süsses",
+   "synonyms": [
+    "Palmiers"
+   ]
+  },
+  {
+   "name": "Pudding",
+   "category": "Süsses",
+   "synonyms": [
+    "Flan"
+   ]
+  },
+  {
+   "name": "Puffreis",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Quark",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Quarkblätterteig",
+   "category": "Teig"
+  },
+  {
+   "name": "Quinoa",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Quitte",
+   "category": "Obst"
+  },
+  {
+   "name": "Raclettekäse",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Radieschen",
+   "category": "Gemüse",
+   "synonyms": [
+    "Radisli"
+   ]
+  },
+  {
+   "name": "Rahmglace",
+   "category": "Süsses",
+   "synonyms": [
+    "Rahmeis"
+   ]
+  },
+  {
+   "name": "Rahmkaramellen",
+   "category": "Süsses",
+   "synonyms": [
+    "Rahmbonbons"
+   ]
+  },
+  {
+   "name": "Rahmspinat",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Rande",
+   "category": "Gemüse",
+   "synonyms": [
+    "Rote Beete"
+   ]
+  },
+  {
+   "name": "Rapsöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Reblochon",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Reh",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Rehpfeffer",
+    "Ragout",
+    "Schnitzel"
+   ]
+  },
+  {
+   "name": "Reibkäse",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Reis",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Reisgetränk",
+   "category": "Pflanzliche Alternativen",
+   "synonyms": [
+    "Reismilch"
+   ]
+  },
+  {
+   "name": "Rettich",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Rhabarber",
+   "category": "Obst"
+  },
+  {
+   "name": "Rhabarberkompott",
+   "category": "Obst"
+  },
+  {
+   "name": "Rind",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Brust",
+    "Plätzli",
+    "Eckstück",
+    "Entrecôte",
+    "Filet",
+    "Hackfleisch",
+    "Gehacktes",
+    "Geschnetzeltes",
+    "Voressen",
+    "Gulasch",
+    "Hals",
+    "Hohrücken",
+    "Leber",
+    "Saftplätzli",
+    "Runder Mocken",
+    "Schulter",
+    "Braten",
+    "Siedfleisch",
+    "Ragout",
+    "Zunge"
+   ]
+  },
+  {
+   "name": "Rippli",
+   "category": "Wurstwaren",
+   "synonyms": [
+    "Nierstück"
+   ]
+  },
+  {
+   "name": "Ristretto crème",
+   "category": "Getränke"
+  },
+  {
+   "name": "Roggenbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Roggenmehl",
+   "category": "Mehl"
+  },
+  {
+   "name": "Roggenschrotbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Rohessspeck",
+   "category": "Wurstwaren",
+   "synonyms": [
+    "Bauernspeck"
+   ]
+  },
+  {
+   "name": "Rohschinken",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Rollgerste",
+   "category": "Reis und andere Getreide",
+   "synonyms": [
+    "Gerstengraupen"
+   ]
+  },
+  {
+   "name": "Rollmops",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Rollschinken",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Roquefort",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Rosenkohl",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Rosine",
+   "category": "Obst",
+   "synonyms": [
+    "Weinbeere",
+    "Sultanine"
+   ]
+  },
+  {
+   "name": "Rosmarin",
+   "category": "Kräuter"
+  },
+  {
+   "name": "Rotkohl",
+   "category": "Gemüse",
+   "synonyms": [
+    "Rotkraut",
+    "Blaukraut"
+   ]
+  },
+  {
+   "name": "Ruchbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Rucola",
+   "category": "Gemüse",
+   "synonyms": [
+    "Rauke"
+   ]
+  },
+  {
+   "name": "Rösti",
+   "category": "Kartoffeln",
+   "synonyms": [
+    "Fertig-Rösti"
+   ]
+  },
+  {
+   "name": "Sablé",
+   "category": "Süsses"
+  },
+  {
+   "name": "Safran",
+   "category": "Gewürze",
+   "team": true
+  },
+  {
+   "name": "Salametti",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Salami",
+   "category": "Wurstwaren",
+   "synonyms": [
+    "Billiglinie"
+   ]
+  },
+  {
+   "name": "Salatsauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Salbei",
+   "category": "Kräuter"
+  },
+  {
+   "name": "Salsiz",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Salz",
+   "category": "Gewürze",
+   "synonyms": [
+    "Speisesalz"
+   ]
+  },
+  {
+   "name": "Sardelle",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Sardellenpaste",
+   "category": "Zutaten"
+  },
+  {
+   "name": "Sardine",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Saucisse aux choux",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Saucisson",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Saucisson vaudois",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Sauerkraut",
+   "category": "Gemüse",
+   "synonyms": [
+    "Sauerkohl"
+   ]
+  },
+  {
+   "name": "Sauerrahm",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Crème fraîche"
+   ]
+  },
+  {
+   "name": "Saurer Halbrahm",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Sbrinz",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Scampi",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Kaisergranat"
+   ]
+  },
+  {
+   "name": "Schafmilch",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Schalotte",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Schaumwein",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Sekt",
+    "Prosecco",
+    "Champagner"
+   ]
+  },
+  {
+   "name": "Schmelzkäse",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Schnittlauch",
+   "category": "Kräuter"
+  },
+  {
+   "name": "Schoggibrötli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Schokolade",
+   "category": "Süsses",
+   "synonyms": [
+    "Schoggi"
+   ]
+  },
+  {
+   "name": "Schokoladencrème",
+   "category": "Süsses"
+  },
+  {
+   "name": "Schokoladenpulver",
+   "category": "Süsses"
+  },
+  {
+   "name": "Scholle",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Goldbutt"
+   ]
+  },
+  {
+   "name": "Schwarzwurzel",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Schwein",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Brustspitz",
+    "Eckstück",
+    "Plätzli",
+    "Filet",
+    "Hackfleisch",
+    "Gehacktes",
+    "Geschnetzeltes",
+    "Hals",
+    "Steak",
+    "Haxe",
+    "Kotelett",
+    "Leber",
+    "Nierstück",
+    "Runder Mocken",
+    "Schulter",
+    "Braten",
+    "Ragout",
+    "Voressen"
+   ]
+  },
+  {
+   "name": "Schweineschmalz",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Schweinsbratwurst",
+   "category": "Wurstwaren",
+   "synonyms": [
+    "Bauernbratwurst"
+   ]
+  },
+  {
+   "name": "Schweinswurst",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Schümliguetzli",
+   "category": "Süsses",
+   "synonyms": [
+    "Schümli",
+    "Schaumgebäck",
+    "Schaumkeks",
+    "Choco-Schümli"
+   ]
+  },
+  {
+   "name": "Schützenwurst",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Seehecht",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Seelachs",
+   "category": "Fisch und Meeresfrüchte",
+   "synonyms": [
+    "Kohlfisch",
+    "Köhler",
+    "Pollack"
+   ]
+  },
+  {
+   "name": "Seezunge",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Seitan",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Semmeli",
+   "category": "Brot"
+  },
+  {
+   "name": "Senf",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Sesam",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Sesamöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Sherry",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Jerez"
+   ]
+  },
+  {
+   "name": "Silberzwiebel",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Sirup",
+   "category": "Getränke"
+  },
+  {
+   "name": "Sojabohne",
+   "category": "Hülsenfrüchte"
+  },
+  {
+   "name": "Sojagetränk",
+   "category": "Pflanzliche Alternativen",
+   "synonyms": [
+    "Sojamilch"
+   ]
+  },
+  {
+   "name": "Sojamehl",
+   "category": "Mehl"
+  },
+  {
+   "name": "Sojasauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Sojasprossen",
+   "category": "Gemüse",
+   "synonyms": [
+    "Sojakeime"
+   ]
+  },
+  {
+   "name": "Sojaöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Sonnenblumenkerne",
+   "category": "Nüsse und Samen"
+  },
+  {
+   "name": "Sonnenblumenöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Sorbet",
+   "category": "Süsses"
+  },
+  {
+   "name": "Spargel",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Spinat",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Spirituosen",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Vodka",
+    "Gin"
+   ]
+  },
+  {
+   "name": "Spitzbube",
+   "category": "Süsses"
+  },
+  {
+   "name": "Spätzli",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "St. Galler Bürli",
+   "category": "Brot"
+  },
+  {
+   "name": "St. Galler Schüblig",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "St. Paulin",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Stachelbeere",
+   "category": "Obst"
+  },
+  {
+   "name": "Stangensellerie",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Steinpilz",
+   "category": "Pilze"
+  },
+  {
+   "name": "Strudelteig",
+   "category": "Teig"
+  },
+  {
+   "name": "Surimi",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Süsskartoffel",
+   "category": "Kartoffeln"
+  },
+  {
+   "name": "Tartarsauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Tee",
+   "category": "Getränke"
+  },
+  {
+   "name": "Teigwaren",
+   "category": "Pasta",
+   "synonyms": [
+    "Eierteigwaren"
+   ]
+  },
+  {
+   "name": "Teilentrahmte Milch",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Tempeh",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Terrine de Campagne",
+   "category": "Wurstwaren",
+   "synonyms": [
+    "Pâté de campagne"
+   ]
+  },
+  {
+   "name": "Tessinerbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Texturiertes Soja",
+   "category": "Pflanzliche Alternativen",
+   "synonyms": [
+    "Granulat",
+    "Schnetzel"
+   ]
+  },
+  {
+   "name": "Thon",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Thunfisch",
+   "category": "Fisch und Meeresfrüchte"
+  },
+  {
+   "name": "Thymian",
+   "category": "Kräuter"
+  },
+  {
+   "name": "Tilsiter",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Toastbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Tofu",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Tomate",
+   "category": "Gemüse",
+   "synonyms": [
+    "Pelati"
+   ]
+  },
+  {
+   "name": "Tomatenpüree",
+   "category": "Gemüse",
+   "synonyms": [
+    "Tomatenmark"
+   ]
+  },
+  {
+   "name": "Tomatensaft",
+   "category": "Getränke"
+  },
+  {
+   "name": "Tomatensauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Tomme",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Topinambur",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Traube",
+   "category": "Obst",
+   "synonyms": [
+    "Weintraube"
+   ]
+  },
+  {
+   "name": "Traubenkernöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Traubensaft",
+   "category": "Getränke"
+  },
+  {
+   "name": "Traubenzucker",
+   "category": "Süsses",
+   "synonyms": [
+    "Glukose",
+    "Dextrose"
+   ]
+  },
+  {
+   "name": "Trinkwasser",
+   "category": "Getränke",
+   "synonyms": [
+    "Mittelwert Schweiz"
+   ]
+  },
+  {
+   "name": "Trockenfleisch",
+   "category": "Wurstwaren",
+   "synonyms": [
+    "Hobelfleisch",
+    "Bündnerfleisch"
+   ]
+  },
+  {
+   "name": "Trutenbrust",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Truthahn",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Brust"
+   ]
+  },
+  {
+   "name": "Tzatziki",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Tête de Moine",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Vacherin Mont d'Or",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Vanille",
+   "category": "Gewürze",
+   "team": true
+  },
+  {
+   "name": "Vanillecrème",
+   "category": "Süsses"
+  },
+  {
+   "name": "Vegane Nuggets",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Vegane Wurst",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Veganer Burger",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Veganes Gehacktes",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Veganes Geschnetzeltes",
+   "category": "Pflanzliche Alternativen"
+  },
+  {
+   "name": "Vinaigrette",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Vollkornreis",
+   "category": "Reis und andere Getreide"
+  },
+  {
+   "name": "Vollkornreiswaffel",
+   "category": "Brot"
+  },
+  {
+   "name": "Vollmilch",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Vollmilchpulver",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Vollrahm",
+   "category": "Milchprodukte",
+   "synonyms": [
+    "Rahm"
+   ]
+  },
+  {
+   "name": "Vorderschinken",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Vorzugsbutter",
+   "category": "Fette, Öle und Saucen",
+   "synonyms": [
+    "Butter"
+   ]
+  },
+  {
+   "name": "Waffel",
+   "category": "Süsses"
+  },
+  {
+   "name": "Waffelguetzli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Walliser Roggenbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Wasabi Paste",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Wassereis",
+   "category": "Süsses",
+   "synonyms": [
+    "Wasserglacé"
+   ]
+  },
+  {
+   "name": "Wassermelone",
+   "category": "Obst"
+  },
+  {
+   "name": "Weichkaramellen",
+   "category": "Süsses"
+  },
+  {
+   "name": "Weichkäse",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Wein",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Rotwein",
+    "Weisswein"
+   ]
+  },
+  {
+   "name": "Weissbrot",
+   "category": "Brot"
+  },
+  {
+   "name": "Weisskohl",
+   "category": "Gemüse",
+   "synonyms": [
+    "Weisskabis"
+   ]
+  },
+  {
+   "name": "Weisswurst",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Weizen",
+   "category": "Reis und andere Getreide",
+   "synonyms": [
+    "Weichweizen"
+   ]
+  },
+  {
+   "name": "Weizenflocken",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Weizenkeime",
+   "category": "Flocken und Müesli"
+  },
+  {
+   "name": "Weizenkeimöl",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Weizenkleie",
+   "category": "Flocken und Müesli",
+   "synonyms": [
+    "Speisekleie"
+   ]
+  },
+  {
+   "name": "Weizenmehl",
+   "category": "Mehl",
+   "synonyms": [
+    "Backmehl"
+   ]
+  },
+  {
+   "name": "Weizenstärke",
+   "category": "Mehl"
+  },
+  {
+   "name": "Weizenvollkornbrot",
+   "category": "Brot",
+   "synonyms": [
+    "Grahambrot"
+   ]
+  },
+  {
+   "name": "Wermut",
+   "category": "Getränke mit Alkohol",
+   "synonyms": [
+    "Wermutwein",
+    "Wermuth",
+    "Vermouth"
+   ]
+  },
+  {
+   "name": "Wienerli",
+   "category": "Wurstwaren"
+  },
+  {
+   "name": "Wildfleischterrine",
+   "category": "Fleisch und Geflügel"
+  },
+  {
+   "name": "Willisauer Ringli",
+   "category": "Süsses"
+  },
+  {
+   "name": "Wirz",
+   "category": "Gemüse",
+   "synonyms": [
+    "Wirsingkohl"
+   ]
+  },
+  {
+   "name": "Worcester Sauce",
+   "category": "Fette, Öle und Saucen"
+  },
+  {
+   "name": "Zampone",
+   "category": "Fleisch und Geflügel",
+   "synonyms": [
+    "Gefüllter Schweinsfuss"
+   ]
+  },
+  {
+   "name": "Ziegenfrischkäse",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Ziegenmilch",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Ziger",
+   "category": "Milchprodukte"
+  },
+  {
+   "name": "Zimt",
+   "category": "Gewürze"
+  },
+  {
+   "name": "Zimtstern",
+   "category": "Süsses"
+  },
+  {
+   "name": "Zitronat",
+   "category": "Süsses"
+  },
+  {
+   "name": "Zitrone",
+   "category": "Obst"
+  },
+  {
+   "name": "Zitronensaft",
+   "category": "Getränke"
+  },
+  {
+   "name": "Zitronenschale",
+   "category": "Obst"
+  },
+  {
+   "name": "Zucchetti",
+   "category": "Gemüse",
+   "synonyms": [
+    "Zucchini"
+   ]
+  },
+  {
+   "name": "Zucker",
+   "category": "Süsses",
+   "synonyms": [
+    "Saccharose",
+    "Kristallzucker"
+   ]
+  },
+  {
+   "name": "Zuckerhutsalat",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Zuckermais",
+   "category": "Gemüse"
+  },
+  {
+   "name": "Zuckermelone",
+   "category": "Obst",
+   "synonyms": [
+    "Honigmelone"
+   ]
+  },
+  {
+   "name": "Zwetschge",
+   "category": "Obst"
+  },
+  {
+   "name": "Zwieback",
+   "category": "Brot"
+  },
+  {
+   "name": "Zwiebel",
+   "category": "Gemüse"
+  }
+ ]
+}
