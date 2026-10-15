@@ -245,8 +245,8 @@ Ausserdem:
 
 - Erdnüsse: Es gibt keine Erdnuss-Karte. Eine Erdnussallergie blendet beim Wischen deshalb noch nichts aus. Umgekehrt schliesst „Alle Nüsse (inkl. Erdnüsse)“ auch Erdnüsse aus, wer nur Baumnüsse meint.
 - Marken und Herkunft: Wirkung erst mit Produktdaten (z. B. von nurec).
-- Echte SMS über Firebase: Die Handynummer geht an Google (USA). Das widerspricht der ursprünglichen Vorgabe (kein echter SMS-Versand, keine Netzwerkanfragen) und gehört in die Einwilligung der Studie (Frage F4); mit Dozent und nurec klären. Kosten pro SMS über den Blaze-Tarif. Für Testpersonen ohne eigenes Handy `?sms=sim`.
-- Stufe 4 (Gerichte, z. B. „Pizza Margherita“) gibt es im Prototyp noch nicht; die Gerichte der Nährwertdatenbank sind deshalb nicht in der Suche.
+- Echte SMS über Firebase: Die Handynummer geht für die einmalige Registrierung an Google (USA). Teamentscheid 15.10.: in Ordnung; im Einwilligungstext der Studie erwähnen (Frage F4). Kosten pro SMS über den Blaze-Tarif. Für Testpersonen ohne eigenes Handy `?sms=sim`.
+- Stufe 4 (Gerichte, z. B. „Pizza Margherita“) folgt später; die Gerichte der Nährwertdatenbank sind deshalb noch nicht in der Suche.
 - Soll die Registrierung in der Nutzerstudie aktiv sein? Sie kostet Zeit vor dem Swipen (auswertbar über `AUTH_STARTED`/`AUTH_COMPLETED`). Abschaltbar mit `AUTH_ENABLED = false`.
 - Dürfen Testpersonen ihr Profil während der Studie bearbeiten? Jede Änderung ist im Log nachvollziehbar, verändert aber das angezeigte Profil.
 - Synonyme: unsichere Begriffe in `synonymTodos` (z. B. „Baumnuss“ für Walnuss vs. Kartentitel „Baumnüsse“, Peperoni in Deutschland).
