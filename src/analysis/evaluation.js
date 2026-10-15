@@ -17,7 +17,8 @@
 import { PREFERENCE_MODEL } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR, isTasteSignal } from '../logic/answers.js';
 import { deriveRoundState, replay } from '../logic/engine.js';
-import { ANSWER, HOLDOUT_DRAWN, PHASE_HOLDOUT, eventType } from '../logic/events.js';
+import { ANSWER, HOLDOUT_DRAWN, PHASE_HOLDOUT, QUESTION_ABORTED, eventType } from '../logic/events.js';
+import { REASONS } from '../logic/selection.js';
 import { isVisible } from '../logic/filter.js';
 import { seededRandom } from '../logic/holdout.js';
 import { directScore, predictedRating, predictScores } from '../logic/preferences.js';
@@ -69,9 +70,57 @@ export function bootstrapInterval(values, { resamples = RESAMPLES, seed = 'boots
   return [quantile(means, 0.025), quantile(means, 0.975)];
 }
 
+// Pilot-Kennzahlen nach nurec v0.2, Kap. 10 („Im Pilot messen“), je Sitzung aus dem Protokoll:
+//   aborted        Abbrüche („Runde beenden“ mit offener Karte, QUESTION_ABORTED)
+//   medianRoundMs  Dauer einer Runde (erste bis letzte Antwort), Median über die Runden
+//   unfamiliarShare  Anteil „Kenne ich nicht“ in der normalen Auswahl
+//   clarifications, clarified  Klärungskarten nach „Kenne ich nicht“ und wie viele davon erkannt wurden (Geschmacksantwort)
+//   redundant      Antworten, die genau das bestätigen, was die App vorher schon vermutet hat (Hinweis auf redundante Karten)
+//   contradictions Antworten gegen die Vermutung vorher (neue, widersprüchliche Hinweise, z. B. eine Ausnahme)
+//   guessed        Antworten, zu denen es vorher eine Vermutung gab (Nenner für redundant und contradictions)
+export function pilotMetrics(index, events, main, model = PREFERENCE_MODEL) {
+  const played = replay(events);
+  const mainIds = new Set(main.map((answer) => answer.cardId));
+  const eventOf = (id) => events[played.answeredAt[id]];
+  const byRound = new Map();
+  for (const id of mainIds) {
+    const event = eventOf(id);
+    if (!event?.timestamp) continue;
+    const round = String(event.round ?? 1);
+    byRound.set(round, [...(byRound.get(round) ?? []), Date.parse(event.timestamp)]);
+  }
+  const roundMs = [...byRound.values()].filter((times) => times.length > 1).map((times) => Math.max(...times) - Math.min(...times));
+  const clarifyReasons = [REASONS.AFTER_UNFAMILIAR, REASONS.AFTER_UNFAMILIAR_DETAIL];
+  const clarifications = main.filter((answer) => clarifyReasons.includes(eventOf(answer.cardId)?.selectionReason));
+  let guessed = 0;
+  let redundant = 0;
+  let contradictions = 0;
+  main.forEach((answer, position) => {
+    if (!isTasteSignal(answer.response)) return;
+    const before = Object.fromEntries(main.slice(0, position).map((earlier) => [earlier.cardId, earlier.response]));
+    const prediction = predictScores(index, before, model).get(answer.cardId);
+    const guess = prediction && !prediction.direct ? predictedRating(prediction.score) : null;
+    if (!guess) return;
+    guessed += 1;
+    if (sameDirection(guess, answer.response)) redundant += 1;
+    else contradictions += 1;
+  });
+  return {
+    aborted: events.filter((event) => eventType(event) === QUESTION_ABORTED && event.phase !== 'dish').length,
+    medianRoundMs: median(roundMs),
+    unfamiliarShare: main.length > 0 ? main.filter((answer) => answer.response === UNFAMILIAR).length / main.length : null,
+    clarifications: clarifications.length,
+    clarified: clarifications.filter((answer) => isTasteSignal(answer.response)).length,
+    guessed,
+    redundant,
+    contradictions,
+  };
+}
+
 // Eine Sitzung (wie im JSON-Export) für die Auswertung aufbereiten.
-// main: Antworten der normalen Auswahl in der Reihenfolge des Wischens (nach Rückgängig),
-// checks: Antworten auf die Kontrollkarten, visible: am Ende sichtbare Karten (für die Vollständigkeit).
+// main: Antworten der normalen Auswahl in der Reihenfolge des Wischens (nach Rückgängig; ohne Kontrollkarten und
+// ohne Gerichte, die eine eigene, freiwillige Runde haben), checks: Antworten auf die Kontrollkarten,
+// visible: am Ende sichtbare Karten (für die Vollständigkeit).
 export function prepareSession(session, { index, diets }) {
   const events = session.events ?? [];
   const drawn =
@@ -79,10 +128,11 @@ export function prepareSession(session, { index, diets }) {
     [...new Set(events.filter((event) => eventType(event) === ANSWER && event.phase === PHASE_HOLDOUT).map((event) => event.cardId))];
   const holdout = new Set(drawn);
   const played = replay(events);
-  const main = played.sequence.filter((id) => !holdout.has(id)).map((cardId) => ({ cardId, response: played.answers[cardId] }));
+  const isDishCard = (id) => index.get(id)?.stage === 4;
+  const main = played.sequence.filter((id) => !holdout.has(id) && !isDishCard(id)).map((cardId) => ({ cardId, response: played.answers[cardId] }));
   const checks = drawn.filter((id) => id in played.answers).map((cardId) => ({ cardId, response: played.answers[cardId] }));
   const state = deriveRoundState({ index, onboarding: session.onboarding ?? null, diets, events });
-  const visible = index.cards.filter((card) => isVisible(card, index, state.exclusions)).map((card) => card.id);
+  const visible = index.cards.filter((card) => card.stage < 4 && isVisible(card, index, state.exclusions)).map((card) => card.id);
   const answerEvents = played.sequence.map((id) => events[played.answeredAt[id]]);
   const times = answerEvents.map((event) => event.timestamp).filter(Boolean).map((stamp) => Date.parse(stamp));
   return {
@@ -95,7 +145,9 @@ export function prepareSession(session, { index, diets }) {
     main,
     checks,
     visible,
-    rounds: Math.max(0, ...answerEvents.map((event) => event.round ?? 1)),
+    rounds: Math.max(0, ...answerEvents.map((event) => event.round ?? 1).filter((round) => typeof round === 'number')),
+    dishes: played.sequence.filter(isDishCard).length,
+    pilot: pilotMetrics(index, events, main),
     undos: events.filter((event) => event.response === 'UNDO').length,
     durationMs: session.endedAt && session.startedAt ? Date.parse(session.endedAt) - Date.parse(session.startedAt) : null,
     swipeMs: times.length > 1 ? Math.max(...times) - Math.min(...times) : null,
@@ -298,6 +350,7 @@ export const CHECK_COLUMNS = ['sessionId', 'participantCode', 'selection', 'main
 export const SESSION_COLUMNS = [
   'sessionId', 'participantCode', 'ageGroup', 'selection', 'roundCardLimit', 'mainAnswers', 'checksDrawn', 'checksAnswered', 'checksRated',
   'rounds', 'undos', 'durationMs', 'swipeMs', 'medianResponseTimeMs', 'accuracyAtEnd',
+  'aborted', 'medianRoundMs', 'unfamiliarShare', 'clarifications', 'clarified', 'guessed', 'redundant', 'contradictions', 'dishes',
 ];
 export const VARIANT_COLUMNS = ['id', 'label', 'sessions', 'accuracy', 'accuracyLow', 'accuracyHigh', 'coverage'];
 
@@ -320,6 +373,8 @@ export function sessionRows(index, datas) {
       swipeMs: data.swipeMs,
       medianResponseTimeMs: data.medianResponseTimeMs,
       accuracyAtEnd: share(final),
+      ...data.pilot,
+      dishes: data.dishes,
     };
   });
 }
@@ -363,6 +418,18 @@ export function formatSummary(result, { steps = [0, 5, 10, 13, 15, 20, 25, 30, 3
         : `Kriterium (Vorschlag, mind. ${minSessions} Personen): ab k = ${first} sicher besser als beide Vergleichswerte.`
     );
   }
+  // Pilot-Kennzahlen (nurec v0.2, Kap. 10)
+  const pilots = datas.map((data) => data.pilot);
+  const total = (field) => pilots.reduce((sum, entry) => sum + (entry[field] ?? 0), 0);
+  const minutes = (ms) => (ms == null ? '–' : `${(ms / 60000).toFixed(1).replace('.', ',')} min`);
+  lines.push('');
+  lines.push('Pilot-Kennzahlen (nurec v0.2, Kap. 10):');
+  lines.push(`  Dauer einer Runde (Median): ${minutes(median(pilots.map((entry) => entry.medianRoundMs).filter((value) => value != null)))}`);
+  lines.push(`  Abbrüche („Runde beenden“ mit offener Karte): ${total('aborted')}`);
+  lines.push(`  Anteil „Kenne ich nicht“ (Mittel je Person): ${percent(mean(pilots.map((entry) => entry.unfamiliarShare).filter((value) => value != null)))}`);
+  lines.push(`  Klärungskarten nach „Kenne ich nicht“: ${total('clarifications')}, davon erkannt: ${total('clarified')}`);
+  lines.push(`  Antworten mit Vermutung vorher: ${total('guessed')}, bestätigt (eher redundant): ${total('redundant')}, widersprüchlich (neue Hinweise): ${total('contradictions')}`);
+  lines.push(`  Gerichte bewertet (Stufe 4, freiwillig): ${total('dishes')}`);
   lines.push('');
   lines.push('Annahmen im Vergleich (alle Antworten der normalen Auswahl):');
   for (const variant of variants) {

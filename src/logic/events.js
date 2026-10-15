@@ -11,6 +11,9 @@
 //                   predictedScore (die Vermutung vorher); die Karte gilt danach als direkt bewertet.
 // AUTH_STARTED      Registrierung begonnen (Vorname eingeben), AUTH_COMPLETED: SMS-Code bestätigt.
 //                   Damit lässt sich die Dauer der Registrierung getrennt von der Swipe-Dauer auswerten.
+// QUESTION_ABORTED  „Runde beenden“, während eine Karte zu sehen war (nurec v0.2, Kap. 6: Abbruch protokollieren):
+//                   { cardId, stage, round, positionInRound, selectionReason, ruleVersion }
+// PRACTICAL_SAVED   Alltagsprofil gespeichert (Kap. 2.3, freiwillig): { practical }. Es gilt das letzte Ereignis.
 // HOLDOUT_DRAWN     Kontrollkarten gezogen (nach „Stimmt so“): { cardIds, method, eligible }. Diese Karten
 //                   kommen nie in der Auswahl vor, sondern erst am Ende der letzten Runde (Messkonzept).
 //                   Es gilt das letzte Ereignis dieses Typs.
@@ -24,10 +27,13 @@ export const DIET_CHANGED = 'DIET_CHANGED';
 export const AUTH_STARTED = 'AUTH_STARTED';
 export const AUTH_COMPLETED = 'AUTH_COMPLETED';
 export const HOLDOUT_DRAWN = 'HOLDOUT_DRAWN';
+export const QUESTION_ABORTED = 'QUESTION_ABORTED';
+export const PRACTICAL_SAVED = 'PRACTICAL_SAVED';
 
 // Phase einer Antwort beim Wischen (Feld phase im ANSWER-Ereignis)
 export const PHASE_MAIN = 'main';
 export const PHASE_HOLDOUT = 'holdout';
+export const PHASE_DISH = 'dish';
 
 export const PROFILE_EVENTS = [RATING_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, DIET_CHANGED];
 export const SOURCE_PROFILE = 'profile';

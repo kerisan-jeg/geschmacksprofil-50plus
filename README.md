@@ -1,9 +1,9 @@
 # Geschmacksprofil 50+ · Prototyp
 
 Mobiler Swipe-Prototyp zur Geschmacksprofilerkennung bei Personen ab 50 (WI-Projekt, Auftraggeber nurec).
-Version 0.7: adaptive Kartenauswahl, Präferenzmodell mit Vermutungen, Kontrollkarten und Auswertungsskript für die Lernkurve (Messkonzept in [`docs/messkonzept.md`](docs/messkonzept.md)). Dazu wie bisher Designsystem, Swipe-Oberfläche, Registrierung mit SMS-Code (echt über Firebase oder simuliert), bearbeitbares Profil und einheitliche Suche über alle Lebensmittel.
+Version 0.8: vollständig nach dem nurec-Konzept v0.2 (Abgleich Kapitel für Kapitel unten unter „Abgleich mit nurec v0.2“). Stufe 0 bis 4 mit konkreten Lebensmitteln (Anhang A3) und Gerichten, Auswahlregeln nach Kap. 6 und 11, Ergebnis-Dashboard mit Profilstand (Anhang B), freiwilliges Alltagsprofil (Kap. 2.3), Kontrollkarten und Auswertung der Lernkurve mit Pilot-Kennzahlen (Messkonzept in [`docs/messkonzept.md`](docs/messkonzept.md)). Dazu wie bisher Designsystem, Swipe-Oberfläche, Registrierung mit SMS-Code (echt über Firebase oder simuliert) und einheitliche Suche über alle Lebensmittel.
 
-Hinweis zur Eigenleistung: Auswahl, Modell und Auswertung hat Claude Code (KI) im Auftrag des Teams umgesetzt (15.10.2026), auf Grundlage einer Rückmeldung zum Vorgehen. Die Regeln folgen nurec v0.2 [D]; Rangfolge, Annahmen und Kriterium sind Vorschläge [V], die das Team bestätigt oder ändert. Wie die KI-Unterstützung in der Arbeit deklariert wird, mit Tibor klären.
+Hinweis zur Eigenleistung: Auswahl, Modell, Dashboard, Stufe 3 und 4, Alltagsprofil und Auswertung hat Claude Code (KI) im Auftrag des Teams umgesetzt (15.10.2026), auf Grundlage einer Rückmeldung zum Vorgehen und des nurec-Konzepts. Die Regeln folgen nurec v0.2 [D]; Rangfolge, Annahmen und Kriterium sind Vorschläge [V], die das Team bestätigt oder ändert. Wie die KI-Unterstützung in der Arbeit deklariert wird, mit Tibor klären.
 
 Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (Kickoff, Zwischencheck),
 [D] bereitgestellte Dokumente (nurec-Konzept), [V] eigene Entscheidung des Teams.
@@ -19,8 +19,10 @@ Die App hat zwei Bereiche: **Profil erstellen** und **Mein Profil**. Die untere 
 5. **Zusammenfassung** (nurec v0.2, Kap. 2.2 [D]): „Stimmt das so?“ zeigt alle festen Regeln, je Frage ein Abschnitt (Ernährungsweise, Allergien und Unverträglichkeiten, „Möchte ich nicht essen“). „Ändern“ öffnet direkt die passende Frage und führt danach zurück; „Stimmt so“ bestätigt. Ein offenes „Ich bin mir nicht sicher“ steht dort als offen, nicht als Freigabe. Bewusst kurz, ohne Vorschau der Karten.
 6. **Runde 1:** nach „Stimmt so“ direkt die erste Karte (kein Tutorial, Teamentscheid vom 13.10.). Vorher zieht die App still die Kontrollkarten (siehe unten). Höchstens `ROUND_CARD_LIMIT` Karten (Standard 10), zuerst die Gruppen. Karte und Knöpfe haben den ganzen Bildschirm.
 7. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln), Ausblick auf die nächsten Karten, „Weiter mit Runde 2“ und „Mein Profil ansehen“.
-8. **Runde 2 bis maximal 4:** Die Karten wählt die App je nach den bisherigen Antworten (siehe „Kartenauswahl“): übrige Gruppen, Favoriten, eine Ausnahme bei „Mag ich nicht“, Untergruppen zum Unterscheiden. Gemäss Vorgabe des Dozenten endet die Profilerstellung spätestens nach Runde 4 (`MAX_ROUNDS` in `src/config.js`). Sie endet früher, wenn keine sinnvolle Karte mehr bleibt. Die letzten Karten sind die Kontrollkarten. Ausschlüsse wirken in jeder Runde.
-9. **Mein Profil:** Geschmack, Vermutungen der App und Ausschlüsse ansehen und bearbeiten.
+8. **Runde 2 bis maximal 4:** Die Karten wählt die App je nach den bisherigen Antworten (siehe „Kartenauswahl“): übrige Gruppen, die Ausnahme bei „Mag ich nicht“, zwei Untergruppen als Kontrast bei „Mag ich“, konkrete Lebensmittel nur bei einem Unterschied und als Favoriten. Gemäss Vorgabe des Dozenten endet die Profilerstellung spätestens nach Runde 4 (`MAX_ROUNDS` in `src/config.js`). Sie endet früher, wenn keine Karte mehr neue Information verspricht. Die letzten Karten sind die Kontrollkarten. Ausschlüsse wirken in jeder Runde.
+9. **Freiwillig: Gerichte (Stufe 4)** nach Stufe 2 oder am Ende der Profilerstellung: eine eigene kurze Runde mit konkreten Gerichten (z. B. Pizza Margherita, Rösti mit Spiegelei). Sie zählt nicht zu den vier Runden und überträgt nichts auf Zutaten (nurec Kap. 5 und 7).
+10. **Freiwillig: Alltag** (nurec Kap. 2.3): Kochzeit, Küchengeräte, Budget, Einkaufsorte und Marken, Convenience, Packungsgrösse. Jede Frage überspringbar.
+11. **Mein Profil:** Dashboard nach nurec Anhang B (siehe unten).
 
 Das **Mini-Tutorial** (drei kurze Schritte: Wischrichtungen, „Kenne ich nicht“ und „Vertrage ich nicht“, Rückgängig) ist im Code, aber standardmässig aus. Für einen Pilot-Vergleich `TUTORIAL_ENABLED = true` in `src/config.js` setzen; über die URL lässt es sich nicht einschalten.
 
@@ -61,14 +63,18 @@ Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt
 - **Protokoll:** In jeder Sitzung steht, ob die SMS echt oder simuliert war (`config.sms`, CSV-Spalte `sms`); `AUTH_COMPLETED` trägt `method: "sms"` bzw. `"sms-simulated"`.
 - **Ohne Registrierung:** `AUTH_ENABLED = false` in `src/config.js`. Der URL-Parameter `?auth=0|1` folgt mit der URL-Konfiguration (Commit 4).
 
-## Mein Profil
+## Mein Profil (Dashboard, nurec Anhang B)
 
-- **Kopf:** Vorname, gekürzte Nummer, Anzahl beantworteter Karten und die Abschnitte der Profilerstellung.
-- **Geschmack:** gruppiert in „Das magst du besonders“, „Das magst du“, „Das magst du eher nicht“ und „Kennst du nicht“, jeder Eintrag mit Bild und Bewertungs-Chip (Farbe, Symbol, Text). Berechnet von der reinen Funktion `computeProfile(state)` in `src/logic/engine.js`: nur nach der letzten direkten Antwort pro Karte, ohne Prozentwerte.
-- **Das vermutet die App** (getrennt darunter, gestrichelt umrandet): „Magst du vermutlich“ und „Magst du vermutlich nicht“, jeder Eintrag mit Begründung („Vermutet, weil du „Obst“ magst“), stärkste Vermutung zuerst, lange Listen gekürzt mit „Alle anzeigen“. Tippen öffnet die Bewertung: Die eigene Antwort ersetzt die Vermutung (`RATING_CHANGED` mit `fromPrediction: true` und der Vermutung vorher als `predictedScore`). Vermutungen zählen nie als Geschmack. Kontrollkarten erscheinen hier erst, wenn sie beantwortet sind. Berechnet von `derivedEntries(state)` in `src/logic/engine.js`.
-- **Ausschlüsse,** getrennt vom Geschmack: Allergien, Ernährungsweise, „Vertrage ich nicht“, „Möchte ich nicht essen“, Notizen. Bei jedem Eintrag steht die Herkunft (im Onboarding, beim Wischen, im Profil).
-- **Bearbeiten:** Bewertung über ein Segmented Control mit den drei Bewertungen und „Aus dem Profil entfernen“; Allergien mit derselben Komponente wie im Onboarding (inkl. Detailauswahl bei Nüssen und Gluten); Ernährungsweise; „Vertrage ich nicht“ und „Möchte ich nicht essen“ über die Suche. Allergien und Unverträglichkeiten werden nur nach einer Bestätigung entfernt.
-- **Event-Log:** Jede Änderung ist ein Ereignis (`RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED`) mit `source = "profile"` (`src/logic/events.js`). Der Zustand wird weiterhin per Replay abgeleitet; die ursprüngliche Antwort beim Wischen bleibt unverändert im Log. Ein entfernter Ausschluss fehlt danach einfach in den Einträgen, ob eine Karte wieder erlaubt ist, entscheidet `isAllowed()` (keine Sonderlogik).
+- **Profilstand „Profil aufgebaut“** (Anhang B2): Prozentwert als Erfassungsgrad mit Balken, darunter ehrlich „Zeigt, wie viel von deinem Geschmack erfasst ist, nicht wie genau Vorschläge sind“. Punkte nach dem Entwurf 35/30/35: Stufe 1 = Anteil der zulässigen Gruppen mit Geschmacksantwort, Stufe 2 = Anteil der Zweige mit beantworteter Ausnahme bzw. Kontrastpaar, Stufe 3 = konkrete Lebensmittel (voll ab 12, Annahme [V]). Gerichte und Alltag zählen nicht; „Kenne ich nicht“ gibt keine Punkte; Ausgeschlossenes ist nicht relevant. Dazu die höchste abgeschlossene Stufe und der **nächste sinnvolle Schritt** mit Knopf (nächste Runde mit Beispielen, Gerichte, Alltag). Berechnet in `src/logic/dashboard.js` (`profileProgress`); erscheint auch nach jeder Runde im Abschluss.
+- **Dein Geschmack:** zuerst **Deine Favoriten** (Anhang B3.1: nur konkrete Lebensmittel mit eigener Bewertung, „Sehr gern“ vor „Gern“), dann **Gruppen, die du magst** („gilt für die Gruppe, nicht automatisch für jedes Lebensmittel darin“), dann **Isst du eher ungern** mit Ausnahmen darunter („Ausnahme: Sojaprodukte, Naturtofu“).
+- **Das vermutet die App** (B3.2, getrennt und gestrichelt): mögliche Favoriten und Vermutungen mit Begründung, stärkste zuerst, „Alle anzeigen“ bei langen Listen. Tippen öffnet die Bewertung: Die eigene Antwort ersetzt die Vermutung (`RATING_CHANGED` mit `fromPrediction: true` und `predictedScore`). Kontrollkarten erscheinen erst nach ihrer Antwort.
+- **Noch offen:** „Kennst du nicht“ getrennt von „Noch nicht gefragt“ (beides ist keine Bewertung).
+- **Feinheiten:** roh gegenüber gegart (z. B. Rohe Rüebli: Mag ich nicht · Gekochte Rüebli: Mag ich), nur wenn beides beantwortet ist und sich unterscheidet.
+- **Gerichte** (Stufe 4) getrennt von den Lebensmitteln, mit „Gerichte bewerten“, sobald verfügbar.
+- **Ausschlüsse** (Nie vorschlagen), getrennt vom Geschmack: Allergien, Ernährungsweise, „Vertrage ich nicht“, „Möchte ich nicht essen“, Notizen. Bei jedem Eintrag die Herkunft (im Onboarding, beim Wischen, im Profil) und Zusätze nach Kap. 2.2: „ärztlich vorgegeben“, „kleine Mengen gehen“, „prüfen“ (eingetippt, nicht eindeutig zugeordnet).
+- **Alltag** (Kap. 2.3): Zusammenfassung in Worten, „Ergänzen“ bzw. „Ändern“.
+- **Bearbeiten:** Bewertung über ein Segmented Control mit den drei Bewertungen und „Aus dem Profil entfernen“; Allergien mit derselben Komponente wie im Onboarding; Ernährungsweise; „Vertrage ich nicht“ und „Möchte ich nicht essen“ über die Suche. Allergien und Unverträglichkeiten werden nur nach einer Bestätigung entfernt.
+- **Event-Log:** Jede Änderung ist ein Ereignis (`RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED`, `PRACTICAL_SAVED`). Der Zustand wird per Replay abgeleitet; die ursprüngliche Antwort beim Wischen bleibt unverändert im Log.
 
 ## Einheitliche Suche (FoodSearch)
 
@@ -97,29 +103,34 @@ Ziel: ruhig, warm, viel Weissraum, wie eine veröffentlichte Gesundheits- oder F
 
 ## Stufe 0: harte Ausschlüsse
 
-Grundlage ist nurec v0.2, Kap. 2 [D]. Die Bereiche 0.1 bis 0.5 sind als drei Fragen umgesetzt [V]; 0.6 (Marken und Händler) fehlt bewusst.
+Grundlage ist nurec v0.2, Kap. 2 [D]. Die Bereiche 0.1 bis 0.6 sind als drei Fragen umgesetzt [V].
 
 | Frage | Bereiche | Umsetzung |
 | --- | --- | --- |
-| Feste Ernährungsweise | 0.4 | Tabelle `diets` in `stage0.json`: kein Fisch, pescetarisch, vegetarisch, vegan schliessen Tags aus `animalOrigin` aus |
-| Allergien und Unverträglichkeiten | 0.1 bis 0.3 | 14 Hauptallergene (LIV Anhang 6, LMIV Anhang II) in `allergens.json`; 8 als Kacheln, der Rest über „Weitere anzeigen“ und Suche; Auswahl als Chips |
-| Nie vorschlagen | 0.5, 0.6 | Schnellauswahl, Suche über alle Lebensmittel, Eintragen ohne Treffer; eigener Block für Marken und Herkunft |
+| Feste Ernährungsweise | 0.4 | Tabelle `diets` in `stage0.json`: kein Schweinefleisch (religiöse Regel, auch keine Gelatine), kein Fisch, pescetarisch, vegetarisch, vegan schliessen Tags aus `animalOrigin` aus (vegetarisch und vegan auch Gelatine, vegan auch Honig) |
+| Allergien und Unverträglichkeiten | 0.1 bis 0.3 | 14 Hauptallergene (LIV Anhang 6, LMIV Anhang II) in `allergens.json`; 8 als Kacheln, der Rest über „Weitere anzeigen“ und Suche; dazu freiwillig „ärztlich oder fachlich festgestellt (z. B. Zöliakie)“ (0.2) und bei Laktose „Ganz meiden“ oder „Kleine Mengen gehen“ (0.3) |
+| Nie vorschlagen | 0.5, 0.6 | Schnellauswahl (inkl. Alkohol), Suche über alle Lebensmittel, Eintragen ohne Treffer; Marken und Händler über eine Liste genau zugeordnet, Herkunft als Text |
 
 - Milch ist getrennt in **Laktose (Unverträglichkeit)** und **Milcheiweiss (Allergie)**.
-- **Erdnüsse** stehen seit der Rückmeldung vom 12.10. unter **Nüsse** (ersetzt A5). Sie behalten die eigene ID `peanut`, damit eine reine Erdnussallergie einzeln erfasst bleibt; „Alle Nüsse (inkl. Erdnüsse)“ wählt sie mit aus.
+- **„Kleine Mengen gehen“** wird gespeichert (`scope: "limited"`), ist aber nie eine Freigabe (nurec 0.3: „eine variable Mengengrenze nicht ohne belastbare Angabe als sichere Freigabe verwenden“). Das steht auch in der App.
+- **Erdnüsse** stehen seit der Rückmeldung vom 12.10. unter **Nüsse** (ersetzt A5). Sie behalten die eigene ID `peanut`; „Alle Nüsse (inkl. Erdnüsse)“ wählt sie mit aus.
 - **Nüsse** und **Gluten** öffnen eine Unterauswahl mit „Alle Nüsse (inkl. Erdnüsse)“ bzw. „Alles mit Gluten (z. B. Zöliakie)“.
-- **„Ich bin mir nicht sicher, ob es weitere gibt“** (nach „Ja“) setzt nur ein Flag. Es schliesst nichts aus und führt zum Hinweis auf „Vertrage ich nicht“. Die frühere Antwort „Unsicher“ gibt es seit dem 13.10. nicht mehr.
-- **Suche** in Frage 2 und 3 findet alle Lebensmittel: Allergene, Karten und die Beispiele auf den Karten (z. B. „Tomate“).
-- **Eintragen ohne Treffer:** Was man eintippt, wird immer eingetragen (ersetzt A7). Ohne eigene Karte wird es ein Lebensmittel-Eintrag (`type: "food"`): Keine Gruppe fällt weg, aber das Wort erscheint nirgends mehr als Beispiel, und die Karte zeigt „Ohne Tomate“. Das steht so auch neben dem Eintrag.
-- **Marken und Herkunft** (Bereich 0.6) werden gespeichert (`avoidBrands`, `avoidOrigins`), wirken im Prototyp aber noch nicht, weil der Katalog keine Marken und keine Herkunft kennt. Das steht so auch in der App.
-- **Nichts doppelt:** Was frühere Angaben schon ausschliessen, wird nicht nochmals angeboten (Kacheln, Schnellauswahl, Suchtreffer). Bei vegan fehlen z. B. die Kacheln Fisch, Eier und Milch; bei pescetarisch die Schnellauswahl Schweinefleisch. Eine Angabe ohne passende Karte (z. B. Sellerie) bleibt immer wählbar.
+- **„Ich bin mir nicht sicher, ob es weitere gibt“** (nach „Ja“) setzt nur ein Flag. Bewusste Abweichung von nurec Kap. 2 (dort „vorhanden / keine bekannt / unsicher“ je Kategorie): Teamentscheid vom 13.10., am 15.10. bestätigt. Das Flag erscheint in der Zusammenfassung als offen, nie als Freigabe.
+- **Eintragen ohne Treffer:** Was man eintippt, wird eingetragen (`type: "food"`, Status „prüfen“). Keine Gruppe fällt weg, aber das Wort erscheint nirgends mehr als Beispiel, und konkrete Lebensmittel und Gerichte mit diesem Namen oder dieser Zutat fallen weg (z. B. „Tomate“ → „Rohe Tomaten“, Pizza Margherita).
+- **Marken und Händler** (0.6): Vorschläge aus `src/data/brands.json` (Händler und Marken, Eigenmarken mit Händler, z. B. „M-Budget · Marke von Migros“). Gespeichert wird genau der gewählte Name, nie Schwester-Marken. Was nicht in der Liste steht, bleibt als Text mit Status „prüfen“. Ohne Produktdaten wirkt beides noch nicht auf die Karten; das steht so auch in der App.
+- **Nichts doppelt:** Was frühere Angaben schon ausschliessen, wird nicht nochmals angeboten.
+- **Gespeichert je Regel** (Kap. 2.2): Typ, ID, Herkunft (`source`, `origin`), Quelle der Vorgabe (`medical`), Geltungsbereich (`scope`), Prüfstatus (`status: "check"` bei Notizen) und der Zeitpunkt über das Ereignis im Log.
 - Keine medizinischen Aussagen und keine Diagnosen.
 
 ## Filter über Tags
 
-Jede Karte trägt `allergens` (granulare IDs wie `hazelnut`, `lactose`, `wheat`) und `animalOrigin` (`meat`, `fish`, `seafood`, `dairy`, `egg`, `honey`). Eine reine Funktion `isAllowed(card, exclusions)` entscheidet; `isVisible` ergänzt die Familienregel: Eine Familie erscheint nur, wenn mindestens ein Kind erlaubt ist. Bleibt eine Familie, zeigt sie nur erlaubte Beispiele und einen Hinweis wie „Ohne Haselnüsse“.
+Jede Karte trägt `allergens` (granulare IDs wie `hazelnut`, `lactose`, `wheat`) und `animalOrigin` (`meat`, `pork`, `fish`, `seafood`, `dairy`, `egg`, `honey`, `gelatin`). Eine reine Funktion `isAllowed(card, exclusions)` entscheidet; `isVisible` ergänzt die Familienregel: Eine Gruppe erscheint nur, wenn mindestens ein Kind erlaubt ist. Bleibt eine Gruppe, zeigt sie nur erlaubte Beispiele und einen Hinweis wie „Ohne Haselnüsse“.
 
-Damit einzelne Allergene einzelne Karten treffen, enthält der Katalog Stufe-3-Karten für Nüsse, Kerne und Käse. Sie sind als `"source": "Team-Ergänzung [V]"` markiert.
+Seit Version 0.8 gilt zusätzlich (nurec Kap. 2.2: harte Ausschlüsse wirken auf Karten, Zutaten, Produkte und spätere Vorschläge):
+
+- **Zusammengesetzte Produkte und Gerichte** fallen weg, wenn eine verknüpfte Karte ausgeschlossen ist (`ingredients`, z. B. Hummus → Sesam, Spaghetti Bolognese → Schwein).
+- **Konkrete Lebensmittel und Gerichte** fallen weg, wenn ein eingetipptes Lebensmittel ihr Name oder eine ihrer Zutaten ist (`ingredientNames`).
+- Allergene bei Gerichten und Produkten sind **vorsichtig** vergeben: Was je nach Rezept enthalten sein kann (z. B. Sellerie in der Bouillon), ist getaggt und als `todo` markiert (nurec: „Fehlende Zutaten- oder Allergeninformationen sind keine Bestätigung der Sicherheit“).
 
 ## Konfiguration per URL
 
@@ -138,9 +149,9 @@ Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sit
 Alles bleibt im Browser (`localStorage`), es gibt kein eigenes Backend. Einzige Netzwerkanfrage ist der SMS-Versand über Firebase (nur Handynummer und Code, keine Antworten). Eine Sitzung wird erst gespeichert, wenn unter „Über dich“ die Einwilligung gegeben ist.
 
 - **Pro Sitzung:** `sessionId`, `participantCode`, `startedAt`, `endedAt`, `appVersion`, `config`, Onboarding (Altersgruppe, Ernährungsweise, Ausschlüsse mit `source`, Unsicherheits-Flag, Notizen) und das am Ende angezeigte Profil. Dazu Zeitpunkte im `trace` (nur im JSON-Export), z. B. Bildschirmwechsel, `stage0_edit` („Ändern“ in der Zusammenfassung), `stage0_confirm` („Stimmt so“), Start und Ende der Runde.
-- **Pro Ereignis:** `sessionId`, `cardId`, `stage`, `parentId`, `round` (Runde 1, 2, …; in der CSV als eigene Spalte), `phase` (`main` = normale Auswahl, `holdout` = Kontrollkarte), `positionInRound`, `response` (`DISLIKE` | `LIKE` | `PREFER` | `UNFAMILIAR` | `INTOLERANT` | `UNDO`), `timestamp`, `responseTimeMs` (Karte vollständig sichtbar bis Antwort), `inputMethod` (`swipe` | `button` | `link`; `keyboard` nur bei Demos am Laptop), `selectionReason` (warum die Karte kam, z. B. `stage2_favorite`, `stage2_exception`, `holdout_check`; Liste in `src/logic/selection.js`), `ruleVersion`, bei INTOLERANT zusätzlich `excludedCardIds`.
-- **Weitere Ereignisse im selben Log** (`type`): `RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED` (Profil, `source = "profile"`), `AUTH_STARTED`, `AUTH_COMPLETED` (Registrierung) und `HOLDOUT_DRAWN` (Kontrollkarten mit `cardIds`). Die CSV hat dafür die Spalten `type`, `source`, `rating`, `previousRating`, `fromPrediction`, `predictedScore`, `section`, `exclusions`, `cardIds`, `newDiet`, `previousDiet`, dazu je Sitzung `auth`, `sms`, `selection` und `holdout`.
-- **Profil am Ende** (`profile` in der Sitzung): direkte Bewertungen, Ausschlüsse und getrennt davon `predicted` (Vermutungen mit `score` und `basisId`).
+- **Pro Ereignis:** `sessionId`, `cardId`, `stage`, `kind` (Entitätstyp nach Kap. 8), `parentId`, `round` (Runde 1, 2, …, Gerichte „G1“; in der CSV als eigene Spalte), `phase` (`main` = normale Auswahl, `holdout` = Kontrollkarte, `dish` = Gericht), `alternatives` (bis zu 5 Kandidaten, die stattdessen hätten kommen können, Anhang B3.2), `positionInRound`, `response` (`DISLIKE` | `LIKE` | `PREFER` | `UNFAMILIAR` | `INTOLERANT` | `UNDO`), `timestamp`, `responseTimeMs` (Karte vollständig sichtbar bis Antwort), `inputMethod` (`swipe` | `button` | `link`; `keyboard` nur bei Demos am Laptop), `selectionReason` (warum die Karte kam, z. B. `stage2_favorite`, `stage2_exception`, `holdout_check`; Liste in `src/logic/selection.js`), `ruleVersion`, bei INTOLERANT zusätzlich `excludedCardIds`.
+- **Weitere Ereignisse im selben Log** (`type`): `RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED` (Profil, `source = "profile"`), `AUTH_STARTED`, `AUTH_COMPLETED` (Registrierung), `HOLDOUT_DRAWN` (Kontrollkarten mit `cardIds`), `QUESTION_ABORTED` („Runde beenden“ mit offener Karte, Kap. 6) und `PRACTICAL_SAVED` (Alltagsprofil). Die CSV hat dafür die Spalten `type`, `source`, `rating`, `previousRating`, `fromPrediction`, `predictedScore`, `practical` (JSON), `section`, `exclusions`, `cardIds`, `newDiet`, `previousDiet`, dazu je Sitzung `auth`, `sms`, `selection` und `holdout`.
+- **Profil am Ende** (`profile` in der Sitzung): direkte Bewertungen, Ausschlüsse (mit `medical`, `scope`, `status`), getrennt davon `predicted` (Vermutungen mit `score` und `basisId`), `progress` (Profilstand) und `practical` (Alltagsprofil).
 
 **Ansicht für die Testleitung:** `?admin=1` anhängen. Sie ist nirgends verlinkt und zeigt alle Sitzungen auf dem Gerät mit:
 
@@ -180,7 +191,10 @@ src/
   theme/motion.js        Animationsdauern aus den Tokens für JavaScript
   styles/                Komponenten-CSS (nur Tokens): base, controls, app, card, screens, account
   app/model.js           Ablauf und Zustand der App (rein, getestet)
-  data/catalog.json      Kartenkatalog: id, stage, parentId, children, allergens, animalOrigin, todo
+  data/catalog.json      Kartenkatalog Stufe 1 bis 4: id, stage, kind, parentId, children, allergens, animalOrigin, block,
+                         exceptionCandidate, contrastPair, ingredients, ingredientNames, preparation, variantOf, todo
+  data/practical.json    Fragen des Alltagsprofils (Kap. 2.3)
+  data/brands.json       häufige Händler und Marken für die genaue Zuordnung (0.6)
   data/allergens.json    14 Hauptallergene mit Unterauswahl
   data/stage0.json       Fragebogen Stufe 0 und Tabelle der Ernährungsweisen
   data/image-credits.json  Fotos, Bildraster der Gruppen und Bildnachweise (APA 7)
@@ -198,6 +212,8 @@ src/
   logic/selection.js     adaptive Kartenauswahl (Regeln nach nurec v0.2) und feste Reihenfolge zum Vergleich
   logic/preferences.js   Präferenzmodell: direkte Bewertungen und Vermutungen
   logic/holdout.js       Kontrollkarten ziehen (geschichtet, Zufall aus der sessionId)
+  logic/dashboard.js     Profilstand „Profil aufgebaut“ und Inhalt des Dashboards (Anhang B)
+  logic/practical.js     Alltagsprofil, Marken und Händler zuordnen
   analysis/evaluation.js Auswertung: Lernkurve, Vergleichswerte, Bootstrap-Intervalle, Modellvarianten
   logic/profile.js       Ausschlüsse für „Mein Profil“ gruppieren
   logic/stage0.js        Ausschlüsse aus dem Onboarding ableiten
@@ -207,7 +223,7 @@ src/
   logging/export.js      CSV- und JSON-Export
   components/            Swipe-Karte, Antwortknöpfe, untere Navigation, Sheets, Suche, Chips, Zustände
   screens/               Willkommen, Registrierung (3), Willkommen zurück, Über dich, Fragebogen,
-                         Zusammenfassung, Tutorial (aus), Runde, Abschluss, Mein Profil, Admin
+                         Zusammenfassung, Tutorial (aus), Runde (auch Gerichte), Abschluss, Alltag, Mein Profil, Admin
   test/dom.js            kleine DOM-Umgebung (jsdom) für Komponententests
   test/simulate.js       simulierte Testpersonen für Tests (keine echten Daten)
 docs/
@@ -220,36 +236,37 @@ scripts/
 
 ## Kartenauswahl
 
-Die Oberfläche ruft nur `nextCard(state, config)` auf, das intern `selectNextCards(state, config)` nutzt. Welche Karte kommt, entscheidet `rankedCards` in `src/logic/selection.js` (rein, getestet in `src/logic/selection.test.js`). Die Regeln stammen aus nurec v0.2, Kap. 4 und 6 [D] (Spalte `laterUse` in `src/logic/answers.js`); die Rangfolge ist ein eigener Entscheid [V].
+Die Oberfläche ruft nur `nextCard(state, config)` auf, das intern `selectNextCards(state, config)` nutzt. Welche Karte kommt, entscheidet `rankedCards` in `src/logic/selection.js` (rein, getestet in `src/logic/selection.test.js` mit den Beispielen aus nurec Kap. 11). Die Regeln stammen aus nurec v0.2, Kap. 5, 6 und 11 [D]; die Rangfolge und die Anschlusskarten ohne Beispiel im Konzept sind eigene Entscheide [V] (`exceptionCandidate`, `contrastPair` und `followUpSource` je Gruppe im Katalog).
 
 | Rang | Karten | `selectionReason` |
 | --- | --- | --- |
-| 1 | „Kenne ich nicht“ bei einer Gruppe: sofort ein Kind derselben Gruppe, höchstens zwei, bis eines bewertet ist | `stage2_after_unfamiliar` |
+| 1 | „Kenne ich nicht“ bei einer Gruppe oder Untergruppe: sofort ein verbreitetes Kind, bei erneutem „Kenne ich nicht“ ein zweites, andersartiges; danach bleibt der Zweig unbekannt. Nur in derselben Runde (Kap. 6: „Ist das Limit vor der zweiten Klärungskarte erreicht, bleibt der Zweig unbekannt“) | `stage2_after_unfamiliar`, `stage3_after_unfamiliar` |
 | 2 | Gruppen (Stufe 1), die noch nicht gefragt wurden | `stage1_family` |
-| 3 | Gruppe „Mag ich sehr“: alle Untergruppen (Favoriten finden) | `stage2_favorite` |
-| 4 | Untergruppe „Mag ich sehr“: ihre Sorten, z. B. Käse → Hartkäse (Stufe 3) | `stage3_favorite` |
-| 5 | Gruppe „Mag ich nicht“: eine Ausnahme nachtesten (die erste Untergruppe) | `stage2_exception` |
-| 6 | Gruppe „Mag ich“: Untergruppen unterscheiden; nach gefundener Ausnahme die übrigen; nach „Vertrage ich nicht“ für einen Teil höchstens zwei der übrigen | `stage2_differentiate`, `stage2_after_exception`, `stage2_after_intolerant` |
-| 7 | Untergruppe „Mag ich“: ihre Sorten | `stage3_detail` |
+| 3 | Gruppe „Mag ich nicht“: die plausible Ausnahme (Hülsenfrüchte → Sojaprodukte, Fisch und Meeresfrüchte → Krebstiere) | `stage2_exception` |
+| 4 | Gruppe „Mag ich“ oder „Mag ich sehr“: zwei Untergruppen als Kontrast (Obst → Beeren und Zitrusfrüchte, Milchprodukte → Joghurt und Quark sowie Käse) | `stage2_contrast` |
+| 5 | Ausnahme gefällt: bis zu zwei konkrete Lebensmittel daraus (Naturtofu, Tempeh); Kontrast verschieden: je ein konkretes Lebensmittel (Erdbeeren, Orangen) | `stage3_exception_detail`, `stage3_difference` |
+| 6 | Untergruppe „Mag ich sehr“: bis zu drei konkrete Favoriten | `stage3_favorite` |
+| 7 | Kontrast verschieden: die übrigen Untergruppen; „Vertrage ich nicht“ nur für einen Teil: höchstens zwei der übrigen | `stage2_difference`, `stage2_after_intolerant` |
 
-- Innerhalb eines Rangs wechseln sich die Gruppen ab (nie zwei Karten derselben Gruppe hintereinander).
-- Was keine Regel trifft, wird nicht gefragt, sondern vermutet, z. B. die übrigen Untergruppen einer Gruppe „Mag ich nicht“ ohne Ausnahme. Gibt es keine sinnvolle Karte mehr, endet die Profilerstellung früher.
+- Fällt der Kontrast gleich aus, ist der Zweig geklärt: Die übrigen Untergruppen werden vermutet, nicht gefragt. Bei „Mag ich nicht“ ohne Ausnahme ebenso („bei DISLIKE vorerst stoppen“). Eier und Kartoffeln brauchen keine Untergruppe.
+- Innerhalb eines Rangs wechseln sich die Gruppen ab. Eine Kontrollkarte wird durch das nächste passende Kind ersetzt.
 - Massgebend ist die aktuelle direkte Bewertung, auch wenn sie im Profil geändert wurde. Harte Ausschlüsse wirken immer.
 - **Budget:** höchstens `MAX_ROUNDS` × Kartenlimit Karten (4 × 10 = 40). Die normale Auswahl bekommt nur so viele Plätze, dass am Ende alle Kontrollkarten Platz haben (bei 6 Kontrollkarten höchstens 34).
+- **Gerichte** (Stufe 4) haben eigene, freiwillige Runden (`G1`, `G2` …) mit allen sichtbaren Gerichten in Katalogreihenfolge; sie zählen nicht zu `MAX_ROUNDS` und haben keine Kontrollkarten.
 - **Feste Reihenfolge** (`?selection=fixed`): wie in Version 0.6, als Vergleich. Auch sie hält die Kontrollkarten zurück.
-- Bei jeder Änderung der Regeln `RULE_VERSION` in `src/logic/engine.js` erhöhen (heute `demo-0.3`); sie steht in jedem Ereignis.
+- Bei jeder Änderung der Regeln `RULE_VERSION` in `src/logic/engine.js` erhöhen (heute `demo-0.4`); sie steht in jedem Ereignis.
 
 ## Präferenzmodell und Kontrollkarten
 
 - **Direkt:** Mag ich nicht −1, Mag ich +1, Mag ich sehr +2. „Kenne ich nicht“ und „Vertrage ich nicht“ sind kein Geschmack.
-- **Vermutet:** Eine Karte ohne eigene Bewertung erbt die Bewertung ihrer nächsten bewerteten Gruppe, pro Stufe mit dem Faktor 0.5 abgeschwächt. „Mag ich sehr“ wird nie vermutet. Variante für die Auswertung: bewertete Geschwister zählen mit (`siblingWeight`, Standard 0 = aus).
+- **Vermutet:** Eine Karte ohne eigene Bewertung erbt die Bewertung ihrer nächsten bewerteten Gruppe, pro Stufe mit dem Faktor 0.5 abgeschwächt (nurec Kap. 7: „nur ein vorsichtiger Hinweis“). „Mag ich sehr“ wird nie vermutet. Zusammengesetzte Produkte und Gerichte sind eigene Einheiten: keine Vermutung, und ihre Antwort geht nie auf Zutaten über. Variante für die Auswertung: bewertete Geschwister zählen mit (`siblingWeight`, Standard 0 = aus).
 - Alle Zahlen sind Annahmen [V] (`PREFERENCE_MODEL` in `src/config.js`). Ohne Geschwister hängt die Richtung einer Vermutung nur am Vorzeichen; Faktor und Gewichte ändern die Trefferquote nicht (Test in `src/logic/preferences.test.js`).
 - **Kontrollkarten:** Nach „Stimmt so“ zieht die App pro Person 6 Untergruppen zufällig (eine pro Gruppe, Zufall aus der `sessionId`, Ereignis `HOLDOUT_DRAWN`). Sie kommen nie in der Auswahl vor, sondern am Ende der letzten Runde, und sehen aus wie alle anderen Karten. An ihnen prüft die Auswertung, ob die Vermutungen stimmen.
 - **Auswertung:** `npm run auswertung -- <export.json>` rechnet aus dem Protokoll nach, was die App nach k Antworten vermutet hätte (Lernkurve), mit den Vergleichswerten „immer Mag ich“ und „andere Personen“ und 95-%-Intervallen. Alles Weitere, auch Kriterium und Pilottest: [`docs/messkonzept.md`](docs/messkonzept.md).
 
 ## Mobile-Kriterien
 
-Geprüft bei 360 × 640 und 430 × 932 auf allen 28 Bildschirmen (inkl. Registrierung mit SMS-Mitteilung, Detailauswahl, Zusammenfassung mit „Ändern“, Bestätigung, Abschluss, Runde 2, Bewertung, Vermutungen der App mit Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ sowie „Willkommen zurück“), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
+Geprüft bei 360 × 640 und 430 × 932 auf allen 34 Bildschirmen (inkl. Registrierung mit SMS-Mitteilung, Zusatzangaben in Frage 2, Detailauswahl, Zusammenfassung mit „Ändern“, Bestätigung, Abschluss mit Profilstand, Runde 2, Gerichte-Runde, Alltagsprofil, Dashboard, Bewertung, Vermutungen der App mit Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ sowie „Willkommen zurück“), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
 
 Die Prüfung ist wiederholbar: `npm run build && npm run preview`, dann in einem zweiten Terminal `python3 scripts/check-mobile.py` und `python3 scripts/check-mobile.py 1.3` (130 % Schrift). Voraussetzung: `pip install playwright` und `python -m playwright install chromium`.
 
@@ -269,24 +286,30 @@ Die Prüfung ist wiederholbar: `npm run build && npm run preview`, dann in einem
 | Karte | Offene Frage |
 | --- | --- |
 | Hartkäse, Weichkäse | Laktose: vorläufig konservativ getaggt; gereifter Käse ist oft praktisch laktosefrei. Mit nurec klären. Folge heute: Bei Laktose fällt die ganze Familie Milchprodukte weg. |
-| Joghurt und Quark | Laktosefreie Varianten als eigene Karten? |
-| Klassische Pasta | Das Beispiel „Eierpasta“ sperrt die Karte für vegan und Eierallergie. Karte aufteilen? |
-| Helle Brote, Knäckebrote | Milch, Ei, Sesam und weitere Getreide je nach Produkt; nicht getaggt. |
-| Pasta aus Hülsenfrüchten | Spuren von Gluten, Lupinen je nach Produkt; nicht getaggt. |
-| Wurzelgemüse | Sellerie möglich, heutige Beispiele nicht; nicht getaggt. |
+| Naturjoghurt, Joghurt und Quark | Laktosefreie Varianten als eigene Karten? |
+| Toastbrot, Vollkorntoast, Roggenvollkornbrot, Mehrkornknäcke | Milch, Weizen, Hafer, Sesam je nach Produkt; vorläufig konservativ getaggt. |
+| Linsenpasta, Kichererbsenpasta | Spuren von Gluten je nach Produkt; nicht getaggt. |
+| Falafel | Weizenmehl und Sesam je nach Rezept; vorläufig konservativ getaggt. |
+| Fruchtjoghurt | Gelatine je nach Produkt (vegetarisch); nicht getaggt. |
+| Gerichte (Stufe 4) | Allergene je nach Rezept (Sellerie in Bouillon, Senf in Gewürzen, Parmesan, Ei in Teigwaren); vorläufig konservativ getaggt, Zutaten als `todo` beschrieben. |
 | Muscheln | Zuordnung zu Weichtiere bestätigen. |
+
+Seit Version 0.8 geklärt: Klassische Pasta (Eiernudeln sind jetzt die eigene Karte „Bandnudeln“), Wurzelgemüse (Sellerie als eigene Karte „Knollensellerie“ mit Tag).
 
 Ausserdem:
 
 - Erdnüsse: Es gibt keine Erdnuss-Karte. Eine Erdnussallergie blendet beim Wischen deshalb noch nichts aus. Umgekehrt schliesst „Alle Nüsse (inkl. Erdnüsse)“ auch Erdnüsse aus, wer nur Baumnüsse meint.
 - Marken und Herkunft: Wirkung erst mit Produktdaten (z. B. von nurec).
 - Echte SMS über Firebase: Die Handynummer geht für die einmalige Registrierung an Google (USA). Teamentscheid 15.10.: in Ordnung; im Einwilligungstext der Studie erwähnen (Frage F4). Kosten pro SMS über den Blaze-Tarif. Für Testpersonen ohne eigenes Handy `?sms=sim`.
-- Stufe 4 (Gerichte, z. B. „Pizza Margherita“) folgt später; die Gerichte der Nährwertdatenbank sind deshalb noch nicht in der Suche. Abgrenzung mit Tibor siehe unten.
+- Stufe 3 und 4 (82 konkrete Lebensmittel in den Blöcken 3.1 bis 3.7 und 18 Gerichte) sind Team-Ergänzungen [V] nach den Beispielen im Konzept: Auswahl, Titel und Tags mit nurec prüfen. Die Gerichte der Nährwertdatenbank sind weiterhin nicht in der Suche.
+- Gerichte als freiwillige Runde ausserhalb der vier Runden: mit dem Dozenten klären, ob das so in Ordnung ist.
+- Fotos für konkrete Lebensmittel: 26 nutzen ein vorhandenes Foto, das genau sie zeigt (z. B. Lachs, Erdbeeren); die übrigen und alle Gerichte zeigen die Illustration ihrer Gruppe bzw. einen Teller. Eigene Fotos nachliefern.
+- Profilstand: Gewichte 35/30/35 sind ein Entwurf von nurec, `stage3Target` (12) ist eine Annahme; im Pilot prüfen.
+- Alltagsprofil und Marken wirken erst mit Produkt- und Rezeptdaten; die fehlenden Küchengeräte werden als feste Grenze gespeichert (z. B. kein Ofen).
 - Soll die Registrierung in der Nutzerstudie aktiv sein? Sie kostet Zeit vor dem Swipen (auswertbar über `AUTH_STARTED`/`AUTH_COMPLETED`). Abschaltbar mit `AUTH_ENABLED = false`.
 - Dürfen Testpersonen ihr Profil während der Studie bearbeiten? Jede Änderung ist im Log nachvollziehbar, verändert aber das angezeigte Profil.
 - Synonyme: unsichere Begriffe in `synonymTodos` (z. B. „Baumnuss“ für Walnuss vs. Kartentitel „Baumnüsse“, Peperoni in Deutschland).
 - Glutenfreie Varianten: Früher hiess es „Nur glutenfrei“, mit Tags entfällt die Familie Brot bei „Alles mit Gluten“ ganz.
-- „Alkohol“ als Schnellauswahl in Frage 3 fehlt, weil der Katalog keinen passenden Tag hat.
 - Werden die neuen Begriffe im Pilot verstanden?
 - Standardwert für das Kartenlimit (heute 10 Karten je Runde; Runde 1 zeigt 10 von 13 Gruppen, Runde 2 beginnt mit den übrigen 3).
 - Wird „Vertrage ich nicht“ übersehen oder mit „Mag ich nicht“ verwechselt? Im Pilot über `inputMethod = link` und Rückgängig-Ereignisse auswertbar.
@@ -294,7 +317,7 @@ Ausserdem:
 - Zusammenfassung vor dem ersten Swipe: am 13.10. entfernt, am 14.10. in kurzer Form wieder eingebaut, weil nurec v0.2, Kap. 2.2 [D] sie verlangt („Die Person bestätigt oder korrigiert jede Regel.“). Mit dem Team bestätigen. Wie lange sie dauert, zeigt das Protokoll (Bildschirmwechsel, `stage0_edit`, `stage0_confirm`).
 - Gespeicherter Stand auf dem Testgerät („Willkommen zurück“): Ins Testprotokoll gehört, dass die Testleitung nach jeder Person „Neue Testperson starten“ drückt. Gehört zu Frage F4.
 - „Aus dem Profil entfernen“: Die Karte zählt für die Runde weiter als beantwortet. Für die Auswertung vertretbar, im Bericht erwähnen.
-- Marken und Händler (z. B. Migros, M-Budget): Eine Autovervollständigung fehlt noch; heute freie Eingabe ohne Wirkung auf die Karten.
+- Marken und Händler: Die Liste in `src/data/brands.json` ist eine Auswahl, keine vollständige Liste; mit nurec abgleichen.
 - Kacheln: Die Auswahl der 8 häufigen Allergene ist eine Annahme, keine Häufigkeitsangabe.
 - Frage F4: Einwilligung und Speicherung von Gesundheitsdaten im Test.
 - Ansprache mit Du oder Sie, Wischschwellen.
@@ -304,8 +327,32 @@ Ausserdem:
 - Adaptive Auswahl und Präferenzmodell (Version 0.7): Rangfolge der Regeln, Annahmen (−1/+1/+2, Faktor 0.5, ohne Geschwister) und Kriterium „aussagekräftig“ im Team bestätigen, im Pilot prüfen und vor der Hauptstudie festschreiben (Messkonzept, Abschnitte 5 und 6).
 - Eigenleistung: Auswahl, Modell und Auswertung wurden mit Claude Code umgesetzt. Mit Tibor klären, wie das deklariert wird.
 - Kontrollkarten am Ende der letzten Runde: Wer vorher aufhört, liefert keine. In der Studie deshalb bis zum Abschluss der letzten Runde führen (die Ansicht für die Testleitung zeigt den Stand).
-- Gerichte (Stufe 4): Falls Mahlzeiten verbindlich zur Aufgabenstellung gehören, mit Tibor klären, ob Stufe 4 für die Studie nötig ist; die Messung deckt heute nur Lebensmittelgruppen ab.
+- Gerichte (Stufe 4): Die Kontrollkarten und die Lernkurve decken nur Lebensmittel ab, nicht Gerichte (Gerichte werden nie vermutet).
 - Rückmeldung Team (12.10.) statt A7: Eingetippte Notizen blenden das Wort als Beispiel aus, schliessen aber keine Gruppe aus. Bestätigen, dass das so bleiben soll.
+
+## Abgleich mit nurec v0.2
+
+| Kapitel | Anforderung | Umsetzung |
+| --- | --- | --- |
+| 1 | Leitregel: Swipe hebt keine harte Regel auf, DISLIKE ist kein Ausschluss | `isAllowed` vor jeder Auswahl; DISLIKE nur Geschmack |
+| 2, 2.1 | Pflichtfragen 0.1 bis 0.6, Folgefragen nur bei „vorhanden“ | drei Fragen, Details nur bei „Ja“; Quelle (ärztlich), Geltungsbereich (Laktose), religiöse Regel (kein Schweinefleisch), Marken und Händler zugeordnet. Abweichung: „unsicher“ als Kästchen statt dritter Antwort (Teamentscheid) |
+| 2.1 | Allergen-Auswahlliste, frei benennbare Lebensmittel | 14 Hauptallergene, Suche über rund 560 Lebensmittel der Nährwertdatenbank, Notiz mit Status „prüfen“ |
+| 2.2 | Zusammenfassung vor Stufe 1, jede Regel bestätigen oder korrigieren; offen bleibt offen; Speicherung von Typ, ID, Geltungsbereich, Quelle, Prüfstatus, Datum; REJECT vor jedem Score, auch für Produkte | „Stimmt das so?“ mit „Ändern“; Regeln mit `medical`, `scope`, `status`; Filter auch über Zutaten von Produkten und Gerichten |
+| 2.3 | Freiwilliges Alltagsprofil nach den Runden, ausgelassen = unbekannt, nicht im Prozentwert | Bildschirm „Alltag“, sechs Bereiche, überspringbar, `PRACTICAL_SAVED` |
+| 3 | Ablauf: Familien → Antwort → kurze Runde → Untergruppen freiwillig → konkrete Lebensmittel und optional Gerichte → getrennt speichern | Runden mit Abschluss, Stufe 2 und 3 adaptiv, Gerichte als freiwillige Runde |
+| 4 | Drei Wischrichtungen, „Kenne ich nicht“ als Knopf, kein „Ist okay“, kein Überspringen; UNRATED ≠ UNFAMILIAR | umgesetzt; dazu „Vertrage ich nicht“ als Link (Addendum A4); Wortlaut von LIKE im Pilot prüfen |
+| 5 | Vier Stufen mit Haltepunkten, nach jeder Runde aufhören können; Stufe 4 nach Stufe 2 | Stufe 0 bis 4; „Runde beenden“ und Abschluss nach jeder Runde; Gerichte erst nach Stufe 2 oder am Ende |
+| 6 | Auswahl: Familien abdecken, eine Ausnahme bei DISLIKE, Unterschiede bei LIKE/PREFER, nach UNFAMILIAR sofort ein Kind und höchstens ein zweites; Zusatzkarten zählen zum Limit; protokollieren von ID, Stufe, Grund, Regelversion, Antwort, Abbruch; stoppen ohne neue Information | `selection.js` (siehe „Kartenauswahl“); `selectionReason`, `ruleVersion`, `QUESTION_ABORTED` |
+| 7 | Familie gibt nur vorsichtige Hinweise, explizite Antworten zählen stärker; abgeleitete Präferenz mit Quelle; Produkte und Gerichte nicht auf Zutaten übertragen | `preferences.js`, Vermutungen mit Begründung, keine Vermutung für Produkte und Gerichte |
+| 8 | Datenmodell: Constraint, PurchasePreference, PreferenceResponse, DerivedPreference, QuestionEvent, PreferenceEntity | Ausschlüsse mit Zusätzen, Marken und Alltagsprofil, ANSWER-Ereignisse, `predicted`, Protokoll mit `alternatives`, `kind` je Karte |
+| 9 | Beispiel eines adaptiven Durchlaufs (vegan, Hülsenfrüchte DISLIKE → Sojaprodukte → Naturtofu, Hummus) | als Test nachgespielt (`selection.test.js`) |
+| 10 | Im Pilot messen: Dauer und Abbrüche pro Runde, „Kenne ich nicht“, erkannte Nachfrage, redundante Karten, neue und widersprüchliche Hinweise | `npm run auswertung` (Pilot-Kennzahlen) und Messkonzept |
+| 11 | Beispiele für Anschlussfragen | alle sechs als Regeln umgesetzt und getestet |
+| A1, A2 | Kartenkatalog Stufe 1 und 2 | unverändert übernommen |
+| A3 | Stufe 3 in Teilblöcken 3.1 bis 3.7, höchstens 30 je Block | 96 Karten, Test prüft die Obergrenze |
+| B1 | Dashboard nach Stufe 1, nach jeder Runde aktualisiert: Vorlieben, eher ungern, nie vorschlagen, Feinheiten, offen, nächste Runde, Alltag, Gerichte | „Mein Profil“ und Abschluss |
+| B2 | „Profil aufgebaut“ als Erfassungsgrad 35/30/35, steigt nur nach informativen Antworten | `profileProgress`, klar beschriftet |
+| B3 | Bestätigte Top-Favoriten nur aus direkten Antworten zu konkreten Lebensmitteln; mögliche Favoriten getrennt und unbestätigt | „Deine Favoriten“ und „Das vermutet die App“ |
 
 ## Quelle
 

@@ -3,18 +3,36 @@ import catalog from './data/catalog.json';
 import stage0 from './data/stage0.json';
 import allergens from './data/allergens.json';
 import foodList from './data/foods.json';
+import practicalDefinition from './data/practical.json';
 import { isAdminMode, resolveConfig } from './config.js';
 import { ImageFilterContext, ImageStyleContext } from './lib/images.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
-import { buildProfile, eligibleFamilies, isHoldoutCard, nextRoundCards, RULE_VERSION, selectionReason } from './logic/engine.js';
-import { ANSWER, AUTH_COMPLETED, AUTH_STARTED, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, HOLDOUT_DRAWN, PHASE_HOLDOUT, PHASE_MAIN, RATING_CHANGED, SOURCE_PROFILE } from './logic/events.js';
+import { buildProfile, eligibleFamilies, hasMoreCards, isDishRound, isHoldoutCard, nextCard, nextRoundCards, openDishes, RULE_VERSION, selectionReason, selectNextCards } from './logic/engine.js';
+import {
+  ANSWER,
+  AUTH_COMPLETED,
+  AUTH_STARTED,
+  DIET_CHANGED,
+  EXCLUSION_ADDED,
+  EXCLUSION_REMOVED,
+  HOLDOUT_DRAWN,
+  PHASE_DISH,
+  PHASE_HOLDOUT,
+  PHASE_MAIN,
+  PRACTICAL_SAVED,
+  QUESTION_ABORTED,
+  RATING_CHANGED,
+  SOURCE_PROFILE,
+} from './logic/events.js';
+import { dishesAvailable, profileProgress } from './logic/dashboard.js';
+import { practicalAnswered, practicalOf } from './logic/practical.js';
 import { drawHoldout } from './logic/holdout.js';
 import { createRedundancyCheck } from './logic/stage0.js';
 import { mergeFoods } from './logic/foodSearch.js';
 import { summarySections } from './logic/profile.js';
 import { createLogger, storageAvailable } from './logging/logger.js';
-import { createAppModel, creationSteps, hasProgress, isNavVisible, SCREENS, TABS } from './app/model.js';
+import { createAppModel, creationSteps, hasProgress, isNavVisible, ROUND_MODES, SCREENS, TABS } from './app/model.js';
 import { createAuthService } from './auth/AuthService.js';
 import { RECAPTCHA_CONTAINER_ID } from './auth/FirebaseAuthService.js';
 import { countryById, formatPhoneInput, maskPhone } from './auth/phone.js';
@@ -34,12 +52,14 @@ import IntroScreen from './screens/IntroScreen.jsx';
 import RoundScreen from './screens/RoundScreen.jsx';
 import CompleteScreen from './screens/CompleteScreen.jsx';
 import ProfileScreen from './screens/ProfileScreen.jsx';
+import PracticalScreen from './screens/PracticalScreen.jsx';
 import AdminScreen from './screens/AdminScreen.jsx';
 
 // Ablauf „Profil erstellen“: Begrüssung → Registrierung (Vorname, Handynummer, SMS-Code) → Über dich →
 // Fragebogen (Stufe 0) → Zusammenfassung → höchstens vier Runden mit Abschluss (Tutorial vor Runde 1 nur mit
 // TUTORIAL_ENABLED). Die Karten wählt src/logic/selection.js je nach Antwort; die Kontrollkarten
-// (Messkonzept, docs/messkonzept.md) kommen am Ende der letzten Runde.
+// (Messkonzept, docs/messkonzept.md) kommen am Ende der letzten Runde. Freiwillig nach Stufe 2: Gerichte
+// (Stufe 4, eigene Runde) und das Alltagsprofil (nurec v0.2, Kap. 2.3).
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
 // Lebensmittel für die Suche: handgepflegte Schweizer Begriffe, dann die Schweizer Nährwertdatenbank (BLV).
@@ -78,8 +98,17 @@ function App() {
   const auth = useMemo(() => createAuthService({ mode: initial.config.sms }), [initial.config.sms]);
   const [sms, setSms] = useState(null);
   const [state, dispatch] = useReducer(MODEL.reducer, initial, ({ config, account, saved }) => MODEL.initialState(config, { account, saved }));
-  const { screen, tab, config, account, person, registration, answers, step, editing, onboarding, events, roundNumber, endedEarly } = state;
-  const round = useMemo(() => (onboarding ? MODEL.roundOf(state) : null), [onboarding, events, roundNumber]); // eslint-disable-line react-hooks/exhaustive-deps
+  const { screen, tab, config, account, person, registration, answers, step, editing, onboarding, events, roundNumber, roundMode, dishRound, endedEarly } = state;
+  // Laufende Runde (Profilerstellung oder Gerichte) und die Profilerstellung selbst (für Dashboard und „Weiter mit Runde N“)
+  const round = useMemo(() => (onboarding ? MODEL.roundOf(state) : null), [onboarding, events, roundNumber, roundMode, dishRound]); // eslint-disable-line react-hooks/exhaustive-deps
+  const mainRound = useMemo(() => (onboarding ? MODEL.mainRoundOf(state) : null), [onboarding, events, roundNumber]); // eslint-disable-line react-hooks/exhaustive-deps
+  const practical = useMemo(() => practicalOf(events), [events]);
+  const progress = useMemo(() => (mainRound ? profileProgress(mainRound) : null), [mainRound]);
+  const moreRounds = Boolean(mainRound) && hasMoreCards(mainRound, config);
+  const dishes = {
+    available: Boolean(mainRound) && dishesAvailable(mainRound, { moreRounds }),
+    started: (dishRound ?? 0) > 0,
+  };
   const navVisible = isNavVisible(state);
   const steps = creationSteps(state, round);
   // Bilder zeigen nie, was die Person ausgeschlossen hat (siehe allowedPhotos in lib/images.js).
@@ -110,16 +139,16 @@ function App() {
 
   useEffect(() => {
     if (screen === SCREENS.ROUND) {
-      logger.trace('round_start', { round: roundNumber, roundCardLimit: config.roundCardLimit, tutorial: config.tutorial, selection: config.selection ?? 'fixed' });
+      logger.trace('round_start', { round: round?.round ?? roundNumber, mode: roundMode ?? ROUND_MODES.MAIN, roundCardLimit: config.roundCardLimit, tutorial: config.tutorial, selection: config.selection ?? 'fixed' });
     }
     // Nur beim Wechsel in eine Runde protokollieren.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [screen === SCREENS.ROUND, roundNumber]);
+  }, [screen === SCREENS.ROUND, roundNumber, roundMode, dishRound]);
 
   useEffect(() => {
     if (screen !== SCREENS.COMPLETE || !round) return;
-    logger.trace('round_end', { round: roundNumber, completed: !endedEarly, answered: round.roundSequence.length });
-    logger.finish(buildProfile(round));
+    logger.trace('round_end', { round: round.round, completed: !endedEarly, answered: round.roundSequence.length, percent: progress?.percent ?? null });
+    logger.finish({ ...buildProfile(mainRound), progress, practical });
     // Nur beim Wechsel auf den Abschluss protokollieren.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
@@ -148,8 +177,8 @@ function App() {
 
   // Das protokollierte Profil folgt Änderungen in „Mein Profil“ (nach Ende der Runde).
   useEffect(() => {
-    if (round && logger.session.endedAt) logger.updateProfile(buildProfile(round));
-  }, [round, logger]);
+    if (mainRound && logger.session.endedAt) logger.updateProfile({ ...buildProfile(mainRound), progress, practical });
+  }, [mainRound, logger, progress, practical]);
 
   // ---------- Registrierung (simuliert) ----------
 
@@ -213,16 +242,79 @@ function App() {
     dispatch({ type: 'nextRound' });
   }
 
+  // „Runde beenden“: Die Karte, die gerade zu sehen war, als Abbruch protokollieren (nurec v0.2, Kap. 6).
+  function handleEndRound() {
+    const card = nextCard(round, config);
+    if (card) {
+      log({
+        type: QUESTION_ABORTED,
+        cardId: card.id,
+        stage: card.stage,
+        round: round.round,
+        positionInRound: round.roundSequence.length + 1,
+        phase: phaseOf(card),
+        selectionReason: selectionReason(round, card, config),
+        ruleVersion: RULE_VERSION,
+      });
+    }
+    dispatch({ type: 'end' });
+  }
+
+  // Gerichte (Stufe 4, freiwillig): eigene Runde, nur nach einer abgeschlossenen Runde.
+  function handleStartDishes() {
+    logger.trace('dishes_start', { open: openDishes(mainRound).length });
+    dispatch({ type: 'startDishes' });
+  }
+
+  // Alltagsprofil (Kap. 2.3, freiwillig)
+  function handleOpenPractical() {
+    logger.trace('practical_open', { from: screen, tab });
+    dispatch({ type: 'openPractical' });
+  }
+
+  function handleSavePractical(next) {
+    log({ type: PRACTICAL_SAVED, source: 'practical', practical: next });
+    dispatch({ type: 'closePractical' });
+  }
+
+  // Nächster sinnvoller Schritt für „Mein Profil“ (Anhang B1)
+  function nextStep() {
+    if (!mainRound) return null;
+    if (screen !== SCREENS.COMPLETE) return { type: 'continue' };
+    if (moreRounds) return { type: 'round', number: (roundNumber ?? 1) + 1, titles: nextRoundCards(mainRound, config).slice(0, 3).map((card) => card.title) };
+    if (dishes.available) return { type: 'dishes' };
+    if (practicalAnswered(practicalDefinition, practical) === 0) return { type: 'practical' };
+    return { type: 'done' };
+  }
+
+  function handleNextStep(next) {
+    if (next.type === 'round') {
+      handleTab(TABS.CREATE);
+      handleNextRound();
+    } else if (next.type === 'dishes') handleStartDishes();
+    else if (next.type === 'practical') handleOpenPractical();
+    else handleTab(TABS.CREATE);
+  }
+
+  // Phase einer Antwort: normale Auswahl, Kontrollkarte oder Gericht (Stufe 4).
+  function phaseOf(card) {
+    if (isDishRound(round.round)) return PHASE_DISH;
+    return isHoldoutCard(round, card.id) ? PHASE_HOLDOUT : PHASE_MAIN;
+  }
+
   // Ein Antwort-Ereignis: genau dieses Objekt geht ins Protokoll und in den Zustand.
+  // alternatives: die nächsten Kandidaten, die stattdessen hätten kommen können (nurec v0.2, Anhang B3.2:
+  // „nicht gezeigte Kandidaten“ protokollieren, damit sich später prüfen lässt, was überhaupt angeboten wurde).
   function record(card, response, extra) {
     const event = {
       type: ANSWER,
       cardId: card.id,
       stage: card.stage,
+      kind: card.kind ?? null,
       parentId: card.parentId,
-      round: roundNumber,
+      round: round.round,
       positionInRound: extra.positionInRound,
-      phase: isHoldoutCard(round, card.id) ? PHASE_HOLDOUT : PHASE_MAIN,
+      phase: phaseOf(card),
       response,
       timestamp: new Date().toISOString(),
       responseTimeMs: extra.responseTimeMs ?? null,
@@ -230,6 +322,7 @@ function App() {
       selectionReason: extra.selectionReason ?? selectionReason(round, card, config),
       ruleVersion: RULE_VERSION,
       source: 'swipe',
+      ...(response !== UNDO ? { alternatives: selectNextCards(round, config).filter((entry) => entry.id !== card.id).slice(0, 5).map((entry) => entry.id) } : {}),
       ...(extra.excludedCardIds ? { excludedCardIds: extra.excludedCardIds } : {}),
     };
     dispatch({ type: 'event', event: logger.recordEvent(event) });
@@ -356,19 +449,35 @@ function App() {
             canUndo={Boolean(round.lastEvent)}
             onAnswer={handleAnswer}
             onUndo={handleUndo}
-            onEndRound={() => dispatch({ type: 'end' })}
+            onEndRound={handleEndRound}
+          />
+        );
+      case SCREENS.PRACTICAL:
+        return (
+          <PracticalScreen
+            definition={practicalDefinition}
+            initial={practical}
+            onSave={handleSavePractical}
+            onCancel={() => dispatch({ type: 'closePractical' })}
           />
         );
       default:
         return (
           <CompleteScreen
             round={round}
+            mode={roundMode ?? ROUND_MODES.MAIN}
+            progress={progress}
             endedEarly={endedEarly}
             firstName={firstName}
             ruleCount={round.entries.filter((entry) => !entry.freeText).length + (round.diet && round.diet !== 'none' ? 1 : 0)}
             steps={steps}
-            nextTitles={nextRoundCards(round, config).map((card) => card.title)}
+            nextTitles={moreRounds ? nextRoundCards(mainRound, config).map((card) => card.title) : []}
+            nextNumber={(roundNumber ?? 1) + 1}
+            dishes={dishes}
+            practicalDone={practicalAnswered(practicalDefinition, practical) > 0}
             onNextRound={handleNextRound}
+            onStartDishes={handleStartDishes}
+            onOpenPractical={handleOpenPractical}
             onToProfile={() => handleTab(TABS.PROFILE)}
           />
         );
@@ -382,7 +491,7 @@ function App() {
           {sms && <SmsBanner key={sms.key} code={sms.code} onDismiss={dismissSms} />}
           {tab === TABS.PROFILE && navVisible ? (
             <ProfileScreen
-              round={round}
+              round={mainRound}
               onboarding={onboarding}
               account={account}
               index={INDEX}
@@ -390,8 +499,15 @@ function App() {
               foods={FOODS}
               dietOptions={STAGE0_FOR_PROFILE}
               steps={steps}
+              next={nextStep()}
+              practical={practical}
+              practicalDefinition={practicalDefinition}
+              dishes={{ available: dishes.available && screen === SCREENS.COMPLETE }}
               canSignOut={Boolean(account?.phoneMasked)}
               onCreate={() => handleTab(TABS.CREATE)}
+              onNext={handleNextStep}
+              onOpenPractical={handleOpenPractical}
+              onStartDishes={handleStartDishes}
               onRestart={handleRestart}
               onSignOut={handleSignOut}
               onChange={profileHandlers}

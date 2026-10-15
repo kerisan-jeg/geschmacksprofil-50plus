@@ -30,8 +30,20 @@ function entryLabel(entry, index) {
   return entry.value;
 }
 
+// Zusätze nach nurec v0.2, Kap. 2.2 (Quelle, Geltungsbereich, Prüfstatus):
+//   'check'   eingetippt ohne eindeutige Zuordnung (Notiz): Status „prüfen“
+//   'medical' ärztlich oder fachlich festgestellt (Frage 2)
+//   'limited' Geltungsbereich „kleine Mengen gehen“ (wird trotzdem nicht vorgeschlagen)
+export function entryFlags(entries) {
+  const flags = [];
+  if (entries.some((entry) => entry.freeText)) flags.push('check');
+  if (entries.some((entry) => entry.medical)) flags.push('medical');
+  if (entries.some((entry) => entry.scope === 'limited')) flags.push('limited');
+  return flags;
+}
+
 // Einträge je Abschnitt, ohne Doppelte. Jedes Element:
-//   { key, label, sources: ['onboarding' | 'swipe' | 'profile'], exclusions: [{ type, value }] }
+//   { key, label, sources: ['onboarding' | 'swipe' | 'profile'], exclusions: [{ type, value }], flags }
 // Allergene werden wie im Onboarding zusammengefasst („Alle Nüsse (inkl. Erdnüsse)“ oder einzeln).
 export function groupExclusions(entries, { allergens, index }) {
   const sections = Object.fromEntries(EXCLUSION_SECTIONS.map((id) => [id, []]));
@@ -47,6 +59,7 @@ export function groupExclusions(entries, { allergens, index }) {
       label: chip.text,
       sources,
       exclusions: chip.ids.map((value) => ({ type: 'allergen', value })),
+      flags: entryFlags(allergenEntries.filter((entry) => chip.ids.includes(entry.value))),
     });
   }
 
@@ -57,9 +70,10 @@ export function groupExclusions(entries, { allergens, index }) {
     const existing = sections[section].find((item) => item.key === key);
     if (existing) {
       existing.sources = addSource(existing.sources, entry.source);
+      existing.flags = [...new Set([...existing.flags, ...entryFlags([entry])])];
       continue;
     }
-    sections[section].push({ key, label: entryLabel(entry, index), sources: [entry.source], exclusions: [{ type: entry.type, value: entry.value }] });
+    sections[section].push({ key, label: entryLabel(entry, index), sources: [entry.source], exclusions: [{ type: entry.type, value: entry.value }], flags: entryFlags([entry]) });
   }
   return sections;
 }
@@ -76,7 +90,7 @@ export const SUMMARY_SECTIONS = ['diet', 'intolerances', 'never'];
 
 export function summarySections(state, { onboarding, diets, allergens, index }) {
   const grouped = groupExclusions(state.entries, { allergens, index });
-  const plain = (items) => items.map(({ key, label }) => ({ key, label }));
+  const plain = (items) => items.map(({ key, label, flags }) => ({ key, label, flags: flags ?? [] }));
   const notesOf = (question) => [
     ...new Set(
       state.entries

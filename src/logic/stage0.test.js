@@ -6,6 +6,7 @@ import { createRedundancyCheck, deriveOnboarding, emptyAnswers, isAnswered, sear
 import { describeSelection, searchAllergens, toggleIds } from './allergens.js';
 import { deriveRoundState, eligibleFamilies } from './engine.js';
 import { matchRank } from './search.js';
+import { buildExclusions, isVisible } from './filter.js';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const definition = read('../data/stage0.json');
@@ -87,7 +88,8 @@ test('Eingetippter Text wird eingetragen: keine Karte fällt weg, das Wort versc
 
 test('Frage 2: Suche findet auch Lebensmittel, die kein Allergen sind', () => {
   const tomato = searchIntolerances(allergens, index, 'Tomate');
-  assert.deepEqual(tomato.map((hit) => hit.key), ['food:Tomate']);
+  // Zuerst das Lebensmittel (schliesst alle Tomaten aus), dann die konkrete Karte „Rohe Tomaten“
+  assert.deepEqual(tomato.map((hit) => hit.key), ['food:Tomate', 'card:F10.2.1']);
   const answers = answersWith({ intolerances: yes2({ items: ['food:Tomate', 'card:F05.3'] }) });
   const result = derive(answers);
   assert.deepEqual(result.exclusions.map(({ type, value }) => [type, value]), [['food', 'Tomate'], ['card', 'F05.3']]);
@@ -125,12 +127,24 @@ test('Was die Ernährungsweise schon ausschliesst, wird nicht nochmals angeboten
   assert.equal(later.category(category('fish')), false);
 });
 
-test('Jede Schnellauswahl in Frage 3 lässt sich auf eine Katalog-ID oder einen Tag abbilden', () => {
+test('Jede Schnellauswahl in Frage 3 lässt sich auf eine Katalog-ID, einen Tag oder ein Lebensmittel der Liste abbilden', () => {
+  const foodNames = read('../data/foods.json').foods.map((food) => food.name);
   for (const pick of never.quickPicks) {
     const [type, value] = pick.key.split(':');
     if (type === 'card') assert.ok(index.get(value), pick.key);
+    else if (type === 'food') assert.ok(foodNames.includes(value), pick.key);
     else assert.ok(index.cards.some((card) => card[type]?.includes(value)), pick.key);
   }
+  // „Alkohol“ schliesst Gerichte mit Wein oder Kirsch aus (Zutaten), aber keine ganze Gruppe
+  const answers = answersWith({ never: yes3({ selected: ['food:Alkohol'] }) });
+  const visibleIds = (onboarding) => {
+    const exclusions = buildExclusions(onboarding.exclusions, { diet: onboarding.diet, diets: definition.diets, index });
+    return index.cards.filter((card) => isVisible(card, index, exclusions)).map((card) => card.id);
+  };
+  const ids = visibleIds(derive(answers));
+  assert.ok(!ids.includes('D07'), 'Käsefondue mit Weisswein und Kirsch');
+  assert.ok(ids.includes('D01'), 'Pizza bleibt');
+  assert.equal(families(answers).length, 13);
 });
 
 test('Suche ist tolerant gegenüber Gross-/Kleinschreibung und Umlauten', () => {
@@ -156,4 +170,18 @@ test('Bei „Ja“ ohne Auswahl ist die Frage noch nicht beantwortet', () => {
 test('Gleiche Antworten ergeben immer dieselben Regeln', () => {
   const answers = answersWith({ diet: 'pescetarian', never: yes3({ selected: ['card:F05.4'] }) });
   assert.deepEqual(derive(answers), derive(answers));
+});
+
+test('Frage 2: ärztlich festgestellt (0.2) und Geltungsbereich bei Laktose (0.3) werden gespeichert, der Ausschluss bleibt', () => {
+  const answers = answersWith({ intolerances: yes2({ selected: ['lactose', 'hazelnut'], medical: true, scopes: { lactose: 'limited' } }) });
+  const result = derive(answers);
+  const lactose = result.exclusions.find((entry) => entry.value === 'lactose');
+  const hazelnut = result.exclusions.find((entry) => entry.value === 'hazelnut');
+  assert.deepEqual([lactose.medical, lactose.scope], [true, 'limited']);
+  assert.deepEqual([hazelnut.medical, hazelnut.scope], [true, undefined], 'Geltungsbereich nur bei Unverträglichkeiten');
+  // „Kleine Mengen gehen“ ist keine Freigabe: Milch bleibt ausgeschlossen
+  const exclusions = buildExclusions(result.exclusions, { diet: result.diet, diets: definition.diets, index });
+  assert.equal(isVisible(index.get('F04.3'), index, exclusions), false);
+  // Ohne Angabe: ganz meiden
+  assert.equal(derive(answersWith({ intolerances: yes2({ selected: ['lactose'] }) })).exclusions[0].scope, 'avoid');
 });

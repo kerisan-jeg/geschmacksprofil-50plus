@@ -86,10 +86,16 @@ export function deleteAllSessions() {
   }
 }
 
+// Zusätze nach nurec v0.2, Kap. 2.2: Quelle der Vorgabe (medical), Geltungsbereich (scope), Prüfstatus (check).
 function exclusionForLog(entry) {
   const { type, value, source, origin, label } = entry;
+  const extra = {
+    ...(entry.medical ? { medical: true } : {}),
+    ...(entry.scope ? { scope: entry.scope } : {}),
+    ...(entry.freeText ? { status: 'check' } : {}),
+  };
   // Marken und Herkunft sind keine Ausschlüsse und erscheinen separat.
-  return PRIVACY.logExclusionValues ? { type, value, source, origin: origin ?? null, label: label ?? null } : { type, source };
+  return PRIVACY.logExclusionValues ? { type, value, source, origin: origin ?? null, label: label ?? null, ...extra } : { type, source, ...extra };
 }
 
 function loadSession(sessionId) {

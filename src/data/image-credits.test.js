@@ -39,6 +39,28 @@ test('Jede Gruppe zeigt ihre drei Beispiele als Bildraster, jede Untergruppe hat
   assert.equal(new Set(credits.photos.map((photo) => photo.photoId)).size, credits.photos.length, 'kein Foto doppelt');
 });
 
+test('Konkrete Lebensmittel (Stufe 3) nutzen nur Fotos, die genau dieses Lebensmittel zeigen', async () => {
+  const { photosForCard, allPhotos } = await import('../lib/images.js');
+  const byId = new Map(cards.map((card) => [card.id, card]));
+  const keys = new Set(credits.photos.map((photo) => photo.key));
+  for (const [cardId, key] of Object.entries(credits.cardPhotos)) {
+    const card = byId.get(cardId);
+    assert.equal(card?.stage, 3, `${cardId}: konkretes Lebensmittel`);
+    assert.ok(keys.has(key), `${cardId}: Foto ${key}`);
+    const photo = credits.photos.find((entry) => entry.key === key);
+    // Das Foto zeigt die Untergruppe oder genau diese Karte (sonst würde es bei Ausschlüssen falsch gefiltert)
+    assert.ok(photo.shows.some((id) => id === cardId || id === card.parentId || byId.get(id)?.parentId === card.parentId), `${cardId}: ${photo.shows}`);
+  }
+  assert.deepEqual(photosForCard('F02.1.1', 'photo').map((photo) => photo.key), ['F02.1'], 'Lachs');
+  assert.deepEqual(photosForCard('F05.4.2', 'photo'), [], 'Tempeh: kein passendes Foto, Illustration');
+  assert.ok(allPhotos().find((photo) => photo.key === 'F02.1').usedBy.includes('F02.1.1'), 'Bildnachweis nennt auch Lachs');
+  // Gerichte zeigen die eigene Illustration
+  for (const dish of cards.filter((card) => card.stage === 4)) {
+    assert.equal(dish.illustration, 'dish.svg', dish.id);
+    assert.ok(existsSync(fileURLToPath(new URL(`../../public/illustrations/${dish.illustration}`, import.meta.url))), 'dish.svg');
+  }
+});
+
 test('Nachweise sind vollständig: Quelle, Fotograf, Lizenz, Link und APA 7', () => {
   for (const photo of credits.photos) {
     const name = photo.key;
@@ -82,14 +104,14 @@ test('Bildstil umschaltbar: mit „illustration“ zeigen die Karten die eigenen
   assert.deepEqual(photosForCard('F01', 'illustration'), []);
   // Jede Karte hat eine Illustration als Ersatz und eine Kartenfarbe; Untergruppen erben sie von ihrer Gruppe.
   const index = indexCatalog(cards);
-  for (const card of index.cards.filter((entry) => entry.stage <= 2)) {
+  for (const card of index.cards) {
     assert.ok(card.illustration, `${card.id}: Illustration`);
     assert.ok(card.tint, `${card.id}: Kartenfarbe`);
   }
   assert.equal(index.get('F01.2').illustration, index.get('F01').illustration);
   // Bildnachweise nennen die Karten, auf denen ein Foto erscheint
   const chicken = allPhotos().find((photo) => photo.key === 'F01.1');
-  assert.deepEqual(chicken.usedBy, ['F01.1', 'F01']);
+  assert.deepEqual(chicken.usedBy, ['F01.1', 'F01', 'F01.1.1'], 'Geflügel, Bildraster Fleisch und Geflügel, Poulet');
   assert.deepEqual(allPhotos().find((photo) => photo.key === 'F03-a').usedBy, ['F03']);
 });
 

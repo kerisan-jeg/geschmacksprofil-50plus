@@ -1,6 +1,6 @@
 # Messkonzept: Kontrollkarten und Lernkurve
 
-Stand 15.10.2026, Prototyp Version 0.7. Vorschlag des Teams [V] zur Abstimmung im Team und mit Tibor.
+Stand 15.10.2026, Prototyp Version 0.8 (Regeln `demo-0.4`). Vorschlag des Teams [V] zur Abstimmung im Team und mit Tibor.
 Quellenlabels wie im README: [A] Aufgabenstellung, [K] Aussagen von Tibor, [D] nurec-Dokumente, [V] eigene Entscheidung.
 
 ## 1. Worum es geht
@@ -14,7 +14,7 @@ Dafür müssen zwei Dinge getrennt werden:
 | **Profilvollständigkeit** | Zu wie vielen Karten gibt es eine Antwort oder eine Vermutung? | Nein. Sie steigt mit jeder Karte, auch wenn die Vermutungen falsch sind. |
 | **Vorhersagegenauigkeit** | Wie oft stimmt die Vermutung der App mit der tatsächlichen Antwort überein? | Ja. |
 
-Die App zeigt Testpersonen keinen Prozentwert. Die Vollständigkeit wird nur intern ausgewertet.
+Die App zeigt, wie nurec es verlangt (Anhang B2), den Profilstand „Profil aufgebaut“ in Prozent. Das ist ein Erfassungsgrad nach dem Entwurf 35/30/35, keine Trefferquote, und steht so auch in der App: „Zeigt, wie viel von deinem Geschmack erfasst ist, nicht wie genau Vorschläge sind.“ Die Vorhersagegenauigkeit misst allein die Auswertung der Kontrollkarten. Im Bericht beide Zahlen nie vermischen.
 
 ## 2. Aufbau der Messung
 
@@ -88,19 +88,21 @@ Das Team kann zusätzlich eine Mindest-Trefferquote festlegen, z. B. 75 %. Das i
 
 ## 7. Adaptive Auswahl (Kurzfassung)
 
-Die Regeln stammen aus nurec v0.2, Kap. 4 und 6 [D]. Die Rangfolge ist ein eigener Entscheid [V]; Details stehen in `src/logic/selection.js`.
+Die Regeln stammen aus nurec v0.2, Kap. 5, 6 und 11 [D]. Die Rangfolge und die Anschlusskarten ohne Beispiel im Konzept sind eigene Entscheide [V]; Details stehen in `src/logic/selection.js` und im README unter „Kartenauswahl“.
 
 | Rang | Karten | Grund im Protokoll |
 | --- | --- | --- |
-| 1 | „Kenne ich nicht“ bei einer Gruppe: sofort ein Kind derselben Gruppe, höchstens zwei | `stage2_after_unfamiliar` |
+| 1 | „Kenne ich nicht“: sofort ein Kind, höchstens zwei, nur in derselben Runde | `stage2_after_unfamiliar`, `stage3_after_unfamiliar` |
 | 2 | Gruppen, die noch nicht gefragt wurden | `stage1_family` |
-| 3 | Gruppe „Mag ich sehr“: alle Untergruppen (Favoriten) | `stage2_favorite` |
-| 4 | Untergruppe „Mag ich sehr“: ihre Sorten (Stufe 3) | `stage3_favorite` |
-| 5 | Gruppe „Mag ich nicht“: eine Ausnahme nachtesten | `stage2_exception` |
-| 6 | Gruppe „Mag ich“: Untergruppen unterscheiden; nach einer gefundenen Ausnahme die übrigen Untergruppen | `stage2_differentiate`, `stage2_after_exception`, `stage2_after_intolerant` |
-| 7 | Untergruppe „Mag ich“: ihre Sorten | `stage3_detail` |
+| 3 | Gruppe „Mag ich nicht“: die plausible Ausnahme | `stage2_exception` |
+| 4 | Gruppe „Mag ich“ oder „Mag ich sehr“: zwei Untergruppen als Kontrast | `stage2_contrast` |
+| 5 | Ausnahme gefällt oder Kontrast verschieden: konkrete Lebensmittel | `stage3_exception_detail`, `stage3_difference` |
+| 6 | Untergruppe „Mag ich sehr“: konkrete Favoriten | `stage3_favorite` |
+| 7 | Kontrast verschieden: die übrigen Untergruppen | `stage2_difference`, `stage2_after_intolerant` |
 
-Was keine Regel trifft, wird nicht gefragt, sondern vermutet. Innerhalb eines Rangs wechseln sich die Gruppen ab.
+Was keine Regel trifft, wird nicht gefragt, sondern vermutet. Fällt ein Kontrast gleich aus, gilt der Zweig als geklärt. Das ist der Kern von Kernfrage 2: Die Auswahl fragt nur, wo eine Antwort neue Information verspricht. Die Pilot-Kennzahl „redundant“ (Abschnitt 8) zeigt, wie oft eine Antwort nur bestätigt, was die App schon vermutet hat.
+
+Gerichte (Stufe 4) sind eine freiwillige eigene Runde. Sie gehen nicht in die Lernkurve ein (eigene Einheiten, keine Vermutung).
 
 ## 8. Pilottest (5 bis 10 Personen ab 50), Vorschlag [V]
 
@@ -121,12 +123,19 @@ Was keine Regel trifft, wird nicht gefragt, sondern vermutet. Innerhalb eines Ra
 
 **Beobachtungsbogen:** Start und Ende, wo Hilfe nötig war, Verwechslungen (z. B. „Mag ich nicht“ statt „Vertrage ich nicht“), Abbruch, Kommentare.
 
-**Aus den Daten:**
+**Aus den Daten** (nurec v0.2, Kap. 10 „Im Pilot messen“; das Auswertungsskript gibt sie als „Pilot-Kennzahlen“ aus, je Person in `sitzungen.csv`):
 
-- Dauer je Abschnitt (`trace`)
-- Antwortzeiten, Rückgängig, `inputMethod`
-- Anteil „Kenne ich nicht“
-- Trefferquote der Kontrollkarten, im Pilot nur als Plausibilitätsprüfung (zu wenige Personen)
+| Kennzahl | Bedeutung | Spalte |
+| --- | --- | --- |
+| Dauer einer Runde | erste bis letzte Antwort einer Runde, Median | `medianRoundMs` |
+| Abbrüche | „Runde beenden“, während eine Karte zu sehen war (`QUESTION_ABORTED`) | `aborted` |
+| Anteil „Kenne ich nicht“ | in der normalen Auswahl | `unfamiliarShare` |
+| Erkannte Nachfrage | Klärungskarten nach „Kenne ich nicht“ und wie viele davon eine Geschmacksantwort bekamen | `clarifications`, `clarified` |
+| Redundante Karten | Antworten, die nur bestätigen, was die App vorher schon vermutet hat | `redundant` (von `guessed`) |
+| Neue und widersprüchliche Hinweise | Antworten gegen die Vermutung vorher, z. B. eine gefundene Ausnahme | `contradictions` (von `guessed`) |
+| Gerichte | freiwillig bewertete Gerichte | `dishes` |
+
+Dazu Dauer je Abschnitt (`trace`), Antwortzeiten, Rückgängig, `inputMethod` und die Trefferquote der Kontrollkarten (im Pilot nur als Plausibilitätsprüfung, zu wenige Personen). Verständlichkeit von Produkten und Gerichten sowie der Wortlaut von „Mag ich“ ohne Neutralantwort (Kap. 4) gehören ins Kurzinterview.
 
 **Mögliche Anpassungen nach dem Pilot** (im Team entscheiden):
 
@@ -136,8 +145,8 @@ Was keine Regel trifft, wird nicht gefragt, sondern vermutet. Innerhalb eines Ra
 
 ## 9. Offene Abgrenzungen
 
-- **Gerichte (Stufe 4):** Falls Mahlzeiten verbindlich zur Aufgabenstellung gehören, mit Tibor klären, ob Stufe 4 für die Studie nötig ist oder als Ausblick genügt. Diese Messung deckt nur Lebensmittelgruppen ab.
-- **Eigenleistung und KI:** Die adaptive Auswahl, das Präferenzmodell und die Auswertung wurden mit Claude Code (KI) umgesetzt, im Auftrag des Teams (15.10.2026). Mit Tibor klären, wie das in der Arbeit deklariert wird. Die fachlichen Entscheide (Regeln, Annahmen, Kriterium) bleiben Teamentscheide.
+- **Gerichte (Stufe 4):** sind als freiwillige eigene Runde umgesetzt (18 konkrete Gerichte, getrennt gespeichert). Mit dem Dozenten klären, ob diese Runde ausserhalb der vier Runden in Ordnung ist. Die Messung der Vorhersage deckt nur Lebensmittel ab; Gerichte werden nie vermutet.
+- **Eigenleistung und KI:** Die adaptive Auswahl, das Präferenzmodell, Stufe 3 und 4, das Dashboard, das Alltagsprofil und die Auswertung wurden mit Claude Code (KI) umgesetzt, im Auftrag des Teams (15.10.2026). Mit Tibor klären, wie das in der Arbeit deklariert wird. Die fachlichen Entscheide (Regeln, Annahmen, Kriterium) bleiben Teamentscheide.
 - **Einwilligung (Frage F4):** Die Kontrollkarten ändern nichts an den Daten, die gespeichert werden. Die Einwilligung muss aber die Auswertung abdecken.
 
 ## 10. Auswertung durchführen

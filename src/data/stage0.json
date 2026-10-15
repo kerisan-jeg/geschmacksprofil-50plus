@@ -2,11 +2,51 @@
   "source": "nurec Präferenzanamnese v0.2 (Arbeitsstand 28.09.2026), Kap. 2: Stufe 0 mit den Bereichen 0.1 bis 0.5 und Abschluss 2.2",
   "note": "Eigener Vorschlag für Personen ab 50 [V]: die Bereiche 0.1 bis 0.5 als drei kurze Fragen. Bereich 0.6 (Marken und Händler) ist im Prototyp nicht enthalten. Ausschlüsse wirken über Tags der Karten (allergens, animalOrigin) oder über Katalog-IDs, nie über fest verdrahtete Kartenlisten.",
   "diets": {
-    "none": { "excludesAnimalOrigin": [] },
-    "no_fish": { "excludesAnimalOrigin": ["fish", "seafood"], "rule": "Kein Fisch: Fleisch ja, aber kein Fisch und keine Meeresfrüchte" },
-    "pescetarian": { "excludesAnimalOrigin": ["meat"], "rule": "Pescetarisch: kein Fleisch" },
-    "vegetarian": { "excludesAnimalOrigin": ["meat", "fish", "seafood"], "rule": "Vegetarisch: kein Fleisch und kein Fisch" },
-    "vegan": { "excludesAnimalOrigin": ["meat", "fish", "seafood", "dairy", "egg", "honey"], "rule": "Vegan: nichts vom Tier" }
+    "none": {
+      "excludesAnimalOrigin": []
+    },
+    "no_fish": {
+      "excludesAnimalOrigin": [
+        "fish",
+        "seafood"
+      ],
+      "rule": "Kein Fisch: Fleisch ja, aber kein Fisch und keine Meeresfrüchte"
+    },
+    "pescetarian": {
+      "excludesAnimalOrigin": [
+        "meat",
+        "gelatin"
+      ],
+      "rule": "Pescetarisch: kein Fleisch"
+    },
+    "vegetarian": {
+      "excludesAnimalOrigin": [
+        "meat",
+        "fish",
+        "seafood",
+        "gelatin"
+      ],
+      "rule": "Vegetarisch: kein Fleisch und kein Fisch"
+    },
+    "vegan": {
+      "excludesAnimalOrigin": [
+        "meat",
+        "fish",
+        "seafood",
+        "dairy",
+        "egg",
+        "honey",
+        "gelatin"
+      ],
+      "rule": "Vegan: nichts vom Tier"
+    },
+    "no_pork": {
+      "excludesAnimalOrigin": [
+        "pork",
+        "gelatin"
+      ],
+      "rule": "Kein Schweinefleisch: auch keine Gelatine (oft vom Schwein)"
+    }
   },
   "questions": [
     {
@@ -14,14 +54,37 @@
       "covers": "0.4",
       "type": "single",
       "source": "Ernährungsweise",
-      "title": "Hältst du eine feste Ernährungs\u00ADweise ein?",
-      "hint": "Nur was du immer einhältst. Isst du meistens vegetarisch, aber nicht immer, wähle „Nein“.",
+      "title": "Hältst du eine feste Ernährungs­weise ein?",
+      "hint": "Nur was du immer einhältst, auch aus religiösen Gründen. Isst du meistens vegetarisch, aber nicht immer, wähle „Nein“.",
       "options": [
-        { "id": "none", "label": "Nein, ich esse alles" },
-        { "id": "no_fish", "label": "Kein Fisch", "detail": "Fleisch ja, aber kein Fisch" },
-        { "id": "pescetarian", "label": "Pescetarisch", "detail": "Kein Fleisch, aber Fisch" },
-        { "id": "vegetarian", "label": "Vegetarisch", "detail": "Kein Fleisch und kein Fisch" },
-        { "id": "vegan", "label": "Vegan", "detail": "Nichts vom Tier" }
+        {
+          "id": "none",
+          "label": "Nein, ich esse alles"
+        },
+        {
+          "id": "no_pork",
+          "label": "Kein Schweinefleisch"
+        },
+        {
+          "id": "no_fish",
+          "label": "Kein Fisch",
+          "detail": "Fleisch ja, aber kein Fisch"
+        },
+        {
+          "id": "pescetarian",
+          "label": "Pescetarisch",
+          "detail": "Kein Fleisch, aber Fisch"
+        },
+        {
+          "id": "vegetarian",
+          "label": "Vegetarisch",
+          "detail": "Kein Fleisch und kein Fisch"
+        },
+        {
+          "id": "vegan",
+          "label": "Vegan",
+          "detail": "Nichts vom Tier"
+        }
       ]
     },
     {
@@ -32,8 +95,14 @@
       "title": "Gibt es etwas, das du nicht verträgst?",
       "hint": "Zum Beispiel eine Allergie, eine Unverträglichkeit oder eine ärztliche Vorgabe wie bei Zöliakie.",
       "gate": [
-        { "id": "yes", "label": "Ja" },
-        { "id": "no", "label": "Keine bekannt" }
+        {
+          "id": "yes",
+          "label": "Ja"
+        },
+        {
+          "id": "no",
+          "label": "Keine bekannt"
+        }
       ],
       "detailTitle": "Was verträgst du nicht?",
       "detailHint": "Tippe alles an, was zutrifft. Die Liste hilft beim Erinnern und ersetzt keine Diagnose."
@@ -46,16 +115,38 @@
       "title": "Gibt es etwas Weiteres, das wir dir nie vorschlagen dürfen?",
       "hint": "Egal aus welchem Grund, du musst nichts begründen. Was du einfach nicht magst, kannst du später beim Wischen angeben.",
       "gate": [
-        { "id": "yes", "label": "Ja" },
-        { "id": "no", "label": "Nein" }
+        {
+          "id": "yes",
+          "label": "Ja"
+        },
+        {
+          "id": "no",
+          "label": "Nein"
+        }
       ],
       "detailTitle": "Was sollen wir weglassen?",
       "detailHint": "Tippe auf ein Beispiel oder suche nach einem Lebensmittel.",
       "quickPicks": [
-        { "key": "card:F01.3", "label": "Schweinefleisch" },
-        { "key": "card:F01.2", "label": "Rindfleisch" },
-        { "key": "animalOrigin:seafood", "label": "Meeresfrüchte" },
-        { "key": "card:F05.4", "label": "Tofu und Soja" }
+        {
+          "key": "card:F01.3",
+          "label": "Schweinefleisch"
+        },
+        {
+          "key": "card:F01.2",
+          "label": "Rindfleisch"
+        },
+        {
+          "key": "animalOrigin:seafood",
+          "label": "Meeresfrüchte"
+        },
+        {
+          "key": "card:F05.4",
+          "label": "Tofu und Soja"
+        },
+        {
+          "key": "food:Alkohol",
+          "label": "Alkohol"
+        }
       ],
       "tagLabels": {
         "animalOrigin:meat": "Fleisch",

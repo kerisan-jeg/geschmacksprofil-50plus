@@ -49,6 +49,7 @@ export const STEPS = {
   label: 'Fortschritt der Profilerstellung',
   questions: 'Fragen',
   round: (number = 1) => `Runde ${number}`,
+  dishes: 'Gerichte',
   profile: 'Profil',
   state: { done: '(erledigt)', current: '(aktuell)', open: '(offen)' },
   detail: (answered, total) => `${answered} von ${total}`,
@@ -197,6 +198,12 @@ export const ONBOARDING = {
   tileChooseDetail: 'Auswählen',
   tileCount: (count, total) => (count === total ? 'Alle' : `${count} von ${total}`),
   unsureMore: 'Ich bin mir nicht sicher, ob es weitere gibt',
+  // nurec v0.2, Kap. 2.1: Quelle der Vorgabe (0.2) und Geltungsbereich bei Unverträglichkeiten (0.3)
+  medical: 'Ärztlich oder fachlich festgestellt (z. B. Zöliakie)',
+  medicalHint: 'Freiwillig. Hilft später bei Vorschlägen, ändert aber nichts: Wir lassen alles weg, was du angibst.',
+  scopeTitle: (name) => `${name}: Musst du ganz darauf verzichten?`,
+  scopes: { avoid: 'Ganz meiden', limited: 'Kleine Mengen gehen' },
+  scopeNote: 'Wir schlagen es dir trotzdem nicht vor, solange keine genaue Menge feststeht.',
   // A4: Satz bei gesetztem Unsicherheits-Flag. Das Flag selbst schliesst nichts aus.
   unsureHint: 'Merkst du beim Wischen, dass du etwas nicht verträgst, tippe auf «Vertrage ich nicht».',
   noResult: 'Kein Eintrag gefunden.',
@@ -217,6 +224,10 @@ export const ONBOARDING = {
   originsPlaceholder: 'Land, Region',
   brandsNotApplied: 'Wir speichern das für spätere Produktvorschläge. Auf die Karten hier hat es noch keine Wirkung.',
   noteChip: 'Notiz',
+  // Marken und Händler (Bereich 0.6): genau zuordnen, sonst Status „prüfen“
+  brandsSearchLabel: 'Marke oder Händler suchen',
+  brandsSearchPlaceholder: 'z. B. M-Budget oder Denner',
+  brandAddNote: (text) => `„${text}“ trotzdem eintragen`,
 };
 
 // Einheitliche Suche (FoodSearch): Onboarding und Profil
@@ -232,6 +243,10 @@ export const SEARCH = {
   didYouMean: 'Meintest du:',
   addNote: (text) => `„${text}“ trotzdem als Notiz eintragen`,
   selected: 'ausgewählt',
+  dish: 'Gericht',
+  retailer: 'Händler',
+  brand: 'Marke',
+  brandOf: (owner) => `Marke von ${owner}`,
 };
 
 // Detailauswahl (Onboarding und „Vertrage ich nicht“ beim Wischen)
@@ -300,6 +315,7 @@ export const ROUND = {
   announce: (position, total, title) => `Karte ${position} von ${total}: ${title}`,
   cardRole: 'Karte',
   cardKind: 'Lebensmittelgruppe',
+  dishKind: 'Gericht',
   examplesLabel: 'Zum Beispiel',
   cardDescription: ({ title, notes, examples }) =>
     [title, notes?.join(', '), examples.length > 0 && `Zum Beispiel ${examples.join(', ')}`].filter(Boolean).join('. '),
@@ -336,7 +352,56 @@ export const COMPLETE = {
   rules: (count) => `${plural(count, 'feste Regel', 'feste Regeln')} aus deinen Angaben`,
   profileHint: 'In deinem Profil siehst du alles im Detail.',
   toProfile: 'Mein Profil ansehen',
+  // Gerichte (Stufe 4, freiwillig)
+  kickerDishes: 'Gerichte bewertet',
+  leadDishes: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet.`,
+  leadDishesEnded: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet. Weitere kannst du jederzeit später bewerten.`,
+  optionalTitle: 'Freiwillig',
+  startDishes: 'Gerichte bewerten',
+  moreDishes: 'Weitere Gerichte bewerten',
+  dishesHint: 'Zum Beispiel Pizza Margherita oder Rösti. Gerichte stehen getrennt von den Lebensmitteln.',
+  startPractical: 'Alltag ergänzen',
+  practicalHint: 'Kochzeit, Küche, Budget und Einkauf: damit Vorschläge später zu deinem Alltag passen.',
 };
+
+// Profilstand „Profil aufgebaut“ (nurec v0.2, Anhang B2): ein Erfassungsgrad, keine Trefferquote
+export const PROGRESS = {
+  title: 'Profil aufgebaut',
+  value: (percent) => `${percent} %`,
+  valueText: (percent) => `${percent} Prozent deines Profils aufgebaut`,
+  note: 'Zeigt, wie viel von deinem Geschmack erfasst ist, nicht wie genau Vorschläge sind.',
+  stages: ['Erste Antworten', 'Stufe 1 abgeschlossen: Gruppen', 'Stufe 2 abgeschlossen: Unterschiede und Ausnahmen'],
+  nextTitle: 'Nächster sinnvoller Schritt',
+  next: {
+    continue: 'Weiter mit der Profilerstellung',
+    round: (number, titles) => (titles.length > 0 ? `Runde ${number}, zum Beispiel ${titles.join(', ')}` : `Runde ${number}`),
+    dishes: 'Gerichte bewerten (freiwillig)',
+    practical: 'Alltag ergänzen (freiwillig)',
+    done: 'Die Profilerstellung ist abgeschlossen. Antworten kannst du hier jederzeit ändern.',
+  },
+  action: {
+    continue: 'Weitermachen',
+    round: (number) => `Weiter mit Runde ${number}`,
+    dishes: 'Gerichte bewerten',
+    practical: 'Alltag ergänzen',
+  },
+};
+
+// Alltagsprofil (nurec v0.2, Kap. 2.3), freiwillig. Fragen und Antworten stehen in src/data/practical.json.
+export const PRACTICAL = {
+  kicker: 'Freiwillig: dein Alltag',
+  counter: (position, total) => ({ strong: `Frage ${position}`, rest: ` von ${total}` }),
+  progressLabel: 'Fortschritt Alltagsprofil',
+  lead: 'Damit spätere Vorschläge zu deinem Alltag passen. Jede Frage kannst du überspringen.',
+  next: 'Weiter',
+  skip: 'Überspringen',
+  done: 'Fertig',
+  brandsPreferred: 'Marken, die du gern kaufst',
+  brandsAvoided: 'Marken, die du ungern kaufst',
+  brandsHint: 'Nicht verbindlich. Was du nie kaufen willst, gehört zu „Möchte ich nicht essen“.',
+  brandsPlaceholder: 'z. B. M-Budget oder Coop Naturaplan',
+  noEffect: 'Wirkt erst, wenn es Produktvorschläge gibt. Auf die Karten hier hat es keine Wirkung.',
+}; 
 
 // Mein Profil
 export const PROFILE = {
@@ -345,6 +410,35 @@ export const PROFILE = {
   answered: (count) => `${plural(count, 'Karte', 'Karten')} beantwortet`,
   tasteTitle: 'Dein Geschmack',
   tasteLead: 'Direkt aus deinen Antworten, ohne Berechnung.',
+  // Dashboard nach nurec v0.2, Anhang B1 und B3
+  favoritesTitle: 'Deine Favoriten',
+  favoritesLead: 'Konkrete Lebensmittel, die du selbst bewertet hast.',
+  favoritesEmpty: 'Noch keine bestätigten Favoriten. Favoriten entstehen, wenn du konkrete Lebensmittel wie „Naturtofu“ bewertest.',
+  favoriteGroups: { PREFER: 'Sehr gern', LIKE: 'Gern' },
+  groupsTitle: 'Gruppen, die du magst',
+  groupsLead: 'Gilt für die Gruppe, nicht automatisch für jedes Lebensmittel darin.',
+  dislikesTitle: 'Isst du eher ungern',
+  exception: (names) => `Ausnahme: ${names}`,
+  openTitle: 'Noch offen',
+  openLead: '„Kenne ich nicht“ und noch nie gefragt sind keine Bewertung.',
+  unfamiliarTitle: 'Kennst du nicht',
+  unaskedTitle: 'Noch nicht gefragt',
+  detailsTitle: 'Feinheiten',
+  detailsLead: 'Roh und gegart hast du verschieden bewertet.',
+  detailLine: (raw, rawRating, cooked, cookedRating) => `${raw}: ${rawRating} · ${cooked}: ${cookedRating}`,
+  dishesTitle: 'Gerichte',
+  dishesLead: 'Getrennt von den Lebensmitteln: Ein Gericht sagt nichts über seine Zutaten.',
+  dishesEmpty: 'Noch keine Gerichte bewertet. Das ist freiwillig.',
+  dishesAction: (some) => (some ? 'Weitere Gerichte bewerten' : 'Gerichte bewerten'),
+  practicalTitle: 'Alltag',
+  practicalLead: 'Freiwillig. Hilft später bei Vorschlägen, die zu deinem Alltag passen. Wirkt noch nicht auf die Karten.',
+  practicalEmpty: 'Noch nichts angegeben.',
+  practicalAdd: 'Ergänzen',
+  practicalEdit: 'Ändern',
+  statusCheck: 'prüfen',
+  statusCheckHint: 'Nicht eindeutig zugeordnet. Bitte bei Gelegenheit prüfen.',
+  medical: 'ärztlich vorgegeben',
+  scopeLimited: 'kleine Mengen gehen',
   groups: {
     PREFER: 'Das magst du besonders',
     LIKE: 'Das magst du',

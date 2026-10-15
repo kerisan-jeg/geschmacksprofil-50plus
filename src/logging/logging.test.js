@@ -161,3 +161,23 @@ test('CSV und Übersicht ab Version 0.7: Phase, Kontrollkarten, bestätigte Verm
   assert.deepEqual([legacy.selection, legacy.holdout], ['fixed', '0']);
   assert.deepEqual(summarizeSession({ events: [event] }).checks, { answered: 0, drawn: 0 });
 });
+
+test('CSV ab Version 0.8: Entitätstyp, nicht gezeigte Kandidaten, Abbruch und Alltagsprofil', () => {
+  const session = {
+    sessionId: 's-08',
+    config: { roundCardLimit: 10, selection: 'adaptive', holdout: 0 },
+    events: [
+      { type: 'ANSWER', cardId: 'F05.4.1', kind: 'SIMPLE_FOOD', response: 'PREFER', round: 2, phase: 'main', alternatives: ['F05.4.2', 'F12.1'] },
+      { type: 'QUESTION_ABORTED', cardId: 'F12.1', round: 2, phase: 'main', selectionReason: 'stage2_contrast' },
+      { type: 'PRACTICAL_SAVED', source: 'practical', practical: { budget: 'low', shops: ['migros'] } },
+    ],
+  };
+  const [header, ...lines] = sessionsToCsv([session]).trim().split('\r\n');
+  const columns = header.split(',');
+  for (const column of ['kind', 'alternatives', 'practical']) assert.ok(columns.includes(column), column);
+  const cell = (line, column) => line.split(',')[columns.indexOf(column)];
+  assert.equal(cell(lines[0], 'kind'), 'SIMPLE_FOOD');
+  assert.equal(cell(lines[0], 'alternatives'), 'F05.4.2|F12.1');
+  assert.equal(cell(lines[1], 'type'), 'QUESTION_ABORTED');
+  assert.ok(lines[2].includes('""budget"":""low""'), 'Alltagsprofil als JSON in einer Zelle');
+});

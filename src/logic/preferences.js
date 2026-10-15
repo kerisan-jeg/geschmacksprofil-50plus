@@ -56,6 +56,9 @@ export function predictScores(index, ratings = {}, model = PREFERENCE_MODEL) {
       predictions.set(card.id, { score: own, direct: true, basisId: card.id });
       continue;
     }
+    // Zusammengesetzte Produkte und Gerichte sind eigene Einheiten (nurec v0.2, Kap. 7): keine Vermutung aus
+    // Zutaten oder Gruppen, und ihre Antwort geht nie auf Zutaten über.
+    if (card.kind === 'COMPOSITE_FOOD' || card.kind === 'DISH') continue;
     const fromGroup = inherited(index, card, scoreOf, model);
     const siblings = model.siblingWeight > 0 ? siblingScores(index, card, scoreOf) : [];
     if (!fromGroup && siblings.length === 0) continue;

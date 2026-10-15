@@ -27,71 +27,119 @@ test('Runde 1 beginnt mit den Gruppen in Katalogreihenfolge', () => {
   assert.equal(selectionReason(state([]), index.get('F01'), config), REASONS.FAMILY);
 });
 
-test('„Kenne ich nicht“ bei einer Gruppe: sofort ein Kind derselben Gruppe, höchstens zwei', () => {
+const reasonsOf = (entries, parentId) => entries.filter((entry) => entry.card.parentId === parentId).map((entry) => [entry.card.id, entry.reason]);
+
+test('„Kenne ich nicht“ bei einer Gruppe: sofort ein verbreitetes Kind, höchstens zwei, dann bleibt die Gruppe unbekannt', () => {
   const unknown = [answer('F01', LIKE), answer('F02', UNFAMILIAR)];
   assert.equal(nextCard(state(unknown), config).id, 'F02.1', 'direkt danach');
   assert.equal(selectionReason(state(unknown), index.get('F02.1'), config), REASONS.AFTER_UNFAMILIAR);
-  // Auch das Kind unbekannt: das zweite, danach keines mehr
+  // Auch das Kind unbekannt: ein zweites, andersartiges, danach keines mehr
   const twice = [...unknown, answer('F02.1', UNFAMILIAR)];
   assert.equal(nextCard(state(twice), config).id, 'F02.2');
   const thrice = [...twice, answer('F02.2', UNFAMILIAR)];
   assert.equal(nextCard(state(thrice), config).id, 'F03');
-  assert.ok(!ids(ranked(thrice)).includes('F02.3'), 'höchstens zwei');
-  // Das Kind ist bekannt und unbeliebt: keine weiteren Kinder
-  assert.ok(!ids(ranked([...unknown, answer('F02.1', DISLIKE)])).some((id) => id.startsWith('F02.')));
-  // Das Kind gefällt: die übrigen Kinder später zum Unterscheiden
-  const liked = ranked([...unknown, answer('F02.1', LIKE)]);
-  assert.equal(nextCard(state([...unknown, answer('F02.1', LIKE)]), config).id, 'F03');
-  assert.deepEqual(
-    liked.filter((entry) => entry.card.parentId === 'F02').map((entry) => [entry.card.id, entry.reason]),
-    [
-      ['F02.2', REASONS.DIFFERENTIATE],
-      ['F02.3', REASONS.DIFFERENTIATE],
-    ]
-  );
+  assert.ok(!ids(ranked(thrice)).includes('F02.3'), 'höchstens zwei Klärungskarten');
+  // Das Kind wird bewertet (gern oder nicht): Die Antwort gilt nur für das Kind, die Gruppe bleibt unbekannt
+  for (const response of [LIKE, DISLIKE]) {
+    assert.ok(!ids(ranked([...unknown, answer('F02.1', response)])).some((id) => id.startsWith('F02.')), response);
+  }
 });
 
-test('Nach allen Gruppen: Favoriten, dann Ausnahmen, dann Unterschiede; Gruppen wechseln sich ab', () => {
-  const events = allFamilies({ F01: PREFER, F12: PREFER, F02: DISLIKE, F04: DISLIKE, F05: DISLIKE });
-  const order = ranked(events);
-  const reasons = order.map((entry) => entry.reason);
-  // Rangfolge der Gründe
-  const firstIndex = (reason) => reasons.indexOf(reason);
-  const lastIndex = (reason) => reasons.lastIndexOf(reason);
-  assert.ok(lastIndex(REASONS.FAVORITE) < firstIndex(REASONS.EXCEPTION));
-  assert.ok(lastIndex(REASONS.EXCEPTION) < firstIndex(REASONS.DIFFERENTIATE));
-  assert.equal(firstIndex(REASONS.DETAIL), -1, 'Sorten erst nach einer bewerteten Untergruppe');
-  // Favoriten abwechselnd aus Fleisch und Obst
-  assert.deepEqual(ids(order.filter((entry) => entry.reason === REASONS.FAVORITE)), ['F01.1', 'F12.1', 'F01.2', 'F12.2', 'F01.3', 'F12.3', 'F12.4', 'F12.5']);
-  // Genau eine Ausnahme je Gruppe „Mag ich nicht“, die erste Untergruppe
-  assert.deepEqual(ids(order.filter((entry) => entry.reason === REASONS.EXCEPTION)), ['F02.1', 'F04.1', 'F05.1']);
-  // Die übrigen Kinder von „Mag ich nicht“ werden nicht gefragt, sondern vermutet
-  assert.ok(!ids(order).includes('F02.2'));
-  // Keine zwei Karten derselben Gruppe hintereinander beim Unterscheiden
-  const differentiate = order.filter((entry) => entry.reason === REASONS.DIFFERENTIATE);
-  for (let i = 1; i < 6; i += 1) assert.notEqual(differentiate[i].card.parentId, differentiate[i - 1].card.parentId);
-  // Keine Gruppe ohne Untergruppen (Eier, Kartoffeln) und keine Gruppe nochmals
-  assert.ok(order.every((entry) => entry.card.stage > 1));
+test('Kap. 11: „Gegartes Fruchtgemüse“ unbekannt → sofort Zucchetti, falls unbekannt Peperoni; nur in derselben Runde', () => {
+  const roundOne = allFamilies({}).map((event) => ({ ...event, round: 1 }));
+  const unknown = [...roundOne, answer('F11.1', LIKE, { round: 2 }), answer('F11.3', UNFAMILIAR, { round: 2 })];
+  assert.equal(nextCard(state(unknown, 2), config).id, 'F11.3.1');
+  assert.equal(index.get('F11.3.1').title, 'Zucchetti');
+  assert.equal(selectionReason(state(unknown, 2), index.get('F11.3.1'), config), REASONS.AFTER_UNFAMILIAR_DETAIL);
+  const again = [...unknown, answer('F11.3.1', UNFAMILIAR, { round: 2 })];
+  assert.equal(nextCard(state(again, 2), config).id, 'F11.3.2');
+  assert.equal(index.get('F11.3.2').title, 'Gegarte Peperoni');
+  assert.ok(!ids(ranked([...again, answer('F11.3.2', UNFAMILIAR, { round: 2 })])).some((id) => id.startsWith('F11.3.')), 'danach unbekannt');
+  // Endet die Runde vor der Klärung, bleibt der Zweig unbekannt (keine Klärung in der nächsten Runde)
+  assert.ok(!ids(rankedCards(state(unknown, 3), SELECTION.ADAPTIVE)).includes('F11.3.1'));
 });
 
-test('Ausnahme gefunden: die übrigen Untergruppen dieser Gruppe werden gefragt', () => {
-  const events = [...allFamilies({ F02: DISLIKE }), answer('F02.1', LIKE)];
-  const after = ranked(events).filter((entry) => entry.card.parentId === 'F02');
-  assert.deepEqual(after.map((entry) => [entry.card.id, entry.reason]), [
-    ['F02.2', REASONS.AFTER_EXCEPTION],
-    ['F02.3', REASONS.AFTER_EXCEPTION],
+test('Kap. 11: Hülsenfrüchte „Mag ich nicht“ → Sojaprodukte als Ausnahme; bei „Mag ich“ Naturtofu oder Tempeh, sonst stoppen', () => {
+  const disliked = allFamilies({ F05: DISLIKE });
+  assert.deepEqual(reasonsOf(ranked(disliked), 'F05'), [['F05.4', REASONS.EXCEPTION]]);
+  const liked = [...disliked, answer('F05.4', LIKE)];
+  assert.deepEqual(reasonsOf(ranked(liked), 'F05.4'), [
+    ['F05.4.1', REASONS.EXCEPTION_DETAIL],
+    ['F05.4.2', REASONS.EXCEPTION_DETAIL],
   ]);
-  const none = ranked([...allFamilies({ F02: DISLIKE }), answer('F02.1', DISLIKE)]);
-  assert.ok(!none.some((entry) => entry.card.parentId === 'F02'), 'keine Ausnahme: nichts mehr aus Fisch');
+  assert.deepEqual([index.get('F05.4.1').title, index.get('F05.4.2').title], ['Naturtofu', 'Tempeh']);
+  assert.ok(!ids(ranked(liked)).some((id) => ['F05.1', 'F05.2', 'F05.3'].includes(id)), 'die übrigen Hülsenfrüchte bleiben vermutet');
+  const stopped = ranked([...disliked, answer('F05.4', DISLIKE)]);
+  assert.ok(!ids(stopped).some((id) => id.startsWith('F05.')), 'bei „Mag ich nicht“ vorerst stoppen');
+  // Fisch und Meeresfrüchte „Mag ich nicht“ → Meeresfrüchte als Ausnahme, bei „Mag ich“ Garnelen
+  const fish = allFamilies({ F02: DISLIKE });
+  assert.deepEqual(reasonsOf(ranked(fish), 'F02'), [['F02.2', REASONS.EXCEPTION]]);
+  assert.equal(ids(ranked([...fish, answer('F02.2', LIKE)])).find((id) => id.startsWith('F02.2.')), 'F02.2.1');
+  assert.equal(index.get('F02.2.1').title, 'Garnelen');
 });
 
-test('Sorten (Stufe 3): nach „Mag ich sehr“ früh, nach „Mag ich“ zuletzt', () => {
-  const events = [...allFamilies({ F04: LIKE, F13: LIKE }), answer('F04.2', PREFER), answer('F13.1', LIKE)];
-  const order = ranked(events);
-  assert.deepEqual(ids(order.filter((entry) => entry.reason === REASONS.FAVORITE_DETAIL)), ['F04.2.1', 'F04.2.2', 'F04.2.3']);
-  const details = order.filter((entry) => entry.reason === REASONS.DETAIL);
-  assert.equal(details.length, 8, 'alle Baumnüsse');
-  assert.ok(order.indexOf(details[0]) > order.findLastIndex((entry) => entry.reason === REASONS.DIFFERENTIATE));
+test('Kap. 11: Obst „Mag ich“ → Beeren und Zitrusfrüchte; nur bei verschiedenem Geschmack Erdbeeren oder Orangen und die übrigen', () => {
+  const liked = allFamilies({ F12: LIKE });
+  assert.deepEqual(reasonsOf(ranked(liked), 'F12'), [
+    ['F12.1', REASONS.CONTRAST],
+    ['F12.4', REASONS.CONTRAST],
+  ]);
+  // Gleicher Geschmack: Der Zweig ist geklärt, nichts mehr aus Obst
+  const same = ranked([...liked, answer('F12.1', LIKE), answer('F12.4', LIKE)]);
+  assert.ok(!ids(same).some((id) => id.startsWith('F12.')));
+  // Verschieden: zuerst je ein konkretes Lebensmittel, später die übrigen Untergruppen
+  const differ = ranked([...liked, answer('F12.1', PREFER), answer('F12.4', DISLIKE)]);
+  const fruit = differ.filter((entry) => entry.card.id.startsWith('F12.'));
+  assert.deepEqual(fruit.slice(0, 2).map((entry) => [index.get(entry.card.id).title, entry.reason]), [
+    ['Erdbeeren', REASONS.DIFFERENCE_DETAIL],
+    ['Orangen', REASONS.DIFFERENCE_DETAIL],
+  ]);
+  assert.deepEqual(
+    fruit.filter((entry) => entry.reason === REASONS.DIFFERENCE).map((entry) => entry.card.id),
+    ['F12.2', 'F12.3', 'F12.5']
+  );
+  // Milchprodukte „Mag ich sehr“ → frische Milchprodukte und Käse unterscheiden
+  assert.deepEqual(reasonsOf(ranked(allFamilies({ F04: PREFER })), 'F04'), [
+    ['F04.1', REASONS.CONTRAST],
+    ['F04.2', REASONS.CONTRAST],
+  ]);
+  // Eier „Mag ich“: keine Untergruppe nötig
+  assert.ok(!ids(ranked(allFamilies({ F03: LIKE }))).some((id) => id.startsWith('F03')));
+});
+
+test('Untergruppe „Mag ich sehr“: konkrete Favoriten, höchstens drei', () => {
+  const events = [...allFamilies({ F04: PREFER, F12: LIKE }), answer('F04.1', PREFER), answer('F04.2', PREFER), answer('F12.1', PREFER), answer('F12.4', PREFER)];
+  const favorites = ranked(events).filter((entry) => entry.reason === REASONS.FAVORITE_DETAIL);
+  assert.deepEqual(favorites.map((entry) => index.get(entry.card.id).title), [
+    'Naturjoghurt', 'Hartkäse', 'Erdbeeren', 'Orangen',
+    'Skyr', 'Weichkäse', 'Heidelbeeren', 'Mandarinen',
+    'Quark', 'Frischkäse', 'Himbeeren', 'Grapefruit',
+  ]);
+  // Ist der Kontrast verschieden, kommt das erste konkrete Lebensmittel schon als Präzisierung
+  const differ = ranked([...allFamilies({ F04: PREFER }), answer('F04.1', LIKE), answer('F04.2', PREFER)]);
+  assert.deepEqual(differ.filter((entry) => entry.card.parentId === 'F04.2').map((entry) => entry.reason), [REASONS.DIFFERENCE_DETAIL, REASONS.FAVORITE_DETAIL, REASONS.FAVORITE_DETAIL]);
+});
+
+test('Rangfolge: Klärung, Gruppen, Ausnahmen, Kontraste, Präzisierung, Favoriten, übrige Unterschiede; Gruppen wechseln sich ab', () => {
+  const events = [...allFamilies({ F01: PREFER, F12: LIKE, F02: DISLIKE, F05: DISLIKE }), answer('F12.1', PREFER), answer('F12.4', DISLIKE), answer('F05.4', LIKE), answer('F01.1', PREFER), answer('F01.3', PREFER)];
+  const reasons = ranked(events).map((entry) => entry.reason);
+  const order = [REASONS.EXCEPTION, REASONS.CONTRAST, REASONS.EXCEPTION_DETAIL, REASONS.FAVORITE_DETAIL, REASONS.DIFFERENCE];
+  for (let i = 1; i < order.length; i += 1) {
+    assert.ok(reasons.lastIndexOf(order[i - 1]) < reasons.indexOf(order[i]), `${order[i - 1]} vor ${order[i]}`);
+  }
+  const contrasts = ranked(events).filter((entry) => entry.reason === REASONS.CONTRAST);
+  for (let i = 1; i < 6; i += 1) assert.notEqual(contrasts[i].card.parentId, contrasts[i - 1].card.parentId);
+  assert.ok(ranked(events).every((entry) => entry.card.stage > 1 && entry.card.stage < 4), 'keine Gruppe nochmals, keine Gerichte');
+});
+
+test('Kontrast und Ausnahme weichen einer Kontrollkarte aus', () => {
+  const holdout = { type: HOLDOUT_DRAWN, cardIds: ['F12.1', 'F05.4'] };
+  const events = [holdout, ...allFamilies({ F12: LIKE, F05: DISLIKE })];
+  assert.deepEqual(reasonsOf(ranked(events), 'F12'), [
+    ['F12.4', REASONS.CONTRAST],
+    ['F12.2', REASONS.CONTRAST],
+  ]);
+  assert.deepEqual(reasonsOf(ranked(events), 'F05'), [['F05.1', REASONS.EXCEPTION]]);
 });
 
 test('„Vertrage ich nicht“ nur für einen Teil: höchstens zwei der übrigen Kinder', () => {
@@ -227,4 +275,25 @@ test('Simulierte Sitzungen: jede Runde höchstens 10 Karten, nie eine Karte dopp
     assert.ok(answers.length <= 40);
     assert.equal(answers.filter((event) => event.phase === PHASE_HOLDOUT).length, 6, `p${i}: alle Kontrollkarten gezeigt`);
   }
+});
+
+test('nurec Kap. 9 nachgespielt: vegan, Hülsenfrüchte „Mag ich nicht“ → Sojaprodukte → Naturtofu; Hummus gilt nur für Hummus', async () => {
+  const { predictScores } = await import('./preferences.js');
+  const vegan = { diet: 'vegan', exclusions: [], cardLabels: {} };
+  const at = (events) => deriveRoundState({ index, onboarding: vegan, diets, events, round: 1 });
+  // Fleisch und Milchprodukte erscheinen nicht als Karten
+  const first = selectNextCards(at([]), { ...config, roundCardLimit: 30 }).map((card) => card.id);
+  assert.ok(!first.some((id) => ['F01', 'F02', 'F03', 'F04'].includes(id)));
+  const events = first.map((id) => answer(id, id === 'F05' ? DISLIKE : LIKE));
+  assert.ok(rankedCards(at(events), SELECTION.ADAPTIVE).some((entry) => entry.card.id === 'F05.4' && entry.reason === REASONS.EXCEPTION), 'Sojaprodukte als Ausnahme');
+  events.push(answer('F05.4', LIKE));
+  assert.equal(rankedCards(at(events), SELECTION.ADAPTIVE).find((entry) => entry.reason === REASONS.EXCEPTION_DETAIL)?.card.id, 'F05.4.1', 'Naturtofu');
+  events.push(answer('F05.4.1', PREFER), answer('F05.3.2', LIKE));
+  // Die Hummus-Antwort überträgt sich nicht auf Kichererbsen oder Sesam
+  const ratings = at(events).ratings;
+  const predictions = predictScores(index, ratings);
+  assert.equal(predictions.get('F05.3.2').direct, true);
+  assert.notEqual(predictions.get('F05.3')?.direct, true, 'Kichererbsen nicht direkt bewertet');
+  assert.ok((predictions.get('F05.3')?.score ?? -1) < 0, 'Kichererbsen bleiben „eher ungern“ aus Hülsenfrüchte');
+  assert.ok(!predictions.has('F13.2.3') || predictions.get('F13.2.3').basisId !== 'F05.3.2', 'Sesam nicht aus Hummus');
 });

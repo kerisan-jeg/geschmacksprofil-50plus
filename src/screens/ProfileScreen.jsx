@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import foodList from '../data/foods.json';
-import { Ban, ChevronRight, CircleHelp, Layers, LogOut, NotebookPen, Pencil, Plus, RotateCcw, Salad, ShieldAlert, Smartphone, Utensils, X } from 'lucide-react';
+import { Ban, ChevronRight, CircleHelp, Layers, LogOut, NotebookPen, Pencil, Plus, RotateCcw, Salad, ShieldAlert, Smartphone, Soup, Sparkles, Utensils, X } from 'lucide-react';
 import AllergenPicker from '../components/AllergenPicker.jsx';
 import Artwork from '../components/Artwork.jsx';
 import Avatar from '../components/Avatar.jsx';
@@ -10,6 +10,7 @@ import CreationSteps from '../components/CreationSteps.jsx';
 import DerivedTaste from '../components/DerivedTaste.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import FoodSearch from '../components/FoodSearch.jsx';
+import ProfileStatus from '../components/ProfileStatus.jsx';
 import RatingChip from '../components/RatingChip.jsx';
 import RatingSheet from '../components/RatingSheet.jsx';
 import Sheet from '../components/Sheet.jsx';
@@ -17,14 +18,15 @@ import { ANSWER_META } from '../components/answerMeta.js';
 import { allPhotos } from '../lib/images.js';
 import { allergenLabel } from '../logic/allergens.js';
 import { computeProfile, derivedEntries } from '../logic/engine.js';
+import { buildDashboard, profileProgress } from '../logic/dashboard.js';
+import { practicalAnswered, summarizePractical } from '../logic/practical.js';
 import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 import { buildExclusions } from '../logic/filter.js';
 import { buildFoodIndex } from '../logic/foodSearch.js';
 import { groupExclusions, sectionOf } from '../logic/profile.js';
 import { parseKey, redundancyFor } from '../logic/stage0.js';
-import { BRANDS, COMMON, ONBOARDING, PROFILE } from '../labels.js';
+import { ANSWER_LABELS, BRANDS, COMMON, ONBOARDING, PRACTICAL, PROFILE } from '../labels.js';
 
-const TASTE_GROUPS = [PREFER, LIKE, DISLIKE, UNFAMILIAR];
 const SECTION_ICONS = { allergies: ShieldAlert, diet: Salad, intolerances: Ban, never: Utensils, notes: NotebookPen };
 // Entfernen nur mit Bestätigung: Allergien und Unverträglichkeiten (Gesundheit)
 const CONFIRM_REMOVAL = { allergies: PROFILE.confirmRemoveAllergy, intolerances: PROFILE.confirmRemoveIntolerance };
@@ -46,6 +48,9 @@ function SectionHead({ id, title, action }) {
   );
 }
 
+// Zusätze zu einer Regel (nurec v0.2, Kap. 2.2: Quelle, Geltungsbereich, Prüfstatus)
+const FLAG_TEXT = { check: PROFILE.statusCheck, medical: PROFILE.medical, limited: PROFILE.scopeLimited };
+
 function ExclusionList({ items, onRemove }) {
   return (
     <ul className="exclusion-list">
@@ -54,6 +59,16 @@ function ExclusionList({ items, onRemove }) {
           <span className="exclusion-text">
             <span className="exclusion-label">{item.label}</span>
             <span className="exclusion-source">{sourceText(item.sources)}</span>
+            {(item.flags ?? []).length > 0 && (
+              <span className="exclusion-flags">
+                {item.flags.map((flag) => (
+                  <span key={flag} className={`flag${flag === 'check' ? ' is-check' : ''}`}>
+                    {FLAG_TEXT[flag]}
+                  </span>
+                ))}
+              </span>
+            )}
+            {(item.flags ?? []).includes('check') && <span className="exclusion-source">{PROFILE.statusCheckHint}</span>}
           </span>
           {onRemove && (
             <button type="button" className="icon-button" onClick={() => onRemove(item)} aria-label={PROFILE.remove(item.label)}>
@@ -66,6 +81,43 @@ function ExclusionList({ items, onRemove }) {
   );
 }
 
+// Eine Liste bewerteter Karten (Bild, Titel, Bewertung, optional eine Zeile darunter). Tippen öffnet die Bewertung.
+function TasteGroup({ id, title, icon: Icon, tone, entries, index, note, onSelect }) {
+  if (entries.length === 0) return null;
+  return (
+    <section className={`panel taste-group${tone ? ` tone-${tone}` : ''}`} aria-labelledby={`group-${id}`}>
+      <h3 id={`group-${id}`} className="taste-group-title">
+        {Icon && (
+          <span className="group-icon">
+            <Icon aria-hidden="true" />
+          </span>
+        )}
+        <span>{title}</span>
+        <span className="group-count num">{entries.length}</span>
+      </h3>
+      <ul className="taste-list">
+        {entries.map((entry) => {
+          const card = index.get(entry.id);
+          return (
+            <li key={entry.id}>
+              <button type="button" className="taste-row" onClick={() => onSelect(entry.id)} aria-label={PROFILE.editRatingFor(card.title)}>
+                <Artwork card={card} size="thumb" className="thumb" />
+                <span className="taste-text">
+                  <span className="taste-title">{card.title}</span>
+                  <RatingChip answer={entry.rating} />
+                  {entry.sub && <span className="taste-reason">{entry.sub}</span>}
+                </span>
+                <ChevronRight className="row-chevron" aria-hidden="true" />
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {note && <p className="note">{note}</p>}
+    </section>
+  );
+}
+
 // Ein Treffer der Suche als Ausschluss-Eintrag (gleiches Format wie im Onboarding, siehe filter.js).
 function exclusionsForHit(hit, { allergens, index }) {
   if (hit.kind === 'allergen') return hit.ids.map((id) => ({ type: 'allergen', value: id, label: allergenLabel(allergens, id) }));
@@ -74,10 +126,35 @@ function exclusionsForHit(hit, { allergens, index }) {
   return [{ type, value, label: hit.label }];
 }
 
-// „Mein Profil“: Geschmack (gruppiert nach der letzten direkten Antwort pro Karte), getrennt davon die
-// Vermutungen der App (preferences.js) und die Ausschlüsse mit ihrer Herkunft. Jede Änderung wird ein
-// Ereignis im Event-Log (source "profile"). Keine Prozentwerte.
-export default function ProfileScreen({ round, onboarding, account, index, allergens, foods, dietOptions, steps, canSignOut, onCreate, onRestart, onSignOut, onChange }) {
+// „Mein Profil“ als Ergebnis-Dashboard nach nurec v0.2, Anhang B:
+//   Profilstand („Profil aufgebaut“, Erfassungsgrad) mit nächstem sinnvollem Schritt,
+//   Favoriten (nur konkrete Lebensmittel mit eigener Bewertung, B3.1), Gruppen, „Isst du eher ungern“ mit Ausnahmen,
+//   getrennt davon die Vermutungen der App (mögliche Favoriten, B3.2), Offenes („Kenne ich nicht“ getrennt von
+//   „noch nicht gefragt“), Feinheiten (roh/gegart), Gerichte (Stufe 4), Ausschlüsse mit Herkunft und Status,
+//   Alltagsprofil (Kap. 2.3). Jede Änderung wird ein Ereignis im Event-Log (source "profile").
+// round: Zustand der Profilerstellung (auch während einer Gerichte-Runde).
+export default function ProfileScreen({
+  round,
+  onboarding,
+  account,
+  index,
+  allergens,
+  foods,
+  dietOptions,
+  steps,
+  next = null,
+  practical = null,
+  practicalDefinition = null,
+  dishes = { available: false },
+  canSignOut,
+  onCreate,
+  onNext,
+  onOpenPractical,
+  onStartDishes,
+  onRestart,
+  onSignOut,
+  onChange,
+}) {
   const [sheet, setSheet] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const [draft, setDraft] = useState(null);
@@ -104,9 +181,13 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
   }
 
   const profile = computeProfile(round);
-  const groups = profile.groups;
   const derived = derivedEntries(round);
-  const hasTaste = TASTE_GROUPS.some((answer) => groups[answer].length > 0);
+  const progress = profileProgress(round);
+  const board = buildDashboard(round);
+  const hasTaste = board.favorites.length + board.groups.length + board.dislikes.length + board.unfamiliar.length + board.dishes.length > 0;
+  const practicalLines = practicalDefinition ? summarizePractical(practicalDefinition, practical, PRACTICAL) : [];
+  const titleOf = (id) => index.get(id)?.title ?? id;
+  const openRating = (cardId) => setSheet({ type: 'rating', cardId });
   const sections = groupExclusions(round.entries, { allergens, index });
   const diet = dietOptions.options.find((option) => option.id === round.diet);
   const currentAllergens = round.entries.filter((entry) => sectionOf(entry) === 'allergies').map((entry) => entry.value);
@@ -186,6 +267,8 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
         <CreationSteps steps={steps} />
       </div>
 
+      <ProfileStatus progress={progress} next={next} onNext={onNext} />
+
       <section className="stack" aria-labelledby="taste-title">
         <div className="stack-tight">
           <h2 id="taste-title" className="title-section">
@@ -200,41 +283,108 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
             </button>
           </EmptyState>
         )}
-        {TASTE_GROUPS.filter((answer) => groups[answer].length > 0).map((answer) => {
-          const { Icon, tone } = ANSWER_META[answer];
-          return (
-            <section key={answer} className={`panel taste-group tone-${tone}`} aria-labelledby={`group-${answer}`}>
-              <h3 id={`group-${answer}`} className="taste-group-title">
-                <span className="group-icon">
-                  <Icon aria-hidden="true" />
-                </span>
-                <span>{PROFILE.groups[answer]}</span>
-                <span className="group-count num">{groups[answer].length}</span>
-              </h3>
-              <ul className="taste-list">
-                {groups[answer].map((id) => {
-                  const card = index.get(id);
-                  return (
-                    <li key={id}>
-                      <button type="button" className="taste-row" onClick={() => setSheet({ type: 'rating', cardId: id })} aria-label={PROFILE.editRatingFor(card.title)}>
-                        <Artwork card={card} size="thumb" className="thumb" />
-                        <span className="taste-text">
-                          <span className="taste-title">{card.title}</span>
-                          <RatingChip answer={answer} />
-                        </span>
-                        <ChevronRight className="row-chevron" aria-hidden="true" />
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-              {answer === DISLIKE && <p className="note">{PROFILE.dislikeNote}</p>}
-            </section>
-          );
-        })}
+        {hasTaste && (
+          <section className="stack-tight" aria-labelledby="favorites-title">
+            <h3 id="favorites-title" className="subsection-title">
+              {PROFILE.favoritesTitle}
+            </h3>
+            <p className="note">{board.favorites.length > 0 ? PROFILE.favoritesLead : PROFILE.favoritesEmpty}</p>
+          </section>
+        )}
+        {[PREFER, LIKE].map((rating) => (
+          <TasteGroup
+            key={rating}
+            id={`favorites-${rating}`}
+            title={PROFILE.favoriteGroups[rating]}
+            icon={ANSWER_META[rating].Icon}
+            tone={ANSWER_META[rating].tone}
+            entries={board.favorites.filter((entry) => entry.rating === rating)}
+            index={index}
+            onSelect={openRating}
+          />
+        ))}
+        <TasteGroup id="groups" title={PROFILE.groupsTitle} icon={Layers} entries={board.groups} index={index} note={PROFILE.groupsLead} onSelect={openRating} />
+        <TasteGroup
+          id="dislikes"
+          title={PROFILE.dislikesTitle}
+          icon={ANSWER_META[DISLIKE].Icon}
+          tone={ANSWER_META[DISLIKE].tone}
+          entries={board.dislikes.map((entry) => ({
+            id: entry.id,
+            rating: DISLIKE,
+            sub: entry.exceptions.length > 0 ? PROFILE.exception(entry.exceptions.map((exception) => titleOf(exception.id)).join(', ')) : null,
+          }))}
+          index={index}
+          note={PROFILE.dislikeNote}
+          onSelect={openRating}
+        />
       </section>
 
       <DerivedTaste entries={derived} index={index} onSelect={(entry) => setSheet({ type: 'prediction', entry })} />
+
+      {(board.unfamiliar.length > 0 || board.unasked.length > 0) && (
+        <section className="stack" aria-labelledby="open-title">
+          <div className="stack-tight">
+            <h2 id="open-title" className="title-section">
+              {PROFILE.openTitle}
+            </h2>
+            <p className="note">{PROFILE.openLead}</p>
+          </div>
+          <TasteGroup
+            id="unfamiliar"
+            title={PROFILE.unfamiliarTitle}
+            icon={ANSWER_META[UNFAMILIAR].Icon}
+            tone={ANSWER_META[UNFAMILIAR].tone}
+            entries={board.unfamiliar.map((id) => ({ id, rating: UNFAMILIAR }))}
+            index={index}
+            onSelect={openRating}
+          />
+          {board.unasked.length > 0 && (
+            <section className="panel" aria-labelledby="unasked-title">
+              <h3 id="unasked-title" className="panel-title">
+                {PROFILE.unaskedTitle}
+              </h3>
+              <ul className="tag-list">
+                {board.unasked.map((id) => (
+                  <li key={id}>{titleOf(id)}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </section>
+      )}
+
+      {board.details.length > 0 && (
+        <section className="panel" aria-labelledby="details-title">
+          <h2 id="details-title" className="panel-title">
+            {PROFILE.detailsTitle}
+          </h2>
+          <p className="note">{PROFILE.detailsLead}</p>
+          <ul className="detail-lines">
+            {board.details.map((entry) => (
+              <li key={entry.cookedId}>{PROFILE.detailLine(titleOf(entry.rawId), ANSWER_LABELS[entry.raw], titleOf(entry.cookedId), ANSWER_LABELS[entry.cooked])}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {(board.dishes.length > 0 || dishes.available) && (
+        <section className="stack" aria-labelledby="dishes-title">
+          <div className="stack-tight">
+            <h2 id="dishes-title" className="title-section">
+              {PROFILE.dishesTitle}
+            </h2>
+            <p className="note">{board.dishes.length > 0 ? PROFILE.dishesLead : PROFILE.dishesEmpty}</p>
+          </div>
+          <TasteGroup id="dishes" title={PROFILE.dishesTitle} icon={Soup} entries={board.dishes} index={index} onSelect={openRating} />
+          {dishes.available && onStartDishes && (
+            <button type="button" className="button-secondary" onClick={onStartDishes}>
+              <Soup aria-hidden="true" />
+              {PROFILE.dishesAction(board.dishes.length > 0)}
+            </button>
+          )}
+        </section>
+      )}
 
       <section className="stack" aria-labelledby="exclusions-title">
         <div className="stack-tight">
@@ -305,6 +455,36 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
           </section>
         </div>
       </section>
+
+      {practicalDefinition && (
+        <section className="panel practical-panel" aria-labelledby="practical-title">
+          <div className="exclusion-head">
+            <h2 id="practical-title" className="exclusion-title">
+              <Sparkles aria-hidden="true" />
+              {PROFILE.practicalTitle}
+            </h2>
+            {onOpenPractical && (
+              <button type="button" className="button-ghost is-strong" onClick={onOpenPractical}>
+                <Pencil aria-hidden="true" />
+                {practicalAnswered(practicalDefinition, practical) > 0 ? PROFILE.practicalEdit : PROFILE.practicalAdd}
+              </button>
+            )}
+          </div>
+          <p className="note">{PROFILE.practicalLead}</p>
+          {practicalLines.length === 0 ? (
+            <p className="note">{PROFILE.practicalEmpty}</p>
+          ) : (
+            <dl className="practical-lines">
+              {practicalLines.map((line) => (
+                <div key={line.id} className="practical-line">
+                  <dt>{line.dimension}</dt>
+                  <dd>{line.text}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </section>
+      )}
 
       <section className="profile-footer">
         {canSignOut ? (

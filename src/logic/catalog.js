@@ -49,6 +49,21 @@ export function isFamily(card) {
   return (card.children?.length ?? 0) > 0;
 }
 
+// Entitätstypen nach nurec v0.2, Kap. 8
+export const KINDS = ['FAMILY', 'SUBGROUP', 'SIMPLE_FOOD', 'COMPOSITE_FOOD', 'DISH'];
+export const STAGE3_BLOCK_LIMIT = 30; // Anhang A3: höchstens 30 Kandidatenkarten je Teilblock
+
+// Gerichte (Stufe 4): eigene Einheiten ohne Elternkarte; ihre Antworten gehen nie auf Zutaten über.
+export function isDish(card) {
+  return card?.kind === 'DISH';
+}
+
+// Konkrete Karte: ein bestimmtes Lebensmittel oder Produkt, das man direkt bewerten kann (Endkarte ohne Kinder,
+// z. B. „Naturtofu“, „Eier“, „Quinoa“). Nur solche Karten werden zu bestätigten Favoriten (Anhang B3.1).
+export function isConcrete(card) {
+  return Boolean(card) && !isFamily(card) && !isDish(card);
+}
+
 // Prüft die Konsistenz des Katalogs. Liefert eine Liste von Fehlern (leer = in Ordnung).
 export function validateCatalog(cards) {
   const errors = [];
@@ -60,8 +75,20 @@ export function validateCatalog(cards) {
     for (const field of ['allergens', 'animalOrigin', 'children', 'examples']) {
       if (!Array.isArray(card[field])) errors.push(`${card.id}: ${field} fehlt oder ist keine Liste`);
     }
-    if (card.stage === 1 && card.parentId !== null) errors.push(`${card.id}: Stufe 1 ohne parentId erwartet`);
-    if (card.stage > 1) {
+    if (!KINDS.includes(card.kind)) errors.push(`${card.id}: kind fehlt oder unbekannt`);
+    if ((card.stage === 1 || card.stage === 4) && card.parentId !== null) errors.push(`${card.id}: Stufe ${card.stage} ohne parentId erwartet`);
+    if (card.stage === 4 && (card.kind !== 'DISH' || card.children.length > 0)) errors.push(`${card.id}: Stufe 4 ist ein Gericht ohne Kinder`);
+    if (card.kind === 'DISH' && card.stage !== 4) errors.push(`${card.id}: Gerichte stehen auf Stufe 4`);
+    if (card.stage === 3 && !/^3\.[1-7]$/.test(card.block ?? '')) errors.push(`${card.id}: Stufe 3 braucht einen Block 3.1 bis 3.7`);
+    for (const id of card.ingredients ?? []) {
+      if (!index.get(id)) errors.push(`${card.id}: Zutat ${id} unbekannt`);
+    }
+    if (card.exceptionCandidate && index.get(card.exceptionCandidate)?.parentId !== card.id) errors.push(`${card.id}: Ausnahme ist kein Kind`);
+    for (const id of card.contrastPair ?? []) {
+      if (index.get(id)?.parentId !== card.id) errors.push(`${card.id}: Kontrast ${id} ist kein Kind`);
+    }
+    if (card.variantOf && !index.get(card.variantOf)) errors.push(`${card.id}: variantOf ${card.variantOf} unbekannt`);
+    if (card.stage > 1 && card.stage < 4) {
       const parent = index.get(card.parentId);
       if (!parent) errors.push(`${card.id}: parentId ${card.parentId} unbekannt`);
       else {
@@ -75,6 +102,11 @@ export function validateCatalog(cards) {
     if (isFamily(card) && (card.allergens.length > 0 || card.animalOrigin.length > 0)) {
       errors.push(`${card.id}: Karten mit Kindern tragen keine eigenen Tags (Sichtbarkeit kommt aus den Kindern)`);
     }
+  }
+  const blocks = {};
+  for (const card of cards) if (card.stage === 3) blocks[card.block] = (blocks[card.block] ?? 0) + 1;
+  for (const [block, count] of Object.entries(blocks)) {
+    if (count > STAGE3_BLOCK_LIMIT) errors.push(`Block ${block}: ${count} Karten, höchstens ${STAGE3_BLOCK_LIMIT}`);
   }
   return errors;
 }

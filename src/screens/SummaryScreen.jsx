@@ -3,7 +3,10 @@ import CreationSteps from '../components/CreationSteps.jsx';
 import Avatar from '../components/Avatar.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { hasSummaryRules } from '../logic/profile.js';
-import { BRANDS, ONBOARDING, SUMMARY } from '../labels.js';
+import { BRANDS, ONBOARDING, PROFILE, SUMMARY } from '../labels.js';
+
+// Zusätze zu einer Regel (nurec v0.2, Kap. 2.2): ärztlich vorgegeben, kleine Mengen gehen
+const FLAG_TEXT = { medical: PROFILE.medical, limited: PROFILE.scopeLimited };
 
 const SECTION_ICONS = { diet: Salad, intolerances: ShieldAlert, never: Utensils };
 
@@ -53,6 +56,18 @@ export default function SummaryScreen({ sections, noCards, firstName, steps, onC
                     <li key={item.key} className="exclusion-row">
                       <span className="exclusion-text">
                         <span className="exclusion-label">{item.label}</span>
+                        {item.flags?.some((flag) => flag !== 'check') && (
+                          <span className="exclusion-flags">
+                            {item.flags
+                              .filter((flag) => flag !== 'check')
+                              .map((flag) => (
+                                <span key={flag} className="flag">
+                                  {FLAG_TEXT[flag]}
+                                </span>
+                              ))}
+                          </span>
+                        )}
+                        {item.flags?.includes('limited') && <span className="exclusion-source">{ONBOARDING.scopeNote}</span>}
                       </span>
                     </li>
                   ))}
@@ -61,6 +76,9 @@ export default function SummaryScreen({ sections, noCards, firstName, steps, onC
                       <span className="exclusion-text">
                         <span className="exclusion-label">{note}</span>
                         <span className="exclusion-source">{ONBOARDING.noteChip}</span>
+                        <span className="exclusion-flags">
+                          <span className="flag is-check">{PROFILE.statusCheck}</span>
+                        </span>
                       </span>
                     </li>
                   ))}

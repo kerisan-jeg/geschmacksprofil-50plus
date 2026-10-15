@@ -26,7 +26,8 @@ export const SOURCE_SWIPE = 'swipe';
 export function emptyAnswers(questions) {
   const empty = {
     single: () => null,
-    allergens: () => ({ gate: null, selected: [], items: [], notes: [], unsureMore: false }),
+    // medical: ärztlich oder fachlich festgestellt (0.2); scopes: Geltungsbereich je Unverträglichkeit (0.3)
+    allergens: () => ({ gate: null, selected: [], items: [], notes: [], unsureMore: false, medical: false, scopes: {} }),
     never: () => ({ gate: null, selected: [], notes: [], brands: [], origins: [] }),
   };
   return Object.fromEntries(questions.map((question) => [question.id, empty[question.type]()]));
@@ -100,8 +101,21 @@ function keyEntry(question, catalogIndex, key, origin, cardLabels) {
   return { type, value, source: SOURCE_ONBOARDING, origin, label };
 }
 
-function noteEntry(text, origin) {
-  return { type: 'food', value: text, source: SOURCE_ONBOARDING, origin, label: text, freeText: true };
+function noteEntry(text, origin, extra = {}) {
+  return { type: 'food', value: text, source: SOURCE_ONBOARDING, origin, label: text, freeText: true, ...extra };
+}
+
+// Unverträglichkeiten mit Geltungsbereich (nurec v0.2, 0.3: „vollständig meiden oder nur begrenzte Menge“).
+// Eine begrenzte Menge wird gespeichert, aber nie als sichere Freigabe verwendet: Die Regel bleibt ein Ausschluss.
+export const SCOPED_INTOLERANCES = ['lactose'];
+export const SCOPES = { AVOID: 'avoid', LIMITED: 'limited' };
+
+// Zusätze für Einträge aus Frage 2: Quelle der Vorgabe und Geltungsbereich.
+function constraintExtra(answer, id) {
+  const extra = {};
+  if (answer.medical) extra.medical = true;
+  if (SCOPED_INTOLERANCES.includes(id)) extra.scope = answer.scopes?.[id] ?? SCOPES.AVOID;
+  return extra;
 }
 
 // Liefert:
@@ -129,18 +143,18 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
   if (intolerances?.gate === 'yes') {
     const question = byId.intolerances;
     for (const id of intolerances.selected) {
-      exclusions.push({ type: 'allergen', value: id, source: SOURCE_ONBOARDING, origin: 'intolerances', label: allergenLabel(allergens, id) });
+      exclusions.push({ type: 'allergen', value: id, source: SOURCE_ONBOARDING, origin: 'intolerances', label: allergenLabel(allergens, id), ...constraintExtra(intolerances, id) });
     }
     for (const line of summarizeSelection(allergens, intolerances.selected)) {
       rules.push({ id: `intolerances.${line.key}`, kind: 'allergen', text: line.text, source: question.source });
     }
     for (const key of intolerances.items) {
-      const entry = keyEntry(question, catalogIndex, key, 'intolerances', cardLabels);
+      const entry = { ...keyEntry(question, catalogIndex, key, 'intolerances', cardLabels), ...constraintExtra(intolerances, key) };
       exclusions.push(entry);
       rules.push({ id: `intolerances.${key}`, kind: 'allergen', text: entry.label, source: question.source });
     }
     for (const note of intolerances.notes) {
-      exclusions.push(noteEntry(note, 'intolerances'));
+      exclusions.push(noteEntry(note, 'intolerances', constraintExtra(intolerances, note)));
       freeTextNotes.push(note);
       rules.push({ id: `intolerances.note.${note}`, kind: 'note', text: note, source: question.source });
     }
@@ -172,7 +186,7 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
 function affectedCards(entry, catalogIndex) {
   const alone = buildExclusions([entry], { index: catalogIndex });
   return catalogIndex.cards.filter((card) => {
-    if (entry.type === 'food') return card.children.length === 0 && card.examples.some((example) => foodMatches(example, entry.value));
+    if (entry.type === 'food') return card.children.length === 0 && [card.title, ...card.examples].some((example) => foodMatches(example, entry.value));
     if (card.children.length > 0) return false;
     return !isVisible(card, catalogIndex, alone);
   });

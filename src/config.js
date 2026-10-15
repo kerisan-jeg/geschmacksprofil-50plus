@@ -2,7 +2,7 @@
 // Alles, was im Pilot variiert werden soll (Wortlaut, Schwellen, Funktionen), steht hier.
 // Gestaltung (Farben, Abstände, Animationsdauern) steht in src/theme/tokens.css.
 
-export const APP_VERSION = '0.7.0-demo';
+export const APP_VERSION = '0.8.0-demo';
 
 // Karten pro Runde (ROUND_CARD_LIMIT). Fortschrittsanzeigen leiten ihre Werte davon ab.
 export const ROUND_CARD_LIMIT = 10;
@@ -33,6 +33,11 @@ export const PREFERENCE_MODEL = {
   inheritFactor: 0.5,
   siblingWeight: 0,
 };
+
+// Profilstand „Profil aufgebaut“ (nurec v0.2, Anhang B2): ein Erfassungsgrad, keine Trefferquote.
+// Punkte je Stufe nach dem Entwurf 35/30/35 [D]; stage3Target ist eine Annahme [V]: so viele konkrete Lebensmittel
+// mit Bewertung geben die vollen 35 Punkte (kein Pflichtziel 100 %). Im Pilot anpassen.
+export const PROFILE_PROGRESS = { stage1: 35, stage2: 30, stage3: 35, stage3Target: 12 };
 
 // Mini-Tutorial vor der ersten Runde. Seit dem Teamentscheid vom 13.10. standardmässig aus:
 // Nach der Zusammenfassung erscheint direkt die erste Karte. Der Code bleibt, damit es für einen

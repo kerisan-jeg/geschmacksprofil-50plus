@@ -4,7 +4,8 @@ import { ROUND } from '../labels.js';
 
 // Das Aussehen einer Karte: in der Runde, im Stapel dahinter, auf der Startseite und im Tutorial.
 // Hinweise aus den Ausschlüssen (z. B. „Ohne Haselnüsse“) erscheinen oben auf dem Bild. Sonst steht dort
-// die Art der Karte: „Lebensmittelgruppe“ oder bei Untergruppen die Gruppe (z. B. „Fleisch und Geflügel“).
+// die Art der Karte: „Lebensmittelgruppe“, bei Untergruppen und konkreten Lebensmitteln die Karte darüber
+// (z. B. „Fleisch und Geflügel“, „Rind“), bei Gerichten (Stufe 4) „Gericht“.
 export default function CardFace({ card, compact = false, children }) {
   const notes = compact ? [] : card.notes ?? [];
 
@@ -12,7 +13,7 @@ export default function CardFace({ card, compact = false, children }) {
     <div className={`card-face${compact ? ' is-compact' : ''}`}>
       <div className="card-art">
         <Artwork card={card} size={compact ? 'thumb' : 'card'} />
-        {!compact && notes.length === 0 && <span className="card-kind">{card.group ?? ROUND.cardKind}</span>}
+        {!compact && notes.length === 0 && <span className="card-kind">{card.dish ? ROUND.dishKind : card.group ?? ROUND.cardKind}</span>}
         {notes.length > 0 && (
           <ul className="card-notes">
             {notes.map((note) => (

@@ -159,15 +159,16 @@ test('Nach Runde 1 geht es mit Runde 2 weiter; Rundennummer im Zustand und in de
 });
 
 test('Die Profilerstellung endet unabhängig vom Kartenlimit spätestens nach Runde 4', () => {
-  // Alles „Mag ich“: Die feste Reihenfolge kennt 49 Karten (Stufe 1 und 2), die adaptive Auswahl fragt bei
-  // „Mag ich“ auch die Sorten (Stufe 3) und kennt 63.
+  // Alles „Mag ich“: Die feste Reihenfolge kennt 49 Karten (Stufe 1 und 2). Die adaptive Auswahl fragt die
+  // 13 Gruppen und je Gruppe zwei Untergruppen als Kontrast (nurec v0.2, Kap. 11); weil beide gleich ausfallen,
+  // ist jeder Zweig danach geklärt: 13 + 11 × 2 = 35 Karten.
   for (const [selection, roundCardLimit, expectedRounds, expectedAnswers] of [
     ['fixed', 4, 4, 16],
     ['fixed', 10, 4, 40],
     ['fixed', 30, 2, 49],
     ['adaptive', 4, 4, 16],
-    ['adaptive', 10, 4, 40],
-    ['adaptive', 30, 3, 63],
+    ['adaptive', 10, 4, 35],
+    ['adaptive', 30, 2, 35],
   ]) {
     let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit, selection, holdout: 0 }));
     while (state.screen === SCREENS.ROUND) {
@@ -264,4 +265,40 @@ test('Bleibt nach den Angaben keine Karte übrig, geht es nach „Stimmt so“ d
   const all = index.cards.filter((card) => card.stage === 1).map((card) => `card:${card.id}`);
   const next = toRound(run(state, { type: 'setAnswer', questionId: 'never', value: { ...state.answers.never, gate: 'yes', selected: all } }));
   assert.equal(next.screen, SCREENS.COMPLETE);
+});
+
+test('Gerichte (Stufe 4): eigene freiwillige Runde, zählt nicht zu den vier Runden, danach weiter mit der Profilerstellung', () => {
+  let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit: 4, holdout: 0 }));
+  assert.equal(run(state, { type: 'startDishes' }), state, 'nicht mitten in einer Runde');
+  for (const cardId of ['F01', 'F02', 'F03', 'F04']) state = run(state, { type: 'event', event: { type: 'ANSWER', cardId, response: LIKE, round: 1 } });
+  assert.equal(state.screen, SCREENS.COMPLETE);
+  state = run(state, { type: 'startDishes' });
+  assert.deepEqual([state.screen, state.roundMode, state.dishRound, state.roundNumber], [SCREENS.ROUND, 'dishes', 1, 1]);
+  const dishRound = model.roundOf(state);
+  assert.equal(dishRound.round, 'G1');
+  const first = nextCard(dishRound, state.config);
+  assert.equal(first.stage, 4, 'nur Gerichte');
+  assert.equal(first.dish, true);
+  assert.deepEqual(creationSteps(state, dishRound)[1].kind, 'dishes');
+  for (let i = 0; i < 4; i += 1) {
+    const card = nextCard(model.roundOf(state), state.config);
+    state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: card.id, response: LIKE, round: 'G1' } });
+  }
+  assert.equal(state.screen, SCREENS.COMPLETE, 'Gerichte-Runde nach dem Kartenlimit fertig');
+  // Zurück zur Profilerstellung: Runde 2, die Gerichte zählen nicht als Runde
+  state = run(state, { type: 'nextRound' });
+  assert.deepEqual([state.screen, state.roundMode, state.roundNumber], [SCREENS.ROUND, 'main', 2]);
+  assert.ok(nextCard(model.roundOf(state), state.config).stage < 4);
+  assert.equal(model.mainRoundOf(state).sequence.length, 8, 'Antworten beider Runden im selben Log');
+});
+
+test('Alltagsprofil öffnen und danach dorthin zurück, wo man war', () => {
+  let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit: 4 }));
+  for (const cardId of ['F01', 'F02', 'F03', 'F04']) state = run(state, { type: 'event', event: { type: 'ANSWER', cardId, response: LIKE, round: 1 } });
+  const fromProfile = run(state, { type: 'tab', tab: TABS.PROFILE }, { type: 'openPractical' });
+  assert.deepEqual([fromProfile.screen, fromProfile.tab], [SCREENS.PRACTICAL, TABS.CREATE]);
+  assert.equal(isNavVisible(fromProfile), false, 'ein Weg nach vorn, keine Leiste');
+  assert.deepEqual([run(fromProfile, { type: 'closePractical' }).screen, run(fromProfile, { type: 'closePractical' }).tab], [SCREENS.COMPLETE, TABS.PROFILE]);
+  const fromComplete = run(state, { type: 'openPractical' }, { type: 'closePractical' });
+  assert.deepEqual([fromComplete.screen, fromComplete.tab], [SCREENS.COMPLETE, TABS.CREATE]);
 });

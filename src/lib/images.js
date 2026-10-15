@@ -1,7 +1,8 @@
 // Fotos der Karten und ihre Nachweise (src/data/image-credits.json).
 // Untergruppen (Stufe 2) zeigen ein Foto. Gruppen (Stufe 1) zeigen ihre drei Beispiele als Bildraster
 // (collages), z. B. „Fleisch und Geflügel“ mit Poulet, Rind und Schwein, damit das Bild zur ganzen
-// Gruppe passt und nicht nur zu einem Beispiel.
+// Gruppe passt und nicht nur zu einem Beispiel. Konkrete Lebensmittel (Stufe 3) nutzen ein vorhandenes Foto,
+// wenn es genau dieses Lebensmittel zeigt (cardPhotos, z. B. „Lachs“); sonst die Illustration ihrer Gruppe.
 // Fehlt ein Foto oder lädt es nicht, zeigt Artwork.jsx den gestalteten Platzhalter
 // (eigene Illustration aus public/illustrations auf der Kartenfarbe), nie ein kaputtes Bild.
 
@@ -21,6 +22,7 @@ const PHOTOS = credits.photos ?? [];
 const COLLAGES = credits.collages ?? {};
 const BY_KEY = new Map(PHOTOS.map((photo) => [photo.key, photo]));
 const BY_CARD = new Map(PHOTOS.filter((photo) => photo.cardId).map((photo) => [photo.cardId, photo]));
+const CARD_PHOTOS = credits.cardPhotos ?? {};
 
 // Pfad relativ zur Basis des Builds (vite.config.js: base './'), in Tests '/'.
 export function assetUrl(path) {
@@ -32,7 +34,7 @@ export function assetUrl(path) {
 export function photosForCard(cardId, style = IMAGE_STYLE) {
   if (style === 'illustration') return [];
   if (COLLAGES[cardId]) return COLLAGES[cardId].map((key) => BY_KEY.get(key)).filter(Boolean);
-  const photo = BY_CARD.get(cardId);
+  const photo = BY_CARD.get(cardId) ?? BY_KEY.get(CARD_PHOTOS[cardId]);
   return photo ? [photo] : [];
 }
 
@@ -75,6 +77,9 @@ export function allPhotos() {
       ...(photo.cardId ? [photo.cardId] : []),
       ...Object.entries(COLLAGES)
         .filter(([, keys]) => keys.includes(photo.key))
+        .map(([cardId]) => cardId),
+      ...Object.entries(CARD_PHOTOS)
+        .filter(([, key]) => key === photo.key)
         .map(([cardId]) => cardId),
     ],
   }));

@@ -140,3 +140,47 @@ test('Hinweise nutzen die Worte der Person und passende Beispiele', () => {
 test('Ohne Ausschlüsse bleibt eine Karte unverändert', () => {
   assert.equal(annotateCard(card('F13'), index, excl()), card('F13'));
 });
+
+// ---------- Stufe 3 und 4: konkrete Lebensmittel, zusammengesetzte Produkte und Gerichte ----------
+
+test('Gerichte fallen weg, wenn eine Zutat ausgeschlossen ist (nurec v0.2, Kap. 2.2: REJECT auch für spätere Vorschläge)', () => {
+  assert.equal(visible('D02', excl([], 'vegetarian')), false, 'Bolognese vegetarisch');
+  assert.equal(visible('D01', excl([], 'vegetarian')), true, 'Pizza Margherita vegetarisch');
+  // „Schweinefleisch“ in Frage 3 (Karte F01.3) schliesst Gerichte mit Schweinefleisch aus, nicht aber Rindfleisch
+  const pork = excl([{ type: 'card', value: 'F01.3', source: 'onboarding' }]);
+  assert.equal(visible('D02', pork), false);
+  assert.equal(visible('D11', pork), true, 'Chili con Carne mit Rind');
+  // Eingetippt: „Tomate“ schliesst die konkreten Karten und Gerichte damit aus, aber keine Gruppe
+  const tomato = excl([{ type: 'food', value: 'Tomate', source: 'onboarding' }]);
+  assert.equal(visible('F10.2.1', tomato), false, 'Rohe Tomaten');
+  assert.equal(visible('D01', tomato), false, 'Pizza Margherita');
+  assert.equal(visible('F10.2', tomato), true, 'Rohes Fruchtgemüse bleibt');
+  assert.equal(visible('D05', tomato), true, 'Rösti mit Spiegelei');
+  // „Alkohol“ (Schnellauswahl Frage 3) schliesst Gerichte mit Wein aus
+  assert.equal(visible('D07', excl([{ type: 'food', value: 'Alkohol', source: 'onboarding' }])), false, 'Käsefondue');
+});
+
+test('Zusammengesetzte Produkte: Hummus fällt bei Sesam weg, gekochte Kichererbsen bleiben', () => {
+  const sesame = excl([{ type: 'allergen', value: 'sesame', source: 'onboarding' }]);
+  assert.equal(visible('F05.3.2', sesame), false, 'Hummus');
+  assert.equal(visible('F05.3.1', sesame), true, 'Gekochte Kichererbsen');
+  assert.equal(visible('F05.3', sesame), true, 'Kichererbsen als Untergruppe');
+  // Sesam als Karte ausgeschlossen („Vertrage ich nicht“): Hummus über seine Zutat ebenfalls
+  assert.equal(visible('F05.3.2', excl([{ type: 'card', value: 'F13.2.3', source: 'swipe' }])), false);
+});
+
+test('Ernährungsweise „Kein Schweinefleisch“ (religiöse Regel, nurec 0.4): kein Schwein, keine Gelatine, Rind bleibt', () => {
+  const noPork = excl([], 'no_pork');
+  assert.equal(visible('F01.3', noPork), false);
+  assert.equal(visible('F01.2', noPork), true);
+  assert.equal(visible('D09', noPork), false, 'Gerstensuppe mit Speck');
+  assert.equal(isAllowed({ id: 'X2', stage: 3, parentId: null, children: [], allergens: [], animalOrigin: ['gelatin'], title: 'Gummibärchen' }, noPork), false);
+  assert.equal(isAllowed({ id: 'X3', stage: 3, parentId: null, children: [], allergens: [], animalOrigin: ['gelatin'], title: 'Panna cotta' }, excl([], 'vegetarian')), false);
+});
+
+test('Hinweise auf Karten: „Ohne Tomaten“, nicht zusätzlich „Ohne Rohe Tomaten“', () => {
+  const tomato = excl([{ type: 'food', value: 'Tomaten', source: 'onboarding' }]);
+  assert.deepEqual(annotateCard(card('F10'), index, tomato).notes, ['Ohne Tomaten']);
+  // Ein echter Ausschluss eines Kindes erscheint weiterhin mit Namen
+  assert.deepEqual(annotateCard(card('F10.2'), index, excl([{ type: 'card', value: 'F10.2.2', source: 'onboarding' }])).notes, ['Ohne Gurke']);
+});

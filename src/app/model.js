@@ -4,6 +4,8 @@
 //   mit Registrierung (AUTH_ENABLED):  start → register-name → register-phone → register-code → about → …
 //   ohne Registrierung:                about (Vorname freiwillig) → …
 //   danach:                            questions → summary → round → complete → round (Runde 2) → complete …
+//   freiwillig nach Stufe 2:           Gerichte (Stufe 4, eigene Runde „G1“, zählt nicht zu MAX_ROUNDS) und das
+//                                      Alltagsprofil (practical, nurec v0.2 Kap. 2.3), danach zurück, wo man war
 // Nach Frage 3 folgt die Zusammenfassung (nurec v0.2, Kap. 2.2): Die Person bestätigt die festen Regeln
 // („Stimmt so“) oder korrigiert sie („Ändern“ führt zur passenden Frage und wieder zurück). Danach kommt
 // direkt die erste Karte; das Tutorial (intro) nur, wenn TUTORIAL_ENABLED eingeschaltet ist.
@@ -17,7 +19,7 @@
 
 import { MAX_ROUNDS } from '../config.js';
 import { UNDO } from '../logic/answers.js';
-import { deriveRoundState, hasMoreCards, isRoundComplete, progress } from '../logic/engine.js';
+import { deriveRoundState, dishRoundId, hasMoreCards, isRoundComplete, openDishes, progress } from '../logic/engine.js';
 import { ANSWER, eventType } from '../logic/events.js';
 import { deriveOnboarding, emptyAnswers } from '../logic/stage0.js';
 
@@ -33,7 +35,11 @@ export const SCREENS = {
   INTRO: 'intro',
   ROUND: 'round',
   COMPLETE: 'complete',
+  PRACTICAL: 'practical',
 };
+
+// Art der laufenden Runde: Profilerstellung (Stufe 1 bis 3, höchstens MAX_ROUNDS) oder Gerichte (Stufe 4, freiwillig)
+export const ROUND_MODES = { MAIN: 'main', DISHES: 'dishes' };
 
 export const TABS = { CREATE: 'create', PROFILE: 'profile' };
 
@@ -79,14 +85,21 @@ export function creationSteps(state, round) {
   else if (!editingQuestions) roundState = 'current';
   return [
     { id: 'questions', state: editingQuestions ? 'current' : 'done' },
-    { id: 'round', state: roundState, answered, total, number: state.roundNumber ?? 1 },
+    { id: 'round', state: roundState, answered, total, number: state.roundNumber ?? 1, kind: state.roundMode === ROUND_MODES.DISHES ? 'dishes' : 'round' },
     { id: 'profile', state: roundDone ? 'done' : 'open' },
   ];
 }
 
 export function createAppModel({ index, stage0, allergens }) {
+  // Zustand der laufenden Runde: Profilerstellung (Nummer 1 bis MAX_ROUNDS) oder Gerichte („G1“, „G2“ …).
   function roundOf(state, events = state.events) {
-    return deriveRoundState({ index, onboarding: state.onboarding, diets: stage0.diets, events, round: state.roundNumber ?? 1 });
+    const round = state.roundMode === ROUND_MODES.DISHES ? dishRoundId(state.dishRound ?? 1) : state.roundNumber ?? 1;
+    return deriveRoundState({ index, onboarding: state.onboarding, diets: stage0.diets, events, round });
+  }
+
+  // Zustand der Profilerstellung, auch während einer Gerichte-Runde (Dashboard, „Weiter mit Runde N“).
+  function mainRoundOf(state) {
+    return roundOf({ ...state, roundMode: ROUND_MODES.MAIN });
   }
 
   // saved: gespeicherter Stand (storage/local.js), account: Konto auf diesem Gerät.
@@ -107,6 +120,11 @@ export function createAppModel({ index, stage0, allergens }) {
       events: [],
       // Laufende Runde (1 bis MAX_ROUNDS); jede Antwort trägt sie im Event-Log (event.round).
       roundNumber: 1,
+      // Gerichte (Stufe 4): eigene, freiwillige Runden; roundMode zeigt, welche Runde gerade läuft
+      roundMode: ROUND_MODES.MAIN,
+      dishRound: 0,
+      // Alltagsprofil: von wo es geöffnet wurde (dorthin geht es danach zurück)
+      practicalFrom: null,
       endedEarly: false,
       resume: null,
     };
@@ -160,7 +178,7 @@ export function createAppModel({ index, stage0, allergens }) {
         const onboarding = deriveOnboarding(stage0, state.answers, { allergens, catalogIndex: index });
         // Antworten beim Wischen beginnen neu; Profiländerungen und Registrierung bleiben im Log.
         const events = state.events.filter((event) => eventType(event) !== ANSWER);
-        return { ...state, onboarding, events, roundNumber: 1, endedEarly: false, editing: false, screen: SCREENS.SUMMARY };
+        return { ...state, onboarding, events, roundNumber: 1, roundMode: ROUND_MODES.MAIN, dishRound: 0, endedEarly: false, editing: false, screen: SCREENS.SUMMARY };
       }
       // „Ändern“ in der Zusammenfassung: direkt zur Frage, aus der die Regel stammt.
       case 'editAnswers':
@@ -170,10 +188,26 @@ export function createAppModel({ index, stage0, allergens }) {
         return screenAfterSummary(state.config) === SCREENS.ROUND ? enterRound(state) : { ...state, screen: SCREENS.INTRO };
       case 'startRound':
         return enterRound(state);
-      // „Weiter mit Runde 2“ nach dem Abschluss: nächste Runde mit den noch offenen Karten.
-      case 'nextRound':
-        if (state.screen !== SCREENS.COMPLETE || !hasMoreCards(roundOf(state), state.config)) return state;
-        return enterRound({ ...state, roundNumber: (state.roundNumber ?? 1) + 1 });
+      // „Weiter mit Runde 2“ nach dem Abschluss: nächste Runde mit den noch offenen Karten (auch nach Gerichten).
+      case 'nextRound': {
+        const main = { ...state, roundMode: ROUND_MODES.MAIN };
+        if (state.screen !== SCREENS.COMPLETE || !hasMoreCards(roundOf(main), state.config)) return state;
+        return enterRound({ ...main, roundNumber: (state.roundNumber ?? 1) + 1 });
+      }
+      // Gerichte bewerten (Stufe 4, freiwillig): nur nach einer abgeschlossenen Runde und solange es offene Gerichte gibt.
+      case 'startDishes': {
+        if (state.screen !== SCREENS.COMPLETE) return state;
+        const dishes = { ...state, roundMode: ROUND_MODES.DISHES, dishRound: (state.dishRound ?? 0) + 1 };
+        if (openDishes(roundOf(dishes)).length === 0) return state;
+        return { ...dishes, tab: TABS.CREATE, screen: SCREENS.ROUND, endedEarly: false };
+      }
+      // Alltagsprofil öffnen und danach dorthin zurück, wo die Person war (Abschluss oder „Mein Profil“).
+      case 'openPractical':
+        return { ...state, practicalFrom: { screen: state.screen, tab: state.tab }, tab: TABS.CREATE, screen: SCREENS.PRACTICAL };
+      case 'closePractical': {
+        const from = state.practicalFrom ?? { screen: SCREENS.COMPLETE, tab: TABS.PROFILE };
+        return { ...state, screen: from.screen === SCREENS.PRACTICAL ? SCREENS.COMPLETE : from.screen, tab: from.tab, practicalFrom: null };
+      }
       // ---------- Ereignisse ----------
       // Antwort beim Wischen: kann die Runde abschliessen.
       case 'event': {
@@ -197,5 +231,5 @@ export function createAppModel({ index, stage0, allergens }) {
     }
   }
 
-  return { initialState, reducer, roundOf };
+  return { initialState, reducer, roundOf, mainRoundOf };
 }

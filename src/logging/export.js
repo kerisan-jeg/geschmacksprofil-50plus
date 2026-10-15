@@ -21,10 +21,14 @@ export const EVENT_FIELDS = [
 // Vorname und Telefonnummer gibt es in keiner Sitzung und damit in keiner Spalte.
 // Seit Version 0.7: phase (main | holdout), Kontrollkarten (HOLDOUT_DRAWN mit cardIds), bestätigte Vermutungen
 // (fromPrediction, predictedScore) und die Auswahl der Sitzung (selection, holdout).
+// Seit Version 0.8: kind (Entitätstyp, nurec Kap. 8), phase dish (Gerichte), alternatives (nicht gezeigte Kandidaten,
+// Anhang B3.2), QUESTION_ABORTED (Abbruch, Kap. 6) und PRACTICAL_SAVED (Alltagsprofil als JSON, Kap. 2.3).
 export const CSV_COLUMNS = [
   ...EVENT_FIELDS,
   'round',
   'phase',
+  'kind',
+  'alternatives',
   'excludedCardIds',
   'cardIds',
   'ruleVersion',
@@ -34,6 +38,7 @@ export const CSV_COLUMNS = [
   'previousRating',
   'fromPrediction',
   'predictedScore',
+  'practical',
   'section',
   'exclusions',
   'newDiet',
@@ -90,6 +95,7 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
         round: event.round ?? ((event.type ?? 'ANSWER') === 'ANSWER' ? 1 : null),
         exclusions: (event.exclusions ?? []).map((exclusion) => [exclusion.type, exclusion.value].filter(Boolean).join(':')),
         newDiet: event.type === 'DIET_CHANGED' ? event.diet : null,
+        practical: event.practical ? JSON.stringify(event.practical) : null,
         diet: shared.diet,
         sessionId: session.sessionId,
       };

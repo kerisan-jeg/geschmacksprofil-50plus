@@ -74,8 +74,9 @@ test('Vertrage ich nicht: Einzelkarte direkt, Familienkarte über die Detailausw
   assert.equal(family.calls.length, 0);
   const sheet = document.querySelector('[role="dialog"]');
   assert.ok(sheet, 'Detailauswahl offen');
-  const pork = [...sheet.querySelectorAll('label.choice')].find((label) => label.textContent.includes('Schwein'));
-  await click(pork.querySelector('input'));
+  // Seit Stufe 3 hat „Schwein“ eigene Einträge (Kotelett, Braten, Speck): „Alle Schwein“ wählt den Abschnitt
+  const pork = [...sheet.querySelectorAll('button')].find((button) => button.textContent.includes('Alle Schwein'));
+  await click(pork);
   await click(buttonByText(sheet, 'Übernehmen'));
   assert.deepEqual(family.calls[0].slice(1, 3), [INTOLERANT, 'link']);
   assert.deepEqual(family.calls[0][5], ['F01.3']);

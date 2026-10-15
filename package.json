@@ -1,7 +1,7 @@
 {
   "name": "geschmacksprofil-50plus",
   "private": true,
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Swipe-Prototyp zur Geschmacksprofilerkennung bei Personen ab 50 (WI-Projekt ZHAW, Auftraggeber nurec)",
   "type": "module",
   "scripts": {

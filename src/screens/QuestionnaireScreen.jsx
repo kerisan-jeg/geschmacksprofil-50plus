@@ -6,8 +6,49 @@ import NeverPicker from '../components/NeverPicker.jsx';
 import SegmentedProgress from '../components/SegmentedProgress.jsx';
 import TopBar, { BackButton } from '../components/TopBar.jsx';
 import Avatar from '../components/Avatar.jsx';
-import { isAnswered } from '../logic/stage0.js';
-import { QUESTIONS } from '../labels.js';
+import { isAnswered, SCOPED_INTOLERANCES, SCOPES } from '../logic/stage0.js';
+import { ONBOARDING, QUESTIONS } from '../labels.js';
+
+// Zusätze zu Frage 2 (nurec v0.2, Kap. 2.1): Quelle der Vorgabe (0.2, „ärztlich festgestellt“) und bei
+// Unverträglichkeiten der Geltungsbereich (0.3, „ganz meiden“ oder „kleine Mengen gehen“). Beides ist freiwillig
+// und ändert nichts am Ausschluss: Eine Mengengrenze gilt nie als sichere Freigabe.
+function ConstraintDetails({ allergens, answer, onChange }) {
+  const scoped = SCOPED_INTOLERANCES.filter((id) => answer.selected.includes(id));
+  const scopeOptions = [
+    { id: SCOPES.AVOID, label: ONBOARDING.scopes.avoid },
+    { id: SCOPES.LIMITED, label: ONBOARDING.scopes.limited },
+  ];
+  return (
+    <div className="stack constraint-details">
+      <ChoiceList
+        name="medical"
+        multiple
+        options={[{ id: 'medical', label: ONBOARDING.medical, detail: ONBOARDING.medicalHint }]}
+        value={answer.medical ? ['medical'] : []}
+        onChange={() => onChange({ ...answer, medical: !answer.medical })}
+      />
+      {scoped.map((id) => {
+        const name = allergens.categories.find((category) => category.id === id)?.tileLabel ?? id;
+        return (
+          <section key={id} className="stack-tight" aria-labelledby={`scope-${id}`}>
+            <h3 id={`scope-${id}`} className="chips-title">
+              {ONBOARDING.scopeTitle(name)}
+            </h3>
+            <ChoiceList
+              name={`scope-${id}`}
+              layout="row"
+              options={scopeOptions}
+              value={answer.scopes?.[id] ?? SCOPES.AVOID}
+              onChange={(scope) => onChange({ ...answer, scopes: { ...(answer.scopes ?? {}), [id]: scope } })}
+              labelledBy={`scope-${id}`}
+            />
+            {(answer.scopes?.[id] ?? SCOPES.AVOID) === SCOPES.LIMITED && <p className="note">{ONBOARDING.scopeNote}</p>}
+          </section>
+        );
+      })}
+    </div>
+  );
+}
 
 // Stufe 0 als kurzer Fragebogen: eine Frage pro Bildschirm.
 // Erst bei „Ja“ erscheint die Detailauswahl (nurec v0.2, Kap. 2: nur bei „vorhanden“ nachfragen).
@@ -90,7 +131,10 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
                 <p className="note">{question.detailHint}</p>
               </div>
               {question.type === 'allergens' && (
-                <AllergenPicker data={allergens} catalogIndex={catalogIndex} foods={foods} answer={answer} redundancy={redundancy} onChange={update} />
+                <>
+                  <AllergenPicker data={allergens} catalogIndex={catalogIndex} foods={foods} answer={answer} redundancy={redundancy} onChange={update} />
+                  <ConstraintDetails allergens={allergens} answer={answer} onChange={update} />
+                </>
               )}
               {question.type === 'never' && (
                 <NeverPicker question={question} catalogIndex={catalogIndex} foods={foods} answer={answer} redundancy={redundancy} onChange={update} />

@@ -1,7 +1,8 @@
 """Misst die Mobile-Kriterien (Addendum A11) auf allen Bildschirmen des Prototyps.
 
-Geprüft bei 360 x 640 und 430 x 932 auf allen 28 Bildschirmen inkl. Registrierung (SMS simuliert),
-Zusammenfassung mit „Ändern“, Runde 2, Bewertung, Vermutungen der App, Allergien, Suche und Bestätigung
+Geprüft bei 360 x 640 und 430 x 932 auf allen Bildschirmen inkl. Registrierung (SMS simuliert),
+Zusatzangaben in Frage 2, Zusammenfassung mit „Ändern“, Runde 2 bis 4, Abschluss mit Profilstand,
+Gerichte-Runde, Alltagsprofil, Dashboard, Bewertung, Vermutungen der App, Allergien, Suche und Bestätigung
 in „Mein Profil“ und „Willkommen zurück“:
   - kein horizontaler Scroll
   - Touch-Ziele >= 44 x 44 CSS-px
@@ -87,6 +88,14 @@ def check(pg, name, results, W):
         pg.screenshot(path=str(SHOTS / f'{W}-{int(ZOOM * 100)}-{name}.png'))
 
 
+def answer_until_complete(pg, label='Mag ich'):
+    for _ in range(40):
+        if pg.locator('.screen-complete').count():
+            return
+        pg.get_by_role('button', name=label, exact=True).click()
+        pg.wait_for_timeout(120)
+
+
 def run(p, W, H):
     b = p.chromium.launch()
     ctx = b.new_context(viewport={'width': W, 'height': H}, has_touch=True, reduced_motion='reduce')
@@ -119,6 +128,11 @@ def run(p, W, H):
     pg.get_by_text('Ja', exact=True).click()
     pg.get_by_role('button', name='Weitere anzeigen').click()
     pg.get_by_role('button', name='Soja').click()
+    # Zusatzangaben (nurec 0.2 und 0.3): ärztlich festgestellt, Laktose „Kleine Mengen gehen“
+    pg.get_by_role('button', name='Laktose').click()
+    pg.get_by_text('Ärztlich oder fachlich festgestellt').click()
+    pg.get_by_text('Kleine Mengen gehen').click()
+    pg.get_by_text('Kleine Mengen gehen').scroll_into_view_if_needed(); check(pg, 'frage2_zusatz', results, W)
     pg.get_by_label('Suchen').fill('rüebli')
     pg.get_by_text('Ich bin mir nicht sicher').click()
     check(pg, 'frage2', results, W)
@@ -159,6 +173,22 @@ def run(p, W, H):
     pg.get_by_role('button', name='Weiter mit Runde 2').click(); check(pg, 'runde_2', results, W)
     pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(300)
     pg.get_by_role('button', name='Runde beenden').click(); check(pg, 'abschluss_2', results, W)
+    # Runde 3 und 4 bis zum Ende der Profilerstellung, dann freiwillig Gerichte (Stufe 4) und Alltag (Kap. 2.3)
+    pg.get_by_role('button', name='Weiter mit Runde 3').click(); answer_until_complete(pg)
+    pg.get_by_role('button', name='Weiter mit Runde 4').click(); answer_until_complete(pg)
+    check(pg, 'abschluss_ende', results, W)
+    pg.get_by_role('button', name='Gerichte bewerten').click(); check(pg, 'gerichte_runde', results, W)
+    answer_until_complete(pg); check(pg, 'gerichte_abschluss', results, W)
+    pg.get_by_role('button', name='Alltag ergänzen').click(); check(pg, 'alltag', results, W)
+    pg.locator('label.choice').nth(1).click(); pg.get_by_role('button', name='Weiter', exact=True).click()
+    pg.get_by_role('button', name='Überspringen').click(); pg.get_by_role('button', name='Überspringen').click()
+    pg.get_by_text('Migros', exact=True).click()
+    pg.get_by_label('Marken, die du gern kaufst').fill('M-Bud'); check(pg, 'alltag_einkauf', results, W)
+    pg.locator('.search-hit').first.click()
+    pg.get_by_role('button', name='Weiter', exact=True).click()
+    for _ in range(2):
+        pg.get_by_role('button', name='Überspringen').click()
+    pg.wait_for_selector('.screen-complete')
     pg.get_by_role('button', name='Mein Profil ansehen').click(); check(pg, 'profil', results, W)
     pg.locator('button.taste-row').first.click(); check(pg, 'profil_bewertung', results, W)
     pg.get_by_role('radio', name='Mag ich', exact=True).click(); pg.wait_for_timeout(200)

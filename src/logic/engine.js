@@ -19,7 +19,8 @@ import { isDone, rankedCards, REASONS } from './selection.js';
 import { SOURCE_SWIPE } from './stage0.js';
 
 // demo-0.3: adaptive Kartenauswahl, Kontrollkarten und Präferenzmodell (Version 0.7)
-export const RULE_VERSION = 'demo-0.3';
+// demo-0.4: Regeln nach nurec v0.2, Kap. 6 und 11 (Ausnahme, Kontrastpaar, Klärung auch auf Stufe 2, Stufe 3, Gerichte)
+export const RULE_VERSION = 'demo-0.4';
 
 // Antwort-Ereignis (so wird es auch protokolliert, siehe logging/logger.js):
 // { cardId, stage, parentId, round, positionInRound, response, timestamp, responseTimeMs,
@@ -164,6 +165,23 @@ export function openHoldout(state) {
     .filter((card) => card && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions));
 }
 
+// Gerichte (Stufe 4, nurec v0.2 Kap. 5): freiwillige eigene Runden mit der Nummer „G1“, „G2“ … Sie zählen nicht zu
+// den MAX_ROUNDS Runden der Profilerstellung, haben keine Kontrollkarten und keine Vermutungen.
+export const DISH_ROUND_PREFIX = 'G';
+
+export function isDishRound(round) {
+  return typeof round === 'string' && round.startsWith(DISH_ROUND_PREFIX);
+}
+
+export function dishRoundId(number) {
+  return `${DISH_ROUND_PREFIX}${number}`;
+}
+
+// Gerichte, die noch bewertet werden können: sichtbar (Ausschlüsse wirken auch hier) und noch offen.
+export function openDishes(state) {
+  return state.index.cards.filter((card) => card.stage === 4 && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions));
+}
+
 // Welche Karten in dieser Runde noch kommen.
 //
 // Auswahl: src/logic/selection.js (config.selection: 'adaptive' oder 'fixed'; ohne Angabe 'fixed').
@@ -171,8 +189,9 @@ export function openHoldout(state) {
 // immer zuletzt: Die normale Auswahl bekommt nur so viele Plätze, dass bis zum Ende von Runde MAX_ROUNDS
 // alle Kontrollkarten Platz haben. Endet die Auswahl früher (keine sinnvolle Karte mehr), folgen sie direkt.
 export function selectNextCards(state, config) {
-  if (state.round > MAX_ROUNDS) return [];
   const remaining = config.roundCardLimit - answeredCount(state);
+  if (isDishRound(state.round)) return remaining > 0 ? openDishes(state).slice(0, remaining) : [];
+  if (state.round > MAX_ROUNDS) return [];
   if (remaining <= 0) return [];
   const checks = openHoldout(state);
   const slotsLeft = (MAX_ROUNDS - state.round) * config.roundCardLimit + remaining;
@@ -185,6 +204,7 @@ export function selectNextCards(state, config) {
 // Gibt es nach dieser Runde noch eine erlaubte weitere Runde mit offenen Karten?
 // nextRoundCards: die Karten der nächsten Runde (für den Ausblick im Abschluss).
 export function hasMoreCards(state, config = {}) {
+  if (isDishRound(state.round)) return false;
   return state.round < MAX_ROUNDS && (rankedCards(state, config.selection).length > 0 || openHoldout(state).length > 0);
 }
 
@@ -197,6 +217,7 @@ export function nextRoundCards(state, config) {
 export function selectionReason(state, card, config = {}) {
   if (!card) return null;
   if ((state.holdout ?? []).includes(card.id)) return REASONS.HOLDOUT;
+  if (card.stage === 4) return REASONS.DISH;
   const entry = rankedCards(state, config.selection).find((ranked) => ranked.card.id === card.id);
   return entry?.reason ?? (card.stage === 1 ? REASONS.FIXED_STAGE1 : REASONS.FIXED_STAGE2);
 }
@@ -207,10 +228,12 @@ export function isHoldoutCard(state, cardId) {
 }
 
 // Karte für die Anzeige: Familien zeigen nur erlaubte Beispiele und Hinweise wie „Ohne Haselnüsse“.
-// group: bei Untergruppen der Name der Gruppe (z. B. „Fleisch und Geflügel“ über „Rind“).
+// group: bei Untergruppen und konkreten Lebensmitteln der Name darüber (z. B. „Fleisch und Geflügel“ über „Rind“,
+// „Rind“ über „Rindssteak“), bei Gerichten „Gericht“ (dishLabel aus labels.js, siehe RoundScreen).
 export function presentCard(state, card) {
   const presented = annotateCard(card, state.index, state.exclusions, state.cardLabels);
-  const parent = card.stage === 2 ? state.index.get(card.parentId) : null;
+  if (card.stage === 4) return { ...presented, group: null, dish: true };
+  const parent = card.stage >= 2 ? state.index.get(card.parentId) : null;
   return parent ? { ...presented, group: parent.title } : presented;
 }
 

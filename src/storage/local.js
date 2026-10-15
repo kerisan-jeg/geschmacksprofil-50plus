@@ -63,7 +63,7 @@ export function clearAccount() {
 
 // Stand der App. Nur Felder, die zum Weitermachen nötig sind; flüchtige Teile (z. B. eine laufende
 // SMS-Anfrage mit der vollen Nummer) werden nie gespeichert.
-const PERSISTED = ['screen', 'tab', 'config', 'person', 'answers', 'step', 'editing', 'onboarding', 'events', 'roundNumber', 'endedEarly'];
+const PERSISTED = ['screen', 'tab', 'config', 'person', 'answers', 'step', 'editing', 'onboarding', 'events', 'roundNumber', 'roundMode', 'dishRound', 'practicalFrom', 'endedEarly'];
 
 export function saveAppState(state, sessionId) {
   const snapshot = Object.fromEntries(PERSISTED.map((key) => [key, state[key]]));

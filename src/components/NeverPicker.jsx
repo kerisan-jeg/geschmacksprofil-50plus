@@ -1,5 +1,6 @@
 import { useId, useMemo, useState } from 'react';
 import { Info, Plus } from 'lucide-react';
+import BrandField from './BrandField.jsx';
 import FoodSearch from './FoodSearch.jsx';
 import SelectionChips from './SelectionChips.jsx';
 import { buildFoodIndex } from '../logic/foodSearch.js';
@@ -58,7 +59,8 @@ function TextList({ title, hint, placeholder, values, onChange }) {
 // - wenige häufige Beispiele als Chips, jedes auf eine Katalog-ID oder einen Tag abgebildet (A7)
 // - Suche (FoodSearch) über alle Lebensmittel; ohne Treffer wird eine Notiz eingetragen (A7)
 // - was durch frühere Angaben schon ausgeschlossen ist, wird nicht nochmals angeboten
-// - Marken und Herkunft als eigener Block; gespeichert, im Prototyp noch ohne Wirkung
+// - Marken und Herkunft als eigener Block; gespeichert, im Prototyp noch ohne Wirkung. Marken und Händler werden
+//   über eine Liste genau zugeordnet (nurec v0.2, 0.6); Unbekanntes bleibt als Text mit Status „prüfen“.
 export default function NeverPicker({ question, catalogIndex, foods = [], answer, redundancy, onChange }) {
   const { selected, notes, brands, origins } = answer;
   const searchIndex = useMemo(() => buildFoodIndex({ catalogIndex, foods, tagLabels: question.tagLabels }), [catalogIndex, foods, question]);
@@ -118,12 +120,7 @@ export default function NeverPicker({ question, catalogIndex, foods = [], answer
 
       <section className="brands-block" aria-labelledby="brands-title">
         <h3 id="brands-title" className="brands-title">{ONBOARDING.brandsBlockTitle}</h3>
-        <TextList
-          title={ONBOARDING.brandsTitle}
-          placeholder={ONBOARDING.brandsPlaceholder}
-          values={brands}
-          onChange={(next) => update({ brands: next })}
-        />
+        <BrandField label={ONBOARDING.brandsTitle} placeholder={ONBOARDING.brandsSearchPlaceholder} values={brands} onChange={(next) => update({ brands: next })} />
         <TextList
           title={ONBOARDING.originsTitle}
           placeholder={ONBOARDING.originsPlaceholder}

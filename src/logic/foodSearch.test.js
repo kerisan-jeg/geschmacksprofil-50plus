@@ -20,8 +20,9 @@ test('Synonyme inkl. Schweizer Begriffe führen zum richtigen Eintrag', () => {
     ['Sahne', 'food:Rahm'],
     ['Rüebli', 'food:Karotte'],
     ['Paprika', 'food:Peperoni'],
-    ['Feldsalat', 'food:Nüsslisalat'],
-    ['Zucchetti', 'food:Zucchini'],
+    // Seit Stufe 3 (v0.8) eigene Karten: Nüsslisalat und Zucchetti
+    ['Feldsalat', 'card:F10.1.2'],
+    ['Zucchini', 'card:F11.3.1'],
     ['Härdöpfel', 'card:F09'],
   ];
   for (const [query, key] of cases) {
@@ -37,7 +38,7 @@ test('Synonyme inkl. Schweizer Begriffe führen zum richtigen Eintrag', () => {
 
 test('Tolerant gegenüber Gross-/Kleinschreibung und Umlauten (ä = ae = a)', () => {
   for (const query of ['ruebli', 'RÜEBLI', 'Rüebli', 'RUEBLI']) assert.equal(first(query)?.key, 'food:Karotte', query);
-  for (const query of ['nuesslisalat', 'Nüsslisalat', 'nusslisalat']) assert.equal(first(query)?.key, 'food:Nüsslisalat', query);
+  for (const query of ['nuesslisalat', 'Nüsslisalat', 'nusslisalat']) assert.equal(first(query)?.key, 'card:F10.1.2', query);
   for (const query of ['haehnchen', 'hahnchen']) assert.equal(first(query)?.key, 'card:F01.1', query);
   assert.equal(first('kaese')?.label.includes('käse') || first('kaese')?.label.includes('Käse'), true);
 });
@@ -121,10 +122,17 @@ test('Schweizer Begriffe, Getränke und Ergänzungen des Teams werden gefunden',
   assert.equal(searchFoods(full, 'Zucchetti').filter((hit) => /Zucch/.test(hit.label)).length, 1, 'Zucchini und Zucchetti sind ein Eintrag');
 });
 
-test('Gerichte gehören in Stufe 4 und stehen nicht in der Liste', () => {
-  for (const dish of ['Lasagne', 'Älplermagronen', 'Cordon bleu', 'Saltimbocca']) {
+test('Gerichte sind Karten der Stufe 4 („Lasagne · Gericht“); Gerichte der Nährwertdatenbank fehlen weiterhin', () => {
+  for (const [dish, key] of [['Lasagne', 'card:D03'], ['Älplermagronen', 'card:D04'], ['Pizza', 'card:D01']]) {
+    const hit = top(dish);
+    assert.deepEqual([hit?.key, hit?.category], [key, 'Gericht'], dish);
+  }
+  for (const dish of ['Cordon bleu', 'Saltimbocca']) {
     assert.ok(!searchFoods(full, dish).some((hit) => hit.label.startsWith(dish.split(' ')[0])), dish);
   }
+  // Beschreibungen auf Gerichten und konkreten Karten sind keine eigenen Lebensmittel
+  assert.ok(!searchFoods(full, 'Hackfleischsauce').some((hit) => hit.label === 'Hackfleischsauce'), 'keine Beschreibung als Treffer');
+  assert.ok(!searchFoods(full, 'Lachsfilet').some((hit) => hit.key === 'food:Lachsfilet'));
 });
 
 test('Tippfehler: ähnliche Einträge statt nichts („Olvie“ → Olive)', () => {

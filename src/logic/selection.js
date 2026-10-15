@@ -1,26 +1,31 @@
 // Kartenauswahl: welche Karte als Nächstes sinnvoll ist. Reine Funktionen (kein Zufall, keine Uhrzeit).
 //
-// 'adaptive' (Standard ab Version 0.7) setzt die Regeln aus nurec v0.2 um (Kap. 4 und 6, Spalte laterUse in
-// answers.js) [D], geordnet in Stufen mit fester Rangfolge [V]. Innerhalb einer Stufe wechseln sich die
-// Gruppen ab, damit nicht mehrere Karten derselben Gruppe hintereinander kommen.
+// 'adaptive' (Standard) setzt die Regeln aus nurec v0.2 um (Kap. 5, 6 und 11) [D]. Die Rangfolge der Stufen
+// ist ein eigener Entscheid [V]. Innerhalb einer Stufe wechseln sich die Gruppen ab, damit nie mehrere Karten
+// derselben Gruppe hintereinander kommen.
 //
 //   Rang  selectionReason            Karten
-//   1     stage2_after_unfamiliar    „Kenne ich nicht“ bei einer Gruppe: sofort ein Kind derselben Gruppe,
-//                                    höchstens zwei, bis eines bewertet ist
+//   1     stage2_after_unfamiliar    „Kenne ich nicht“ bei einer Gruppe: sofort ein verbreitetes Kind, bei erneutem
+//         stage3_after_unfamiliar    „Kenne ich nicht“ höchstens ein zweites, andersartiges (auch bei Untergruppen,
+//                                    z. B. Fruchtgemüse → Zucchetti, dann Peperoni). Nur in derselben Runde:
+//                                    Ist das Limit vorher erreicht, bleibt der Zweig unbekannt.
 //   2     stage1_family              Gruppen (Stufe 1), die noch nicht gefragt wurden
-//   3     stage2_favorite            Gruppe „Mag ich sehr“: alle Untergruppen (Favoriten finden)
-//   4     stage3_favorite            Untergruppe „Mag ich sehr“: ihre Sorten (z. B. Käse → Hartkäse)
-//   5     stage2_exception           Gruppe „Mag ich nicht“: eine plausible Ausnahme nachtesten (erste Untergruppe)
-//   6     stage2_differentiate       Gruppe „Mag ich“: Untergruppen unterscheiden
-//         stage2_after_exception     „Mag ich nicht“, aber die Ausnahme gefällt: die übrigen Untergruppen
+//   3     stage2_exception           Gruppe „Mag ich nicht“: die plausible Ausnahme (exceptionCandidate im Katalog,
+//                                    z. B. Hülsenfrüchte → Sojaprodukte, Fisch und Meeresfrüchte → Krebstiere)
+//   4     stage2_contrast            Gruppe „Mag ich“ oder „Mag ich sehr“: zwei Untergruppen, an denen sich ein
+//                                    Unterschied zeigt (contrastPair, z. B. Obst → Beeren und Zitrusfrüchte)
+//   5     stage3_exception_detail    Ausnahme gefällt: konkrete Lebensmittel daraus (Sojaprodukte → Naturtofu, Tempeh)
+//         stage3_difference          Kontrast unterschiedlich beantwortet: je ein konkretes Lebensmittel (Erdbeeren, Orangen)
+//   6     stage3_favorite            Untergruppe „Mag ich sehr“: konkrete Favoriten (höchstens drei)
+//   7     stage2_difference          Kontrast unterschiedlich: die übrigen Untergruppen dieser Gruppe
 //         stage2_after_intolerant    „Vertrage ich nicht“ nur für einen Teil: höchstens zwei der übrigen Kinder
-//   7     stage3_detail              Untergruppe „Mag ich“: ihre Sorten
 //
-// Was keine Regel trifft, wird nicht gefragt, sondern vermutet (preferences.js), z. B. die übrigen Untergruppen
-// einer Gruppe „Mag ich nicht“ ohne Ausnahme. So bleibt die Zahl der Karten klein (Kernfrage 2 [A]).
-// Massgebend ist die aktuelle direkte Bewertung (beim Wischen oder später im Profil).
-// Harte Ausschlüsse wirken immer (isVisible). Kontrollkarten (state.holdout) kommen hier nie vor; engine.js
-// hängt sie am Ende der letzten Runde an.
+// Was keine Regel trifft, wird nicht gefragt, sondern vermutet (preferences.js): z. B. die übrigen Untergruppen,
+// wenn der Kontrast gleich ausfällt, oder einer Gruppe „Mag ich nicht“ ohne Ausnahme. So bleibt die Zahl der
+// Karten klein (Kernfrage 2 [A]; nurec: „Zusätzliche Stufen werden nur eröffnet, wenn sie einen neuen
+// Geschmackshinweis versprechen“). Massgebend ist die aktuelle direkte Bewertung (beim Wischen oder im Profil).
+// Harte Ausschlüsse wirken immer (isVisible). Kontrollkarten (state.holdout) kommen hier nie vor; engine.js hängt
+// sie am Ende der letzten Runde an. Gerichte (Stufe 4) haben eine eigene, freiwillige Runde (engine.js).
 //
 // 'fixed': feste Reihenfolge wie in Version 0.6 (alle Gruppen, dann die Untergruppen abwechselnd, ohne Stufe 3),
 // als Vergleich im Pilot (?selection=fixed).
@@ -30,26 +35,31 @@ import { isVisible } from './filter.js';
 
 export const SELECTION = { ADAPTIVE: 'adaptive', FIXED: 'fixed' };
 
-// nurec v0.2, laterUse in answers.js: „höchstens zwei“ Kinder nach „Kenne ich nicht“, „eine“ Ausnahme nach „Mag ich nicht“
+// nurec v0.2, Kap. 6: höchstens zwei Klärungskarten nach „Kenne ich nicht“, höchstens eine Ausnahme nach „Mag ich nicht“.
 export const UNKNOWN_CHILD_LIMIT = 2;
 export const EXCEPTION_TESTS = 1;
+// Annahmen [V]: konkrete Lebensmittel nach einer gefundenen Ausnahme (Kap. 11: „Naturtofu oder Tempeh“) und Favoriten.
+export const EXCEPTION_DETAIL_LIMIT = 2;
+export const FAVORITE_LIMIT = 3;
 
 export const REASONS = {
   FIXED_STAGE1: 'stage1_fixed_order',
   FIXED_STAGE2: 'stage2_fixed_order',
   AFTER_UNFAMILIAR: 'stage2_after_unfamiliar',
+  AFTER_UNFAMILIAR_DETAIL: 'stage3_after_unfamiliar',
   FAMILY: 'stage1_family',
-  FAVORITE: 'stage2_favorite',
-  FAVORITE_DETAIL: 'stage3_favorite',
   EXCEPTION: 'stage2_exception',
-  DIFFERENTIATE: 'stage2_differentiate',
-  AFTER_EXCEPTION: 'stage2_after_exception',
+  CONTRAST: 'stage2_contrast',
+  EXCEPTION_DETAIL: 'stage3_exception_detail',
+  DIFFERENCE_DETAIL: 'stage3_difference',
+  FAVORITE_DETAIL: 'stage3_favorite',
+  DIFFERENCE: 'stage2_difference',
   AFTER_INTOLERANT: 'stage2_after_intolerant',
-  DETAIL: 'stage3_detail',
   HOLDOUT: 'holdout_check',
+  DISH: 'stage4_dish',
 };
 
-const TIERS = ['unknown', 'family', 'favorite', 'favoriteDetail', 'exception', 'differentiate', 'detail'];
+const TIERS = ['clarify', 'family', 'exception', 'contrast', 'precise', 'favorite', 'difference'];
 const LIKED = [LIKE, PREFER];
 
 // Aktuelle direkte Bewertung: beim Wischen oder im Profil geändert (null = aus dem Profil entfernt).
@@ -81,11 +91,33 @@ export function fixedOrder(index) {
   return [...families, ...interleave(children)];
 }
 
+// Kann die Karte gefragt werden? Sichtbar nach den Ausschlüssen und keine Kontrollkarte.
+export function isUsable(state, card) {
+  return !(state.holdout ?? []).includes(card.id) && isVisible(card, state.index, state.exclusions);
+}
+
+// Bevorzugte Kinder zuerst (z. B. contrastPair), ersetzt durch das nächste Kind, wenn eines nicht in Frage kommt
+// (Kontrollkarte, ausgeschlossen). Liefert die nutzbaren Kinder in dieser Reihenfolge.
+export function usableChildren(state, card, preferred = []) {
+  const children = state.index.childrenOf(card.id);
+  const first = preferred.map((id) => state.index.get(id)).filter((child) => child && children.includes(child));
+  return [...first, ...children.filter((child) => !first.includes(child))].filter((child) => isUsable(state, child));
+}
+
+// Die Karten, die einen Zweig auf Stufe 2 klären (nurec v0.2, Kap. 6): bei „Mag ich nicht“ die Ausnahme, bei
+// „Mag ich“ und „Mag ich sehr“ das Kontrastpaar. Für den Profilstand (dashboard.js) und die Auswahl.
+export function branchCards(state, family) {
+  const rating = currentRating(state, family.id);
+  if (rating === DISLIKE) return usableChildren(state, family, [family.exceptionCandidate].filter(Boolean)).slice(0, EXCEPTION_TESTS);
+  if (rating === LIKE || rating === PREFER) return usableChildren(state, family, family.contrastPair ?? []).slice(0, 2);
+  return [];
+}
+
 // Alle noch offenen Karten in der Reihenfolge, in der sie gezeigt würden: [{ card, reason }].
 export function rankedCards(state, mode = SELECTION.FIXED) {
-  const { index, exclusions } = state;
-  const holdout = new Set(state.holdout ?? []);
-  const open = (card) => !isDone(state, card.id) && !holdout.has(card.id) && isVisible(card, index, exclusions);
+  const { index } = state;
+  const usable = (card) => isUsable(state, card);
+  const open = (card) => usable(card) && !isDone(state, card.id);
 
   if (mode !== SELECTION.ADAPTIVE) {
     return fixedOrder(index)
@@ -97,49 +129,92 @@ export function rankedCards(state, mode = SELECTION.FIXED) {
   const add = (tier, cards, reason) => {
     if (cards.length > 0) tiers[tier].push(cards.map((card) => ({ card, reason })));
   };
+  const rating = (card) => currentRating(state, card.id);
+  const answeredIn = (id) => state.answeredInRound?.[id];
+
+  const candidates = (card, preferred = []) => usableChildren(state, card, preferred);
+
+  // „Kenne ich nicht“: höchstens zwei Klärungskarten, nur solange die Runde dieselbe ist.
+  const clarify = (card, reason) => {
+    const children = candidates(card);
+    const answered = children.filter((child) => isDone(state, child.id));
+    if (answered.some((child) => isTasteSignal(rating(child))) || answered.length >= UNKNOWN_CHILD_LIMIT) return;
+    // Die jüngste Antwort in diesem Zweig muss aus der laufenden Runde stammen.
+    const latest = [card, ...answered].reduce((best, entry) => ((state.answeredAt?.[entry.id] ?? -1) > (state.answeredAt?.[best.id] ?? -1) ? entry : best));
+    if (answeredIn(latest.id) !== state.round) return;
+    add('clarify', children.filter(open).slice(0, UNKNOWN_CHILD_LIMIT - answered.length), reason);
+  };
 
   for (const family of index.cards.filter((card) => card.stage === 1)) {
     if (!isDone(state, family.id)) {
       if (open(family)) add('family', [family], REASONS.FAMILY);
       continue;
     }
-    const children = index.childrenOf(family.id);
-    const answered = children.filter((child) => isDone(state, child.id)).map((child) => currentRating(state, child.id));
-    const waiting = children.filter(open);
-    const likedChild = answered.some((rating) => LIKED.includes(rating));
-    const tastedChild = answered.some(isTasteSignal);
-    const stillUnknown = !tastedChild && answered.length < UNKNOWN_CHILD_LIMIT;
-    switch (currentRating(state, family.id)) {
-      case PREFER:
-        add('favorite', waiting, REASONS.FAVORITE);
+    switch (rating(family)) {
+      case DISLIKE: {
+        const exception = candidates(family, [family.exceptionCandidate].filter(Boolean))[0];
+        if (!exception) break;
+        if (!isDone(state, exception.id)) add('exception', [exception], REASONS.EXCEPTION);
+        else if (LIKED.includes(rating(exception))) {
+          const details = candidates(exception);
+          const asked = details.filter((detail) => isDone(state, detail.id)).length;
+          add('precise', details.filter(open).slice(0, Math.max(0, EXCEPTION_DETAIL_LIMIT - asked)), REASONS.EXCEPTION_DETAIL);
+        }
         break;
+      }
       case LIKE:
-        add('differentiate', waiting, REASONS.DIFFERENTIATE);
+      case PREFER: {
+        const all = candidates(family, family.contrastPair ?? []);
+        const pair = all.slice(0, 2);
+        const waiting = pair.filter(open);
+        if (waiting.length > 0) {
+          add('contrast', waiting, REASONS.CONTRAST);
+          break;
+        }
+        const ratings = pair.map(rating);
+        const differs = pair.length === 2 && ratings.every(isTasteSignal) && ratings[0] !== ratings[1];
+        if (!differs) break;
+        // Je ein konkretes Lebensmittel aus beiden Untergruppen, solange dort noch keines beantwortet ist.
+        const details = pair
+          .map((member) => candidates(member))
+          .filter((children) => !children.some((child) => isDone(state, child.id)))
+          .map((children) => children.find(open))
+          .filter(Boolean);
+        add('precise', details, REASONS.DIFFERENCE_DETAIL);
+        add('difference', all.slice(2).filter(open), REASONS.DIFFERENCE);
         break;
-      case DISLIKE:
-        if (likedChild) add('differentiate', waiting, REASONS.AFTER_EXCEPTION);
-        else if (answered.length < EXCEPTION_TESTS) add('exception', waiting.slice(0, EXCEPTION_TESTS), REASONS.EXCEPTION);
-        break;
+      }
       case UNFAMILIAR:
-        if (likedChild) add('differentiate', waiting, REASONS.DIFFERENTIATE);
-        else if (stillUnknown) add('unknown', waiting.slice(0, UNKNOWN_CHILD_LIMIT - answered.length), REASONS.AFTER_UNFAMILIAR);
+        clarify(family, REASONS.AFTER_UNFAMILIAR);
         break;
-      case INTOLERANT:
+      case INTOLERANT: {
         // Nur ein Teil ausgeschlossen (z. B. Haselnüsse): Den Geschmack für den Rest kennen wir noch nicht.
-        if (likedChild) add('differentiate', waiting, REASONS.AFTER_INTOLERANT);
-        else if (stillUnknown) add('differentiate', waiting.slice(0, UNKNOWN_CHILD_LIMIT - answered.length), REASONS.AFTER_INTOLERANT);
+        const children = candidates(family);
+        const answered = children.filter((child) => isDone(state, child.id));
+        if (!answered.some((child) => isTasteSignal(rating(child))) && answered.length < UNKNOWN_CHILD_LIMIT) {
+          add('difference', children.filter(open).slice(0, UNKNOWN_CHILD_LIMIT - answered.length), REASONS.AFTER_INTOLERANT);
+        }
         break;
+      }
       default:
         break;
     }
   }
 
-  for (const card of index.cards.filter((entry) => entry.stage === 2 && isDone(state, entry.id))) {
-    const details = index.childrenOf(card.id).filter(open);
-    const rating = currentRating(state, card.id);
-    if (rating === PREFER) add('favoriteDetail', details, REASONS.FAVORITE_DETAIL);
-    else if (rating === LIKE) add('detail', details, REASONS.DETAIL);
+  // Untergruppen mit konkreten Lebensmitteln: Klärung nach „Kenne ich nicht“, Favoriten nach „Mag ich sehr“.
+  for (const subgroup of index.cards.filter((card) => card.stage === 2 && card.children.length > 0 && isDone(state, card.id))) {
+    // War die Untergruppe selbst eine Klärungskarte (Gruppe unbekannt), bleibt es bei höchstens zwei Klärungskarten.
+    if (rating(subgroup) === UNFAMILIAR) {
+      if (rating(index.get(subgroup.parentId)) !== UNFAMILIAR) clarify(subgroup, REASONS.AFTER_UNFAMILIAR_DETAIL);
+    }
+    else if (rating(subgroup) === PREFER) {
+      const details = candidates(subgroup);
+      const asked = details.filter((detail) => isDone(state, detail.id)).length;
+      add('favorite', details.filter(open).slice(0, Math.max(0, FAVORITE_LIMIT - asked)), REASONS.FAVORITE_DETAIL);
+    }
   }
 
-  return TIERS.flatMap((tier) => interleave(tiers[tier]));
+  // Keine Karte doppelt (eine Karte kann über zwei Regeln kommen): die erste Regel gilt.
+  const seen = new Set();
+  return TIERS.flatMap((tier) => interleave(tiers[tier])).filter((entry) => !seen.has(entry.card.id) && seen.add(entry.card.id));
 }

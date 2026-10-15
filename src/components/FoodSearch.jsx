@@ -28,8 +28,20 @@ function categoryOf(hit) {
 // - nur wenn wirklich nichts passt, lässt sich der Text als Notiz eintragen (seltene Ausnahme);
 //   sie schliesst keine Gruppe aus (ehrlicher Hinweis)
 //
-// items: Suchindex aus buildFoodIndex(). isSelected(hit), isOffered(hit): Auswahl und „schon ausgeschlossen“.
-export default function FoodSearch({ label, placeholder, items, isSelected = () => false, isOffered = () => true, onPick, onAddNote, autoFocus = false }) {
+// items: Suchindex aus buildFoodIndex() (oder Marken und Händler, siehe BrandField). isSelected(hit), isOffered(hit):
+// Auswahl und „schon ausgeschlossen“. noteLabel und noteHint: Wortlaut für das Eintragen ohne Treffer.
+export default function FoodSearch({
+  label,
+  placeholder,
+  items,
+  isSelected = () => false,
+  isOffered = () => true,
+  onPick,
+  onAddNote,
+  autoFocus = false,
+  noteLabel = SEARCH.addNote,
+  noteHint = ONBOARDING.entryEffect,
+}) {
   const [query, setQuery] = useState('');
   const inputId = useId();
   const listId = useId();
@@ -124,9 +136,9 @@ export default function FoodSearch({ label, placeholder, items, isSelected = () 
           <div className="search-empty">
             <button type="button" className="button-ghost is-strong add-entry" onClick={addNote}>
               <Plus aria-hidden="true" />
-              {SEARCH.addNote(text)}
+              {noteLabel(text)}
             </button>
-            <p className="note">{ONBOARDING.entryEffect}</p>
+            {noteHint && <p className="note">{noteHint}</p>}
           </div>
         )}
       </div>

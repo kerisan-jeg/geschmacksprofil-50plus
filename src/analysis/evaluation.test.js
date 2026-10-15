@@ -141,3 +141,31 @@ test('Feste und adaptive Auswahl werden getrennt ausgewertet; alte Sitzungen ohn
   assert.equal(result.curves[1].curve[0].sessions, 2, 'die alte Sitzung hat keine Kontrollkarten');
   assert.equal(firstSufficientK(result.curves[1].curve, { minSessions: 5 }), null, 'zu wenige Personen für ein Urteil');
 });
+
+test('Pilot-Kennzahlen (nurec Kap. 10): Abbrüche, „Kenne ich nicht“, erkannte Klärungen, bestätigte und widersprüchliche Vermutungen', () => {
+  const at = (minute) => `2026-10-20T10:${String(minute).padStart(2, '0')}:00.000Z`;
+  const events = [
+    answer('F12', LIKE, { timestamp: at(0) }),
+    answer('F02', UNFAMILIAR, { timestamp: at(1) }),
+    answer('F02.1', LIKE, { timestamp: at(2), selectionReason: 'stage2_after_unfamiliar' }),
+    answer('F12.1', LIKE, { timestamp: at(3) }), // bestätigt die Vermutung aus Obst
+    answer('F12.4', DISLIKE, { timestamp: at(4) }), // widerspricht ihr
+    answer('D01', LIKE, { timestamp: at(5), round: 'G1', phase: 'dish' }),
+    { type: 'QUESTION_ABORTED', cardId: 'F12.2', round: 1, phase: 'main' },
+  ];
+  const data = prepare(session('pilot', events));
+  assert.ok(!data.main.some((entry) => entry.cardId === 'D01'), 'Gerichte nicht in der normalen Auswahl');
+  assert.equal(data.dishes, 1);
+  assert.deepEqual(data.pilot, {
+    aborted: 1,
+    medianRoundMs: 4 * 60000,
+    unfamiliarShare: 1 / 5,
+    clarifications: 1,
+    clarified: 1,
+    guessed: 2,
+    redundant: 1,
+    contradictions: 1,
+  });
+  const text = formatSummary(evaluate([session('pilot', events)], { index, diets, resamples: 50 }));
+  assert.ok(text.includes('Pilot-Kennzahlen'));
+});

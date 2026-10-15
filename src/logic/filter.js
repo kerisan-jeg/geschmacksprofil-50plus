@@ -11,6 +11,12 @@
 //                          soll nicht nochmals vorkommen).
 //   - source:              wo der Ausschluss entstanden ist (Onboarding oder „Vertrage ich nicht“ beim Wischen)
 //
+// Konkrete Lebensmittel (Stufe 3) und Gerichte (Stufe 4) sind eine eindeutige Sache: Ein eingetipptes
+// Lebensmittel („Tomate“) schliesst sie aus, wenn es ihr Name oder eine ihrer Zutaten ist (ingredientNames).
+// Zusammengesetzte Produkte und Gerichte fallen ausserdem weg, wenn eine verknüpfte Karte ausgeschlossen ist
+// (ingredients, z. B. Hummus → Sesam). nurec v0.2, Kap. 2.2: Harte Ausschlüsse wirken als REJECT auf Karten,
+// Zutaten, Produkte und spätere Vorschläge.
+//
 // Die Ernährungsweise ist kein Eintrag, sondern wird über die Tabelle `diets` (stage0.json)
 // in animalOrigin-Ausschlüsse übersetzt.
 
@@ -48,7 +54,14 @@ export function isAllowed(card, exclusions) {
   if (exclusions.cardIds.has(card.id)) return false;
   if (card.allergens.some((tag) => exclusions.allergens.has(tag))) return false;
   if (card.animalOrigin.some((tag) => exclusions.animalOrigin.has(tag))) return false;
+  if ((card.ingredients ?? []).some((id) => exclusions.cardIds.has(id))) return false;
+  if (card.stage >= 3 && (exclusions.foods ?? []).some((food) => namedFoods(card).some((word) => foodMatches(word, food)))) return false;
   return true;
+}
+
+// Wörter, die eine konkrete Karte oder ein Gericht ausmachen: Name und Zutaten.
+function namedFoods(card) {
+  return [card.title, ...(card.ingredientNames ?? [])];
 }
 
 // Sichtbarkeit inkl. Familienregel: Eine Familie wird nur angezeigt,
@@ -85,10 +98,18 @@ function isHiddenExample(example, exclusions) {
 }
 
 // Alle Beispiele, die eine Karte zeigen könnte: eigene und die ihrer sichtbaren Nachkommen.
+// Konkrete Karten (Stufe 3) tragen ihren Namen bei, nicht ihre Beschreibung („Lachs“ statt „Lachsfilet“).
 function examplePool(card, index, exclusions) {
   const own = isFamily(card) ? derivedExamples(card, index, exclusions) : card.examples;
   const children = index.childrenOf(card.id).filter((child) => isVisible(child, index, exclusions));
-  return [...new Set([...own, ...children.flatMap((child) => examplePool(child, index, exclusions))])];
+  const fromChildren = children.flatMap((child) => (child.stage >= 3 ? [child.title] : examplePool(child, index, exclusions)));
+  return [...new Set([...own, ...fromChildren])];
+}
+
+// Ohne eingetippte Lebensmittel: Was nur wegen „Tomate“ fehlt, steht als „Ohne Tomate“ da, nicht zusätzlich
+// als „Ohne Rohe Tomaten“.
+function withoutFoods(exclusions) {
+  return { ...exclusions, foods: [] };
 }
 
 // Hinweise und Beispiele einer Karte an die Ausschlüsse anpassen:
@@ -96,15 +117,22 @@ function examplePool(card, index, exclusions) {
 // - Lebensmittel-Einträge („Tomate“) verschwinden aus den Beispielen und erscheinen als „Ohne Tomate“.
 // labels: optionale Wörter der Person für eine Karten-ID, z. B. { 'F01.3': 'Schweinefleisch' }.
 export function annotateCard(card, index, exclusions, labels = {}) {
-  const hidden = isFamily(card) ? hiddenRoots(card, index, exclusions) : [];
-  const pool = examplePool(card, index, exclusions);
+  const hidden = isFamily(card) ? hiddenRoots(card, index, withoutFoods(exclusions)) : [];
+  const pool = examplePool(card, index, withoutFoods(exclusions));
   const hiddenFoods = (exclusions.foods ?? []).filter((food) => pool.some((example) => foodMatches(example, food)));
   if (hidden.length === 0 && hiddenFoods.length === 0) return card;
 
   let examples = hidden.length > 0 ? derivedExamples(card, index, exclusions) : card.examples;
   if (hiddenFoods.length > 0) {
     const kept = examples.filter((example) => !isHiddenExample(example, exclusions));
-    const refill = pool.filter((example) => !kept.includes(example) && !isHiddenExample(example, exclusions));
+    // Nachfüllen nur bei Familien; Untergruppen haben eigene, kurze Beispiellisten.
+    const candidates = card.stage === 1 ? examplePool(card, index, exclusions) : [];
+    const refill = [];
+    for (const example of candidates) {
+      const taken = [...kept, ...refill];
+      if (isHiddenExample(example, exclusions) || taken.some((other) => other === example || foodMatches(example, other))) continue;
+      refill.push(example);
+    }
     examples = [...kept, ...refill];
   }
   examples = examples.slice(0, 3);
@@ -129,7 +157,7 @@ function hasHiddenDescendant(card, index, exclusions) {
 }
 
 function derivedExamples(card, index, exclusions) {
-  if (!isFamily(card)) return card.examples.length > 0 ? card.examples : [card.title];
+  if (!isFamily(card)) return card.stage >= 3 || card.examples.length === 0 ? [card.title] : card.examples;
   if (!hasHiddenDescendant(card, index, exclusions)) return card.examples;
   const visible = index.childrenOf(card.id).filter((child) => isVisible(child, index, exclusions));
   if (visible.length === 1) return derivedExamples(visible[0], index, exclusions);

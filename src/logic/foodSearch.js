@@ -17,6 +17,8 @@
 
 import { matchRank, normalizeVariants, search, typoDistance } from './search.js';
 import { allergenSearchItems } from './allergens.js';
+import { isDish } from './catalog.js';
+import { SEARCH } from '../labels.js';
 
 function capitalize(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
@@ -84,7 +86,9 @@ export function catalogItems(index, foods = []) {
     const family = familyOf(index, card);
     const own = card.synonyms ?? [];
     const terms = [...own, ...[card.title, ...own].flatMap((term) => lexiconTerms(foods, term))];
-    items.push({ key: `card:${card.id}`, kind: 'card', label: card.title, category: family && family.id !== card.id ? family.title : null, terms });
+    let category = family && family.id !== card.id ? family.title : null;
+    if (isDish(card)) category = SEARCH.dish;
+    items.push({ key: `card:${card.id}`, kind: 'card', label: card.title, category, terms });
     covered.push(card.title, ...own);
   }
   // Ein Lebensmittel, das schon eine Karte ist (auch als Einzahl: „Linse“ zu „Linsen“), erscheint nur als Karte.
@@ -101,7 +105,10 @@ export function catalogItems(index, foods = []) {
   // Lexikon zuerst: Es kennt die richtige Gruppe auch für Wörter, die auf keiner Karte stehen
   // (handgepflegt: Karte; Schweizer Nährwertdatenbank: Gruppe als Text, z. B. „Olive · Gemüse“).
   for (const food of foods) addFood(food.name, index.get(food.card), food.category ?? null);
+  // Beispiele nur von Gruppen und Untergruppen: Bei konkreten Karten und Gerichten beschreiben sie die Karte
+  // („Lachsfilet“, „mit Apfelmus“) und sind keine eigenen Lebensmittel.
   for (const card of index.cards) {
+    if (card.stage > 2) continue;
     for (const example of card.examples) addFood(example, card);
   }
   return items;
