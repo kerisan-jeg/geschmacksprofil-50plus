@@ -9,9 +9,9 @@ import { COMPLETE } from '../labels.js';
 
 const ROWS = [PREFER, LIKE, DISLIKE, UNFAMILIAR, INTOLERANT];
 
-// Abschluss nach jeder Runde: kurze Übersicht, dann „Weiter mit Runde 2“ (solange es Karten gibt)
+// Abschluss nach jeder Runde: kurze Übersicht, dann weiter, solange eine weitere Runde erlaubt ist,
 // oder „Mein Profil ansehen“. Zahlen sind reine Zählungen der Antworten, keine Prozentwerte.
-// nextTitles: Titel der Karten der nächsten Runde (leer, wenn alles beantwortet ist).
+// nextTitles: Titel der Karten der nächsten Runde (leer bei Rundenlimit oder ohne offene Karten).
 export default function CompleteScreen({ round, endedEarly, firstName, ruleCount, steps, nextTitles, onNextRound, onToProfile }) {
   const { groups, intolerant } = computeProfile(round);
   const counts = {
@@ -37,7 +37,7 @@ export default function CompleteScreen({ round, endedEarly, firstName, ruleCount
           {endedEarly ? COMPLETE.kickerEnded(round.round) : COMPLETE.kickerDone(round.round)}
         </p>
         <h1>{COMPLETE.title(firstName)}</h1>
-        <p className="lead">{more ? lead : `${lead} ${COMPLETE.leadAllDone}`.trim()}</p>
+        <p className="lead">{more ? lead : `${lead} ${COMPLETE.leadComplete}`.trim()}</p>
       </div>
 
       {round.sequence.length > 0 && (

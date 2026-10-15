@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { AUTH_ENABLED, DEFAULT_CONFIG, resolveConfig, TUTORIAL_ENABLED } from '../config.js';
 import { indexCatalog } from '../logic/catalog.js';
 import { LIKE } from '../logic/answers.js';
+import { nextCard } from '../logic/engine.js';
 import { AUTH_COMPLETED, AUTH_STARTED, EXCLUSION_ADDED } from '../logic/events.js';
 import { createAppModel, creationSteps, firstScreen, isNavVisible, screenAfterSummary, SCREENS, TABS } from './model.js';
 
@@ -155,6 +156,58 @@ test('Nach Runde 1 geht es mit Runde 2 weiter; Rundennummer im Zustand und in de
   // Wiederkehrende Person macht in derselben Runde weiter
   const back = run(model.initialState(DEFAULT_CONFIG, { account, saved: { sessionId: 'abc', state } }), { type: 'welcomeContinue' });
   assert.deepEqual([back.screen, back.roundNumber], [SCREENS.COMPLETE, 2]);
+});
+
+test('Die Profilerstellung endet unabhängig vom Kartenlimit spätestens nach Runde 4', () => {
+  for (const [roundCardLimit, expectedRounds, expectedAnswers] of [[4, 4, 16], [10, 4, 40], [30, 2, 49]]) {
+    let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit }));
+    while (state.screen === SCREENS.ROUND) {
+      assert.ok(state.roundNumber <= 4, `Kartenlimit ${roundCardLimit}: keine fünfte Runde`);
+      while (state.screen === SCREENS.ROUND) {
+        const card = nextCard(model.roundOf(state), state.config);
+        assert.ok(card, 'jede laufende Runde hat eine nächste Karte');
+        state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: card.id, response: LIKE, round: state.roundNumber } });
+      }
+      assert.equal(state.screen, SCREENS.COMPLETE);
+      const next = run(state, { type: 'nextRound' });
+      if (next === state) break;
+      state = next;
+    }
+    assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, expectedRounds]);
+    assert.equal(model.roundOf(state).sequence.length, expectedAnswers);
+    assert.equal(run(state, { type: 'nextRound' }, { type: 'nextRound' }), state, 'weitere Klicks starten keine Runde');
+    assert.equal(run(state, { type: 'tab', tab: TABS.PROFILE }).tab, TABS.PROFILE);
+  }
+});
+
+test('Auch vorzeitig beendete Runden zählen zur Obergrenze; laufende Runden lassen sich nicht überspringen', () => {
+  let state = toRound(answered(DEFAULT_CONFIG));
+  assert.equal(run(state, { type: 'nextRound' }), state);
+  for (let number = 1; number <= 4; number += 1) {
+    assert.equal(state.roundNumber, number);
+    state = run(state, { type: 'end' });
+    assert.equal(state.endedEarly, true);
+    const next = run(state, { type: 'nextRound' });
+    if (number < 4) assert.deepEqual([next.screen, next.roundNumber], [SCREENS.ROUND, number + 1]);
+    else assert.equal(next, state);
+    state = next;
+  }
+  assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 4]);
+});
+
+test('Gespeicherte Sitzungen ab Runde 5 kehren zum Abschluss zurück und behalten ihre Antworten', () => {
+  const base = toRound(answered(DEFAULT_CONFIG));
+  const events = [{ type: 'ANSWER', cardId: 'F01', response: LIKE, round: 1 }, { type: 'ANSWER', cardId: 'F11', response: LIKE, round: 5 }];
+  for (const screen of [SCREENS.ROUND, SCREENS.COMPLETE]) {
+    const saved = { sessionId: 'legacy', state: { ...base, screen, roundNumber: 5, events } };
+    const restored = model.initialState(DEFAULT_CONFIG, { account, saved });
+    assert.equal(restored.screen, SCREENS.WELCOME_BACK);
+    const resumed = run(restored, { type: 'welcomeContinue' });
+    assert.deepEqual([resumed.screen, resumed.roundNumber], [SCREENS.COMPLETE, 4]);
+    assert.deepEqual(resumed.events, events);
+    assert.deepEqual(model.roundOf(resumed).sequence, ['F01', 'F11']);
+    assert.equal(run(resumed, { type: 'nextRound' }), resumed);
+  }
 });
 
 test('Nach der letzten Karte folgt der Abschluss, von dort geht es zu „Mein Profil“', () => {

@@ -7,6 +7,9 @@ export const APP_VERSION = '0.6.0-demo';
 // Karten pro Runde (ROUND_CARD_LIMIT). Fortschrittsanzeigen leiten ihre Werte davon ab.
 export const ROUND_CARD_LIMIT = 10;
 
+// Vorgabe des Dozenten: höchstens vier Swipe-Runden, unabhängig vom Kartenlimit.
+export const MAX_ROUNDS = 4;
+
 // Mini-Tutorial vor der ersten Runde. Seit dem Teamentscheid vom 13.10. standardmässig aus:
 // Nach der Zusammenfassung erscheint direkt die erste Karte. Der Code bleibt, damit es für einen
 // Pilot-Vergleich wieder eingeschaltet werden kann (hier auf true setzen). Über die URL lässt es sich

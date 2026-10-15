@@ -9,6 +9,7 @@
 //
 // Alle Funktionen sind rein (kein Zufall, keine Uhrzeit).
 
+import { MAX_ROUNDS } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, RESPONSE_SEMANTICS, RESPONSES, UNDO, UNFAMILIAR, isTasteSignal } from './answers.js';
 import { ANSWER, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED, SOURCE_PROFILE, eventType, isProfileEvent } from './events.js';
 import { annotateCard, buildExclusions, isVisible } from './filter.js';
@@ -146,23 +147,25 @@ function openCards(state) {
 //
 // TODO: Adaptive Logik folgt – Eigenleistung Team.
 // Aktuell bewusst nur: feste Reihenfolge (fixedOrder) ohne Bezug auf die bisherigen Antworten,
-// je Runde höchstens das Rundenlimit. Runde 1 zeigt die Gruppen, die folgenden Runden die übrigen
-// Gruppen und danach die Untergruppen. Harte Ausschlüsse wirken immer (isVisible).
+// je Runde höchstens das Kartenlimit, insgesamt höchstens MAX_ROUNDS Runden. Runde 1 zeigt die Gruppen,
+// die folgenden Runden die übrigen Gruppen und danach die Untergruppen. Harte Ausschlüsse wirken immer (isVisible).
 // Nicht umgesetzt (A2): Auswahl je nach Antwort (Stufe 1 → 2 → 3), Nachtesten von Ausnahmen nach
 // DISLIKE, Unterkarte nach UNFAMILIAR, Favoritensuche nach PREFER.
 export function selectNextCards(state, config) {
+  if (state.round > MAX_ROUNDS) return [];
   const remaining = config.roundCardLimit - answeredCount(state);
   if (remaining <= 0) return [];
   return openCards(state).slice(0, remaining);
 }
 
-// Gibt es nach dieser Runde noch Karten für eine weitere Runde? nextRoundCards: die Karten der
-// nächsten Runde (für den Ausblick im Abschluss).
+// Gibt es nach dieser Runde noch eine erlaubte weitere Runde mit offenen Karten?
+// nextRoundCards: die Karten der nächsten Runde (für den Ausblick im Abschluss).
 export function hasMoreCards(state) {
-  return openCards(state).length > 0;
+  return state.round < MAX_ROUNDS && openCards(state).length > 0;
 }
 
 export function nextRoundCards(state, config) {
+  if (!hasMoreCards(state)) return [];
   return openCards(state).slice(0, config.roundCardLimit);
 }
 

@@ -18,7 +18,7 @@ Die App hat zwei Bereiche: **Profil erstellen** und **Mein Profil**. Die untere 
 5. **Zusammenfassung** (nurec v0.2, Kap. 2.2 [D]): „Stimmt das so?“ zeigt alle festen Regeln, je Frage ein Abschnitt (Ernährungsweise, Allergien und Unverträglichkeiten, „Möchte ich nicht essen“). „Ändern“ öffnet direkt die passende Frage und führt danach zurück; „Stimmt so“ bestätigt. Ein offenes „Ich bin mir nicht sicher“ steht dort als offen, nicht als Freigabe. Bewusst kurz, ohne Vorschau der Karten.
 6. **Runde 1:** nach „Stimmt so“ direkt die erste Karte (kein Tutorial, Teamentscheid vom 13.10.). Höchstens `ROUND_CARD_LIMIT` Karten (Standard 10). Karte und Knöpfe haben den ganzen Bildschirm.
 7. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln), Ausblick auf die nächsten Karten, „Weiter mit Runde 2“ und „Mein Profil ansehen“.
-8. **Runde 2, 3, …:** in fester Reihenfolge, bis alles beantwortet ist: zuerst die Gruppen, die in Runde 1 keinen Platz hatten, dann die Untergruppen (z. B. Geflügel, Rind, Schwein) abwechselnd aus allen Gruppen. Ausschlüsse wirken in jeder Runde. Die Auswahl je nach Antwort bleibt Eigenleistung des Teams (siehe „Logik austauschen“).
+8. **Runde 2 bis maximal 4:** in fester Reihenfolge: zuerst die Gruppen, die in Runde 1 keinen Platz hatten, dann die Untergruppen (z. B. Geflügel, Rind, Schwein) abwechselnd aus allen Gruppen. Gemäss Vorgabe des Dozenten endet die Profilerstellung spätestens nach Runde 4 (`MAX_ROUNDS` in `src/config.js`), auch wenn noch Karten offen sind. Sind vorher keine Karten mehr verfügbar, endet sie früher. Ausschlüsse wirken in jeder Runde. Die Auswahl je nach Antwort bleibt Eigenleistung des Teams (siehe „Logik austauschen“).
 9. **Mein Profil:** Geschmack und Ausschlüsse ansehen und bearbeiten.
 
 Das **Mini-Tutorial** (drei kurze Schritte: Wischrichtungen, „Kenne ich nicht“ und „Vertrage ich nicht“, Rückgängig) ist im Code, aber standardmässig aus. Für einen Pilot-Vergleich `TUTORIAL_ENABLED = true` in `src/config.js` setzen; über die URL lässt es sich nicht einschalten.
@@ -258,7 +258,7 @@ Ausserdem:
 - Bildlizenzen: alle 46 Fotos unter der Unsplash License (keine Unsplash+-Bilder, Stand 14.10.2026); Nachweise mit APA 7 in `src/data/image-credits.json`. Vor der Abgabe Namen und Titel prüfen (z. B. „David Foodphototasty“ ist ein Künstlername) und klären, ob nurec für eine spätere Nutzung eigene Fotos braucht.
 - Fotos oder Illustrationen (`IMAGE_STYLE`): mit Tibor abstimmen oder im Pilot vergleichen. Ob die Fotos die Bewertung beeinflussen (Annahme 5), im Pilot beobachten; die Fotos stammen von vielen Fotografen und sind nicht alle im gleichen Licht.
 - Fotos fehlen für **Vollkornpasta** und **Pasta aus Hülsenfrüchten**: In den gespeicherten Unsplash-Suchen gab es kein passendes freies Foto (die Live-Suche ist durch eine Bot-Sperre blockiert). Die Karten zeigen die Pasta-Illustration; das Bildraster „Pasta“ zeigt drei Weizenpasten. Nachliefern, z. B. mit einem eigenen Foto oder einem Unsplash- bzw. Pexels-Zugang.
-- Runden 2, 3, … in fester Reihenfolge sind ein Platzhalter: Sie fragen auch Untergruppen ab, deren Gruppe jemand nicht mag. Die Auswahl je nach Antwort ist Eigenleistung des Teams.
+- Runden 2 bis 4 in fester Reihenfolge sind ein Platzhalter: Sie fragen auch Untergruppen ab, deren Gruppe jemand nicht mag. Die Auswahl je nach Antwort ist Eigenleistung des Teams.
 - Rückmeldung Team (12.10.) statt A7: Eingetippte Notizen blenden das Wort als Beispiel aus, schliessen aber keine Gruppe aus. Bestätigen, dass das so bleiben soll.
 
 ## Quelle

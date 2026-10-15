@@ -309,7 +309,7 @@ export const COMPLETE = {
   leadDone: (count) => `Du hast alle ${plural(count, 'Karte', 'Karten')} dieser Runde beantwortet.`,
   leadEnded: (count) => `Du hast ${plural(count, 'Karte', 'Karten')} beantwortet.`,
   leadEmpty: 'Nach deinen Angaben gab es in dieser Runde keine passenden Karten.',
-  leadAllDone: 'Du hast alle Karten beantwortet.',
+  leadComplete: 'Deine Profilerstellung ist abgeschlossen.',
   nextHint: (titles) => `Als Nächstes zum Beispiel: ${titles.join(', ')}.`,
   nextRound: (round) => `Weiter mit Runde ${round}`,
   overviewTitle: 'So hast du bisher geantwortet',

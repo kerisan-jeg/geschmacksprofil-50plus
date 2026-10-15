@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { indexCatalog } from '../logic/catalog.js';
-import { deriveRoundState, nextRoundCards } from '../logic/engine.js';
+import { deriveRoundState, nextRoundCards, selectNextCards } from '../logic/engine.js';
 import { COMPLETE } from '../labels.js';
 import CompleteScreen from './CompleteScreen.jsx';
 
@@ -41,7 +41,22 @@ test('Sind alle Karten beantwortet, gibt es keine weitere Runde, nur „Mein Pro
   const round = deriveRoundState({ index, onboarding: null, diets, events: ids.map((cardId) => ({ cardId, response: 'LIKE', round: 3 })), round: 3 });
   const html = render(round, []);
   assert.ok(!html.includes('Weiter mit Runde'));
-  assert.ok(html.includes(COMPLETE.leadAllDone));
+  assert.ok(html.includes(COMPLETE.leadComplete));
   assert.ok(html.includes(COMPLETE.kickerDone(3)));
   assert.ok(html.includes(COMPLETE.toProfile));
+});
+
+test('Nach Runde 4 führt der Abschluss trotz offener Karten nur noch zum Profil', () => {
+  const initial = deriveRoundState({ index, onboarding: null, diets });
+  const events = selectNextCards(initial, { roundCardLimit: 100 }).slice(0, 40)
+    .map((card, i) => ({ cardId: card.id, response: 'LIKE', round: 1 + Math.floor(i / 10) }));
+  const round = deriveRoundState({ index, onboarding: null, diets, events, round: 4 });
+  const html = render(round, nextRoundCards(round, config).map((card) => card.title));
+  assert.ok(html.includes(COMPLETE.kickerDone(4)));
+  assert.ok(html.includes(COMPLETE.leadComplete));
+  assert.ok(html.includes(COMPLETE.profileHint));
+  assert.ok(html.includes(COMPLETE.toProfile));
+  assert.ok(!html.includes('Weiter mit Runde'));
+  assert.ok(!html.includes('Als Nächstes zum Beispiel'));
+  assert.ok(!html.includes('Du hast alle Karten beantwortet.'));
 });

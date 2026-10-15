@@ -173,7 +173,33 @@ test('Ausschlüsse gelten in jeder Runde: keine Untergruppen von ausgeschlossene
 test('Untergruppen nennen ihre Gruppe; nach allen Karten gibt es keine weitere Runde', () => {
   assert.equal(presentCard(state([]), index.get('F01.2')).group, 'Fleisch und Geflügel');
   assert.equal(presentCard(state([]), index.get('F01')).group, undefined);
-  const everything = selectNextCards(state([]), { roundCardLimit: 100 }).map((card, i) => answer(card.id, LIKE, { round: 1 + Math.floor(i / 10) }));
-  assert.equal(hasMoreCards(state(everything, noOnboarding, 5)), false);
-  assert.deepEqual(nextRoundCards(state(everything, noOnboarding, 5), config), []);
+  const everything = selectNextCards(state([]), { roundCardLimit: 100 }).map((card) => answer(card.id, LIKE));
+  assert.equal(hasMoreCards(state(everything)), false);
+  assert.deepEqual(nextRoundCards(state(everything), config), []);
+});
+
+test('Runde 4 bleibt spielbar, bietet aber trotz offener Karten keine fünfte Runde an', () => {
+  const cards = selectNextCards(state([]), { roundCardLimit: 100 });
+  const events = cards.slice(0, 30).map((card, i) => answer(card.id, LIKE, { round: 1 + Math.floor(i / 10) }));
+  const third = state(events, noOnboarding, 3);
+  const fourth = state(events, noOnboarding, 4);
+  assert.equal(hasMoreCards(third), true);
+  assert.deepEqual(nextRoundCards(third, config), selectNextCards(fourth, config));
+  assert.equal(selectNextCards(fourth, config).length, 10);
+  assert.equal(isRoundComplete(fourth, config), false);
+  assert.equal(hasMoreCards(fourth), false);
+  assert.deepEqual(nextRoundCards(fourth, config), []);
+
+  events.push(...cards.slice(30, 40).map((card) => answer(card.id, LIKE, { round: 4 })));
+  const done = state(events, noOnboarding, 4);
+  assert.equal(isRoundComplete(done, config), true);
+  assert.equal(done.sequence.length, 40, 'neun der 49 Karten bleiben offen');
+  assert.equal(hasMoreCards(done), false);
+  assert.deepEqual(nextRoundCards(done, config), []);
+  assert.equal(buildProfile(done).taste.LIKE.length, 40);
+
+  const fifth = state(events, noOnboarding, 5);
+  assert.equal(nextCard(fifth, config), null);
+  assert.deepEqual(selectNextCards(fifth, config), []);
+  assert.equal(isRoundComplete(fifth, config), true);
 });

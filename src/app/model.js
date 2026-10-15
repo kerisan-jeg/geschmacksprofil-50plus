@@ -7,7 +7,7 @@
 // Nach Frage 3 folgt die Zusammenfassung (nurec v0.2, Kap. 2.2): Die Person bestätigt die festen Regeln
 // („Stimmt so“) oder korrigiert sie („Ändern“ führt zur passenden Frage und wieder zurück). Danach kommt
 // direkt die erste Karte; das Tutorial (intro) nur, wenn TUTORIAL_ENABLED eingeschaltet ist.
-// Nach jeder Runde: „Weiter mit Runde 2“ (roundNumber), solange es noch Karten gibt (hasMoreCards).
+// Nach jeder Runde: weiter, solange es noch Karten gibt, insgesamt höchstens MAX_ROUNDS Runden.
 // Wiederkehrende Person auf demselben Gerät: welcome-back, dann weiter, wo sie war.
 // Bereich „Mein Profil“: eigener Tab, der Ablauf oben bleibt dabei an seiner Stelle stehen.
 //
@@ -15,8 +15,9 @@
 // Profiländerungen und die Ereignisse der Registrierung stehen darin. Der Zustand der Runde und des
 // Profils wird immer daraus abgeleitet (deriveRoundState → replay).
 
+import { MAX_ROUNDS } from '../config.js';
 import { UNDO } from '../logic/answers.js';
-import { deriveRoundState, isRoundComplete, progress } from '../logic/engine.js';
+import { deriveRoundState, hasMoreCards, isRoundComplete, progress } from '../logic/engine.js';
 import { ANSWER, eventType } from '../logic/events.js';
 import { deriveOnboarding, emptyAnswers } from '../logic/stage0.js';
 
@@ -104,14 +105,20 @@ export function createAppModel({ index, stage0, allergens }) {
       editing: false,
       onboarding: null,
       events: [],
-      // Laufende Runde (1, 2, …); jede Antwort trägt sie im Event-Log (event.round).
+      // Laufende Runde (1 bis MAX_ROUNDS); jede Antwort trägt sie im Event-Log (event.round).
       roundNumber: 1,
       endedEarly: false,
       resume: null,
     };
     if (!saved?.state) return base;
     const restored = { ...base, ...saved.state, account, registration: EMPTY_REGISTRATION };
-    return { ...restored, screen: SCREENS.WELCOME_BACK, tab: TABS.CREATE, resume: { screen: saved.state.screen, tab: saved.state.tab ?? TABS.CREATE } };
+    // Alte Sitzungen jenseits der neuen Obergrenze abschliessen; bisherige Antworten bleiben erhalten.
+    if (restored.roundNumber > MAX_ROUNDS) {
+      restored.roundNumber = MAX_ROUNDS;
+      restored.screen = SCREENS.COMPLETE;
+      restored.endedEarly = false;
+    }
+    return { ...restored, screen: SCREENS.WELCOME_BACK, tab: TABS.CREATE, resume: { screen: restored.screen, tab: restored.tab ?? TABS.CREATE } };
   }
 
   // Ohne passende Karte (alles ausgeschlossen) direkt zum Abschluss statt in eine leere Runde.
@@ -165,6 +172,7 @@ export function createAppModel({ index, stage0, allergens }) {
         return enterRound(state);
       // „Weiter mit Runde 2“ nach dem Abschluss: nächste Runde mit den noch offenen Karten.
       case 'nextRound':
+        if (state.screen !== SCREENS.COMPLETE || !hasMoreCards(roundOf(state))) return state;
         return enterRound({ ...state, roundNumber: (state.roundNumber ?? 1) + 1 });
       // ---------- Ereignisse ----------
       // Antwort beim Wischen: kann die Runde abschliessen.

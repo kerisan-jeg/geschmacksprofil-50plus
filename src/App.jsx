@@ -33,7 +33,7 @@ import ProfileScreen from './screens/ProfileScreen.jsx';
 import AdminScreen from './screens/AdminScreen.jsx';
 
 // Ablauf „Profil erstellen“: Begrüssung → Registrierung (Vorname, Handynummer, SMS-Code) → Über dich →
-// Fragebogen (Stufe 0) → Zusammenfassung → Runde 1 → Abschluss → Runde 2 → … (Tutorial vor Runde 1 nur mit
+// Fragebogen (Stufe 0) → Zusammenfassung → höchstens vier Runden mit Abschluss (Tutorial vor Runde 1 nur mit
 // TUTORIAL_ENABLED).
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
