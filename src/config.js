@@ -2,13 +2,37 @@
 // Alles, was im Pilot variiert werden soll (Wortlaut, Schwellen, Funktionen), steht hier.
 // Gestaltung (Farben, Abstände, Animationsdauern) steht in src/theme/tokens.css.
 
-export const APP_VERSION = '0.6.0-demo';
+export const APP_VERSION = '0.7.0-demo';
 
 // Karten pro Runde (ROUND_CARD_LIMIT). Fortschrittsanzeigen leiten ihre Werte davon ab.
 export const ROUND_CARD_LIMIT = 10;
 
 // Vorgabe des Dozenten: höchstens vier Swipe-Runden, unabhängig vom Kartenlimit.
 export const MAX_ROUNDS = 4;
+
+// Kartenauswahl (src/logic/selection.js): 'adaptive' wählt je nach den bisherigen Antworten (nurec v0.2,
+// Kap. 4 und 6), 'fixed' zeigt die feste Reihenfolge von Version 0.6 (Vergleich im Pilot, ?selection=fixed).
+// Sitzungen ohne Angabe (vor Version 0.7) behalten die feste Reihenfolge.
+export const SELECTION_MODE = 'adaptive';
+
+// Kontrollkarten (Messkonzept, docs/messkonzept.md): So viele Untergruppen werden pro Person zu Beginn
+// zufällig zurückgehalten, nie in der Auswahl gezeigt und erst am Ende der letzten Runde abgefragt.
+// Damit lässt sich prüfen, ob die Vermutungen der App stimmen. 0 schaltet sie ab (?holdout=0).
+export const HOLDOUT_CARDS = 6;
+export const HOLDOUT_RANGE = { min: 0, max: 10 };
+
+// Präferenzmodell (src/logic/preferences.js). Annahmen [V], im Pilot zu prüfen und vor der Hauptstudie
+// festzuschreiben (mit neuer RULE_VERSION):
+//   weights        Wert einer direkten Bewertung
+//   inheritFactor  Abschwächung pro Stufe, wenn eine Karte die Bewertung ihrer Gruppe erbt
+//   siblingWeight  Gewicht bewerteter Geschwister (0 = aus; Variante für die Auswertung)
+// Die Richtung einer Vermutung (mag / mag nicht) hängt bei siblingWeight 0 nur vom Vorzeichen ab,
+// nicht von diesen Zahlen (siehe docs/messkonzept.md).
+export const PREFERENCE_MODEL = {
+  weights: { DISLIKE: -1, LIKE: 1, PREFER: 2 },
+  inheritFactor: 0.5,
+  siblingWeight: 0,
+};
 
 // Mini-Tutorial vor der ersten Runde. Seit dem Teamentscheid vom 13.10. standardmässig aus:
 // Nach der Zusammenfassung erscheint direkt die erste Karte. Der Code bleibt, damit es für einen
@@ -46,6 +70,8 @@ export const FIREBASE_CONFIG = firebaseConfigFrom(import.meta.env ?? {});
 //   ?limit=6           Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 30
 //   ?admin=1           Ansicht für die Testleitung (Export, Sitzungen)
 //   ?sms=sim           SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne Handy)
+//   ?selection=fixed   feste Reihenfolge statt adaptiver Auswahl (Vergleich)
+//   ?holdout=4         Anzahl Kontrollkarten, gültig 0 bis 10 (0 = keine)
 // ?tutorial wirkt seit dem 13.10. nicht mehr (Tutorial nur über TUTORIAL_ENABLED).
 // Die effektiven Werte werden in jeder Sitzung gespeichert.
 // Begründung [V]: Kernfrage 2 (Anzahl Abfragen) [A] soll im Test ohne neuen Build vergleichbar sein.
@@ -55,22 +81,34 @@ export const DEFAULT_CONFIG = {
   imageStyle: IMAGE_STYLE,
   auth: AUTH_ENABLED,
   sms: FIREBASE_CONFIG ? 'firebase' : 'simulation', // echte SMS oder Simulation
+  selection: SELECTION_MODE,
+  holdout: HOLDOUT_CARDS,
 };
 
 export const ROUND_CARD_LIMIT_RANGE = { min: 4, max: 30 };
+
+function integerParam(params, name, { min, max }) {
+  const raw = params.get(name);
+  if (raw === null || !/^\d+$/.test(raw.trim())) return null;
+  const value = Number(raw.trim());
+  return value >= min && value <= max ? value : null;
+}
 
 // Ungültige Werte fallen still auf den Standard zurück.
 export function resolveConfig(search = '') {
   const params = new URLSearchParams(search);
   const config = { ...DEFAULT_CONFIG };
 
-  const limit = params.get('limit');
-  if (limit !== null && /^\d+$/.test(limit.trim())) {
-    const value = Number(limit.trim());
-    if (value >= ROUND_CARD_LIMIT_RANGE.min && value <= ROUND_CARD_LIMIT_RANGE.max) config.roundCardLimit = value;
-  }
+  const limit = integerParam(params, 'limit', ROUND_CARD_LIMIT_RANGE);
+  if (limit !== null) config.roundCardLimit = limit;
 
   if (params.get('sms') === 'sim') config.sms = 'simulation';
+
+  const selection = params.get('selection');
+  if (selection === 'fixed' || selection === 'adaptive') config.selection = selection;
+
+  const holdout = integerParam(params, 'holdout', HOLDOUT_RANGE);
+  if (holdout !== null) config.holdout = holdout;
 
   return config;
 }

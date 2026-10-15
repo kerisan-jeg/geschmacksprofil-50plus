@@ -134,3 +134,30 @@ test('CSV: Spalte round für jede Antwort (ältere Antworten ohne Feld = Runde 1
   assert.ok(column >= 0);
   assert.deepEqual(rows.map((row) => row.split(',')[column]), ['1', '2', '']);
 });
+
+test('CSV und Übersicht ab Version 0.7: Phase, Kontrollkarten, bestätigte Vermutungen und Auswahl der Sitzung', () => {
+  const session = {
+    sessionId: 's-checks',
+    config: { roundCardLimit: 10, selection: 'adaptive', holdout: 2 },
+    onboarding: {},
+    events: [
+      { type: 'HOLDOUT_DRAWN', cardIds: ['F12.3', 'F01.2'], method: 'stratified-random-v1', eligible: 36 },
+      { type: 'ANSWER', cardId: 'F12', response: 'LIKE', round: 1, phase: 'main', selectionReason: 'stage1_family' },
+      { type: 'ANSWER', cardId: 'F12.3', response: 'DISLIKE', round: 1, phase: 'holdout', selectionReason: 'holdout_check' },
+      { type: 'RATING_CHANGED', source: 'profile', cardId: 'F12.1', rating: 'PREFER', previousRating: null, fromPrediction: true, predictedScore: 0.5 },
+    ],
+  };
+  const [header, ...lines] = sessionsToCsv([session]).trim().split('\r\n');
+  const columns = header.split(',');
+  const rows = lines.map((line) => Object.fromEntries(line.split(',').map((cell, i) => [columns[i], cell])));
+  assert.equal(rows[0].cardIds, 'F12.3|F01.2');
+  assert.deepEqual(rows.map((row) => row.phase), ['', 'main', 'holdout', '']);
+  assert.deepEqual([rows[3].fromPrediction, rows[3].predictedScore], ['true', '0.5']);
+  assert.ok(rows.every((row) => row.selection === 'adaptive' && row.holdout === '2'));
+  assert.deepEqual(summarizeSession(session).checks, { answered: 1, drawn: 2 });
+  // Ältere Sitzungen: feste Reihenfolge, keine Kontrollkarten
+  const [, old] = sessionsToCsv([{ sessionId: 'alt', config: { roundCardLimit: 10 }, events: [event] }]).trim().split('\r\n');
+  const legacy = Object.fromEntries(old.split(',').map((cell, i) => [columns[i], cell]));
+  assert.deepEqual([legacy.selection, legacy.holdout], ['fixed', '0']);
+  assert.deepEqual(summarizeSession({ events: [event] }).checks, { answered: 0, drawn: 0 });
+});

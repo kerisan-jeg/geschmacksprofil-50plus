@@ -172,7 +172,7 @@ export function createAppModel({ index, stage0, allergens }) {
         return enterRound(state);
       // „Weiter mit Runde 2“ nach dem Abschluss: nächste Runde mit den noch offenen Karten.
       case 'nextRound':
-        if (state.screen !== SCREENS.COMPLETE || !hasMoreCards(roundOf(state))) return state;
+        if (state.screen !== SCREENS.COMPLETE || !hasMoreCards(roundOf(state), state.config)) return state;
         return enterRound({ ...state, roundNumber: (state.roundNumber ?? 1) + 1 });
       // ---------- Ereignisse ----------
       // Antwort beim Wischen: kann die Runde abschliessen.

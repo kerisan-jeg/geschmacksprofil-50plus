@@ -510,6 +510,18 @@
   padding-top: var(--space-2);
 }
 
+/* Vermutungen der App: gestrichelt, damit sie nie wie eigene Bewertungen aussehen */
+.taste-group.is-derived {
+  border-style: dashed;
+  border-color: var(--color-line-strong);
+}
+
+.taste-reason {
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-snug);
+}
+
 /* Bewertungs-Chip: Farbe, Symbol und Text */
 .rating-chip {
   display: inline-flex;

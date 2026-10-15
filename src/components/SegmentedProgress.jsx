@@ -1,6 +1,7 @@
 // Fortschritt der Runde: ein Segment pro Karte. Erledigte Segmente sind gefüllt, das aktuelle
 // ist hervorgehoben. Anzahl und Prozentwert kommen aus progress() und damit aus dem Rundenlimit
-// (ROUND_CARD_LIMIT), nie fest im Code. Kein Profil-Prozentwert: dessen Berechnung ist Eigenleistung Team.
+// (ROUND_CARD_LIMIT), nie fest im Code. Bewusst kein Profil-Prozentwert: Vollständigkeit ist nicht Genauigkeit
+// (docs/messkonzept.md); ausgewertet wird sie nur intern.
 export default function SegmentedProgress({ answered, total, percent, label, valueText, counter }) {
   return (
     <div className="progress">

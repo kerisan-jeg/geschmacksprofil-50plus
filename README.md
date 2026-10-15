@@ -1,8 +1,9 @@
 # Geschmacksprofil 50+ · Prototyp
 
 Mobiler Swipe-Prototyp zur Geschmacksprofilerkennung bei Personen ab 50 (WI-Projekt, Auftraggeber nurec).
-Version 0.6: Designsystem, Swipe-Oberfläche, Registrierung mit SMS-Code (echt über Firebase oder simuliert), bearbeitbares Profil und einheitliche Suche über alle Lebensmittel. Die adaptive Kartenauswahl ist bewusst noch nicht gebaut:
-Sie ist die nächste Eigenleistung des Teams (siehe „Logik austauschen“).
+Version 0.7: adaptive Kartenauswahl, Präferenzmodell mit Vermutungen, Kontrollkarten und Auswertungsskript für die Lernkurve (Messkonzept in [`docs/messkonzept.md`](docs/messkonzept.md)). Dazu wie bisher Designsystem, Swipe-Oberfläche, Registrierung mit SMS-Code (echt über Firebase oder simuliert), bearbeitbares Profil und einheitliche Suche über alle Lebensmittel.
+
+Hinweis zur Eigenleistung: Auswahl, Modell und Auswertung hat Claude Code (KI) im Auftrag des Teams umgesetzt (15.10.2026), auf Grundlage einer Rückmeldung zum Vorgehen. Die Regeln folgen nurec v0.2 [D]; Rangfolge, Annahmen und Kriterium sind Vorschläge [V], die das Team bestätigt oder ändert. Wie die KI-Unterstützung in der Arbeit deklariert wird, mit Tibor klären.
 
 Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (Kickoff, Zwischencheck),
 [D] bereitgestellte Dokumente (nurec-Konzept), [V] eigene Entscheidung des Teams.
@@ -16,10 +17,10 @@ Die App hat zwei Bereiche: **Profil erstellen** und **Mein Profil**. Die untere 
 3. **Über dich:** Alter und Einwilligung sind Pflicht, unter „Für die Testleitung“ die Teilnehmer-Nr. Ohne Registrierung startet die App hier, der Vorname ist dann freiwillig.
 4. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“. Frage 2 bietet „Ja“ und „Keine bekannt“, Frage 3 fragt nach „etwas Weiterem“.
 5. **Zusammenfassung** (nurec v0.2, Kap. 2.2 [D]): „Stimmt das so?“ zeigt alle festen Regeln, je Frage ein Abschnitt (Ernährungsweise, Allergien und Unverträglichkeiten, „Möchte ich nicht essen“). „Ändern“ öffnet direkt die passende Frage und führt danach zurück; „Stimmt so“ bestätigt. Ein offenes „Ich bin mir nicht sicher“ steht dort als offen, nicht als Freigabe. Bewusst kurz, ohne Vorschau der Karten.
-6. **Runde 1:** nach „Stimmt so“ direkt die erste Karte (kein Tutorial, Teamentscheid vom 13.10.). Höchstens `ROUND_CARD_LIMIT` Karten (Standard 10). Karte und Knöpfe haben den ganzen Bildschirm.
+6. **Runde 1:** nach „Stimmt so“ direkt die erste Karte (kein Tutorial, Teamentscheid vom 13.10.). Vorher zieht die App still die Kontrollkarten (siehe unten). Höchstens `ROUND_CARD_LIMIT` Karten (Standard 10), zuerst die Gruppen. Karte und Knöpfe haben den ganzen Bildschirm.
 7. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln), Ausblick auf die nächsten Karten, „Weiter mit Runde 2“ und „Mein Profil ansehen“.
-8. **Runde 2 bis maximal 4:** in fester Reihenfolge: zuerst die Gruppen, die in Runde 1 keinen Platz hatten, dann die Untergruppen (z. B. Geflügel, Rind, Schwein) abwechselnd aus allen Gruppen. Gemäss Vorgabe des Dozenten endet die Profilerstellung spätestens nach Runde 4 (`MAX_ROUNDS` in `src/config.js`), auch wenn noch Karten offen sind. Sind vorher keine Karten mehr verfügbar, endet sie früher. Ausschlüsse wirken in jeder Runde. Die Auswahl je nach Antwort bleibt Eigenleistung des Teams (siehe „Logik austauschen“).
-9. **Mein Profil:** Geschmack und Ausschlüsse ansehen und bearbeiten.
+8. **Runde 2 bis maximal 4:** Die Karten wählt die App je nach den bisherigen Antworten (siehe „Kartenauswahl“): übrige Gruppen, Favoriten, eine Ausnahme bei „Mag ich nicht“, Untergruppen zum Unterscheiden. Gemäss Vorgabe des Dozenten endet die Profilerstellung spätestens nach Runde 4 (`MAX_ROUNDS` in `src/config.js`). Sie endet früher, wenn keine sinnvolle Karte mehr bleibt. Die letzten Karten sind die Kontrollkarten. Ausschlüsse wirken in jeder Runde.
+9. **Mein Profil:** Geschmack, Vermutungen der App und Ausschlüsse ansehen und bearbeiten.
 
 Das **Mini-Tutorial** (drei kurze Schritte: Wischrichtungen, „Kenne ich nicht“ und „Vertrage ich nicht“, Rückgängig) ist im Code, aber standardmässig aus. Für einen Pilot-Vergleich `TUTORIAL_ENABLED = true` in `src/config.js` setzen; über die URL lässt es sich nicht einschalten.
 
@@ -63,7 +64,8 @@ Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt
 ## Mein Profil
 
 - **Kopf:** Vorname, gekürzte Nummer, Anzahl beantworteter Karten und die Abschnitte der Profilerstellung.
-- **Geschmack:** gruppiert in „Das magst du besonders“, „Das magst du“, „Das magst du eher nicht“ und „Kennst du nicht“, jeder Eintrag mit Bild und Bewertungs-Chip (Farbe, Symbol, Text). Berechnet von der reinen Funktion `computeProfile(state)` in `src/logic/engine.js`: nur nach der letzten direkten Antwort pro Karte, ohne Score, ohne Prozentwerte, ohne abgeleitete Einträge („TODO: Score-Modell … – Eigenleistung Team“).
+- **Geschmack:** gruppiert in „Das magst du besonders“, „Das magst du“, „Das magst du eher nicht“ und „Kennst du nicht“, jeder Eintrag mit Bild und Bewertungs-Chip (Farbe, Symbol, Text). Berechnet von der reinen Funktion `computeProfile(state)` in `src/logic/engine.js`: nur nach der letzten direkten Antwort pro Karte, ohne Prozentwerte.
+- **Das vermutet die App** (getrennt darunter, gestrichelt umrandet): „Magst du vermutlich“ und „Magst du vermutlich nicht“, jeder Eintrag mit Begründung („Vermutet, weil du „Obst“ magst“), stärkste Vermutung zuerst, lange Listen gekürzt mit „Alle anzeigen“. Tippen öffnet die Bewertung: Die eigene Antwort ersetzt die Vermutung (`RATING_CHANGED` mit `fromPrediction: true` und der Vermutung vorher als `predictedScore`). Vermutungen zählen nie als Geschmack. Kontrollkarten erscheinen hier erst, wenn sie beantwortet sind. Berechnet von `derivedEntries(state)` in `src/logic/engine.js`.
 - **Ausschlüsse,** getrennt vom Geschmack: Allergien, Ernährungsweise, „Vertrage ich nicht“, „Möchte ich nicht essen“, Notizen. Bei jedem Eintrag steht die Herkunft (im Onboarding, beim Wischen, im Profil).
 - **Bearbeiten:** Bewertung über ein Segmented Control mit den drei Bewertungen und „Aus dem Profil entfernen“; Allergien mit derselben Komponente wie im Onboarding (inkl. Detailauswahl bei Nüssen und Gluten); Ernährungsweise; „Vertrage ich nicht“ und „Möchte ich nicht essen“ über die Suche. Allergien und Unverträglichkeiten werden nur nach einer Bestätigung entfernt.
 - **Event-Log:** Jede Änderung ist ein Ereignis (`RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED`) mit `source = "profile"` (`src/logic/events.js`). Der Zustand wird weiterhin per Replay abgeleitet; die ursprüngliche Antwort beim Wischen bleibt unverändert im Log. Ein entfernter Ausschluss fehlt danach einfach in den Einträgen, ob eine Karte wieder erlaubt ist, entscheidet `isAllowed()` (keine Sonderlogik).
@@ -126,21 +128,25 @@ Damit einzelne Allergene einzelne Karten treffen, enthält der Katalog Stufe-3-K
 | `?limit=6` | Karten pro Runde (`ROUND_CARD_LIMIT`), gültig 4 bis 30; ungültige Werte fallen auf den Standard zurück | 10 |
 | `?admin=1` | Ansicht für die Testleitung | – |
 | `?sms=sim` | SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne eigenes Handy) | echt, wenn Firebase eingerichtet ist |
+| `?selection=fixed` | feste Reihenfolge wie in Version 0.6 statt adaptiver Auswahl (Vergleich im Pilot) | adaptiv |
+| `?holdout=4` | Anzahl Kontrollkarten, gültig 0 bis 10 (0 = keine) | 6 |
 
-Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`.
+Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `MAX_ROUNDS`, `SELECTION_MODE`, `HOLDOUT_CARDS`, `PREFERENCE_MODEL`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`. Sitzungen von vor Version 0.7 behalten beim Weitermachen die feste Reihenfolge.
 
 ## Protokoll und Export
 
 Alles bleibt im Browser (`localStorage`), es gibt kein eigenes Backend. Einzige Netzwerkanfrage ist der SMS-Versand über Firebase (nur Handynummer und Code, keine Antworten). Eine Sitzung wird erst gespeichert, wenn unter „Über dich“ die Einwilligung gegeben ist.
 
 - **Pro Sitzung:** `sessionId`, `participantCode`, `startedAt`, `endedAt`, `appVersion`, `config`, Onboarding (Altersgruppe, Ernährungsweise, Ausschlüsse mit `source`, Unsicherheits-Flag, Notizen) und das am Ende angezeigte Profil. Dazu Zeitpunkte im `trace` (nur im JSON-Export), z. B. Bildschirmwechsel, `stage0_edit` („Ändern“ in der Zusammenfassung), `stage0_confirm` („Stimmt so“), Start und Ende der Runde.
-- **Pro Ereignis:** `sessionId`, `cardId`, `stage`, `parentId`, `round` (Runde 1, 2, …; in der CSV als eigene Spalte), `positionInRound`, `response` (`DISLIKE` | `LIKE` | `PREFER` | `UNFAMILIAR` | `INTOLERANT` | `UNDO`), `timestamp`, `responseTimeMs` (Karte vollständig sichtbar bis Antwort), `inputMethod` (`swipe` | `button` | `link`; `keyboard` nur bei Demos am Laptop), `selectionReason`, bei INTOLERANT zusätzlich `excludedCardIds`.
-- **Weitere Ereignisse im selben Log** (`type`): `RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED` (Profil, `source = "profile"`) und `AUTH_STARTED`, `AUTH_COMPLETED` (Registrierung). Die CSV hat dafür die Spalten `type`, `source`, `rating`, `previousRating`, `section`, `exclusions`, `newDiet`, `previousDiet` und `auth`.
+- **Pro Ereignis:** `sessionId`, `cardId`, `stage`, `parentId`, `round` (Runde 1, 2, …; in der CSV als eigene Spalte), `phase` (`main` = normale Auswahl, `holdout` = Kontrollkarte), `positionInRound`, `response` (`DISLIKE` | `LIKE` | `PREFER` | `UNFAMILIAR` | `INTOLERANT` | `UNDO`), `timestamp`, `responseTimeMs` (Karte vollständig sichtbar bis Antwort), `inputMethod` (`swipe` | `button` | `link`; `keyboard` nur bei Demos am Laptop), `selectionReason` (warum die Karte kam, z. B. `stage2_favorite`, `stage2_exception`, `holdout_check`; Liste in `src/logic/selection.js`), `ruleVersion`, bei INTOLERANT zusätzlich `excludedCardIds`.
+- **Weitere Ereignisse im selben Log** (`type`): `RATING_CHANGED`, `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED` (Profil, `source = "profile"`), `AUTH_STARTED`, `AUTH_COMPLETED` (Registrierung) und `HOLDOUT_DRAWN` (Kontrollkarten mit `cardIds`). Die CSV hat dafür die Spalten `type`, `source`, `rating`, `previousRating`, `fromPrediction`, `predictedScore`, `section`, `exclusions`, `cardIds`, `newDiet`, `previousDiet`, dazu je Sitzung `auth`, `sms`, `selection` und `holdout`.
+- **Profil am Ende** (`profile` in der Sitzung): direkte Bewertungen, Ausschlüsse und getrennt davon `predicted` (Vermutungen mit `score` und `basisId`).
 
 **Ansicht für die Testleitung:** `?admin=1` anhängen. Sie ist nirgends verlinkt und zeigt alle Sitzungen auf dem Gerät mit:
 
 - Export JSON (alles) und Export CSV (eine Zeile pro Ereignis, `sessionId` in jeder Zeile, UTF-8, Komma als Trennzeichen),
-- „Neue Testperson starten“ (meldet die vorherige Person auf dem Gerät ab und lädt die App neu, behält Sitzungen und den Parameter `limit`). **Nach jeder Testperson drücken:** Sonst sieht die nächste Person „Willkommen zurück“ und das Profil der vorherigen (Gesundheitsdaten, siehe Frage F4).
+- je Sitzung „Kontrollkarten: x von 6 beantwortet“ (nur vollständige Sitzungen eignen sich für die Lernkurve),
+- „Neue Testperson starten“ (meldet die vorherige Person auf dem Gerät ab und lädt die App neu, behält Sitzungen und die Parameter wie `limit` oder `selection`). **Nach jeder Testperson drücken:** Sonst sieht die nächste Person „Willkommen zurück“ und das Profil der vorherigen (Gesundheitsdaten, siehe Frage F4).
 - „Alle Daten löschen“ mit Bestätigung.
 
 Datenschutz: Vorname und Telefonnummer stehen in keiner Sitzung und in keinem Export (nur lokal im Konto auf dem Gerät, die Nummer gekürzt). Die Ausschlüsse sind Gesundheitsdaten; solange Frage F4 (Einwilligung) offen ist, lassen sie sich mit `PRIVACY.logExclusionValues = false` in `src/config.js` auf Typ und Herkunft reduzieren (auch in Profiländerungen).
@@ -159,6 +165,7 @@ Auf dem Handy im selben WLAN: `npm run dev -- --host` und die angezeigte Network
 | `npm test` | alle Tests (`src/**/*.test.js`), inkl. Komponententests mit jsdom |
 | `npm run build` | Produktions-Build in `dist/` |
 | `npm run preview` | Build lokal ansehen |
+| `npm run auswertung -- <export.json>` | Lernkurve und Kennzahlen aus JSON-Exporten (siehe [`docs/messkonzept.md`](docs/messkonzept.md), Abschnitt 10) |
 
 Jeder Push auf `main` testet, baut und veröffentlicht den Prototyp auf GitHub Pages (`.github/workflows/deploy.yml`).
 
@@ -166,7 +173,8 @@ Jeder Push auf `main` testet, baut und veröffentlicht den Prototyp auf GitHub P
 
 ```
 src/
-  config.js              Standardwerte (ROUND_CARD_LIMIT, TUTORIAL_ENABLED, IMAGE_STYLE, AUTH_ENABLED), URL-Parameter, Wischschwellen, Datenschutz
+  config.js              Standardwerte (ROUND_CARD_LIMIT, MAX_ROUNDS, SELECTION_MODE, HOLDOUT_CARDS, PREFERENCE_MODEL, TUTORIAL_ENABLED,
+                         IMAGE_STYLE, AUTH_ENABLED), URL-Parameter, Wischschwellen, Datenschutz
   labels.js              alle sichtbaren Texte
   theme/tokens.css       Design-Tokens (einzige Stelle für Gestaltungswerte)
   theme/motion.js        Animationsdauern aus den Tokens für JavaScript
@@ -185,7 +193,12 @@ src/
   logic/foodSearch.js    einheitliche Suche mit Synonymen, Mehrzahl, Tippfehlern, Kategorie und Hervorhebung
   logic/swipe.js         Wischgesten: Schwelle, Rückfederung, Deckkraft der Beschriftung
   logic/filter.js        isAllowed, isVisible, Hinweise auf Familienkarten
-  logic/engine.js        replay (Event-Log inkl. Profiländerungen), Runden, selectNextCards (Platzhalter), Fortschritt, computeProfile
+  logic/engine.js        replay (Event-Log inkl. Profiländerungen), Runden, Budget bis Runde 4, Kontrollkarten am Ende,
+                         Fortschritt, computeProfile, derivedEntries (Vermutungen)
+  logic/selection.js     adaptive Kartenauswahl (Regeln nach nurec v0.2) und feste Reihenfolge zum Vergleich
+  logic/preferences.js   Präferenzmodell: direkte Bewertungen und Vermutungen
+  logic/holdout.js       Kontrollkarten ziehen (geschichtet, Zufall aus der sessionId)
+  analysis/evaluation.js Auswertung: Lernkurve, Vergleichswerte, Bootstrap-Intervalle, Modellvarianten
   logic/profile.js       Ausschlüsse für „Mein Profil“ gruppieren
   logic/stage0.js        Ausschlüsse aus dem Onboarding ableiten
   logic/allergens.js     Auswahl und Suche in der Allergenliste
@@ -196,25 +209,47 @@ src/
   screens/               Willkommen, Registrierung (3), Willkommen zurück, Über dich, Fragebogen,
                          Zusammenfassung, Tutorial (aus), Runde, Abschluss, Mein Profil, Admin
   test/dom.js            kleine DOM-Umgebung (jsdom) für Komponententests
+  test/simulate.js       simulierte Testpersonen für Tests (keine echten Daten)
+docs/
+  messkonzept.md         Kontrollkarten, Kennzahlen, Vergleichswerte, Kriterium, Pilot
 scripts/
   test-setup.mjs         lädt JSX, JSON und CSS in node --test wie Vite
+  evaluate.mjs           npm run auswertung: liest JSON-Exporte, schreibt Lernkurve und Tabellen nach auswertung/
   check-mobile.py        Prüfung der Mobile-Kriterien (A11) mit Playwright
 ```
 
-## Logik austauschen (nächster Schritt)
+## Kartenauswahl
 
-Die Oberfläche ruft nur `nextCard(state, config)` auf, das intern `selectNextCards(state, config)` nutzt. Diese Funktion liefert heute eine feste Reihenfolge ohne Bezug auf die Antworten (`fixedOrder` in `src/logic/engine.js`): zuerst alle Gruppen, dann die Untergruppen abwechselnd aus allen Gruppen, je Runde höchstens das Rundenlimit. Stufe 3 kommt nicht vor. Sie trägt den Kommentar „TODO: Adaptive Logik folgt – Eigenleistung Team“. Bewusst noch nicht gebaut:
+Die Oberfläche ruft nur `nextCard(state, config)` auf, das intern `selectNextCards(state, config)` nutzt. Welche Karte kommt, entscheidet `rankedCards` in `src/logic/selection.js` (rein, getestet in `src/logic/selection.test.js`). Die Regeln stammen aus nurec v0.2, Kap. 4 und 6 [D] (Spalte `laterUse` in `src/logic/answers.js`); die Rangfolge ist ein eigener Entscheid [V].
 
-- Auswahl je nach Antwort (Stufe 1 → 2 → 3, z. B. nur Untergruppen von Gruppen mit „Mag ich“),
-- Nachtesten von Ausnahmen nach „Mag ich nicht“,
-- Unterkarte nach „Kenne ich nicht“,
-- gezielte Favoritensuche nach „Mag ich sehr“.
+| Rang | Karten | `selectionReason` |
+| --- | --- | --- |
+| 1 | „Kenne ich nicht“ bei einer Gruppe: sofort ein Kind derselben Gruppe, höchstens zwei, bis eines bewertet ist | `stage2_after_unfamiliar` |
+| 2 | Gruppen (Stufe 1), die noch nicht gefragt wurden | `stage1_family` |
+| 3 | Gruppe „Mag ich sehr“: alle Untergruppen (Favoriten finden) | `stage2_favorite` |
+| 4 | Untergruppe „Mag ich sehr“: ihre Sorten, z. B. Käse → Hartkäse (Stufe 3) | `stage3_favorite` |
+| 5 | Gruppe „Mag ich nicht“: eine Ausnahme nachtesten (die erste Untergruppe) | `stage2_exception` |
+| 6 | Gruppe „Mag ich“: Untergruppen unterscheiden; nach gefundener Ausnahme die übrigen; nach „Vertrage ich nicht“ für einen Teil höchstens zwei der übrigen | `stage2_differentiate`, `stage2_after_exception`, `stage2_after_intolerant` |
+| 7 | Untergruppe „Mag ich“: ihre Sorten | `stage3_detail` |
 
-Alle Funktionen sind rein. Bei jeder Änderung der Regeln `RULE_VERSION` erhöhen; sie steht in jedem Ereignis.
+- Innerhalb eines Rangs wechseln sich die Gruppen ab (nie zwei Karten derselben Gruppe hintereinander).
+- Was keine Regel trifft, wird nicht gefragt, sondern vermutet, z. B. die übrigen Untergruppen einer Gruppe „Mag ich nicht“ ohne Ausnahme. Gibt es keine sinnvolle Karte mehr, endet die Profilerstellung früher.
+- Massgebend ist die aktuelle direkte Bewertung, auch wenn sie im Profil geändert wurde. Harte Ausschlüsse wirken immer.
+- **Budget:** höchstens `MAX_ROUNDS` × Kartenlimit Karten (4 × 10 = 40). Die normale Auswahl bekommt nur so viele Plätze, dass am Ende alle Kontrollkarten Platz haben (bei 6 Kontrollkarten höchstens 34).
+- **Feste Reihenfolge** (`?selection=fixed`): wie in Version 0.6, als Vergleich. Auch sie hält die Kontrollkarten zurück.
+- Bei jeder Änderung der Regeln `RULE_VERSION` in `src/logic/engine.js` erhöhen (heute `demo-0.3`); sie steht in jedem Ereignis.
+
+## Präferenzmodell und Kontrollkarten
+
+- **Direkt:** Mag ich nicht −1, Mag ich +1, Mag ich sehr +2. „Kenne ich nicht“ und „Vertrage ich nicht“ sind kein Geschmack.
+- **Vermutet:** Eine Karte ohne eigene Bewertung erbt die Bewertung ihrer nächsten bewerteten Gruppe, pro Stufe mit dem Faktor 0.5 abgeschwächt. „Mag ich sehr“ wird nie vermutet. Variante für die Auswertung: bewertete Geschwister zählen mit (`siblingWeight`, Standard 0 = aus).
+- Alle Zahlen sind Annahmen [V] (`PREFERENCE_MODEL` in `src/config.js`). Ohne Geschwister hängt die Richtung einer Vermutung nur am Vorzeichen; Faktor und Gewichte ändern die Trefferquote nicht (Test in `src/logic/preferences.test.js`).
+- **Kontrollkarten:** Nach „Stimmt so“ zieht die App pro Person 6 Untergruppen zufällig (eine pro Gruppe, Zufall aus der `sessionId`, Ereignis `HOLDOUT_DRAWN`). Sie kommen nie in der Auswahl vor, sondern am Ende der letzten Runde, und sehen aus wie alle anderen Karten. An ihnen prüft die Auswertung, ob die Vermutungen stimmen.
+- **Auswertung:** `npm run auswertung -- <export.json>` rechnet aus dem Protokoll nach, was die App nach k Antworten vermutet hätte (Lernkurve), mit den Vergleichswerten „immer Mag ich“ und „andere Personen“ und 95-%-Intervallen. Alles Weitere, auch Kriterium und Pilottest: [`docs/messkonzept.md`](docs/messkonzept.md).
 
 ## Mobile-Kriterien
 
-Geprüft bei 360 × 640 und 430 × 932 auf allen 26 Bildschirmen (inkl. Registrierung mit SMS-Mitteilung, Detailauswahl, Zusammenfassung mit „Ändern“, Bestätigung, Abschluss, Runde 2, Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ sowie „Willkommen zurück“), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
+Geprüft bei 360 × 640 und 430 × 932 auf allen 28 Bildschirmen (inkl. Registrierung mit SMS-Mitteilung, Detailauswahl, Zusammenfassung mit „Ändern“, Bestätigung, Abschluss, Runde 2, Bewertung, Vermutungen der App mit Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“ sowie „Willkommen zurück“), mit 100 % und 130 % Schrift: kein horizontaler Scroll, Touch-Ziele ≥ 44 × 44 CSS-px, Textkontrast ≥ 4.5:1 (axe-core), jeder Text ≥ 18 px, bei 130 % Schrift wird nichts abgeschnitten, `prefers-reduced-motion` wird respektiert. In der Runde füllt der Kartenstapel den Platz zwischen Fortschritt und Knöpfen; auf kleinen Bildschirmen wird nur das Kartenbild kleiner, damit alle Knöpfe und „Vertrage ich nicht“ ohne Scrollen sichtbar bleiben. Auf hohen Handys ist der Stapel begrenzt, damit das Foto nicht zu stark beschnitten wird.
 
 Die Prüfung ist wiederholbar: `npm run build && npm run preview`, dann in einem zweiten Terminal `python3 scripts/check-mobile.py` und `python3 scripts/check-mobile.py 1.3` (130 % Schrift). Voraussetzung: `pip install playwright` und `python -m playwright install chromium`.
 
@@ -246,14 +281,14 @@ Ausserdem:
 - Erdnüsse: Es gibt keine Erdnuss-Karte. Eine Erdnussallergie blendet beim Wischen deshalb noch nichts aus. Umgekehrt schliesst „Alle Nüsse (inkl. Erdnüsse)“ auch Erdnüsse aus, wer nur Baumnüsse meint.
 - Marken und Herkunft: Wirkung erst mit Produktdaten (z. B. von nurec).
 - Echte SMS über Firebase: Die Handynummer geht für die einmalige Registrierung an Google (USA). Teamentscheid 15.10.: in Ordnung; im Einwilligungstext der Studie erwähnen (Frage F4). Kosten pro SMS über den Blaze-Tarif. Für Testpersonen ohne eigenes Handy `?sms=sim`.
-- Stufe 4 (Gerichte, z. B. „Pizza Margherita“) folgt später; die Gerichte der Nährwertdatenbank sind deshalb noch nicht in der Suche.
+- Stufe 4 (Gerichte, z. B. „Pizza Margherita“) folgt später; die Gerichte der Nährwertdatenbank sind deshalb noch nicht in der Suche. Abgrenzung mit Tibor siehe unten.
 - Soll die Registrierung in der Nutzerstudie aktiv sein? Sie kostet Zeit vor dem Swipen (auswertbar über `AUTH_STARTED`/`AUTH_COMPLETED`). Abschaltbar mit `AUTH_ENABLED = false`.
 - Dürfen Testpersonen ihr Profil während der Studie bearbeiten? Jede Änderung ist im Log nachvollziehbar, verändert aber das angezeigte Profil.
 - Synonyme: unsichere Begriffe in `synonymTodos` (z. B. „Baumnuss“ für Walnuss vs. Kartentitel „Baumnüsse“, Peperoni in Deutschland).
 - Glutenfreie Varianten: Früher hiess es „Nur glutenfrei“, mit Tags entfällt die Familie Brot bei „Alles mit Gluten“ ganz.
 - „Alkohol“ als Schnellauswahl in Frage 3 fehlt, weil der Katalog keinen passenden Tag hat.
 - Werden die neuen Begriffe im Pilot verstanden?
-- Standardwert für das Kartenlimit (heute 10 Karten je Runde; Runde 1 zeigt 10 von 13 Gruppen).
+- Standardwert für das Kartenlimit (heute 10 Karten je Runde; Runde 1 zeigt 10 von 13 Gruppen, Runde 2 beginnt mit den übrigen 3).
 - Wird „Vertrage ich nicht“ übersehen oder mit „Mag ich nicht“ verwechselt? Im Pilot über `inputMethod = link` und Rückgängig-Ereignisse auswertbar.
 - Tutorial: seit dem 13.10. aus. Ein Pilot-Vergleich ist mit `TUTORIAL_ENABLED = true` möglich (nicht über die URL).
 - Zusammenfassung vor dem ersten Swipe: am 13.10. entfernt, am 14.10. in kurzer Form wieder eingebaut, weil nurec v0.2, Kap. 2.2 [D] sie verlangt („Die Person bestätigt oder korrigiert jede Regel.“). Mit dem Team bestätigen. Wie lange sie dauert, zeigt das Protokoll (Bildschirmwechsel, `stage0_edit`, `stage0_confirm`).
@@ -266,7 +301,10 @@ Ausserdem:
 - Bildlizenzen: alle 46 Fotos unter der Unsplash License (keine Unsplash+-Bilder, Stand 14.10.2026); Nachweise mit APA 7 in `src/data/image-credits.json`. Vor der Abgabe Namen und Titel prüfen (z. B. „David Foodphototasty“ ist ein Künstlername) und klären, ob nurec für eine spätere Nutzung eigene Fotos braucht.
 - Fotos oder Illustrationen (`IMAGE_STYLE`): mit Tibor abstimmen oder im Pilot vergleichen. Ob die Fotos die Bewertung beeinflussen (Annahme 5), im Pilot beobachten; die Fotos stammen von vielen Fotografen und sind nicht alle im gleichen Licht.
 - Fotos fehlen für **Vollkornpasta** und **Pasta aus Hülsenfrüchten**: In den gespeicherten Unsplash-Suchen gab es kein passendes freies Foto (die Live-Suche ist durch eine Bot-Sperre blockiert). Die Karten zeigen die Pasta-Illustration; das Bildraster „Pasta“ zeigt drei Weizenpasten. Nachliefern, z. B. mit einem eigenen Foto oder einem Unsplash- bzw. Pexels-Zugang.
-- Runden 2 bis 4 in fester Reihenfolge sind ein Platzhalter: Sie fragen auch Untergruppen ab, deren Gruppe jemand nicht mag. Die Auswahl je nach Antwort ist Eigenleistung des Teams.
+- Adaptive Auswahl und Präferenzmodell (Version 0.7): Rangfolge der Regeln, Annahmen (−1/+1/+2, Faktor 0.5, ohne Geschwister) und Kriterium „aussagekräftig“ im Team bestätigen, im Pilot prüfen und vor der Hauptstudie festschreiben (Messkonzept, Abschnitte 5 und 6).
+- Eigenleistung: Auswahl, Modell und Auswertung wurden mit Claude Code umgesetzt. Mit Tibor klären, wie das deklariert wird.
+- Kontrollkarten am Ende der letzten Runde: Wer vorher aufhört, liefert keine. In der Studie deshalb bis zum Abschluss der letzten Runde führen (die Ansicht für die Testleitung zeigt den Stand).
+- Gerichte (Stufe 4): Falls Mahlzeiten verbindlich zur Aufgabenstellung gehören, mit Tibor klären, ob Stufe 4 für die Studie nötig ist; die Messung deckt heute nur Lebensmittelgruppen ab.
 - Rückmeldung Team (12.10.) statt A7: Eingetippte Notizen blenden das Wort als Beispiel aus, schliessen aber keine Gruppe aus. Bestätigen, dass das so bleiben soll.
 
 ## Quelle

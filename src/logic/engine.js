@@ -9,14 +9,17 @@
 //
 // Alle Funktionen sind rein (kein Zufall, keine Uhrzeit).
 
-import { MAX_ROUNDS } from '../config.js';
+import { MAX_ROUNDS, PREFERENCE_MODEL } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, RESPONSE_SEMANTICS, RESPONSES, UNDO, UNFAMILIAR, isTasteSignal } from './answers.js';
-import { ANSWER, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED, SOURCE_PROFILE, eventType, isProfileEvent } from './events.js';
+import { ANSWER, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, HOLDOUT_DRAWN, RATING_CHANGED, SOURCE_PROFILE, eventType, isProfileEvent } from './events.js';
 import { annotateCard, buildExclusions, isVisible } from './filter.js';
+import { predictedRating, predictScores } from './preferences.js';
 import { sectionOf } from './profile.js';
+import { isDone, rankedCards, REASONS } from './selection.js';
 import { SOURCE_SWIPE } from './stage0.js';
 
-export const RULE_VERSION = 'demo-0.2';
+// demo-0.3: adaptive Kartenauswahl, Kontrollkarten und Präferenzmodell (Version 0.7)
+export const RULE_VERSION = 'demo-0.3';
 
 // Antwort-Ereignis (so wird es auch protokolliert, siehe logging/logger.js):
 // { cardId, stage, parentId, round, positionInRound, response, timestamp, responseTimeMs,
@@ -93,7 +96,8 @@ function applyEvents(events, played, onboarding) {
     } else if (type === DIET_CHANGED) {
       diet = event.diet ?? null;
     } else if (type === RATING_CHANGED) {
-      ratingChanges[event.cardId] = { rating: event.rating ?? null, at };
+      const fromPrediction = Boolean(event.fromPrediction) || Boolean(ratingChanges[event.cardId]?.fromPrediction);
+      ratingChanges[event.cardId] = { rating: event.rating ?? null, at, fromPrediction };
     }
   });
 
@@ -104,73 +108,102 @@ function applyEvents(events, played, onboarding) {
     const change = ratingChanges[cardId];
     ratings[cardId] = change && change.at > played.answeredAt[cardId] ? change.rating : played.answers[cardId];
   }
-  return { entries, diet, ratings };
+  // Vermutungen, die jemand im Profil direkt bewertet hat (fromPrediction): Karten ohne Antwort beim Wischen.
+  const profileRated = [];
+  for (const [cardId, change] of Object.entries(ratingChanges)) {
+    if (cardId in played.answers || !change.fromPrediction) continue;
+    ratings[cardId] = change.rating;
+    profileRated.push(cardId);
+  }
+  return { entries, diet, ratings, profileRated };
+}
+
+// Kontrollkarten: die Karten des letzten HOLDOUT_DRAWN-Ereignisses.
+function holdoutOf(events) {
+  let cardIds = [];
+  for (const event of events) if (eventType(event) === HOLDOUT_DRAWN) cardIds = [...(event.cardIds ?? [])];
+  return cardIds;
 }
 
 // Gesamter Zustand aus Katalog, Onboarding und Ereignissen.
 // onboarding: Ergebnis von deriveOnboarding() (diet, exclusions, cardLabels, …).
 // round: laufende Runde. roundSequence sind die Karten dieser Runde, lastEvent ist die letzte Antwort
 // dieser Runde (Rückgängig wirkt nie in eine abgeschlossene Runde hinein).
+// holdout: Kontrollkarten (Messkonzept). profileRated: im Profil direkt bewertete Vermutungen.
 export function deriveRoundState({ index, onboarding, diets, events = [], round = 1 }) {
   const played = replay(events);
-  const { entries, diet, ratings } = applyEvents(events, played, onboarding);
+  const { entries, diet, ratings, profileRated } = applyEvents(events, played, onboarding);
   const exclusions = buildExclusions(entries, { diet, diets, index });
   const roundSequence = played.sequence.filter((id) => played.answeredInRound[id] === round);
   const lastEvent = roundOfEvent(played.lastEvent) === round ? played.lastEvent : null;
-  return { index, onboarding, entries, exclusions, diet, ratings, cardLabels: onboarding?.cardLabels ?? {}, ...played, round, roundSequence, lastEvent };
+  return {
+    index,
+    onboarding,
+    entries,
+    exclusions,
+    diet,
+    ratings,
+    profileRated,
+    holdout: holdoutOf(events),
+    cardLabels: onboarding?.cardLabels ?? {},
+    ...played,
+    round,
+    roundSequence,
+    lastEvent,
+  };
 }
 
 function answeredCount(state) {
   return (state.roundSequence ?? state.sequence).filter((id) => RESPONSE_SEMANTICS[state.answers[id]]?.countsTowardLimit).length;
 }
 
-// Feste Reihenfolge über alle Runden: zuerst die Gruppen (Stufe 1) in Katalogreihenfolge, dann die
-// Untergruppen (Stufe 2) abwechselnd aus allen Gruppen (von jeder Gruppe die erste, dann die zweite …),
-// damit eine Runde nicht nur aus einer Gruppe besteht.
-function fixedOrder(index) {
-  const families = index.cards.filter((card) => card.stage === 1);
-  const children = families.map((family) => index.childrenOf(family.id).filter((card) => card.stage === 2));
-  const subgroups = [];
-  const longest = Math.max(0, ...children.map((list) => list.length));
-  for (let position = 0; position < longest; position += 1) {
-    for (const list of children) if (list[position]) subgroups.push(list[position]);
-  }
-  return [...families, ...subgroups];
+// Kontrollkarten, die noch gezeigt werden: sichtbar (Ausschlüsse können sich im Profil ändern) und offen.
+export function openHoldout(state) {
+  return (state.holdout ?? [])
+    .map((id) => state.index.get(id))
+    .filter((card) => card && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions));
 }
 
-// Noch offene Karten über alle Runden: sichtbar nach den harten Ausschlüssen und noch nicht beantwortet.
-function openCards(state) {
-  return fixedOrder(state.index).filter((card) => !(card.id in state.answers) && isVisible(card, state.index, state.exclusions));
-}
-
-// Welche Karten als Nächstes gezeigt werden.
+// Welche Karten in dieser Runde noch kommen.
 //
-// TODO: Adaptive Logik folgt – Eigenleistung Team.
-// Aktuell bewusst nur: feste Reihenfolge (fixedOrder) ohne Bezug auf die bisherigen Antworten,
-// je Runde höchstens das Kartenlimit, insgesamt höchstens MAX_ROUNDS Runden. Runde 1 zeigt die Gruppen,
-// die folgenden Runden die übrigen Gruppen und danach die Untergruppen. Harte Ausschlüsse wirken immer (isVisible).
-// Nicht umgesetzt (A2): Auswahl je nach Antwort (Stufe 1 → 2 → 3), Nachtesten von Ausnahmen nach
-// DISLIKE, Unterkarte nach UNFAMILIAR, Favoritensuche nach PREFER.
+// Auswahl: src/logic/selection.js (config.selection: 'adaptive' oder 'fixed'; ohne Angabe 'fixed').
+// Je Runde höchstens das Kartenlimit, insgesamt höchstens MAX_ROUNDS Runden. Die Kontrollkarten kommen
+// immer zuletzt: Die normale Auswahl bekommt nur so viele Plätze, dass bis zum Ende von Runde MAX_ROUNDS
+// alle Kontrollkarten Platz haben. Endet die Auswahl früher (keine sinnvolle Karte mehr), folgen sie direkt.
 export function selectNextCards(state, config) {
   if (state.round > MAX_ROUNDS) return [];
   const remaining = config.roundCardLimit - answeredCount(state);
   if (remaining <= 0) return [];
-  return openCards(state).slice(0, remaining);
+  const checks = openHoldout(state);
+  const slotsLeft = (MAX_ROUNDS - state.round) * config.roundCardLimit + remaining;
+  const main = rankedCards(state, config.selection)
+    .slice(0, Math.max(0, slotsLeft - checks.length))
+    .map((entry) => entry.card);
+  return [...main, ...checks].slice(0, remaining);
 }
 
 // Gibt es nach dieser Runde noch eine erlaubte weitere Runde mit offenen Karten?
 // nextRoundCards: die Karten der nächsten Runde (für den Ausblick im Abschluss).
-export function hasMoreCards(state) {
-  return state.round < MAX_ROUNDS && openCards(state).length > 0;
+export function hasMoreCards(state, config = {}) {
+  return state.round < MAX_ROUNDS && (rankedCards(state, config.selection).length > 0 || openHoldout(state).length > 0);
 }
 
 export function nextRoundCards(state, config) {
-  if (!hasMoreCards(state)) return [];
-  return openCards(state).slice(0, config.roundCardLimit);
+  if (!hasMoreCards(state, config)) return [];
+  return selectNextCards({ ...state, round: state.round + 1, roundSequence: [], lastEvent: null }, config);
 }
 
-export function selectionReason(state, card) {
-  return card?.stage === 2 ? 'stage2_fixed_order' : 'stage1_fixed_order';
+// Warum eine Karte gezeigt wird (Feld selectionReason im Protokoll, Gründe in selection.js).
+export function selectionReason(state, card, config = {}) {
+  if (!card) return null;
+  if ((state.holdout ?? []).includes(card.id)) return REASONS.HOLDOUT;
+  const entry = rankedCards(state, config.selection).find((ranked) => ranked.card.id === card.id);
+  return entry?.reason ?? (card.stage === 1 ? REASONS.FIXED_STAGE1 : REASONS.FIXED_STAGE2);
+}
+
+// Kontrollkarte oder normale Auswahl (Feld phase im Protokoll).
+export function isHoldoutCard(state, cardId) {
+  return (state.holdout ?? []).includes(cardId);
 }
 
 // Karte für die Anzeige: Familien zeigen nur erlaubte Beispiele und Hinweise wie „Ohne Haselnüsse“.
@@ -203,26 +236,56 @@ export function eligibleFamilies(state) {
   return state.index.cards.filter((card) => card.stage === 1 && isVisible(card, state.index, state.exclusions));
 }
 
+// Karten mit direkter Bewertung in der Reihenfolge der Antworten: zuerst beim Wischen, dann im Profil
+// bestätigte Vermutungen.
+function ratedIds(state) {
+  return [...state.sequence, ...(state.profileRated ?? [])];
+}
+
 // Geschmacksprofil für „Mein Profil“: gruppiert nur nach der letzten direkten Antwort pro Karte
-// (beim Wischen oder später im Profil geändert). Reine Funktion.
-// TODO: Score-Modell, Gewichtung und Ableitung nicht abgefragter Lebensmittel folgen – Eigenleistung Team
-// Bewusst ohne Prozentwerte, ohne abgeleitete Einträge und ohne Gewichtung.
+// (beim Wischen oder später im Profil geändert). Reine Funktion, ohne Prozentwerte und ohne Vermutungen
+// (die stehen getrennt in derivedEntries).
 export function computeProfile(state) {
   const groups = { [PREFER]: [], [LIKE]: [], [DISLIKE]: [], [UNFAMILIAR]: [] };
   const intolerant = [];
   const removed = [];
-  for (const id of state.sequence) {
+  for (const id of ratedIds(state)) {
     const rating = state.ratings ? state.ratings[id] : state.answers[id];
-    if (rating === null) removed.push(id);
-    else if (rating in groups) groups[rating].push(id);
+    if (rating === null) {
+      if (id in state.answers) removed.push(id);
+    } else if (rating in groups) groups[rating].push(id);
     else if (rating === INTOLERANT) intolerant.push(id);
   }
   return { groups, intolerant, removed, answered: state.sequence.length };
 }
 
+// Vermutungen der App für „Mein Profil“ (preferences.js), getrennt von den direkten Bewertungen:
+// nur Untergruppen und Sorten, die sichtbar und noch nicht bewertet sind. Kontrollkarten erscheinen erst,
+// wenn sie beantwortet sind (sonst könnte die Vermutung die Antwort beeinflussen).
+// Jeder Eintrag: { cardId, score, rating (LIKE | DISLIKE), basisId, basisRating }, stärkste Vermutung zuerst.
+export function derivedEntries(state, model = PREFERENCE_MODEL) {
+  const ratings = state.ratings ?? state.answers;
+  const predictions = predictScores(state.index, ratings, model);
+  const holdout = new Set(state.holdout ?? []);
+  const order = new Map(state.index.cards.map((card, position) => [card.id, position]));
+  return state.index.cards
+    .filter((card) => card.stage > 1 && !isDone(state, card.id) && !holdout.has(card.id) && isVisible(card, state.index, state.exclusions))
+    .map((card) => ({ card, prediction: predictions.get(card.id) }))
+    .filter(({ prediction }) => prediction && !prediction.direct && predictedRating(prediction.score))
+    .map(({ card, prediction }) => ({
+      cardId: card.id,
+      score: prediction.score,
+      rating: predictedRating(prediction.score),
+      basisId: prediction.basisId,
+      basisRating: ratings[prediction.basisId] ?? null,
+    }))
+    .sort((a, b) => Math.abs(b.score) - Math.abs(a.score) || order.get(a.cardId) - order.get(b.cardId));
+}
+
 // Profil, wie es am Ende angezeigt (und protokolliert) wird.
 // Nur Geschmackssignale (DISLIKE, LIKE, PREFER) erscheinen als Geschmack.
 // UNFAMILIAR und UNRATED sind keine Bewertung; INTOLERANT ist ein Ausschluss, kein Geschmack.
+// predicted: Vermutungen (getrennt, nie als Geschmack gezählt), für die Auswertung.
 export function buildProfile(state) {
   const { groups, intolerant, removed } = computeProfile(state);
   const unrated = state.index.cards
@@ -235,6 +298,7 @@ export function buildProfile(state) {
     unrated,
     intolerant,
     removed,
+    predicted: derivedEntries(state).map(({ cardId, score, basisId }) => ({ cardId, score, basisId })),
     diet: state.diet ?? null,
     exclusions: state.entries.map(({ type, value, source, origin, label }) => ({ type, value, source, origin: origin ?? null, label: label ?? null })),
   };
@@ -287,5 +351,7 @@ export function collapseIntolerance(state, card, selectedIds) {
 // INTOLERANT ist nie dabei.
 export function tasteSignals(state) {
   const current = (id) => (state.ratings ? state.ratings[id] : state.answers[id]);
-  return state.sequence.filter((id) => isTasteSignal(current(id))).map((id) => ({ cardId: id, response: current(id) }));
+  return ratedIds(state)
+    .filter((id) => isTasteSignal(current(id)))
+    .map((id) => ({ cardId: id, response: current(id) }));
 }

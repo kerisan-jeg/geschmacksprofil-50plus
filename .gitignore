@@ -5,3 +5,5 @@ dist
 # Firebase-Werte für die lokale Entwicklung (siehe README)
 .env.local
 __pycache__/
+# Auswertung echter Sitzungen (Gesundheitsdaten): nie ins Repo
+auswertung/

@@ -7,6 +7,7 @@ import Avatar from '../components/Avatar.jsx';
 import ChoiceList from '../components/ChoiceList.jsx';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import CreationSteps from '../components/CreationSteps.jsx';
+import DerivedTaste from '../components/DerivedTaste.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import FoodSearch from '../components/FoodSearch.jsx';
 import RatingChip from '../components/RatingChip.jsx';
@@ -15,7 +16,7 @@ import Sheet from '../components/Sheet.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
 import { allPhotos } from '../lib/images.js';
 import { allergenLabel } from '../logic/allergens.js';
-import { computeProfile } from '../logic/engine.js';
+import { computeProfile, derivedEntries } from '../logic/engine.js';
 import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 import { buildExclusions } from '../logic/filter.js';
 import { buildFoodIndex } from '../logic/foodSearch.js';
@@ -73,9 +74,9 @@ function exclusionsForHit(hit, { allergens, index }) {
   return [{ type, value, label: hit.label }];
 }
 
-// „Mein Profil“: Geschmack (gruppiert nach der letzten direkten Antwort pro Karte) und getrennt davon
-// die Ausschlüsse mit ihrer Herkunft. Jede Änderung wird ein Ereignis im Event-Log (source "profile").
-// Keine Berechnung, keine Prozentwerte (Score-Modell: Eigenleistung Team).
+// „Mein Profil“: Geschmack (gruppiert nach der letzten direkten Antwort pro Karte), getrennt davon die
+// Vermutungen der App (preferences.js) und die Ausschlüsse mit ihrer Herkunft. Jede Änderung wird ein
+// Ereignis im Event-Log (source "profile"). Keine Prozentwerte.
 export default function ProfileScreen({ round, onboarding, account, index, allergens, foods, dietOptions, steps, canSignOut, onCreate, onRestart, onSignOut, onChange }) {
   const [sheet, setSheet] = useState(null);
   const [confirm, setConfirm] = useState(null);
@@ -104,6 +105,7 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
 
   const profile = computeProfile(round);
   const groups = profile.groups;
+  const derived = derivedEntries(round);
   const hasTaste = TASTE_GROUPS.some((answer) => groups[answer].length > 0);
   const sections = groupExclusions(round.entries, { allergens, index });
   const diet = dietOptions.options.find((option) => option.id === round.diet);
@@ -162,6 +164,7 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
   }
 
   const ratingCard = sheet?.type === 'rating' ? index.get(sheet.cardId) : null;
+  const predictionCard = sheet?.type === 'prediction' ? index.get(sheet.entry.cardId) : null;
 
   return (
     <main className="screen screen-profile">
@@ -230,6 +233,8 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
           );
         })}
       </section>
+
+      <DerivedTaste entries={derived} index={index} onSelect={(entry) => setSheet({ type: 'prediction', entry })} />
 
       <section className="stack" aria-labelledby="exclusions-title">
         <div className="stack-tight">
@@ -345,6 +350,20 @@ export default function ProfileScreen({ round, onboarding, account, index, aller
           }}
           onRemove={() => {
             onChange.rating(ratingCard.id, null, round.ratings[ratingCard.id]);
+            close();
+          }}
+        />
+      )}
+
+      {predictionCard && (
+        <RatingSheet
+          card={predictionCard}
+          rating={null}
+          intro={PROFILE.derived.sheetIntro(sheet.entry.rating)}
+          note={PROFILE.derived.sheetNote}
+          onClose={close}
+          onChange={(rating) => {
+            onChange.confirmPrediction(predictionCard.id, rating, sheet.entry.score);
             close();
           }}
         />

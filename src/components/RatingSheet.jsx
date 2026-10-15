@@ -10,7 +10,8 @@ const RATINGS = [DISLIKE, LIKE, PREFER];
 // Bewertung eines Eintrags ändern: Segmented Control mit den drei Bewertungen (Farbe, Symbol, Text)
 // und „Aus dem Profil entfernen“. Jede Änderung wird ein Ereignis RATING_CHANGED (source "profile");
 // die ursprüngliche Antwort beim Wischen bleibt im Protokoll.
-export default function RatingSheet({ card, rating, onChange, onRemove, onClose }) {
+// Für Vermutungen der App: eigener Einleitungssatz (intro) und Hinweis (note), ohne „Entfernen“ (onRemove fehlt).
+export default function RatingSheet({ card, rating, intro = PROFILE.ratingLabel, note = PROFILE.ratingNote, onChange, onRemove, onClose }) {
   const groupRef = useRef(null);
 
   // Pfeiltasten wie bei Radio-Knöpfen
@@ -24,7 +25,7 @@ export default function RatingSheet({ card, rating, onChange, onRemove, onClose 
   }
 
   return (
-    <Sheet title={card.title} intro={PROFILE.ratingLabel} onClose={onClose}>
+    <Sheet title={card.title} intro={intro} onClose={onClose}>
       <div className="segmented" role="radiogroup" aria-label={PROFILE.ratingLabel} ref={groupRef} onKeyDown={handleKey}>
         {RATINGS.map((answer) => {
           const { Icon, label, tone } = ANSWER_META[answer];
@@ -45,13 +46,15 @@ export default function RatingSheet({ card, rating, onChange, onRemove, onClose 
           );
         })}
       </div>
-      <p className="note">{PROFILE.ratingNote}</p>
-      <div className="sheet-actions is-stacked">
-        <button type="button" className="button-secondary button-remove" onClick={onRemove}>
-          <Trash2 aria-hidden="true" />
-          {PROFILE.ratingRemove}
-        </button>
-      </div>
+      <p className="note">{note}</p>
+      {onRemove && (
+        <div className="sheet-actions is-stacked">
+          <button type="button" className="button-secondary button-remove" onClick={onRemove}>
+            <Trash2 aria-hidden="true" />
+            {PROFILE.ratingRemove}
+          </button>
+        </div>
+      )}
     </Sheet>
   );
 }

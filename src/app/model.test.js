@@ -159,8 +159,17 @@ test('Nach Runde 1 geht es mit Runde 2 weiter; Rundennummer im Zustand und in de
 });
 
 test('Die Profilerstellung endet unabhängig vom Kartenlimit spätestens nach Runde 4', () => {
-  for (const [roundCardLimit, expectedRounds, expectedAnswers] of [[4, 4, 16], [10, 4, 40], [30, 2, 49]]) {
-    let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit }));
+  // Alles „Mag ich“: Die feste Reihenfolge kennt 49 Karten (Stufe 1 und 2), die adaptive Auswahl fragt bei
+  // „Mag ich“ auch die Sorten (Stufe 3) und kennt 63.
+  for (const [selection, roundCardLimit, expectedRounds, expectedAnswers] of [
+    ['fixed', 4, 4, 16],
+    ['fixed', 10, 4, 40],
+    ['fixed', 30, 2, 49],
+    ['adaptive', 4, 4, 16],
+    ['adaptive', 10, 4, 40],
+    ['adaptive', 30, 3, 63],
+  ]) {
+    let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit, selection, holdout: 0 }));
     while (state.screen === SCREENS.ROUND) {
       assert.ok(state.roundNumber <= 4, `Kartenlimit ${roundCardLimit}: keine fünfte Runde`);
       while (state.screen === SCREENS.ROUND) {

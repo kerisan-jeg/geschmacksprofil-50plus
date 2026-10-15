@@ -7,8 +7,13 @@
 // EXCLUSION_ADDED   Ausschluss im Profil hinzugefügt: { section, exclusions: [{ type, value, label?, origin? }] }
 // EXCLUSION_REMOVED Ausschluss im Profil entfernt: { section, exclusions: [{ type, value }] }
 // DIET_CHANGED      Ernährungsweise im Profil geändert: { diet, previousDiet }
+//                   Bestätigt jemand eine Vermutung der App im Profil, steht dabei fromPrediction: true und
+//                   predictedScore (die Vermutung vorher); die Karte gilt danach als direkt bewertet.
 // AUTH_STARTED      Registrierung begonnen (Vorname eingeben), AUTH_COMPLETED: SMS-Code bestätigt.
 //                   Damit lässt sich die Dauer der Registrierung getrennt von der Swipe-Dauer auswerten.
+// HOLDOUT_DRAWN     Kontrollkarten gezogen (nach „Stimmt so“): { cardIds, method, eligible }. Diese Karten
+//                   kommen nie in der Auswahl vor, sondern erst am Ende der letzten Runde (Messkonzept).
+//                   Es gilt das letzte Ereignis dieses Typs.
 // Profiländerungen tragen immer source = "profile".
 
 export const ANSWER = 'ANSWER';
@@ -18,6 +23,11 @@ export const EXCLUSION_REMOVED = 'EXCLUSION_REMOVED';
 export const DIET_CHANGED = 'DIET_CHANGED';
 export const AUTH_STARTED = 'AUTH_STARTED';
 export const AUTH_COMPLETED = 'AUTH_COMPLETED';
+export const HOLDOUT_DRAWN = 'HOLDOUT_DRAWN';
+
+// Phase einer Antwort beim Wischen (Feld phase im ANSWER-Ereignis)
+export const PHASE_MAIN = 'main';
+export const PHASE_HOLDOUT = 'holdout';
 
 export const PROFILE_EVENTS = [RATING_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, DIET_CHANGED];
 export const SOURCE_PROFILE = 'profile';

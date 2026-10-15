@@ -4,10 +4,8 @@
 // Ergänzt um INTOLERANT („Vertrage ich nicht“) und UNDO (Rückgängig) [V], siehe Addendum A4 und A8.
 // Die sichtbaren Beschriftungen stehen ausschliesslich in src/labels.js.
 //
-// Wichtig für die spätere adaptive Logik (Eigenleistung Team, A2): Die Felder unter
-// RESPONSE_SEMANTICS beschreiben, was eine Antwort bedeutet. Was das System daraufhin
-// als nächste Karte zeigt, ist bewusst NICHT umgesetzt. Die Spalte `laterUse` hält fest,
-// wofür das Signal gedacht ist, ohne es zu verwenden.
+// Die Felder unter RESPONSE_SEMANTICS beschreiben, was eine Antwort bedeutet. Die Spalte `laterUse` hält
+// fest, wofür das Signal gedacht ist; seit Version 0.7 setzt src/logic/selection.js das um (adaptive Auswahl).
 
 export const DISLIKE = 'DISLIKE';
 export const LIKE = 'LIKE';
@@ -33,28 +31,28 @@ export const RESPONSE_SEMANTICS = {
     hardExclusion: false,
     countsTowardLimit: true,
     meaning: 'Überwiegend ungern. Kein Ausschluss: Ausnahmen bleiben möglich (nurec v0.2, Kap. 4).',
-    laterUse: 'Eine plausible Ausnahme in Stufe 2 nachtesten (nurec v0.2, Kap. 6). Noch nicht umgesetzt.',
+    laterUse: 'Eine plausible Ausnahme in Stufe 2 nachtesten (nurec v0.2, Kap. 6). Umgesetzt: selection.js, stage2_exception.',
   },
   [LIKE]: {
     taste: true,
     hardExclusion: false,
     countsTowardLimit: true,
     meaning: 'Grundsätzlich gern. Kein automatisches LIKE für jedes einzelne Mitglied.',
-    laterUse: 'Ausgewählte Unterschiede vertiefen. Noch nicht umgesetzt.',
+    laterUse: 'Ausgewählte Unterschiede vertiefen. Umgesetzt: selection.js, stage2_differentiate.',
   },
   [PREFER]: {
     taste: true,
     hardExclusion: false,
     countsTowardLimit: true,
     meaning: 'Besonders gern (im Kickoff „Superlike“). Macht nicht jedes Mitglied zum Favoriten.',
-    laterUse: 'Konkrete Favoriten gezielt erfragen. Noch nicht umgesetzt.',
+    laterUse: 'Konkrete Favoriten gezielt erfragen. Umgesetzt: selection.js, stage2_favorite und stage3_favorite.',
   },
   [UNFAMILIAR]: {
     taste: false,
     hardExclusion: false,
     countsTowardLimit: true,
     meaning: 'Keine Geschmacksbewertung. Die Gruppe bleibt unbekannt, sie ist kein neutrales „mag ich“.',
-    laterUse: 'Sofort ein bekanntes Kind derselben Familie zeigen, höchstens zwei. Noch nicht umgesetzt.',
+    laterUse: 'Sofort ein bekanntes Kind derselben Familie zeigen, höchstens zwei. Umgesetzt: selection.js, stage2_after_unfamiliar.',
   },
   [INTOLERANT]: {
     taste: false,

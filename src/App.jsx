@@ -7,8 +7,9 @@ import { isAdminMode, resolveConfig } from './config.js';
 import { ImageFilterContext, ImageStyleContext } from './lib/images.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
-import { buildProfile, eligibleFamilies, nextRoundCards, RULE_VERSION, selectionReason } from './logic/engine.js';
-import { ANSWER, AUTH_COMPLETED, AUTH_STARTED, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED, SOURCE_PROFILE } from './logic/events.js';
+import { buildProfile, eligibleFamilies, isHoldoutCard, nextRoundCards, RULE_VERSION, selectionReason } from './logic/engine.js';
+import { ANSWER, AUTH_COMPLETED, AUTH_STARTED, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, HOLDOUT_DRAWN, PHASE_HOLDOUT, PHASE_MAIN, RATING_CHANGED, SOURCE_PROFILE } from './logic/events.js';
+import { drawHoldout } from './logic/holdout.js';
 import { createRedundancyCheck } from './logic/stage0.js';
 import { mergeFoods } from './logic/foodSearch.js';
 import { summarySections } from './logic/profile.js';
@@ -37,7 +38,8 @@ import AdminScreen from './screens/AdminScreen.jsx';
 
 // Ablauf „Profil erstellen“: Begrüssung → Registrierung (Vorname, Handynummer, SMS-Code) → Über dich →
 // Fragebogen (Stufe 0) → Zusammenfassung → höchstens vier Runden mit Abschluss (Tutorial vor Runde 1 nur mit
-// TUTORIAL_ENABLED).
+// TUTORIAL_ENABLED). Die Karten wählt src/logic/selection.js je nach Antwort; die Kontrollkarten
+// (Messkonzept, docs/messkonzept.md) kommen am Ende der letzten Runde.
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
 // Lebensmittel für die Suche: handgepflegte Schweizer Begriffe, dann die Schweizer Nährwertdatenbank (BLV).
@@ -107,7 +109,9 @@ function App() {
   }, [onboarding, logger]);
 
   useEffect(() => {
-    if (screen === SCREENS.ROUND) logger.trace('round_start', { round: roundNumber, roundCardLimit: config.roundCardLimit, tutorial: config.tutorial });
+    if (screen === SCREENS.ROUND) {
+      logger.trace('round_start', { round: roundNumber, roundCardLimit: config.roundCardLimit, tutorial: config.tutorial, selection: config.selection ?? 'fixed' });
+    }
     // Nur beim Wechsel in eine Runde protokollieren.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen === SCREENS.ROUND, roundNumber]);
@@ -134,6 +138,9 @@ function App() {
 
   const profileHandlers = {
     rating: (cardId, rating, previousRating) => profileChange({ type: RATING_CHANGED, cardId, rating, previousRating: previousRating ?? null }),
+    // Vermutung der App direkt bewertet: wird zur direkten Bewertung; die Vermutung vorher bleibt im Log.
+    confirmPrediction: (cardId, rating, predictedScore) =>
+      profileChange({ type: RATING_CHANGED, cardId, rating, previousRating: null, fromPrediction: true, predictedScore }),
     addExclusions: (section, exclusions) => exclusions.length && profileChange({ type: EXCLUSION_ADDED, section, exclusions }),
     removeExclusions: (section, exclusions) => exclusions.length && profileChange({ type: EXCLUSION_REMOVED, section, exclusions }),
     diet: (diet, previousDiet) => profileChange({ type: DIET_CHANGED, diet, previousDiet }),
@@ -185,8 +192,11 @@ function App() {
   }
 
   // Zusammenfassung: „Stimmt so“ bestätigt die festen Regeln, „Ändern“ öffnet die Frage, aus der sie stammen.
+  // Danach werden die Kontrollkarten gezogen: nach den Ausschlüssen aus Stufe 0, vor der ersten Karte.
   function handleConfirmSummary() {
     logger.trace('stage0_confirm', { eligible: eligibleFamilies(round).map((card) => card.id) });
+    const holdout = drawHoldout(round, { count: config.holdout ?? 0, seed: logger.session.sessionId });
+    if (holdout.cardIds.length > 0) log({ type: HOLDOUT_DRAWN, ...holdout });
     dispatch({ type: 'confirmSummary' });
   }
 
@@ -212,11 +222,12 @@ function App() {
       parentId: card.parentId,
       round: roundNumber,
       positionInRound: extra.positionInRound,
+      phase: isHoldoutCard(round, card.id) ? PHASE_HOLDOUT : PHASE_MAIN,
       response,
       timestamp: new Date().toISOString(),
       responseTimeMs: extra.responseTimeMs ?? null,
       inputMethod: extra.inputMethod,
-      selectionReason: extra.selectionReason ?? selectionReason(round, card),
+      selectionReason: extra.selectionReason ?? selectionReason(round, card, config),
       ruleVersion: RULE_VERSION,
       source: 'swipe',
       ...(extra.excludedCardIds ? { excludedCardIds: extra.excludedCardIds } : {}),

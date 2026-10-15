@@ -1,6 +1,7 @@
 // Export der Sitzungen (A9). Reine Funktionen ohne Browser-Zugriff, damit sie testbar sind.
 
 import { replay } from '../logic/engine.js';
+import { HOLDOUT_DRAWN } from '../logic/events.js';
 
 // Pflichtfelder pro Ereignis (A9) und Sitzungsangaben, die in jeder CSV-Zeile wiederholt werden.
 export const EVENT_FIELDS = [
@@ -18,15 +19,21 @@ export const EVENT_FIELDS = [
 
 // Seit Commit 3: Profiländerungen und Registrierung stehen im selben Log (type, source, …).
 // Vorname und Telefonnummer gibt es in keiner Sitzung und damit in keiner Spalte.
+// Seit Version 0.7: phase (main | holdout), Kontrollkarten (HOLDOUT_DRAWN mit cardIds), bestätigte Vermutungen
+// (fromPrediction, predictedScore) und die Auswahl der Sitzung (selection, holdout).
 export const CSV_COLUMNS = [
   ...EVENT_FIELDS,
   'round',
+  'phase',
   'excludedCardIds',
+  'cardIds',
   'ruleVersion',
   'type',
   'source',
   'rating',
   'previousRating',
+  'fromPrediction',
+  'predictedScore',
   'section',
   'exclusions',
   'newDiet',
@@ -40,6 +47,8 @@ export const CSV_COLUMNS = [
   'imageStyle',
   'auth',
   'sms',
+  'selection',
+  'holdout',
   'appVersion',
   'sessionStartedAt',
   'sessionEndedAt',
@@ -65,6 +74,9 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
       imageStyle: session.config?.imageStyle ?? null,
       auth: session.config?.auth,
       sms: session.config?.sms ?? null,
+      // Sitzungen vor Version 0.7: feste Reihenfolge, keine Kontrollkarten
+      selection: session.config?.selection ?? 'fixed',
+      holdout: session.config?.holdout ?? 0,
       appVersion: session.appVersion,
       sessionStartedAt: session.startedAt,
       sessionEndedAt: session.endedAt,
@@ -94,6 +106,8 @@ export function sessionsToJson(sessions) {
 export function summarizeSession(session) {
   const events = session.events ?? [];
   const durationMs = session.endedAt ? new Date(session.endedAt) - new Date(session.startedAt) : null;
+  const played = replay(events);
+  const holdout = events.filter((event) => event.type === HOLDOUT_DRAWN).at(-1)?.cardIds ?? [];
   return {
     sessionId: session.sessionId,
     participantCode: session.participantCode ?? null,
@@ -101,8 +115,10 @@ export function summarizeSession(session) {
     finished: Boolean(session.endedAt),
     durationMs,
     // Gültige Antworten nach dem Abspielen des Logs (rückgängig gemachte zählen nicht)
-    answers: replay(events).sequence.length,
+    answers: played.sequence.length,
     undos: events.filter((event) => event.response === 'UNDO').length,
+    // Kontrollkarten: beantwortet von gezogen (für die Testleitung: Wurde die Sitzung bis zum Ende gespielt?)
+    checks: { answered: holdout.filter((id) => id in played.answers).length, drawn: holdout.length },
     config: session.config,
   };
 }

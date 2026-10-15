@@ -51,7 +51,15 @@ export default function AdminScreen() {
         <p className="kicker">{ADMIN.kicker}</p>
         <h1>{ADMIN.title}</h1>
         <p className="lead">
-          {ADMIN.lead({ sessions: sessions.length, events: eventCount, limit: config.roundCardLimit, tutorial: config.tutorial, imageStyle: config.imageStyle })}
+          {ADMIN.lead({
+            sessions: sessions.length,
+            events: eventCount,
+            limit: config.roundCardLimit,
+            tutorial: config.tutorial,
+            imageStyle: config.imageStyle,
+            selection: config.selection,
+            holdout: config.holdout,
+          })}
         </p>
       </div>
 
@@ -107,6 +115,7 @@ export default function AdminScreen() {
                   sessionId: summary.sessionId,
                 })}
               </span>
+              <span className="note">{ADMIN.checks(summary.checks)}</span>
             </li>
           ))}
         </ul>

@@ -2,9 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DEFAULT_CONFIG, isAdminMode, resolveConfig } from './config.js';
 
-const DEFAULTS = { roundCardLimit: 10, tutorial: false, imageStyle: 'photo', auth: true, sms: 'simulation' };
+const DEFAULTS = { roundCardLimit: 10, tutorial: false, imageStyle: 'photo', auth: true, sms: 'simulation', selection: 'adaptive', holdout: 6 };
 
-test('Ohne Parameter gelten die Standardwerte (Limit 10, kein Tutorial, Fotos, Registrierung an)', () => {
+test('Ohne Parameter gelten die Standardwerte (Limit 10, kein Tutorial, Fotos, Registrierung an, adaptive Auswahl, 6 Kontrollkarten)', () => {
   assert.deepEqual(resolveConfig(''), DEFAULTS);
   assert.deepEqual(DEFAULT_CONFIG, DEFAULTS);
 });
@@ -26,6 +26,16 @@ test('Alte ?tutorial-Parameter können das entfernte Tutorial nicht aktivieren',
     assert.equal(resolveConfig(`?tutorial=${value}`).tutorial, false);
   }
   assert.deepEqual(resolveConfig('?limit=8&tutorial=0'), { ...DEFAULTS, roundCardLimit: 8 });
+});
+
+test('?selection und ?holdout für den Vergleich im Pilot; ungültige Werte fallen auf den Standard zurück', () => {
+  assert.equal(resolveConfig('?selection=fixed').selection, 'fixed');
+  assert.equal(resolveConfig('?selection=adaptive').selection, 'adaptive');
+  assert.equal(resolveConfig('?selection=zufall').selection, 'adaptive');
+  assert.equal(resolveConfig('?holdout=0').holdout, 0);
+  assert.equal(resolveConfig('?holdout=10').holdout, 10);
+  for (const value of ['11', '-1', '2.5', 'viele', '']) assert.equal(resolveConfig(`?holdout=${value}`).holdout, 6, value);
+  assert.deepEqual(resolveConfig('?selection=fixed&holdout=4&limit=8'), { ...DEFAULTS, selection: 'fixed', holdout: 4, roundCardLimit: 8 });
 });
 
 test('Admin-Ansicht nur mit ?admin=1', () => {

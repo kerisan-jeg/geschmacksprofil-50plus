@@ -15,7 +15,8 @@ import { readDuration } from '../theme/motion.js';
 const KEY_TO_ANSWER = { ArrowLeft: DISLIKE, ArrowRight: LIKE, ArrowUp: PREFER, k: UNFAMILIAR, K: UNFAMILIAR };
 
 export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, onEndRound }) {
-  // Oberste Karte und die nächste, die leicht dahinter liegt (feste Reihenfolge aus selectNextCards).
+  // Oberste Karte und die nächste, die leicht dahinter liegt (Reihenfolge aus selectNextCards, je nach den
+  // bisherigen Antworten; nach „Kenne ich nicht“ kann eine andere Karte nachrücken als die dahinter).
   const [card, behind] = selectNextCards(round, config)
     .slice(0, 2)
     .map((entry) => presentCard(round, entry));

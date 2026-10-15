@@ -1,8 +1,8 @@
 """Misst die Mobile-Kriterien (Addendum A11) auf allen Bildschirmen des Prototyps.
 
-Geprüft bei 360 x 640 und 430 x 932 auf allen Bildschirmen inkl. Registrierung (SMS simuliert),
-Zusammenfassung mit „Ändern“, Runde 2, Bewertung, Allergien, Suche und Bestätigung in „Mein Profil“
-und „Willkommen zurück“:
+Geprüft bei 360 x 640 und 430 x 932 auf allen 28 Bildschirmen inkl. Registrierung (SMS simuliert),
+Zusammenfassung mit „Ändern“, Runde 2, Bewertung, Vermutungen der App, Allergien, Suche und Bestätigung
+in „Mein Profil“ und „Willkommen zurück“:
   - kein horizontaler Scroll
   - Touch-Ziele >= 44 x 44 CSS-px
   - Textkontrast >= 4.5:1 (axe-core, Regel color-contrast)
@@ -155,13 +155,21 @@ def run(p, W, H):
     pg.get_by_role('button', name='Mag ich nicht').click(); pg.wait_for_timeout(150)
     pg.get_by_role('button', name='Mag ich sehr').click(); pg.wait_for_timeout(300)
     check(pg, 'abschluss', results, W)
-    # Runde 2 (feste Reihenfolge): übrige Gruppen und Untergruppen, danach zurück zum Abschluss
+    # Runde 2 (adaptive Auswahl): übrige Gruppen, dann je nach Antwort; danach zurück zum Abschluss
     pg.get_by_role('button', name='Weiter mit Runde 2').click(); check(pg, 'runde_2', results, W)
     pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(300)
     pg.get_by_role('button', name='Runde beenden').click(); check(pg, 'abschluss_2', results, W)
     pg.get_by_role('button', name='Mein Profil ansehen').click(); check(pg, 'profil', results, W)
     pg.locator('button.taste-row').first.click(); check(pg, 'profil_bewertung', results, W)
     pg.get_by_role('radio', name='Mag ich', exact=True).click(); pg.wait_for_timeout(200)
+    # Vermutungen der App: getrennt und gestrichelt; alle anzeigen und eine Vermutung direkt bewerten
+    more = pg.locator('.is-derived .more-button')
+    if more.count():
+        more.first.click(); pg.wait_for_timeout(150)
+    pg.locator('.is-derived').first.scroll_into_view_if_needed(); check(pg, 'profil_vermutungen', results, W)
+    pg.locator('.is-derived button.taste-row').first.click(); check(pg, 'profil_vermutung_bewerten', results, W)
+    pg.get_by_role('radio', name='Mag ich sehr').click(); pg.wait_for_timeout(200)
+    pg.mouse.wheel(0, -8000); pg.wait_for_timeout(150)
     pg.get_by_role('button', name='Ändern', exact=True).first.click(); check(pg, 'profil_allergien', results, W)
     pg.get_by_role('button', name='Abbrechen').click()
     pg.locator('.exclusion-section').nth(2).get_by_role('button', name='Hinzufügen').click()

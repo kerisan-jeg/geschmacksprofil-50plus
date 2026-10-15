@@ -1,14 +1,15 @@
 {
   "name": "geschmacksprofil-50plus",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Swipe-Prototyp zur Geschmacksprofilerkennung bei Personen ab 50 (WI-Projekt ZHAW, Auftraggeber nurec)",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --import ./scripts/test-setup.mjs --test \"src/**/*.test.js\""
+    "test": "node --import ./scripts/test-setup.mjs --test \"src/**/*.test.js\"",
+    "auswertung": "node --import ./scripts/test-setup.mjs scripts/evaluate.mjs"
   },
   "dependencies": {
     "@firebase/app": "0.16.2",

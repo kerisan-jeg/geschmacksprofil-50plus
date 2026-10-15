@@ -353,6 +353,26 @@ export const PROFILE = {
   },
   dislikeNote: 'Kein Verbot: Ausnahmen fragen wir später gezielt nach.',
   tasteEmpty: 'Noch keine Antworten. Wische die ersten Karten, dann erscheinen sie hier.',
+  // Vermutungen der App (src/logic/preferences.js), getrennt von den eigenen Bewertungen
+  derived: {
+    title: 'Das vermutet die App',
+    lead: 'Aus deinen Antworten abgeleitet, nicht von dir bewertet. Stimmt etwas nicht? Tippe darauf.',
+    groups: { LIKE: 'Magst du vermutlich', DISLIKE: 'Magst du vermutlich nicht' },
+    reason: (title, rating) => {
+      if (rating === 'PREFER') return `Vermutet, weil du „${title}“ besonders magst`;
+      if (rating === 'LIKE') return `Vermutet, weil du „${title}“ magst`;
+      if (rating === 'DISLIKE') return `Vermutet, weil du „${title}“ eher nicht magst`;
+      return `Vermutet aus deinen Antworten zu „${title}“`;
+    },
+    rowLabel: (title, reason) => `${title}. ${reason}. Vermutung prüfen`,
+    sheetIntro: (rating) =>
+      rating === 'DISLIKE'
+        ? 'Die App vermutet, dass du das eher nicht magst. Wie gern isst du es wirklich?'
+        : 'Die App vermutet, dass du das magst. Wie gern isst du es wirklich?',
+    sheetNote: 'Deine Antwort ersetzt die Vermutung. Was die App vorher vermutet hat, bleibt im Protokoll.',
+    showAll: (count) => `Alle anzeigen (${count})`,
+    showLess: 'Weniger anzeigen',
+  },
   exclusionsTitle: 'Ausschlüsse',
   exclusionsLead: 'Das schlagen wir dir nie vor. Diese Regeln stehen immer über dem Geschmack.',
   sections: {
@@ -425,8 +445,8 @@ export const ERRORS = {
 export const ADMIN = {
   kicker: 'Nur für die Testleitung',
   title: 'Sitzungen',
-  lead: ({ sessions, events, limit, tutorial, imageStyle }) =>
-    `${plural(sessions, 'Sitzung', 'Sitzungen')} mit ${plural(events, 'Ereignis', 'Ereignissen')} auf diesem Gerät. Nächste Testperson startet mit ${limit} Karten pro Runde, Tutorial ${tutorial ? 'an' : 'aus'}, ${imageStyle === 'illustration' ? 'Illustrationen' : 'Fotos'}.`,
+  lead: ({ sessions, events, limit, tutorial, imageStyle, selection, holdout }) =>
+    `${plural(sessions, 'Sitzung', 'Sitzungen')} mit ${plural(events, 'Ereignis', 'Ereignissen')} auf diesem Gerät. Nächste Testperson startet mit ${limit} Karten pro Runde, Tutorial ${tutorial ? 'an' : 'aus'}, ${imageStyle === 'illustration' ? 'Illustrationen' : 'Fotos'}, ${selection === 'fixed' ? 'fester Reihenfolge' : 'adaptiver Auswahl'} und ${plural(holdout, 'Kontrollkarte', 'Kontrollkarten')}.`,
   newParticipant: 'Neue Testperson starten',
   exportJson: 'Export JSON (alles)',
   exportCsv: 'Export CSV (Ereignisse)',
@@ -437,6 +457,8 @@ export const ADMIN = {
   duration: (minutes, seconds) => `${minutes}:${String(seconds).padStart(2, '0')} min`,
   details: ({ answers, undos, limit, tutorial, sessionId }) =>
     `${answers} Antworten, ${undos} × Rückgängig · Limit ${limit}, Tutorial ${tutorial ? 'an' : 'aus'} · ${sessionId}`,
+  // Kontrollkarten (Messkonzept): nur vollständige Sitzungen eignen sich für die Auswertung
+  checks: ({ answered, drawn }) => (drawn === 0 ? 'Ohne Kontrollkarten' : `Kontrollkarten: ${answered} von ${drawn} beantwortet`),
   deleteAll: 'Alle Daten löschen',
   deleteQuestion: (count) =>
     `Wirklich ${count === 1 ? 'die Sitzung' : `alle ${count} Sitzungen`} auf diesem Gerät löschen? Das lässt sich nicht rückgängig machen. Vorher exportieren.`,
