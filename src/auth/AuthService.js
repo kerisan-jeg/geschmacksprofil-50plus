@@ -1,8 +1,9 @@
 // Schnittstelle für die Anmeldung per SMS-Code.
 //
-// Der Prototyp verwendet MockAuthService (SIMULATION, kein echter SMS-Versand). Ein echter Dienst
-// (z. B. ein SMS-Gateway hinter einem Backend) implementiert dieselben Methoden und wird in
-// createAuthService() eingesetzt; die Oberfläche bleibt unverändert.
+// Zwei Umsetzungen mit denselben Methoden, gewählt in createAuthService():
+// - FirebaseAuthService: echte SMS über Firebase (wenn eingerichtet, config.sms === 'firebase')
+// - MockAuthService: SIMULATION ohne SMS-Versand (ohne Firebase, in Tests oder mit ?sms=sim)
+// Die Oberfläche bleibt in beiden Fällen gleich.
 //
 // @typedef {Object} CodeRequest
 // @property {string} requestId          Kennung der Anfrage
@@ -11,7 +12,7 @@
 //
 // @typedef {Object} VerifyResult
 // @property {boolean} ok
-// @property {'wrong'|'expired'|'unknown'} [reason]
+// @property {'wrong'|'expired'|'tooMany'|'network'|'failed'|'unknown'} [reason]
 //
 // @typedef {Object} AuthService
 // @property {(e164: string) => Promise<CodeRequest>} sendCode    Code an die Handynummer senden
@@ -19,6 +20,8 @@
 // @property {(listener: (sms: {code: string, sentAt: number}) => void) => () => void} [onSimulatedSms]
 //           nur in der Simulation: meldet die „empfangene“ SMS, damit sie als Mitteilung erscheint
 
+import { FIREBASE_CONFIG } from '../config.js';
+import { FirebaseAuthService } from './FirebaseAuthService.js';
 import { MockAuthService } from './MockAuthService.js';
 
 export const CODE_LENGTH = 6;
@@ -35,6 +38,7 @@ export function cleanCode(raw) {
 }
 
 /** @returns {AuthService} */
-export function createAuthService(options = {}) {
+export function createAuthService({ mode = 'simulation', firebaseConfig = FIREBASE_CONFIG, ...options } = {}) {
+  if (mode === 'firebase' && firebaseConfig) return new FirebaseAuthService({ config: firebaseConfig, resendDelayMs: RESEND_DELAY_MS, ...options });
   return new MockAuthService({ codeLength: CODE_LENGTH, resendDelayMs: RESEND_DELAY_MS, ...options });
 }

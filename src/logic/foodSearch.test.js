@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { indexCatalog } from './catalog.js';
-import { buildFoodIndex, highlightParts, searchFoods } from './foodSearch.js';
+import { buildFoodIndex, highlightParts, mergeFoods, searchFoods } from './foodSearch.js';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const catalog = read('../data/catalog.json');
@@ -82,4 +82,73 @@ test('Lexikon im Katalog ist konsistent: Gruppen existieren, keine Doppelten, Sy
     assert.ok(food?.synonyms.includes(pair[1]), pair.join('/'));
   }
   assert.ok(catalog.synonymTodos.length > 0, 'unsichere Begriffe als TODO statt geraten');
+});
+
+// ---------- Vollständige Liste: Schweizer Nährwertdatenbank (BLV) ----------
+
+const foodList = read('../data/foods.json');
+const allFoods = mergeFoods(catalog.foods, foodList.foods);
+const full = buildFoodIndex({ catalogIndex: index, foods: allFoods, allergens, tagLabels: never.tagLabels });
+const top = (query) => searchFoods(full, query)[0];
+
+test('Alle Zutaten sind wählbar, auch in der Mehrzahl: „Oliven“ findet Olive vor Olivenöl', () => {
+  for (const [query, key] of [
+    ['Oliven', 'food:Olive'],
+    ['Tomaten', 'food:Tomate'],
+    ['Champignons', 'food:Champignon'],
+    ['Linse', 'card:F05.1'],
+    ['Kichererbse', 'card:F05.3'],
+  ]) {
+    assert.equal(top(query)?.key, key, query);
+  }
+  assert.equal(top('Oliven').category, 'Gemüse');
+  assert.ok(!searchFoods(full, 'Eier').some((hit) => hit.key === 'food:Ei'), 'Ei ist die Karte „Eier“, kein zweiter Eintrag');
+});
+
+test('Schweizer Begriffe, Getränke und Ergänzungen des Teams werden gefunden', () => {
+  for (const [query, label] of [
+    ['Peterli', 'Petersilie'],
+    ['Krautstiel', 'Mangold'],
+    ['Rotwein', 'Wein'],
+    ['Kaffee', 'Kaffee'],
+    ['Hafermilch', 'Hafergetränk'],
+    ['Alkohol', 'Alkohol'],
+    ['Koriander', 'Koriander'],
+    ['Entrecôte', 'Rind'],
+  ]) {
+    assert.equal(top(query)?.label, label, query);
+  }
+  assert.equal(searchFoods(full, 'Zucchetti').filter((hit) => /Zucch/.test(hit.label)).length, 1, 'Zucchini und Zucchetti sind ein Eintrag');
+});
+
+test('Gerichte gehören in Stufe 4 und stehen nicht in der Liste', () => {
+  for (const dish of ['Lasagne', 'Älplermagronen', 'Cordon bleu', 'Saltimbocca']) {
+    assert.ok(!searchFoods(full, dish).some((hit) => hit.label.startsWith(dish.split(' ')[0])), dish);
+  }
+});
+
+test('Tippfehler: ähnliche Einträge statt nichts („Olvie“ → Olive)', () => {
+  const hits = searchFoods(full, 'Olvie');
+  assert.ok(hits.length > 0 && hits.every((hit) => hit.fuzzy));
+  assert.equal(hits[0].label, 'Olive');
+  assert.equal(searchFoods(full, 'Wodka')[0]?.label, 'Spirituosen');
+  assert.deepEqual(searchFoods(full, 'Omas Spezialsauce'), [], 'wirklich nichts: Notiz als Ausnahme');
+});
+
+test('Liste aus der Nährwertdatenbank: Quelle genannt, keine Durchschnittswerte, keine Doppelten', () => {
+  assert.match(foodList.source.publisher, /BLV/);
+  assert.match(foodList.source.url, /naehrwertdaten\.ch/);
+  assert.ok(foodList.foods.length > 500);
+  const names = new Set();
+  for (const food of foodList.foods) {
+    assert.ok(food.category, `${food.name}: Gruppe`);
+    assert.ok(!/Durchschnitt|\(|\)|%/.test(food.name), food.name);
+    assert.ok(!names.has(food.name), `${food.name} doppelt`);
+    names.add(food.name);
+  }
+  assert.ok(foodList.foods.filter((food) => food.team).every((food) => ['Kräuter', 'Gewürze', 'Getränke mit Alkohol'].includes(food.category)), 'Ergänzungen des Teams sind gekennzeichnet');
+  // Handgepflegte Schweizer Begriffe gewinnen beim Zusammenführen
+  const karotte = mergeFoods(catalog.foods, foodList.foods).find((food) => food.name === 'Karotte');
+  assert.equal(karotte.card, 'F10.3');
+  assert.ok(karotte.synonyms.includes('Rüebli'));
 });

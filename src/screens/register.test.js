@@ -122,3 +122,36 @@ test('Handynummer: Formatierung beim Tippen und Fehlermeldung bei falscher Numme
   assert.deepEqual(sent, ['+41791234567']);
   await unmount();
 });
+
+test('Echte SMS: ehrlicher Hinweis auf Google und reCAPTCHA, verständliche Meldung bei Fehlern', async () => {
+  const { SendCodeError } = await import('../auth/FirebaseAuthService.js');
+  function PhoneFlow() {
+    const [value, setValue] = useState({ country: 'CH', phoneInput: '079 123 45 67' });
+    return h(RegisterPhoneScreen, {
+      ...value,
+      realSms: true,
+      onChange: (changes) => setValue((current) => ({ ...current, ...changes })),
+      onSend: async () => {
+        throw new SendCodeError('tooMany');
+      },
+      onBack: () => {},
+    });
+  }
+  const { container, unmount } = await render(h(PhoneFlow));
+  assert.ok(container.textContent.includes(REGISTER.phonePrivacyReal));
+  const links = [...container.querySelectorAll('a')].map((link) => link.getAttribute('href'));
+  assert.deepEqual(links, [REGISTER.recaptcha.privacyUrl, REGISTER.recaptcha.termsUrl]);
+  await act(async () => container.querySelector('form').dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true })));
+  await settle();
+  assert.ok(container.textContent.includes(REGISTER.sendErrors.tooMany));
+  await unmount();
+});
+
+test('Simulation: Hinweis, dass keine echte SMS verschickt wird', async () => {
+  const { container, unmount } = await render(
+    h(RegisterPhoneScreen, { country: 'CH', phoneInput: '', onChange() {}, onSend: async () => {}, onBack() {} })
+  );
+  assert.ok(container.textContent.includes(REGISTER.phonePrivacy));
+  assert.equal(container.querySelector('a'), null);
+  await unmount();
+});

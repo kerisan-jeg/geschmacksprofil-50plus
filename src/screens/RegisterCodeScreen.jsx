@@ -9,7 +9,8 @@ import { REGISTER } from '../labels.js';
 // - Einfügen aus der Zwischenablage funktioniert (Leerzeichen und Striche werden entfernt)
 // - mit der 6. Ziffer wird automatisch geprüft und bei Erfolg weitergeleitet
 // - „Code erneut senden“ erst nach 30 Sekunden (Countdown mit tabellarischen Ziffern)
-export default function RegisterCodeScreen({ phoneDisplay, request, onVerify, onResend, onBack, clock = Date.now }) {
+// realSms: echte SMS (Firebase) statt Simulation; nur der Hinweis unten ändert sich.
+export default function RegisterCodeScreen({ phoneDisplay, request, onVerify, onResend, onBack, clock = Date.now, realSms = false }) {
   const [code, setCode] = useState('');
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState(null);
@@ -34,7 +35,8 @@ export default function RegisterCodeScreen({ phoneDisplay, request, onVerify, on
     const result = await onVerify(value);
     if (result.ok) return;
     setStatus('error');
-    setMessage(result.reason === 'expired' ? REGISTER.codeExpired : REGISTER.codeWrong);
+    const messages = { expired: REGISTER.codeExpired, tooMany: REGISTER.codeTooMany, network: REGISTER.codeFailed, failed: REGISTER.codeFailed };
+    setMessage(messages[result.reason] ?? REGISTER.codeWrong);
     // Ganze Eingabe markieren: Neu tippen ersetzt den falschen Code.
     window.requestAnimationFrame?.(() => inputRef.current?.select());
   }
@@ -50,7 +52,13 @@ export default function RegisterCodeScreen({ phoneDisplay, request, onVerify, on
     if (secondsLeft > 0) return;
     setCode('');
     setStatus('idle');
-    await onResend();
+    try {
+      await onResend();
+    } catch (sendError) {
+      setStatus('error');
+      setMessage(REGISTER.sendErrors[sendError?.reason] ?? REGISTER.sendError);
+      return;
+    }
     setNow(clock());
     setMessage(REGISTER.resent);
     inputRef.current?.focus({ preventScroll: true });
@@ -118,7 +126,7 @@ export default function RegisterCodeScreen({ phoneDisplay, request, onVerify, on
 
         <p className="notice">
           <Info aria-hidden="true" />
-          {REGISTER.simulationNote}
+          {realSms ? REGISTER.realSmsNote : REGISTER.simulationNote}
         </p>
 
         <div className="action-bar">

@@ -146,6 +146,23 @@ h2:focus {
   text-wrap: pretty;
 }
 
+/* Links als eigene Tippflächen (≥ 44 px) unter einem Hinweis, z. B. reCAPTCHA bei echter SMS */
+.recaptcha-note {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.link-row {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-5);
+  padding-left: var(--space-3);
+}
+
+.link-row a {
+  text-decoration: underline;
+}
+
 .tone-dislike { --tone: var(--color-dislike); --tone-soft: var(--color-dislike-soft); }
 .tone-like { --tone: var(--color-like); --tone-soft: var(--color-like-soft); }
 .tone-prefer { --tone: var(--color-prefer); --tone-soft: var(--color-prefer-soft); }

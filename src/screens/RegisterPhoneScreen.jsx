@@ -7,7 +7,9 @@ import { REGISTER } from '../labels.js';
 // Registrierung, Schritt 2: Handynummer mit Ländervorwahl (Standard +41).
 // Die Nummer wird beim Tippen gegliedert („079 123 45 67“) und erst beim Senden geprüft.
 // Sie bleibt nur im Arbeitsspeicher; gespeichert wird nach der Bestätigung nur die gekürzte Form.
-export default function RegisterPhoneScreen({ country, phoneInput, onChange, onSend, onBack }) {
+// realSms: Der Code kommt als echte SMS über Firebase (Google); das steht ehrlich unter dem Feld,
+// zusammen mit dem Hinweis auf reCAPTCHA.
+export default function RegisterPhoneScreen({ country, phoneInput, onChange, onSend, onBack, realSms = false }) {
   const [error, setError] = useState(null);
   const [sending, setSending] = useState(false);
   const inputRef = useRef(null);
@@ -29,8 +31,8 @@ export default function RegisterPhoneScreen({ country, phoneInput, onChange, onS
     setSending(true);
     try {
       await onSend(result.e164);
-    } catch {
-      setError(REGISTER.sendError);
+    } catch (sendError) {
+      setError(REGISTER.sendErrors[sendError?.reason] ?? REGISTER.sendError);
       setSending(false);
     }
   }
@@ -89,8 +91,21 @@ export default function RegisterPhoneScreen({ country, phoneInput, onChange, onS
         </div>
         <p className="privacy-line privacy-left" id="register-phone-privacy">
           <Lock aria-hidden="true" />
-          {REGISTER.phonePrivacy}
+          {realSms ? REGISTER.phonePrivacyReal : REGISTER.phonePrivacy}
         </p>
+        {realSms && (
+          <div className="recaptcha-note">
+            <p className="fineprint">{REGISTER.recaptcha.text}</p>
+            <p className="link-row">
+              <a className="button-ghost is-strong" href={REGISTER.recaptcha.privacyUrl} target="_blank" rel="noreferrer">
+                {REGISTER.recaptcha.privacy}
+              </a>
+              <a className="button-ghost is-strong" href={REGISTER.recaptcha.termsUrl} target="_blank" rel="noreferrer">
+                {REGISTER.recaptcha.terms}
+              </a>
+            </p>
+          </div>
+        )}
         <div className="action-bar">
           <button type="submit" className="button-primary" disabled={sending} aria-busy={sending}>
             {sending && <span className="spinner" aria-hidden="true" />}

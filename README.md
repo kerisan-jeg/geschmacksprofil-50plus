@@ -1,7 +1,7 @@
 # Geschmacksprofil 50+ · Prototyp
 
 Mobiler Swipe-Prototyp zur Geschmacksprofilerkennung bei Personen ab 50 (WI-Projekt, Auftraggeber nurec).
-Version 0.6: Designsystem, Swipe-Oberfläche, Registrierung (SMS simuliert), bearbeitbares Profil und einheitliche Suche. Die adaptive Kartenauswahl ist bewusst noch nicht gebaut:
+Version 0.6: Designsystem, Swipe-Oberfläche, Registrierung mit SMS-Code (echt über Firebase oder simuliert), bearbeitbares Profil und einheitliche Suche über alle Lebensmittel. Die adaptive Kartenauswahl ist bewusst noch nicht gebaut:
 Sie ist die nächste Eigenleistung des Teams (siehe „Logik austauschen“).
 
 Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (Kickoff, Zwischencheck),
@@ -12,7 +12,7 @@ Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (
 Die App hat zwei Bereiche: **Profil erstellen** und **Mein Profil**. Die untere Leiste dafür erscheint erst ab dem Abschluss der ersten Runde und in „Mein Profil“ (Rückmeldung Team, 14.10.): Während Registrierung, Fragen, Zusammenfassung und beim Wischen gibt es nur einen Weg nach vorn. „Mein Profil“ ist immer über den runden Knopf oben rechts erreichbar (Initiale des Vornamens).
 
 1. **Willkommen:** kurze Einführung.
-2. **Registrierung** (`AUTH_ENABLED`, Standard an): Vorname → Handynummer → SMS-Code. Kein echter SMS-Versand, siehe unten.
+2. **Registrierung** (`AUTH_ENABLED`, Standard an): Vorname → Handynummer → SMS-Code. Der Code kommt als echte SMS (Firebase), sobald das Projekt eingerichtet ist, sonst simuliert; siehe unten.
 3. **Über dich:** Alter und Einwilligung sind Pflicht, unter „Für die Testleitung“ die Teilnehmer-Nr. Ohne Registrierung startet die App hier, der Vorname ist dann freiwillig.
 4. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“. Frage 2 bietet „Ja“ und „Keine bekannt“, Frage 3 fragt nach „etwas Weiterem“.
 5. **Zusammenfassung** (nurec v0.2, Kap. 2.2 [D]): „Stimmt das so?“ zeigt alle festen Regeln, je Frage ein Abschnitt (Ernährungsweise, Allergien und Unverträglichkeiten, „Möchte ich nicht essen“). „Ändern“ öffnet direkt die passende Frage und führt danach zurück; „Stimmt so“ bestätigt. Ein offenes „Ich bin mir nicht sicher“ steht dort als offen, nicht als Freigabe. Bewusst kurz, ohne Vorschau der Karten.
@@ -48,13 +48,16 @@ Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt
 
 **Fortschritt:** Ein Segment pro Karte, „Karte 3 von 10“ mit tabellarischen Ziffern, je Runde. Anzahl und Prozentwert kommen aus `progress()` und damit aus dem Rundenlimit, nie fest im Code. Die Abschnitte der Profilerstellung (Fragen, Runde 1 bzw. 2 …, Profil) zeigen erledigte Teile mit Häkchen. Rückgängig wirkt nur in der laufenden Runde.
 
-## Registrierung (SMS simuliert)
+## Registrierung (SMS-Code)
 
 - **Ablauf:** Vorname (nur Vorname) → Handynummer (Ländervorwahl wählbar, Standard +41, Gliederung beim Tippen „079 123 45 67“, Prüfung mit verständlicher Meldung, `inputmode="tel"`) → SMS-Code (6 Ziffern, ein Feld mit `autocomplete="one-time-code"` und `inputmode="numeric"`, Einfügen möglich, „Code erneut senden“ erst nach 30 s Countdown, bei richtigem Code automatisch weiter).
-- **Kein echter SMS-Versand:** `src/auth/AuthService.js` beschreibt die Schnittstelle, `src/auth/MockAuthService.js` ist die Simulation. Sie erzeugt einen zufälligen Code und zeigt ihn als SMS-Mitteilung oben, über dem Bildschirm statt darauf: Titel und Eingabefeld bleiben sichtbar. Die Mitteilung bleibt, bis jemand sie schliesst oder der Code stimmt, damit sich beim Eintippen nichts verschiebt. Für einen echten Dienst wird nur `createAuthService()` ausgetauscht. Unter dem Codefeld steht für Testpersonen ehrlich, dass die SMS simuliert ist.
+- **Echte SMS über Firebase** (Entscheid vom 15.10.): `src/auth/FirebaseAuthService.js` schickt den Code mit Firebase Authentication als SMS an die Nummer, ohne eigenen Server. Ein unsichtbares reCAPTCHA von Google schützt vor Missbrauch; darauf weist ein Satz unter dem Feld hin. Nach der Bestätigung löscht die App das Konto bei Firebase sofort wieder und meldet ab; die App braucht kein Konto bei Google. Unter dem Feld steht ehrlich, dass die Nummer für die SMS an Google geht. Das SDK (nur `@firebase/app` und `@firebase/auth`) wird erst geladen, wenn wirklich ein Code verschickt wird.
+- **Einrichtung Firebase** (einmalig): Projekt in der Firebase-Konsole anlegen, Tarif „Blaze“ (Kreditkarte; jede SMS kostet), unter Authentication die Anmeldung per Telefon aktivieren, `kerisan-jeg.github.io` als Authorized Domain eintragen und unter „SMS region policy“ die Schweiz erlauben. Dann die vier Werte der Web-App als Repository-Variablen hinterlegen (GitHub → Settings → Secrets and variables → Actions → Variables): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_APP_ID`. Lokal dieselben Werte in `.env.local` (nicht im Repo). Diese Werte sind bei Firebase nicht geheim; geschützt wird über Authorized Domains und reCAPTCHA. Für Tests ohne SMS lassen sich in der Konsole Testnummern mit festem Code eintragen.
+- **Simulation:** Ohne diese Werte (lokal, in den Tests) oder mit `?sms=sim` gibt es keine SMS: `src/auth/MockAuthService.js`. Sie erzeugt einen zufälligen Code und zeigt ihn als SMS-Mitteilung oben, über dem Bildschirm statt darauf: Titel und Eingabefeld bleiben sichtbar. Die Mitteilung bleibt, bis jemand sie schliesst oder der Code stimmt, damit sich beim Eintippen nichts verschiebt. Für einen echten Dienst wird nur `createAuthService()` ausgetauscht. Unter dem Codefeld steht für Testpersonen ehrlich, dass die SMS simuliert ist.
 - **Datenschutz:** Vorname und Telefonnummer bleiben auf dem Gerät (`localStorage`, Schlüssel `geschmacksprofil:account`). Nach der Bestätigung wird die Nummer nur gekürzt gespeichert („+41 79 *** ** 67“); `saveAccount()` lehnt eine volle Nummer ab. Weder Vorname noch Nummer gelangen in Sitzungen, JSON- oder CSV-Exporte; Exporte enthalten nur `sessionId` und optional die Teilnehmer-Nr. Ein Test prüft das (`src/logging/privacy.test.js`).
 - **Abmelden** im Profil löscht Konto und Stand auf dem Gerät; die Sitzung für die Auswertung bleibt (ohne Namen). „Neue Testperson starten“ in der Admin-Ansicht meldet die vorherige Person ebenfalls ab.
 - **Protokoll:** `AUTH_STARTED` (Vorname eingeben) und `AUTH_COMPLETED` (Code bestätigt) stehen im Event-Log. So lässt sich die Dauer der Registrierung getrennt von der Swipe-Dauer auswerten.
+- **Protokoll:** In jeder Sitzung steht, ob die SMS echt oder simuliert war (`config.sms`, CSV-Spalte `sms`); `AUTH_COMPLETED` trägt `method: "sms"` bzw. `"sms-simulated"`.
 - **Ohne Registrierung:** `AUTH_ENABLED = false` in `src/config.js`. Der URL-Parameter `?auth=0|1` folgt mit der URL-Konfiguration (Commit 4).
 
 ## Mein Profil
@@ -68,10 +71,12 @@ Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt
 ## Einheitliche Suche (FoodSearch)
 
 - **Eine Komponente** (`src/components/FoodSearch.jsx`, Logik in `src/logic/foodSearch.js`) für Allergien und Unverträglichkeiten (Frage 2), „Nie vorschlagen“ (Frage 3) und „Mein Profil“.
-- Sucht über Allergene, Karten (Familien und Untergruppen), einzelne Lebensmittel und Merkmale. Tolerant gegenüber Gross-/Kleinschreibung und Umlauten (ä = ae).
+- Sucht über Allergene, Karten (Familien und Untergruppen), alle Zutaten und Getränke und Merkmale. Tolerant gegenüber Gross-/Kleinschreibung, Umlauten (ä = ae) und der Mehrzahl („Oliven“ findet Olive, „Tomaten“ Tomate).
+- **Alle Lebensmittel als Auswahlfeld** (Rückmeldung Team, 15.10.): Die Liste stammt aus der Schweizer Nährwertdatenbank des BLV (`src/data/foods.json`, rund 560 Zutaten und Getränke, Schweizer Begriffe und Synonyme, z. B. Peterli, Krautstiel, Gschwellti). Varianten sind zusammengefasst („Ananas“ statt sechs Einträgen), jedes Lebensmittel hat seine Gruppe („Olive · Gemüse“). Gerichte (Lasagne, Älplermagronen) fehlen bewusst: Sie gehören nach nurec v0.2 in Stufe 4 und werden dort als eigene Karten bewertet. Einige häufige Kräuter und Gewürze und „Alkohol“ hat das Team ergänzt (`"team": true`). Neu erzeugen mit `python scripts/import-foods.py <Excel-Datei>`.
+- **Tippfehler:** Findet die Suche nichts, schlägt sie ähnliche Einträge vor („Meintest du: Olive“).
 - **Synonyme** (`synonyms` bei Karten und Allergenen, Lexikon `foods` im Katalog) inkl. Schweizer Begriffe: Rahm/Sahne, Poulet/Hähnchen, Rüebli/Karotte, Peperoni/Paprika, Nüsslisalat/Feldsalat, Zucchetti, Randen/Rote Bete, Härdöpfel u. a. Unsichere Begriffe stehen als TODO in `synonymTodos`, nicht geraten.
 - Vorschläge ab dem ersten Zeichen, höchstens 6, passender Teil hervorgehoben, Gruppe als Zusatz („Haselnuss · Nüsse“), Zeilen ≥ 48 px. Genau passende Wörter stehen zuerst.
-- **Kein Treffer** (A7): Der Text lässt sich als Notiz eintragen. Sie schliesst keine Gruppe aus; das Wort erscheint aber nirgends mehr als Beispiel (Rückmeldung Team, 12.10.). Der Hinweis daneben sagt das ehrlich.
+- **Notiz nur als Ausnahme** (A7): Erst wenn wirklich nichts passt (z. B. eine Marke oder ein Familienrezept), lässt sich der Text klein „trotzdem als Notiz eintragen“. Sie schliesst keine Gruppe aus; das Wort erscheint aber nirgends mehr als Beispiel (Rückmeldung Team, 12.10.). Der Hinweis daneben sagt das ehrlich.
 
 ## Designsystem
 
@@ -120,12 +125,13 @@ Damit einzelne Allergene einzelne Karten treffen, enthält der Katalog Stufe-3-K
 | --- | --- | --- |
 | `?limit=6` | Karten pro Runde (`ROUND_CARD_LIMIT`), gültig 4 bis 30; ungültige Werte fallen auf den Standard zurück | 10 |
 | `?admin=1` | Ansicht für die Testleitung | – |
+| `?sms=sim` | SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne eigenes Handy) | echt, wenn Firebase eingerichtet ist |
 
 Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`.
 
 ## Protokoll und Export
 
-Alles bleibt im Browser (`localStorage`), es gibt kein Backend und keine Netzwerkanfrage. Eine Sitzung wird erst gespeichert, wenn unter „Über dich“ die Einwilligung gegeben ist.
+Alles bleibt im Browser (`localStorage`), es gibt kein eigenes Backend. Einzige Netzwerkanfrage ist der SMS-Versand über Firebase (nur Handynummer und Code, keine Antworten). Eine Sitzung wird erst gespeichert, wenn unter „Über dich“ die Einwilligung gegeben ist.
 
 - **Pro Sitzung:** `sessionId`, `participantCode`, `startedAt`, `endedAt`, `appVersion`, `config`, Onboarding (Altersgruppe, Ernährungsweise, Ausschlüsse mit `source`, Unsicherheits-Flag, Notizen) und das am Ende angezeigte Profil. Dazu Zeitpunkte im `trace` (nur im JSON-Export), z. B. Bildschirmwechsel, `stage0_edit` („Ändern“ in der Zusammenfassung), `stage0_confirm` („Stimmt so“), Start und Ende der Runde.
 - **Pro Ereignis:** `sessionId`, `cardId`, `stage`, `parentId`, `round` (Runde 1, 2, …; in der CSV als eigene Spalte), `positionInRound`, `response` (`DISLIKE` | `LIKE` | `PREFER` | `UNFAMILIAR` | `INTOLERANT` | `UNDO`), `timestamp`, `responseTimeMs` (Karte vollständig sichtbar bis Antwort), `inputMethod` (`swipe` | `button` | `link`; `keyboard` nur bei Demos am Laptop), `selectionReason`, bei INTOLERANT zusätzlich `excludedCardIds`.
@@ -171,11 +177,12 @@ src/
   data/stage0.json       Fragebogen Stufe 0 und Tabelle der Ernährungsweisen
   data/image-credits.json  Fotos, Bildraster der Gruppen und Bildnachweise (APA 7)
   lib/images.js          Fotos je Karte, Bildraster, nie Ausgeschlossenes im Bild, Bildstil der Sitzung
-  auth/                  AuthService (Schnittstelle), MockAuthService (SMS-Simulation), Handynummern
+  auth/                  AuthService (Schnittstelle), FirebaseAuthService (echte SMS), MockAuthService (Simulation), Handynummern
   storage/local.js       Konto und Stand der App auf dem Gerät (nie in Exporten)
   logic/answers.js       Antworttypen und ihre Bedeutung
   logic/events.js        Ereignistypen im Event-Log (Antworten, Profiländerungen, Registrierung)
-  logic/foodSearch.js    einheitliche Suche mit Synonymen, Kategorie und Hervorhebung
+  data/foods.json        alle Zutaten und Getränke (Schweizer Nährwertdatenbank, BLV), erzeugt von scripts/import-foods.py
+  logic/foodSearch.js    einheitliche Suche mit Synonymen, Mehrzahl, Tippfehlern, Kategorie und Hervorhebung
   logic/swipe.js         Wischgesten: Schwelle, Rückfederung, Deckkraft der Beschriftung
   logic/filter.js        isAllowed, isVisible, Hinweise auf Familienkarten
   logic/engine.js        replay (Event-Log inkl. Profiländerungen), Runden, selectNextCards (Platzhalter), Fortschritt, computeProfile
@@ -238,7 +245,8 @@ Ausserdem:
 
 - Erdnüsse: Es gibt keine Erdnuss-Karte. Eine Erdnussallergie blendet beim Wischen deshalb noch nichts aus. Umgekehrt schliesst „Alle Nüsse (inkl. Erdnüsse)“ auch Erdnüsse aus, wer nur Baumnüsse meint.
 - Marken und Herkunft: Wirkung erst mit Produktdaten (z. B. von nurec).
-- Registrierung: echte SMS-Verifizierung oder Simulation? Mit dem Dozenten klären. Heute ist alles simuliert (`MockAuthService`).
+- Echte SMS über Firebase: Die Handynummer geht an Google (USA). Das widerspricht der ursprünglichen Vorgabe (kein echter SMS-Versand, keine Netzwerkanfragen) und gehört in die Einwilligung der Studie (Frage F4); mit Dozent und nurec klären. Kosten pro SMS über den Blaze-Tarif. Für Testpersonen ohne eigenes Handy `?sms=sim`.
+- Stufe 4 (Gerichte, z. B. „Pizza Margherita“) gibt es im Prototyp noch nicht; die Gerichte der Nährwertdatenbank sind deshalb nicht in der Suche.
 - Soll die Registrierung in der Nutzerstudie aktiv sein? Sie kostet Zeit vor dem Swipen (auswertbar über `AUTH_STARTED`/`AUTH_COMPLETED`). Abschaltbar mit `AUTH_ENABLED = false`.
 - Dürfen Testpersonen ihr Profil während der Studie bearbeiten? Jede Änderung ist im Log nachvollziehbar, verändert aber das angezeigte Profil.
 - Synonyme: unsichere Begriffe in `synonymTodos` (z. B. „Baumnuss“ für Walnuss vs. Kartentitel „Baumnüsse“, Peperoni in Deutschland).
@@ -265,3 +273,4 @@ Ausserdem:
 
 Kartenkatalog Stufe 1 und 2, Antworttypen, Stufe 0 und Protokollfelder: nurec Präferenzanamnese v0.2, Arbeitsstand 28.09.2026.
 Allergene: Verordnung des EDI betreffend die Information über Lebensmittel (LIV), Anhang 6; Verordnung (EU) Nr. 1169/2011 (LMIV), Anhang II.
+Lebensmittelliste der Suche: Schweizer Nährwertdatenbank, Generische Lebensmittel V 7.1 (01.07.2026), Bundesamt für Lebensmittelsicherheit und Veterinärwesen (BLV), https://naehrwertdaten.ch (frei verwendbar mit Quellenvermerk; der Vermerk steht auch in „Mein Profil“ unter „Bildnachweise und Quellen“).

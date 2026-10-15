@@ -89,6 +89,25 @@ export const REGISTER = {
   sendCode: 'Code senden',
   sending: 'Code wird gesendet …',
   sendError: 'Der Code konnte nicht gesendet werden. Bitte versuche es nochmals.',
+  sendErrors: {
+    invalidNumber: 'An diese Nummer können wir keine SMS schicken. Prüfe sie bitte.',
+    tooMany: 'Zu viele Versuche. Bitte warte ein paar Minuten und versuche es dann nochmals.',
+    network: 'Keine Verbindung zum Internet. Prüfe die Verbindung und versuche es nochmals.',
+    retry: 'Die Sicherheitsprüfung hat nicht geklappt. Bitte versuche es nochmals.',
+    unavailable: 'Der SMS-Versand ist im Moment nicht möglich. Bitte versuche es später nochmals.',
+  },
+  // Echte SMS über Firebase (Google): ehrlich sagen, wohin die Nummer geht
+  phonePrivacyReal: 'Für die SMS geht deine Nummer an Google Firebase. Nach der Bestätigung löschen wir sie dort wieder; auf diesem Gerät bleibt sie nur gekürzt.',
+  recaptcha: {
+    text: 'Geschützt durch reCAPTCHA. Es gelten die Datenschutzerklärung und die Nutzungsbedingungen von Google.',
+    privacy: 'Datenschutzerklärung',
+    terms: 'Nutzungsbedingungen',
+    privacyUrl: 'https://policies.google.com/privacy',
+    termsUrl: 'https://policies.google.com/terms',
+  },
+  realSmsNote: 'Die SMS kommt meist innert einer Minute. Auf vielen Handys erscheint der Code direkt über der Tastatur.',
+  codeTooMany: 'Zu viele Versuche. Bitte warte ein paar Minuten.',
+  codeFailed: 'Die Prüfung hat nicht geklappt. Prüfe die Internetverbindung und versuche es nochmals.',
   codeTitle: 'Code eingeben',
   codeLead: (masked) => `Wir haben dir einen Code mit 6 Ziffern an ${masked} geschickt.`,
   codeLabel: 'Code aus der SMS',
@@ -209,8 +228,9 @@ export const SEARCH = {
   matchedViaStart: 'passt zu „',
   matchedViaEnd: '“',
   results: (count) => (count === 1 ? '1 Vorschlag' : `${count} Vorschläge`),
-  noResult: 'Kein Eintrag gefunden.',
-  addNote: (text) => `„${text}“ als Notiz eintragen`,
+  noResult: 'Nicht in der Liste.',
+  didYouMean: 'Meintest du:',
+  addNote: (text) => `„${text}“ trotzdem als Notiz eintragen`,
   selected: 'ausgewählt',
 };
 
@@ -389,7 +409,8 @@ export const PROFILE = {
   confirmRemove: 'Ja, entfernen',
   allergiesRemovedTitle: (count) => (count === 1 ? 'Eine Allergie entfernen?' : `${count} Allergien entfernen?`),
   allergiesRemovedText: (names) => `${names.join(', ')}: Diese Lebensmittel schlagen wir dir dann wieder vor.`,
-  credits: 'Bildnachweise',
+  credits: 'Bildnachweise und Quellen',
+  foodSource: (version) => `Lebensmittelliste: ${version}, Bundesamt für Lebensmittelsicherheit und Veterinärwesen (BLV), naehrwertdaten.ch`,
   creditLine: (photo) => `${photo.cardTitle}: Foto von ${photo.photographer}, ${photo.source} (${photo.license})`,
 };
 

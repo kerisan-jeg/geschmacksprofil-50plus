@@ -23,7 +23,10 @@ function categoryOf(hit) {
 // - Vorschläge ab dem ersten Zeichen, höchstens 6, als grosse Tippflächen (≥ 48 px)
 // - der passende Teil ist hervorgehoben, die Gruppe steht als Zusatz („Haselnuss · Nüsse“)
 // - Synonyme werden genannt („passt zu „Sahne““)
-// - kein Treffer: Der Text lässt sich als Notiz eintragen; sie schliesst keine Gruppe aus (ehrlicher Hinweis)
+// - alle Zutaten und Getränke der Schweizer Nährwertdatenbank sind wählbar, auch in der Mehrzahl („Oliven“)
+// - Tippfehler: „Meintest du:“ mit ähnlichen Einträgen
+// - nur wenn wirklich nichts passt, lässt sich der Text als Notiz eintragen (seltene Ausnahme);
+//   sie schliesst keine Gruppe aus (ehrlicher Hinweis)
 //
 // items: Suchindex aus buildFoodIndex(). isSelected(hit), isOffered(hit): Auswahl und „schon ausgeschlossen“.
 export default function FoodSearch({ label, placeholder, items, isSelected = () => false, isOffered = () => true, onPick, onAddNote, autoFocus = false }) {
@@ -34,8 +37,8 @@ export default function FoodSearch({ label, placeholder, items, isSelected = () 
   const hits = text ? searchFoods(items, text, { limit: items.length }) : [];
   const offered = hits.filter((hit) => isSelected(hit) || isOffered(hit)).slice(0, MAX_HITS);
   const alreadyCovered = hits.length > 0 && offered.length === 0;
-  const exact = offered.some((hit) => hit.rank === 0);
-  const canAddNote = Boolean(onAddNote) && text && !exact && !alreadyCovered;
+  const similarOnly = offered.length > 0 && offered.every((hit) => hit.fuzzy);
+  const canAddNote = Boolean(onAddNote) && text && !alreadyCovered && (offered.length === 0 || similarOnly);
 
   function pick(hit) {
     onPick(hit);
@@ -77,7 +80,7 @@ export default function FoodSearch({ label, placeholder, items, isSelected = () 
             event.preventDefault();
             const best = offered.find((hit) => hit.rank === 0);
             if (best) pick(best);
-            else if (canAddNote) addNote();
+            else if (canAddNote && offered.length === 0) addNote();
           }}
         />
       </div>
@@ -85,6 +88,7 @@ export default function FoodSearch({ label, placeholder, items, isSelected = () 
         {text ? SEARCH.results(offered.length) : ''}
       </p>
       <div id={listId}>
+        {similarOnly && <p className="note search-hint">{SEARCH.didYouMean}</p>}
         {offered.length > 0 && (
           <ul className="search-results">
             {offered.map((hit) => {
@@ -118,7 +122,7 @@ export default function FoodSearch({ label, placeholder, items, isSelected = () 
         {alreadyCovered && <p className="note">{ONBOARDING.alreadyCovered}</p>}
         {canAddNote && (
           <div className="search-empty">
-            <button type="button" className="button-secondary add-entry" onClick={addNote}>
+            <button type="button" className="button-ghost is-strong add-entry" onClick={addNote}>
               <Plus aria-hidden="true" />
               {SEARCH.addNote(text)}
             </button>

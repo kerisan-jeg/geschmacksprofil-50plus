@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import catalog from './data/catalog.json';
 import stage0 from './data/stage0.json';
 import allergens from './data/allergens.json';
+import foodList from './data/foods.json';
 import { isAdminMode, resolveConfig } from './config.js';
 import { ImageFilterContext, ImageStyleContext } from './lib/images.js';
 import { indexCatalog } from './logic/catalog.js';
@@ -9,10 +10,12 @@ import { UNDO } from './logic/answers.js';
 import { buildProfile, eligibleFamilies, nextRoundCards, RULE_VERSION, selectionReason } from './logic/engine.js';
 import { ANSWER, AUTH_COMPLETED, AUTH_STARTED, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, RATING_CHANGED, SOURCE_PROFILE } from './logic/events.js';
 import { createRedundancyCheck } from './logic/stage0.js';
+import { mergeFoods } from './logic/foodSearch.js';
 import { summarySections } from './logic/profile.js';
 import { createLogger, storageAvailable } from './logging/logger.js';
 import { createAppModel, creationSteps, hasProgress, isNavVisible, SCREENS, TABS } from './app/model.js';
 import { createAuthService } from './auth/AuthService.js';
+import { RECAPTCHA_CONTAINER_ID } from './auth/FirebaseAuthService.js';
 import { countryById, formatPhoneInput, maskPhone } from './auth/phone.js';
 import { clearAppState, loadAccount, loadAppState, saveAccount, saveAppState, signOutLocally } from './storage/local.js';
 import BottomNav from './components/BottomNav.jsx';
@@ -37,7 +40,8 @@ import AdminScreen from './screens/AdminScreen.jsx';
 // TUTORIAL_ENABLED).
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
-const FOODS = catalog.foods ?? [];
+// Lebensmittel für die Suche: handgepflegte Schweizer Begriffe, dann die Schweizer Nährwertdatenbank (BLV).
+const FOODS = mergeFoods(catalog.foods ?? [], foodList.foods);
 const STAGE0_FOR_PROFILE = {
   options: stage0.questions.find((question) => question.id === 'diet')?.options ?? [],
   diets: stage0.diets,
@@ -67,8 +71,9 @@ function App() {
     createLogger(initial.config, { resumeSessionId: initial.saved?.sessionId ?? null, seedEvents: initial.saved?.state?.events ?? [] })
   );
   const [storageOk] = useState(() => storageAvailable());
-  // SIMULATION: kein echter SMS-Versand, siehe auth/MockAuthService.js
-  const auth = useMemo(() => createAuthService(), []);
+  // Echte SMS über Firebase, wenn eingerichtet (config.sms), sonst SIMULATION (auth/MockAuthService.js)
+  const realSms = initial.config.sms === 'firebase';
+  const auth = useMemo(() => createAuthService({ mode: initial.config.sms }), [initial.config.sms]);
   const [sms, setSms] = useState(null);
   const [state, dispatch] = useReducer(MODEL.reducer, initial, ({ config, account, saved }) => MODEL.initialState(config, { account, saved }));
   const { screen, tab, config, account, person, registration, answers, step, editing, onboarding, events, roundNumber, endedEarly } = state;
@@ -79,7 +84,7 @@ function App() {
   const imageFilter = useMemo(() => (round ? { index: INDEX, exclusions: round.exclusions } : null), [round]);
   const firstName = account?.firstName ?? '';
 
-  useEffect(() => auth.onSimulatedSms((message) => setSms({ code: message.code, key: message.sentAt })), [auth]);
+  useEffect(() => auth.onSimulatedSms?.((message) => setSms({ code: message.code, key: message.sentAt })), [auth]);
   const dismissSms = useCallback(() => setSms(null), []);
 
   useEffect(() => {
@@ -163,7 +168,7 @@ function App() {
     // Nach der Bestätigung nur noch die gekürzte Nummer behalten.
     const nextAccount = { firstName: registration.firstName.trim(), phoneMasked: maskPhone(registration.e164), verifiedAt: new Date().toISOString() };
     saveAccount(nextAccount);
-    log({ type: AUTH_COMPLETED, method: 'sms-simulated' });
+    log({ type: AUTH_COMPLETED, method: realSms ? 'sms' : 'sms-simulated' });
     setSms(null);
     dispatch({ type: 'verified', account: nextAccount });
     return result;
@@ -275,6 +280,7 @@ function App() {
             onChange={(changes) => dispatch({ type: 'registration', changes })}
             onSend={handleSendCode}
             onBack={() => dispatch({ type: 'go', screen: SCREENS.REGISTER_NAME })}
+            realSms={realSms}
           />
         );
       case SCREENS.REGISTER_CODE:
@@ -285,6 +291,7 @@ function App() {
             onVerify={handleVerify}
             onResend={handleResend}
             onBack={() => dispatch({ type: 'go', screen: SCREENS.REGISTER_PHONE })}
+            realSms={realSms}
           />
         );
       case SCREENS.WELCOME_BACK:
@@ -382,6 +389,8 @@ function App() {
             renderCreate()
           )}
           {navVisible && <BottomNav active={tab} onSelect={handleTab} />}
+          {/* Platz für das unsichtbare reCAPTCHA von Firebase (nur bei echter SMS) */}
+          {realSms && <div id={RECAPTCHA_CONTAINER_ID} />}
         </div>
       </ImageFilterContext.Provider>
     </ImageStyleContext.Provider>
