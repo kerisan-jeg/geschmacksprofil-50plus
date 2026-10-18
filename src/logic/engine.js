@@ -228,8 +228,8 @@ export function isHoldoutCard(state, cardId) {
 }
 
 // Karte für die Anzeige: Familien zeigen nur erlaubte Beispiele und Hinweise wie „Ohne Haselnüsse“.
-// group: bei Untergruppen und konkreten Lebensmitteln der Name darüber (z. B. „Fleisch und Geflügel“ über „Rind“,
-// „Rind“ über „Rindssteak“), bei Gerichten „Gericht“ (dishLabel aus labels.js, siehe RoundScreen).
+// group: bei Untergruppen und konkreten Lebensmitteln der Name darüber, an die Ausschlüsse angepasst
+// (z. B. nur „Fisch“, wenn Meeresfrüchte ausgeschlossen sind), bei Gerichten „Gericht“.
 export function presentCard(state, card) {
   const presented = annotateCard(card, state.index, state.exclusions, state.cardLabels);
   if (card.stage === 4) return { ...presented, group: null, dish: true };
@@ -346,7 +346,7 @@ export function intoleranceOptions(state, card) {
   for (const child of children) {
     const leaves = visibleLeaves(state, child);
     if (leaves.length === 1 && leaves[0].id === child.id) direct.push(child);
-    else sections.push({ id: child.id, label: child.title, options: leaves.map((leaf) => ({ id: leaf.id, label: leaf.title })) });
+    else sections.push({ id: child.id, label: displayCardTitle(child, state.index, state.exclusions), options: leaves.map((leaf) => ({ id: leaf.id, label: leaf.title })) });
   }
   const directSection = direct.length > 0 ? [{ id: `${card.id}-direct`, options: direct.map((leaf) => ({ id: leaf.id, label: leaf.title })) }] : [];
   return { sections: [...directSection, ...sections] };

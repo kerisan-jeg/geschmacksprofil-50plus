@@ -146,3 +146,20 @@ test('Bilder zeigen nie Ausgeschlossenes: Raster ohne das Beispiel, sonst die Il
   // Ohne Filter (z. B. Vorschau) bleibt alles
   assert.equal(allowedPhotos(photosForCard('F01', 'photo'), null).length, 3);
 });
+
+test('Ohne Meeresfrüchte bleiben nur Fischfotos; die gemischte Ersatzillustration entfällt', async () => {
+  const { allowedPhotos, illustrationForCard, photosForCard } = await import('../lib/images.js');
+  const { indexCatalog } = await import('../logic/catalog.js');
+  const { buildExclusions } = await import('../logic/filter.js');
+  const index = indexCatalog(cards);
+  const filter = { index, exclusions: buildExclusions([{ type: 'animalOrigin', value: 'seafood' }], { index }) };
+  for (const id of ['F02', 'F02.1', 'F02.1.1']) {
+    assert.deepEqual(allowedPhotos(photosForCard(id, 'photo'), filter).map((photo) => photo.key), ['F02.1'], id);
+    assert.equal(illustrationForCard(index.get(id), filter), null, `${id}: kein Fisch-mit-Garnele-Platzhalter`);
+    assert.equal(illustrationForCard(index.get(id), null), 'F02.svg', 'ohne Ausschlüsse ursprüngliche Illustration');
+  }
+  assert.equal(illustrationForCard(index.get('F12'), filter), 'F12.svg', 'unbetroffene Gruppe behält Illustration');
+  const noFish = { index, exclusions: buildExclusions([{ type: 'allergen', value: 'fish' }], { index }) };
+  assert.deepEqual(allowedPhotos(photosForCard('F02', 'photo'), noFish).map((photo) => photo.key), ['F02.2', 'F02.3']);
+  assert.equal(illustrationForCard(index.get('F02.2'), noFish), null, 'umgekehrt kein Fisch im Platzhalter für Krebstiere');
+});

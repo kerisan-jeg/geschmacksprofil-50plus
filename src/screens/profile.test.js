@@ -24,12 +24,12 @@ const events = [
   { cardId: 'F02', response: 'DISLIKE', round: 1 },
 ];
 
-async function setup() {
+async function setup({ rules = onboarding, sessionEvents = events } = {}) {
   const calls = [];
-  const round = deriveRoundState({ index, onboarding, diets: stage0.diets, events });
+  const round = deriveRoundState({ index, onboarding: rules, diets: stage0.diets, events: sessionEvents });
   const onChange = { confirmPrediction: (...args) => calls.push(args), rating() {}, addExclusions() {}, removeExclusions() {}, diet() {} };
   const view = await render(
-    h(ProfileScreen, { round, onboarding, account: null, index, allergens, foods: [], dietOptions, steps: [], canSignOut: false, onCreate() {}, onRestart() {}, onSignOut() {}, onChange })
+    h(ProfileScreen, { round, onboarding: rules, account: null, index, allergens, foods: [], dietOptions, steps: [], canSignOut: false, onCreate() {}, onRestart() {}, onSignOut() {}, onChange })
   );
   return { ...view, calls };
 }
@@ -65,6 +65,20 @@ test('Tippen auf eine Vermutung öffnet die Bewertung; die Antwort ersetzt die V
   const prefer = [...document.querySelectorAll('[role="radio"]')].at(-1);
   await click(prefer);
   assert.deepEqual(view.calls, [['F12.1', 'PREFER', 0.5]]);
+  await view.unmount();
+});
+
+test('Ohne Meeresfrüchte nennt auch das Profil die bewertete Gruppe, Vermutungen und Bewertung nur Fisch', async () => {
+  const rules = { ...onboarding, exclusions: [{ type: 'animalOrigin', value: 'seafood', source: 'onboarding', origin: 'never' }] };
+  const view = await setup({ rules, sessionEvents: [{ cardId: 'F02', response: 'LIKE', round: 1 }] });
+  const group = view.container.querySelector('[aria-labelledby="group-groups"] .taste-row');
+  assert.equal(group.querySelector('.taste-title').textContent, 'Fisch');
+  assert.ok(!group.getAttribute('aria-label').includes('Meeresfrüchte'));
+  const reasons = [...view.container.querySelectorAll('.is-derived .taste-reason')].map((node) => node.textContent);
+  assert.ok(reasons.includes(PROFILE.derived.reason('Fisch', 'LIKE')));
+  assert.ok(reasons.every((reason) => !reason.includes('Meeresfrüchte')));
+  await click(group);
+  assert.equal(document.querySelector('[role="dialog"] h2').textContent, 'Fisch');
   await view.unmount();
 });
 

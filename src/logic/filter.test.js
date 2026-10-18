@@ -141,6 +141,29 @@ test('Ohne Ausschlüsse bleibt eine Karte unverändert', () => {
   assert.equal(annotateCard(card('F13'), index, excl()), card('F13'));
 });
 
+test('Zusammengesetzte Gruppennamen nennen vollständig ausgeschlossene Teile nicht mehr', () => {
+  const cases = [
+    ['F02', [{ type: 'animalOrigin', value: 'seafood' }], 'Fisch'],
+    ['F02', allergy('fish'), 'Meeresfrüchte'],
+    ['F01', ['F01.2', 'F01.3'].map((value) => ({ type: 'card', value })), 'Geflügel'],
+    ['F04.1', [{ type: 'card', value: 'F04.1.3' }], 'Joghurt und Skyr'],
+    ['F08', ['F08.2', 'F08.3'].map((value) => ({ type: 'card', value })), 'Reis'],
+    ['F08.2', [{ type: 'food', value: 'Couscous' }], 'Bulgur'],
+    ['F10', [{ type: 'card', value: 'F10.1' }], 'Rohkost'],
+    ['F13', [{ type: 'card', value: 'F13.1' }], 'Kerne und Samen'],
+    ['F13', [{ type: 'card', value: 'F13.2' }], 'Nüsse'],
+    ['F13.2', ['F13.2.1', 'F13.2.2'].map((value) => ({ type: 'card', value })), 'Sesam'],
+  ];
+  for (const [id, entries, title] of cases) {
+    const before = card(id).title;
+    const shown = annotateCard(card(id), index, excl(entries));
+    assert.equal(shown.title, title, `${id}: ${before}`);
+    assert.equal(card(id).title, before, 'Quelldaten und gespeicherte Zuordnung bleiben erhalten');
+  }
+  assert.equal(annotateCard(card('F02'), index, excl(allergy('crustaceans'))).title, 'Fisch und Meeresfrüchte', 'Muscheln sind noch erlaubt');
+  assert.equal(annotateCard(card('F13'), index, excl(allergy('hazelnut'))).title, 'Nüsse und Samen', 'andere Nüsse sind noch erlaubt');
+});
+
 // ---------- Stufe 3 und 4: konkrete Lebensmittel, zusammengesetzte Produkte und Gerichte ----------
 
 test('Gerichte fallen weg, wenn eine Zutat ausgeschlossen ist (nurec v0.2, Kap. 2.2: REJECT auch für spätere Vorschläge)', () => {

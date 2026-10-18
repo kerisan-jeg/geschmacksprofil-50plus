@@ -8,7 +8,7 @@ import { allowedPhotos, assetUrl, illustrationForCard, ImageFilterContext, Image
 //   missing – kein Foto hinterlegt oder Bildstil 'illustration': eigene Illustration auf der Kartenfarbe
 //   error   – ein Foto lädt nicht: derselbe Platzhalter, nie ein kaputtes Bild
 // Gruppen zeigen ihre drei Beispiele als Bildraster: das erste gross links, die anderen rechts.
-// Fotos von Ausgeschlossenem fallen weg (allowedPhotos): dann zwei Felder, ein Foto oder die Illustration.
+// Fotos von Ausgeschlossenem fallen weg: dann zwei Felder, ein Foto oder ein sicherer Platzhalter.
 // Die Bilder ergänzen Titel und Beispiele, die als Text danebenstehen: alt bleibt leer.
 const SIZES = {
   card: '(max-width: 30rem) 100vw, 30rem',

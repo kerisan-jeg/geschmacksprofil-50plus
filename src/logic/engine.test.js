@@ -4,12 +4,19 @@ import { readFileSync } from 'node:fs';
 import { indexCatalog } from './catalog.js';
 import { buildProfile, deriveRoundState, hasMoreCards, isRoundComplete, nextCard, nextRoundCards, presentCard, progress, replay, selectionReason, selectNextCards, tasteSignals } from './engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
+import { deriveOnboarding, emptyAnswers } from './stage0.js';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const index = indexCatalog(read('../data/catalog.json').cards);
 const { diets } = read('../data/stage0.json');
 const config = { roundCardLimit: 10 };
 const noOnboarding = { diet: null, exclusions: [], cardLabels: {} };
+const definition = read('../data/stage0.json');
+const answersWithoutSeafood = emptyAnswers(definition.questions);
+answersWithoutSeafood.diet = 'none';
+answersWithoutSeafood.intolerances.gate = 'no';
+answersWithoutSeafood.never = { ...answersWithoutSeafood.never, gate: 'yes', selected: ['animalOrigin:seafood'] };
+const noSeafood = deriveOnboarding(definition, answersWithoutSeafood, { allergens: read('../data/allergens.json'), catalogIndex: index });
 
 const answer = (cardId, response, extra = {}) => ({ cardId, response, ...extra });
 const state = (events, onboarding = noOnboarding, round = 1) => deriveRoundState({ index, onboarding, diets, events, round });
@@ -176,6 +183,54 @@ test('Untergruppen nennen ihre Gruppe; nach allen Karten gibt es keine weitere R
   const everything = selectNextCards(state([]), { roundCardLimit: 100 }).map((card) => answer(card.id, LIKE));
   assert.equal(hasMoreCards(state(everything)), false);
   assert.deepEqual(nextRoundCards(state(everything), config), []);
+});
+
+test('Frage 3 ohne Meeresfrüchte: Karte 5 der zweiten Runde heisst auch im Etikett nur Fisch', () => {
+  const second = state(roundOne, noSeafood, 2);
+  const fish = presentCard(second, selectNextCards(second, config)[4]);
+  assert.equal(fish.id, 'F02.1');
+  assert.equal(fish.title, 'Fisch');
+  assert.equal(fish.group, 'Fisch');
+  assert.deepEqual(fish.examples, ['Lachs', 'Kabeljau']);
+  assert.equal(presentCard(second, index.get('F02')).title, 'Fisch', 'gilt auch für die Familienkarte');
+});
+
+test('Meeresfrüchte bleiben in allen vier Runden aus Vorschlägen, Etiketten und Beispielen entfernt', () => {
+  for (const selection of ['fixed', 'adaptive']) {
+    for (const response of [LIKE, DISLIKE, UNFAMILIAR]) {
+      const events = [{ type: 'HOLDOUT_DRAWN', cardIds: ['F02.1.1', 'F12.3'] }];
+      let shown = 0;
+      for (let round = 1; round <= 4; round += 1) {
+        for (let position = 1; position <= 10; position += 1) {
+          const current = state(events, noSeafood, round);
+          const pending = selectNextCards(current, { ...config, selection });
+          for (const raw of pending) {
+            const card = presentCard(current, raw);
+            assert.ok(!raw.animalOrigin.includes('seafood'), `${selection}, Runde ${round}: ${card.id}`);
+            assert.doesNotMatch([card.title, card.group, ...card.examples].join(' '), /Meeresfrüchte|Garnelen|Krabben|Muscheln/i);
+          }
+          const card = nextCard(current, { ...config, selection });
+          if (!card) break;
+          events.push(answer(card.id, response, { round }));
+          shown += 1;
+        }
+      }
+      assert.ok(shown > 10, 'mehr als eine Runde geprüft');
+    }
+  }
+});
+
+test('Gruppennamen folgen auch Ausschlüssen beim Wischen und im Profil sowie Rückgängig', () => {
+  const swipe = answer('F02', INTOLERANT, { excludedCardIds: ['F02.2', 'F02.3'] });
+  assert.equal(presentCard(state([swipe]), index.get('F02.1')).group, 'Fisch');
+  assert.equal(presentCard(state([swipe, answer('F02', UNDO)]), index.get('F02.1')).group, 'Fisch und Meeresfrüchte');
+  const exclusions = [{ type: 'animalOrigin', value: 'seafood' }];
+  const added = { type: 'EXCLUSION_ADDED', source: 'profile', section: 'never', exclusions };
+  assert.equal(presentCard(state([added]), index.get('F02.1')).group, 'Fisch');
+  const removed = { type: 'EXCLUSION_REMOVED', source: 'profile', section: 'never', exclusions };
+  assert.equal(presentCard(state([added, removed]), index.get('F02.1')).group, 'Fisch und Meeresfrüchte');
+  const noFish = { ...noOnboarding, exclusions: [{ type: 'allergen', value: 'fish' }] };
+  assert.equal(presentCard(state([], noFish), index.get('F02.2')).group, 'Meeresfrüchte');
 });
 
 test('Runde 4 bleibt spielbar, bietet aber trotz offener Karten keine fünfte Runde an', () => {

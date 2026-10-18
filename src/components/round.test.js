@@ -6,13 +6,14 @@ import { buttonByText, click, render, setupDom } from '../test/dom.js';
 // DOM zuerst, dann React laden (react-dom prüft beim Import, ob es ein DOM gibt).
 const dom = setupDom();
 after(() => dom.window.close());
-const { createElement: h } = await import('react');
+const { createElement: h, act } = await import('react');
 const { default: AnswerButtons } = await import('./AnswerButtons.jsx');
 const { default: RoundScreen } = await import('../screens/RoundScreen.jsx');
 const { ANSWER_LABELS, ROUND } = await import('../labels.js');
 const { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } = await import('../logic/answers.js');
 const { indexCatalog } = await import('../logic/catalog.js');
 const { deriveRoundState } = await import('../logic/engine.js');
+const { ImageFilterContext } = await import('../lib/images.js');
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const index = indexCatalog(read('../data/catalog.json').cards);
@@ -100,5 +101,34 @@ test('Die nächste Karte liegt sichtbar dahinter', async () => {
   assert.ok(behind, 'Karte dahinter vorhanden');
   assert.equal(behind.getAttribute('aria-hidden'), 'true');
   assert.ok(behind.textContent.includes(index.get('F02').title));
+  await unmount();
+});
+
+test('Runde 2 zeigt Fisch ohne Meeresfrüchte im Etikett, auch im Stapel und nach einem Bildfehler', async () => {
+  const rules = { ...onboarding, exclusions: [{ type: 'animalOrigin', value: 'seafood' }] };
+  const firstRound = Array.from({ length: 10 }, (_, i) => `F${String(i + 1).padStart(2, '0')}`)
+    .map((cardId) => ({ cardId, response: LIKE, round: 1 }));
+  const secondRound = ['F11', 'F12', 'F13', 'F01.1'].map((cardId) => ({ cardId, response: LIKE, round: 2 }));
+  function viewFor(completed, appliedRules = rules) {
+    const round = deriveRoundState({ index, onboarding: appliedRules, diets, events: [...firstRound, ...secondRound.slice(0, completed)], round: 2 });
+    return h(ImageFilterContext.Provider, { value: { index, exclusions: round.exclusions } },
+      h(RoundScreen, { round, config: { ...config, roundCardLimit: 10 }, canUndo: true, onAnswer() {}, onUndo() {}, onEndRound() {} }));
+  }
+  const { container, rerender, unmount } = await render(viewFor(3));
+  assert.equal(container.querySelector('.deck-behind .card-kind').textContent, 'Fisch');
+  await rerender(viewFor(4));
+  const front = () => container.querySelector('.swipe-card');
+  assert.equal(front().querySelector('.card-kind').textContent, 'Fisch');
+  assert.equal(front().querySelector('.card-title').textContent, 'Fisch');
+  assert.ok(front().querySelector('.card-examples').textContent.includes('Lachs, Kabeljau'));
+  assert.equal(front().querySelector('.artwork-illustration'), null, 'kein Platzhalter mit Garnele während des Ladens');
+  assert.ok(front().querySelector('.artwork-photo').getAttribute('src').endsWith('F02.1.jpg'));
+  await act(async () => front().querySelector('.artwork-photo').dispatchEvent(new window.Event('error')));
+  assert.equal(front().querySelector('.artwork').getAttribute('data-state'), 'error');
+  assert.ok(front().querySelector('.artwork-fallback-icon'), 'neutraler Ersatz bei Bildfehler');
+  assert.equal(front().querySelector('.artwork-illustration'), null);
+  await rerender(viewFor(4, onboarding));
+  assert.equal(front().querySelector('.card-kind').textContent, 'Fisch und Meeresfrüchte', 'nach Entfernen des Ausschlusses wieder die ganze Gruppe');
+  assert.ok(front().querySelector('.artwork-illustration'));
   await unmount();
 });
