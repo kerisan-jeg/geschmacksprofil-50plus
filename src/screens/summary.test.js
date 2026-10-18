@@ -1,23 +1,26 @@
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { buttonByText, click, render, setupDom } from '../test/dom.js';
+import { buttonByText, click, render, setupDom, type } from '../test/dom.js';
 
 const dom = setupDom();
 after(() => dom.window.close());
 // jsdom kennt kein Scrollen; der Fragebogen scrollt die Fehlermeldung ins Bild.
 dom.window.Element.prototype.scrollIntoView ??= () => {};
-const { createElement: h } = await import('react');
+const { createElement: h, useState } = await import('react');
 const { default: SummaryScreen } = await import('./SummaryScreen.jsx');
 const { default: QuestionnaireScreen } = await import('./QuestionnaireScreen.jsx');
 const { COMMON, QUESTIONS, SUMMARY } = await import('../labels.js');
 const { indexCatalog } = await import('../logic/catalog.js');
 const { createRedundancyCheck, emptyAnswers } = await import('../logic/stage0.js');
+const { mergeFoods } = await import('../logic/foodSearch.js');
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const definition = read('../data/stage0.json');
 const allergens = read('../data/allergens.json');
-const index = indexCatalog(read('../data/catalog.json').cards);
+const catalog = read('../data/catalog.json');
+const index = indexCatalog(catalog.cards);
+const foods = mergeFoods(catalog.foods, read('../data/foods.json').foods);
 
 const STEPS = [
   { id: 'questions', state: 'current' },
@@ -101,5 +104,43 @@ test('„Ändern“ zeigt nur diese Frage; zurück zur Übersicht erst mit gült
   await click(buttonByText(container, QUESTIONS.backToSummary));
   await click(buttonByText(container, COMMON.back));
   assert.deepEqual(calls, [definition.questions.length, definition.questions.length]);
+  await unmount();
+});
+
+test('„Ja“ in Frage 2 und 3 öffnet Auswahl und vollständige Suche; Zurück erhält die Angaben', async () => {
+  function Questionnaire() {
+    const [answers, setAnswers] = useState(() => ({ ...emptyAnswers(definition.questions), diet: 'none' }));
+    const [step, setStep] = useState(1);
+    return h(QuestionnaireScreen, {
+      questions: definition.questions,
+      step,
+      answers,
+      firstName: 'Anna',
+      allergens,
+      catalogIndex: index,
+      foods,
+      redundancy: createRedundancyCheck(definition, answers, { allergens, catalogIndex: index, upTo: step }),
+      onChange: (id, answer) => setAnswers((previous) => ({ ...previous, [id]: answer })),
+      onStep: setStep,
+      onOpenProfile() {},
+    });
+  }
+  const { container, unmount } = await render(h(Questionnaire));
+  await click(container.querySelector('input[name="intolerances"][value="yes"]'));
+  assert.ok(container.querySelector('.allergen-picker'));
+  const search = container.querySelector('input[type="search"]');
+  await type(search, 'Laktose');
+  await click(container.querySelector('.search-hit'));
+  assert.ok(container.querySelector('.chips-block').textContent.includes('Laktose'));
+  await click(buttonByText(container, QUESTIONS.next));
+  await click(container.querySelector('input[name="never"][value="yes"]'));
+  assert.ok(container.querySelector('.never-picker'));
+  await type(container.querySelector('input[type="search"]'), 'Koriander');
+  await click(container.querySelector('.search-hit'));
+  assert.ok(container.querySelector('.chips-block').textContent.includes('Koriander'));
+  await click(buttonByText(container, COMMON.back));
+  assert.ok(container.querySelector('.chips-block').textContent.includes('Laktose'));
+  await click(buttonByText(container, QUESTIONS.next));
+  assert.ok(container.querySelector('.chips-block').textContent.includes('Koriander'));
   await unmount();
 });

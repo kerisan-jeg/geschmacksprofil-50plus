@@ -70,6 +70,42 @@ test('Hervorhebung markiert den passenden Teil, auch mit Umlauten', () => {
   assert.deepEqual(highlightParts('Nüsse', 'x'), [{ text: 'Nüsse', match: false }]);
 });
 
+test('Aufbereitung erhält Synonyme und ihre Reihenfolge bei Umlauten und Mehrzahl', () => {
+  const cards = indexCatalog([
+    { id: 'nuts', title: 'Nüsse', stage: 3, examples: [], synonyms: [] },
+    { id: 'oil', title: 'Öl', stage: 3, examples: [], synonyms: [] },
+  ]);
+  const foods = [
+    { name: 'Nuss', synonyms: ['Schalenfrucht'] },
+    { name: 'Nüsse', synonyms: ['Baumnüsse'] },
+    { name: 'Oel', synonyms: ['Speiseöl'] },
+    { name: 'Nussmus', synonyms: [] },
+  ];
+  const items = buildFoodIndex({ catalogIndex: cards, foods });
+  assert.deepEqual(items.find((item) => item.key === 'card:nuts').terms, ['Nuss', 'Schalenfrucht', 'Baumnüsse']);
+  assert.deepEqual(items.find((item) => item.key === 'card:oil').terms, ['Speiseöl']);
+  assert.deepEqual(items.filter((item) => item.kind === 'food').map((item) => item.label), ['Nussmus']);
+});
+
+test('Geteilte Aufbereitung hält Allergene, Merkmale und verschiedene Quelldaten getrennt', () => {
+  const foods = [{ name: 'Testzutat', synonyms: ['Testbegriff'] }];
+  const intolerances = buildFoodIndex({ catalogIndex: index, foods, allergens });
+  const never = buildFoodIndex({ catalogIndex: index, foods, tagLabels: { 'test:tag': 'Testmerkmal' } });
+  assert.ok(intolerances.some((item) => item.kind === 'allergen'));
+  assert.ok(!never.some((item) => item.kind === 'allergen'));
+  assert.ok(never.some((item) => item.key === 'test:tag'));
+  assert.ok(!intolerances.some((item) => item.key === 'test:tag'));
+  // Änderungen an einer Ergebnisliste dürfen die nächste Frage nicht beeinflussen.
+  never.length = 0;
+  assert.ok(buildFoodIndex({ catalogIndex: index, foods }).some((item) => item.key === 'food:Testzutat'));
+  const extended = buildFoodIndex({ catalogIndex: index, foods: [...foods, { name: 'Zusatz', synonyms: [] }] });
+  assert.ok(extended.some((item) => item.key === 'food:Zusatz'));
+  const otherCatalog = indexCatalog([{ id: 'test', title: 'Andere Karte', stage: 3, examples: [], synonyms: [] }]);
+  const other = buildFoodIndex({ catalogIndex: otherCatalog, foods });
+  assert.ok(other.some((item) => item.key === 'card:test'));
+  assert.ok(!other.some((item) => item.key === 'card:F01'));
+});
+
 test('Lexikon im Katalog ist konsistent: Gruppen existieren, keine Doppelten, Synonyme als Liste', () => {
   const names = new Set();
   for (const food of catalog.foods) {

@@ -15,7 +15,7 @@
 //   kind 'tag'      – key = z. B. „animalOrigin:seafood“
 // category ist der Name der Gruppe für die Anzeige („Haselnuss · Nüsse“); null bei Familien und Merkmalen.
 
-import { matchRank, normalizeVariants, search, typoDistance } from './search.js';
+import { normalizeVariants, search, typoDistance } from './search.js';
 import { allergenSearchItems } from './allergens.js';
 import { isDish } from './catalog.js';
 import { SEARCH } from '../labels.js';
@@ -24,18 +24,52 @@ function capitalize(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+function sameWordVariants(a, b) {
+  const startsWith = (candidates, queries) => candidates.some((candidate) => queries.some((query) => query && candidate.startsWith(query)));
+  return startsWith(a, b) && startsWith(b, a);
+}
+
 function sameWord(a, b) {
-  return matchRank(a, b) === 0 && matchRank(b, a) === 0;
+  return sameWordVariants(normalizeVariants(a), normalizeVariants(b));
 }
 
 // Dasselbe Wort oder seine Mehrzahl („Linse“ und „Linsen“, „Ei“ und „Eier“, „Haselnuss“ und „Haselnüsse“).
-function sameOrPlural(a, b) {
-  if (sameWord(a, b)) return true;
-  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
-  return normalizeVariants(long).some((full) =>
-    normalizeVariants(short).some((stem) => stem.length >= 2 && full.startsWith(stem) && /^(n|en|e|er|s|nen)$/.test(full.slice(stem.length)))
+function sameOrPlural(a, b, aVariants = normalizeVariants(a), bVariants = normalizeVariants(b)) {
+  if (sameWordVariants(aVariants, bVariants)) return true;
+  const [short, long] = a.length <= b.length ? [aVariants, bVariants] : [bVariants, aVariants];
+  return long.some((full) =>
+    short.some((stem) => stem.length >= 2 && full.startsWith(stem) && /^(n|en|e|er|s|nen)$/.test(full.slice(stem.length)))
   );
 }
+
+// Schreibweisen einmal vorbereiten; nur Wörter mit passendem Anfang vergleichen.
+// Die ursprüngliche Reihenfolge bleibt für Synonyme und die Treffergewichtung erhalten.
+function wordLookup(words) {
+  const variants = words.map(normalizeVariants);
+  const byInitial = new Map();
+  variants.forEach((forms, position) => {
+    for (const initial of new Set(forms.map((form) => form[0]))) {
+      if (!byInitial.has(initial)) byInitial.set(initial, []);
+      byInitial.get(initial).push(position);
+    }
+  });
+  const matches = new Map();
+  return (term) => {
+    if (matches.has(term)) return matches.get(term);
+    const forms = normalizeVariants(term);
+    const candidates = new Set(forms.flatMap((form) => byInitial.get(form[0]) ?? []));
+    const found = [...candidates]
+      .filter((position) => sameOrPlural(words[position], term, variants[position], forms))
+      .sort((a, b) => a - b);
+    matches.set(term, found);
+    return found;
+  };
+}
+
+const EMPTY_FOODS = [];
+// Katalog und Lebensmittelliste sind unveränderliche Quelldaten. Frage 2, Frage 3 und das Profil
+// teilen deren Aufbereitung; Allergene, Merkmale und persönliche Ausschlüsse bleiben getrennt.
+const CATALOG_ITEMS = new WeakMap();
 
 // Lebensmittellisten zusammenführen: Der erste Eintrag gewinnt (handgepflegte Schweizer Begriffe vor der
 // BLV-Liste). Gleich ist, was denselben Namen hat oder den Namen des anderen als Synonym führt
@@ -70,29 +104,34 @@ function familyOf(index, card) {
 }
 
 // Lexikon-Synonyme für einen Begriff (z. B. „Poulet“ → „Hähnchen“, „Hühnchen“; „Linsen“ → Synonyme von „Linse“).
-function lexiconTerms(foods, term) {
-  return foods
-    .filter((food) => sameOrPlural(food.name, term))
+function lexiconTerms(foods, findFoods, term) {
+  return findFoods(term)
+    .map((position) => foods[position])
     .flatMap((food) => [food.name, ...(food.synonyms ?? [])])
     .filter((word) => !sameWord(word, term));
 }
 
 // Karten, Lebensmittel aus den Beispielen und aus dem Lexikon. Ein Wort, das schon Titel oder Synonym
 // einer Karte ist, erscheint nur als Karte (keine doppelten Treffer).
-export function catalogItems(index, foods = []) {
+export function catalogItems(index, foods = EMPTY_FOODS) {
+  if (!CATALOG_ITEMS.has(index)) CATALOG_ITEMS.set(index, new WeakMap());
+  const byFoods = CATALOG_ITEMS.get(index);
+  if (byFoods.has(foods)) return byFoods.get(foods);
+  const findFoods = wordLookup(foods.map((food) => food.name));
   const items = [];
   const covered = [];
   for (const card of index.cards) {
     const family = familyOf(index, card);
     const own = card.synonyms ?? [];
-    const terms = [...own, ...[card.title, ...own].flatMap((term) => lexiconTerms(foods, term))];
+    const terms = [...own, ...[card.title, ...own].flatMap((term) => lexiconTerms(foods, findFoods, term))];
     let category = family && family.id !== card.id ? family.title : null;
     if (isDish(card)) category = SEARCH.dish;
     items.push({ key: `card:${card.id}`, kind: 'card', label: card.title, category, terms });
     covered.push(card.title, ...own);
   }
   // Ein Lebensmittel, das schon eine Karte ist (auch als Einzahl: „Linse“ zu „Linsen“), erscheint nur als Karte.
-  const isCovered = (text) => covered.some((term) => sameOrPlural(term, text));
+  const findCovered = wordLookup(covered);
+  const isCovered = (text) => findCovered(text).length > 0;
   const seen = new Set();
   const addFood = (word, card, category = null) => {
     const label = capitalize(word);
@@ -100,7 +139,7 @@ export function catalogItems(index, foods = []) {
     if (seen.has(id) || isCovered(label)) return;
     seen.add(id);
     const family = card ? familyOf(index, card) : null;
-    items.push({ key: `food:${label}`, kind: 'food', label, category: family?.title ?? category, terms: lexiconTerms(foods, label) });
+    items.push({ key: `food:${label}`, kind: 'food', label, category: family?.title ?? category, terms: lexiconTerms(foods, findFoods, label) });
   };
   // Lexikon zuerst: Es kennt die richtige Gruppe auch für Wörter, die auf keiner Karte stehen
   // (handgepflegt: Karte; Schweizer Nährwertdatenbank: Gruppe als Text, z. B. „Olive · Gemüse“).
@@ -111,6 +150,7 @@ export function catalogItems(index, foods = []) {
     if (card.stage > 2) continue;
     for (const example of card.examples) addFood(example, card);
   }
+  byFoods.set(foods, items);
   return items;
 }
 
@@ -119,7 +159,7 @@ export function tagItems(tagLabels = {}) {
 }
 
 // Suchindex für eine Verwendung. sources: welche Arten von Treffern angeboten werden.
-export function buildFoodIndex({ catalogIndex, foods = [], allergens = null, tagLabels = null }) {
+export function buildFoodIndex({ catalogIndex, foods = EMPTY_FOODS, allergens = null, tagLabels = null }) {
   const items = [...(allergens ? allergenSearchItems(allergens) : []), ...(catalogIndex ? catalogItems(catalogIndex, foods) : [])];
   for (const tag of tagItems(tagLabels ?? {})) {
     if (!items.some((item) => item.label === tag.label)) items.push(tag);
