@@ -25,10 +25,10 @@
 // Karten klein (Kernfrage 2 [A]; nurec: „Zusätzliche Stufen werden nur eröffnet, wenn sie einen neuen
 // Geschmackshinweis versprechen“). Massgebend ist die aktuelle direkte Bewertung (beim Wischen oder im Profil).
 // Harte Ausschlüsse wirken immer (isVisible). Kontrollkarten (state.holdout) kommen hier nie vor; engine.js hängt
-// sie am Ende der letzten Runde an. Gerichte (Stufe 4) haben eine eigene, freiwillige Runde (engine.js).
+// sie am Ende von Runde 2 an. rankedStageCards begrenzt die Regeln auf die Ebene der aktuellen Runde;
+// Gerichte bilden ausschliesslich Runde 4 (engine.js).
 //
-// 'fixed': feste Reihenfolge wie in Version 0.6 (alle Gruppen, dann die Untergruppen abwechselnd, ohne Stufe 3),
-// als Vergleich im Pilot (?selection=fixed).
+// 'fixed': feste Reihenfolge als Vergleich im Pilot, ebenfalls eine Ebene je Runde (inklusive Stufe 3).
 
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR, isTasteSignal } from './answers.js';
 import { isVisible } from './filter.js';
@@ -45,6 +45,8 @@ export const FAVORITE_LIMIT = 3;
 export const REASONS = {
   FIXED_STAGE1: 'stage1_fixed_order',
   FIXED_STAGE2: 'stage2_fixed_order',
+  FIXED_STAGE3: 'stage3_fixed_order',
+  DETAIL: 'stage3_detail',
   AFTER_UNFAMILIAR: 'stage2_after_unfamiliar',
   AFTER_UNFAMILIAR_DETAIL: 'stage3_after_unfamiliar',
   FAMILY: 'stage1_family',
@@ -114,7 +116,7 @@ export function branchCards(state, family) {
 }
 
 // Alle noch offenen Karten in der Reihenfolge, in der sie gezeigt würden: [{ card, reason }].
-export function rankedCards(state, mode = SELECTION.FIXED) {
+export function rankedCards(state, mode = SELECTION.FIXED, { stage = null } = {}) {
   const { index } = state;
   const usable = (card) => isUsable(state, card);
   const open = (card) => usable(card) && !isDone(state, card.id);
@@ -141,7 +143,9 @@ export function rankedCards(state, mode = SELECTION.FIXED) {
     if (answered.some((child) => isTasteSignal(rating(child))) || answered.length >= UNKNOWN_CHILD_LIMIT) return;
     // Die jüngste Antwort in diesem Zweig muss aus der laufenden Runde stammen.
     const latest = [card, ...answered].reduce((best, entry) => ((state.answeredAt?.[entry.id] ?? -1) > (state.answeredAt?.[best.id] ?? -1) ? entry : best));
-    if (answeredIn(latest.id) !== state.round) return;
+    // Im gestuften Ablauf beginnt die Klärung auf der nächsten Ebene. Nach der ersten
+    // Klärungskarte bleibt die Begrenzung auf zwei Karten innerhalb dieser Runde bestehen.
+    if (answeredIn(latest.id) !== state.round && !(stage === card.stage + 1 && latest.id === card.id)) return;
     add('clarify', children.filter(open).slice(0, UNKNOWN_CHILD_LIMIT - answered.length), reason);
   };
 
@@ -217,4 +221,42 @@ export function rankedCards(state, mode = SELECTION.FIXED) {
   // Keine Karte doppelt (eine Karte kann über zwei Regeln kommen): die erste Regel gilt.
   const seen = new Set();
   return TIERS.flatMap((tier) => interleave(tiers[tier])).filter((entry) => !seen.has(entry.card.id) && seen.add(entry.card.id));
+}
+
+// Jede Runde bleibt auf ihrer Ebene. Die fachlichen Ausnahme-, Kontrast- und Favoritenregeln
+// bestimmen innerhalb dieser Ebene die Priorität; unerledigte gröbere Karten wandern nicht nach unten.
+export function rankedStageCards(state, mode = SELECTION.FIXED, stage = state.round) {
+  const familyId = (card) => {
+    while (card.parentId) card = state.index.get(card.parentId);
+    return card.id;
+  };
+  const askedByFamily = new Map();
+  for (const id of state.roundSequence ?? []) {
+    const family = familyId(state.index.get(id));
+    askedByFamily.set(family, (askedByFamily.get(family) ?? 0) + 1);
+  }
+  // Nach jeder Antwort neu ausgleichen: Das blosse Verschachteln der offenen Listen würde
+  // sonst erneut mit derselben Familie beginnen und ihre Kinder nacheinander abfragen.
+  const balance = (entries) => {
+    const reasons = new Map();
+    for (const entry of entries) {
+      if (!reasons.has(entry.reason)) reasons.set(entry.reason, []);
+      reasons.get(entry.reason).push(entry);
+    }
+    return [...reasons.values()].flatMap((group) => group.sort((a, b) => (askedByFamily.get(familyId(a.card)) ?? 0) - (askedByFamily.get(familyId(b.card)) ?? 0)));
+  };
+  const preferred = balance(rankedCards(state, mode, { stage }).filter((entry) => entry.card.stage === stage));
+  if (stage !== 3) return preferred;
+  const details = state.index.cards.filter((card) => card.stage === 2 && card.children.length > 0);
+  const extra = details.map((parent) => {
+    const rating = currentRating(state, parent.id);
+    if (mode === SELECTION.ADAPTIVE && (!isDone(state, parent.id) || ![LIKE, PREFER, UNFAMILIAR, INTOLERANT].includes(rating))) return [];
+    const children = usableChildren(state, parent);
+    const asked = children.filter((card) => isDone(state, card.id)).length;
+    const limit = mode !== SELECTION.ADAPTIVE ? children.length : rating === PREFER ? FAVORITE_LIMIT : UNKNOWN_CHILD_LIMIT;
+    const reason = mode !== SELECTION.ADAPTIVE ? REASONS.FIXED_STAGE3 : rating === UNFAMILIAR ? REASONS.AFTER_UNFAMILIAR_DETAIL : REASONS.DETAIL;
+    return children.filter((card) => card.stage === 3 && !isDone(state, card.id)).slice(0, Math.max(0, limit - asked)).map((card) => ({ card, reason }));
+  });
+  const seen = new Set();
+  return [...preferred, ...balance(interleave(extra))].filter((entry) => !seen.has(entry.card.id) && seen.add(entry.card.id));
 }

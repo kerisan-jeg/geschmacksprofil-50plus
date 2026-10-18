@@ -5,7 +5,7 @@ import { PROFILE_PROGRESS } from '../config.js';
 import { indexCatalog } from './catalog.js';
 import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from './answers.js';
 import { deriveRoundState } from './engine.js';
-import { buildDashboard, dishesAvailable, profileProgress } from './dashboard.js';
+import { buildDashboard, profileProgress } from './dashboard.js';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
 const index = indexCatalog(read('../data/catalog.json').cards);
@@ -97,15 +97,4 @@ test('Feinheiten: roh und gegart nur, wenn beide beantwortet sind und sich unter
   const details = buildDashboard(state([...base, answer('F10.3.1', DISLIKE), answer('F11.2.1', LIKE)])).details;
   assert.deepEqual(details, [{ rawId: 'F10.3.1', cookedId: 'F11.2.1', raw: DISLIKE, cooked: LIKE }]);
   assert.deepEqual(buildDashboard(state([...base, answer('F10.3.1', LIKE), answer('F11.2.1', LIKE)])).details, [], 'gleich: keine Feinheit');
-});
-
-test('Gerichte erst nach Stufe 2 oder am Ende der Profilerstellung (nurec Kap. 5)', () => {
-  assert.equal(dishesAvailable(state([answer('F01', LIKE)]), { moreRounds: true }), false);
-  assert.equal(dishesAvailable(state([answer('F01', LIKE)]), { moreRounds: false }), true, 'nach der letzten Runde immer möglich');
-  const stage1 = state(families.map((id) => answer(id, LIKE)));
-  assert.equal(dishesAvailable(stage1, { moreRounds: true }), false, 'Kontraste noch offen');
-  assert.equal(dishesAvailable(stage1, { moreRounds: false }), true, 'keine weitere Runde mehr');
-  const done = [...families.map((id) => answer(id, DISLIKE))];
-  for (const family of index.cards.filter((card) => card.stage === 1 && card.exceptionCandidate)) done.push(answer(family.exceptionCandidate, DISLIKE));
-  assert.equal(dishesAvailable(state(done), { moreRounds: true }), true, 'Stufe 2 abgeschlossen');
 });

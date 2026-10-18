@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { DEFAULT_CONFIG, isAdminMode, resolveConfig } from './config.js';
+import { cardLimit, DEFAULT_CONFIG, isAdminMode, normalizeConfig, resolveConfig } from './config.js';
 
-const DEFAULTS = { roundCardLimit: 10, tutorial: false, imageStyle: 'photo', auth: true, sms: 'simulation', selection: 'adaptive', holdout: 6 };
+const DEFAULTS = { roundCardLimit: 13, roundFlow: 'staged-v1', tutorial: false, imageStyle: 'photo', auth: true, sms: 'simulation', selection: 'adaptive', holdout: 6 };
 
-test('Ohne Parameter gelten die Standardwerte (Limit 10, kein Tutorial, Fotos, Registrierung an, adaptive Auswahl, 6 Kontrollkarten)', () => {
+test('Standard: 13 Karten für die 13 Familien, vier gestufte Runden, sechs Kontrollkarten', () => {
   assert.deepEqual(resolveConfig(''), DEFAULTS);
   assert.deepEqual(DEFAULT_CONFIG, DEFAULTS);
 });
@@ -12,13 +12,21 @@ test('Ohne Parameter gelten die Standardwerte (Limit 10, kein Tutorial, Fotos, R
 test('?limit wird übernommen', () => {
   assert.equal(resolveConfig('?limit=6').roundCardLimit, 6);
   assert.equal(resolveConfig('?limit=4').roundCardLimit, 4);
-  assert.equal(resolveConfig('?limit=30').roundCardLimit, 30);
+  assert.equal(resolveConfig('?limit=12').roundCardLimit, 12);
+  assert.equal(resolveConfig('?limit=15').roundCardLimit, 15);
 });
 
 test('Ungültige Werte für ?limit fallen auf den Standard zurück', () => {
-  for (const value of ['3', '31', '0', '-5', '7.5', 'abc', '', '1e1', '10px']) {
-    assert.equal(resolveConfig(`?limit=${value}`).roundCardLimit, 10, value);
+  for (const value of ['3', '16', '30', '31', '0', '-5', '7.5', 'abc', '', '1e1', '10px']) {
+    assert.equal(resolveConfig(`?limit=${value}`).roundCardLimit, 13, value);
   }
+});
+
+test('Gespeicherte Konfigurationen und direkte Aufrufe überschreiten nie 15 Karten', () => {
+  assert.equal(cardLimit({ roundCardLimit: 100 }), 15);
+  assert.equal(normalizeConfig({ roundCardLimit: 30 }).roundCardLimit, 15);
+  assert.equal(normalizeConfig({ roundCardLimit: 10 }).roundCardLimit, 13, 'alter Standard wird aktualisiert');
+  assert.equal(normalizeConfig({ roundCardLimit: 10, roundFlow: 'staged-v1' }).roundCardLimit, 10, 'bewusst gewähltes neues Limit bleibt');
 });
 
 test('Alte ?tutorial-Parameter können das entfernte Tutorial nicht aktivieren', () => {

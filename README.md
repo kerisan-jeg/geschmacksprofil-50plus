@@ -17,10 +17,10 @@ Die App hat zwei Bereiche: **Profil erstellen** und **Mein Profil**. Die untere 
 3. **Über dich:** Alter und Einwilligung sind Pflicht, unter „Für die Testleitung“ die Teilnehmer-Nr. Ohne Registrierung startet die App hier, der Vorname ist dann freiwillig.
 4. **Fragebogen (Stufe 0):** drei Fragen, eine pro Bildschirm, Details nur bei „Ja“. Frage 2 bietet „Ja“ und „Keine bekannt“, Frage 3 fragt nach „etwas Weiterem“.
 5. **Zusammenfassung** (nurec v0.2, Kap. 2.2 [D]): „Stimmt das so?“ zeigt alle festen Regeln, je Frage ein Abschnitt (Ernährungsweise, Allergien und Unverträglichkeiten, „Möchte ich nicht essen“). „Ändern“ öffnet direkt die passende Frage und führt danach zurück; „Stimmt so“ bestätigt. Ein offenes „Ich bin mir nicht sicher“ steht dort als offen, nicht als Freigabe. Bewusst kurz, ohne Vorschau der Karten.
-6. **Runde 1:** nach „Stimmt so“ direkt die erste Karte (kein Tutorial, Teamentscheid vom 13.10.). Vorher zieht die App still die Kontrollkarten (siehe unten). Höchstens `ROUND_CARD_LIMIT` Karten (Standard 10), zuerst die Gruppen. Karte und Knöpfe haben den ganzen Bildschirm.
+6. **Runde 1 – Lebensmittelgruppen:** nach „Stimmt so“ direkt die erste Karte. Standardmässig bis zu 13 Karten, damit alle 13 zulässigen Gruppen Platz haben; ausgeschlossene Gruppen entfallen. Vorher zieht die App die Kontrollkarten.
 7. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln), Ausblick auf die nächsten Karten, „Weiter mit Runde 2“ und „Mein Profil ansehen“.
-8. **Runde 2 bis maximal 4:** Die Karten wählt die App je nach den bisherigen Antworten (siehe „Kartenauswahl“): übrige Gruppen, die Ausnahme bei „Mag ich nicht“, zwei Untergruppen als Kontrast bei „Mag ich“, konkrete Lebensmittel nur bei einem Unterschied und als Favoriten. Gemäss Vorgabe des Dozenten endet die Profilerstellung spätestens nach Runde 4 (`MAX_ROUNDS` in `src/config.js`). Sie endet früher, wenn keine Karte mehr neue Information verspricht. Die letzten Karten sind die Kontrollkarten. Ausschlüsse wirken in jeder Runde.
-9. **Freiwillig: Gerichte (Stufe 4)** nach Stufe 2 oder am Ende der Profilerstellung: eine eigene kurze Runde mit konkreten Gerichten (z. B. Pizza Margherita, Rösti mit Spiegelei). Sie zählt nicht zu den vier Runden und überträgt nichts auf Zutaten (nurec Kap. 5 und 7).
+8. **Runde 2 – Untergruppen, Runde 3 – konkrete Lebensmittel:** Die Auswahl vertieft auf jeder Runde eine Ebene. Ausnahmen, Kontraste und Favoriten bestimmen die Priorität. Auch bei gleichen positiven Untergruppenantworten werden in Runde 3 einzelne Lebensmittel geprüft; höchstens zwei pro positiver Untergruppe, bei „Mag ich sehr“ drei. Unbekanntes bekommt höchstens zwei Klärungskarten auf der nächsten Ebene. Die Kontrollkarten schliessen Runde 2 ab. Pro Runde sind standardmässig höchstens 13 und absolut nie mehr als 15 Karten möglich. Es gibt keine Füllkarten; leere Ebenen werden übersprungen.
+9. **Runde 4 – Gerichte:** ausschliesslich konkrete zulässige Gerichte (z. B. Pizza Margherita, Rösti mit Spiegelei), nach bisherigen Zutatenvorlieben sortiert. Antworten bleiben eigenständige Gerichtsbewertungen und verändern keine Zutatenbewertung. Nach Runde 4 geht es zum Profil; es gibt keine zusätzliche Gerichte-Runde und keinen Knopf „Gerichte bewerten“. Die Zuordnung Runde = Ebene folgt der gezeigten Ablaufgrafik des Dozenten und der Teamvorgabe vom 18.10.2026; die kurzen Haltepunkte und getrennte Speicherung folgen nurec Kap. 3, 5 und 7.
 10. **Freiwillig: Alltag** (nurec Kap. 2.3): Kochzeit, Küchengeräte, Budget, Einkaufsorte und Marken, Convenience, Packungsgrösse. Jede Frage überspringbar.
 11. **Mein Profil:** Dashboard nach nurec Anhang B (siehe unten).
 
@@ -49,7 +49,7 @@ Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt
 
 **Wischen** (reine Logik in `src/logic/swipe.js`, Werte in `SWIPE` in `src/config.js`): Beim Ziehen erscheint auf der Karte die Beschriftung der angedeuteten Antwort mit Symbol; ihre Deckkraft wächst mit der Zugdistanz. Eine Antwort zählt erst ab der Schwelle (110 px seitlich, 90 px nach oben) oder bei schnellem Schnippen; darunter springt die Karte zurück. Die nächste Karte liegt leicht dahinter und rückt beim Ziehen nach vorn. Jede Richtung hat einen gleichwertigen Knopf an der Stelle, wohin die Karte fliegt (Wischen nach oben ist für viele schwierig).
 
-**Fortschritt:** Ein Segment pro Karte, „Karte 3 von 10“ mit tabellarischen Ziffern, je Runde. Anzahl und Prozentwert kommen aus `progress()` und damit aus dem Rundenlimit, nie fest im Code. Die Abschnitte der Profilerstellung (Fragen, Runde 1 bzw. 2 …, Profil) zeigen erledigte Teile mit Häkchen. Rückgängig wirkt nur in der laufenden Runde.
+**Fortschritt:** Ein Segment pro Karte, etwa „Karte 3 von 13“, je Runde. Anzahl und Prozentwert kommen aus `progress()`, nie fest aus der Oberfläche. Die Abschnitte zeigen Fragen, aktuelle Runde und Profil. Rückgängig wirkt nur in der laufenden Runde.
 
 ## Registrierung (SMS-Code)
 
@@ -70,7 +70,7 @@ Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt
 - **Das vermutet die App** (B3.2, getrennt und gestrichelt): mögliche Favoriten und Vermutungen mit Begründung, stärkste zuerst, „Alle anzeigen“ bei langen Listen. Tippen öffnet die Bewertung: Die eigene Antwort ersetzt die Vermutung (`RATING_CHANGED` mit `fromPrediction: true` und `predictedScore`). Kontrollkarten erscheinen erst nach ihrer Antwort.
 - **Noch offen:** „Kennst du nicht“ getrennt von „Noch nicht gefragt“ (beides ist keine Bewertung).
 - **Feinheiten:** roh gegenüber gegart (z. B. Rohe Rüebli: Mag ich nicht · Gekochte Rüebli: Mag ich), nur wenn beides beantwortet ist und sich unterscheidet.
-- **Gerichte** (Stufe 4) getrennt von den Lebensmitteln, mit „Gerichte bewerten“, sobald verfügbar.
+- **Gerichte** (Runde 4) getrennt von den Lebensmitteln; nach ihrem Abschluss wird keine weitere Gerichte-Runde angeboten.
 - **Ausschlüsse** (Nie vorschlagen), getrennt vom Geschmack: Allergien, Ernährungsweise, „Vertrage ich nicht“, „Möchte ich nicht essen“, Notizen. Bei jedem Eintrag die Herkunft (im Onboarding, beim Wischen, im Profil) und Zusätze nach Kap. 2.2: „ärztlich vorgegeben“, „kleine Mengen gehen“, „prüfen“ (eingetippt, nicht eindeutig zugeordnet).
 - **Alltag** (Kap. 2.3): Zusammenfassung in Worten, „Ergänzen“ bzw. „Ändern“.
 - **Bearbeiten:** Bewertung über ein Segmented Control mit den drei Bewertungen und „Aus dem Profil entfernen“; Allergien mit derselben Komponente wie im Onboarding; Ernährungsweise; „Vertrage ich nicht“ und „Möchte ich nicht essen“ über die Suche. Allergien und Unverträglichkeiten werden nur nach einer Bestätigung entfernt.
@@ -136,13 +136,13 @@ Seit Version 0.8 gilt zusätzlich (nurec Kap. 2.2: harte Ausschlüsse wirken auf
 
 | Parameter | Wirkung | Standard |
 | --- | --- | --- |
-| `?limit=6` | Karten pro Runde (`ROUND_CARD_LIMIT`), gültig 4 bis 30; ungültige Werte fallen auf den Standard zurück | 10 |
+| `?limit=12` | Karten pro Runde (`ROUND_CARD_LIMIT`), gültig 4 bis 15; ungültige Werte fallen auf den Standard zurück | 13 |
 | `?admin=1` | Ansicht für die Testleitung | – |
 | `?sms=sim` | SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne eigenes Handy) | echt, wenn Firebase eingerichtet ist |
 | `?selection=fixed` | feste Reihenfolge wie in Version 0.6 statt adaptiver Auswahl (Vergleich im Pilot) | adaptiv |
 | `?holdout=4` | Anzahl Kontrollkarten, gültig 0 bis 10 (0 = keine) | 6 |
 
-Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `MAX_ROUNDS`, `SELECTION_MODE`, `HOLDOUT_CARDS`, `PREFERENCE_MODEL`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`. Sitzungen von vor Version 0.7 behalten beim Weitermachen die feste Reihenfolge.
+Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `MAX_ROUNDS`, `SELECTION_MODE`, `HOLDOUT_CARDS`, `PREFERENCE_MODEL`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`. Explizit gew?hlte Auswahlverfahren bleiben erhalten; alle Sitzungen halten die neue Stufenfolge und die Grenze von 15 Karten ein.
 
 ## Protokoll und Export
 
@@ -207,7 +207,7 @@ src/
   logic/foodSearch.js    einheitliche Suche mit Synonymen, Mehrzahl, Tippfehlern, Kategorie und Hervorhebung
   logic/swipe.js         Wischgesten: Schwelle, Rückfederung, Deckkraft der Beschriftung
   logic/filter.js        isAllowed, isVisible, Hinweise auf Familienkarten
-  logic/engine.js        replay (Event-Log inkl. Profiländerungen), Runden, Budget bis Runde 4, Kontrollkarten am Ende,
+  logic/engine.js        replay (Event-Log inkl. Profiländerungen), vier gestufte Runden, maximal 15 Karten, Kontrollkarten in Runde 2,
                          Fortschritt, computeProfile, derivedEntries (Vermutungen)
   logic/selection.js     adaptive Kartenauswahl (Regeln nach nurec v0.2) und feste Reihenfolge zum Vergleich
   logic/preferences.js   Präferenzmodell: direkte Bewertungen und Vermutungen
@@ -240,7 +240,7 @@ Die Oberfläche ruft nur `nextCard(state, config)` auf, das intern `selectNextCa
 
 | Rang | Karten | `selectionReason` |
 | --- | --- | --- |
-| 1 | „Kenne ich nicht“ bei einer Gruppe oder Untergruppe: sofort ein verbreitetes Kind, bei erneutem „Kenne ich nicht“ ein zweites, andersartiges; danach bleibt der Zweig unbekannt. Nur in derselben Runde (Kap. 6: „Ist das Limit vor der zweiten Klärungskarte erreicht, bleibt der Zweig unbekannt“) | `stage2_after_unfamiliar`, `stage3_after_unfamiliar` |
+| 1 | „Kenne ich nicht“ bei einer Gruppe oder Untergruppe: auf der nächsten Ebene ein verbreitetes Kind, bei erneutem „Kenne ich nicht“ höchstens ein zweites, andersartiges; danach bleibt der Zweig unbekannt. Die Klärung bleibt auf zwei Karten dieser Vertiefungsrunde begrenzt | `stage2_after_unfamiliar`, `stage3_after_unfamiliar` |
 | 2 | Gruppen (Stufe 1), die noch nicht gefragt wurden | `stage1_family` |
 | 3 | Gruppe „Mag ich nicht“: die plausible Ausnahme (Hülsenfrüchte → Sojaprodukte, Fisch und Meeresfrüchte → Krebstiere) | `stage2_exception` |
 | 4 | Gruppe „Mag ich“ oder „Mag ich sehr“: zwei Untergruppen als Kontrast (Obst → Beeren und Zitrusfrüchte, Milchprodukte → Joghurt und Quark sowie Käse) | `stage2_contrast` |
@@ -251,17 +251,17 @@ Die Oberfläche ruft nur `nextCard(state, config)` auf, das intern `selectNextCa
 - Fällt der Kontrast gleich aus, ist der Zweig geklärt: Die übrigen Untergruppen werden vermutet, nicht gefragt. Bei „Mag ich nicht“ ohne Ausnahme ebenso („bei DISLIKE vorerst stoppen“). Eier und Kartoffeln brauchen keine Untergruppe.
 - Innerhalb eines Rangs wechseln sich die Gruppen ab. Eine Kontrollkarte wird durch das nächste passende Kind ersetzt.
 - Massgebend ist die aktuelle direkte Bewertung, auch wenn sie im Profil geändert wurde. Harte Ausschlüsse wirken immer.
-- **Budget:** höchstens `MAX_ROUNDS` × Kartenlimit Karten (4 × 10 = 40). Die normale Auswahl bekommt nur so viele Plätze, dass am Ende alle Kontrollkarten Platz haben (bei 6 Kontrollkarten höchstens 34).
-- **Gerichte** (Stufe 4) haben eigene, freiwillige Runden (`G1`, `G2` …) mit allen sichtbaren Gerichten in Katalogreihenfolge; sie zählen nicht zu `MAX_ROUNDS` und haben keine Kontrollkarten.
-- **Feste Reihenfolge** (`?selection=fixed`): wie in Version 0.6, als Vergleich. Auch sie hält die Kontrollkarten zurück.
-- Bei jeder Änderung der Regeln `RULE_VERSION` in `src/logic/engine.js` erhöhen (heute `demo-0.4`); sie steht in jedem Ereignis.
+- **Budget:** standardmässig bis zu 4 × 13 = 52 Karten; die absolute Grenze beträgt 15 pro Runde. Die sechs Kontrollkarten teilen sich das Budget von Runde 2 mit den normalen Untergruppen. Weniger sinnvolle oder zulässige Karten verkürzen eine Runde.
+- **Gerichte** bilden ausschliesslich Runde 4. Harte Ausschlüsse gelten vor der Sortierung; Zutatenvorlieben bestimmen die Reihenfolge, werden aber nie als Gerichtsbewertung gespeichert. Es gibt keine fünfte oder nachgelagerte Gerichte-Runde.
+- **Feste Reihenfolge** (`?selection=fixed`): als Vergleich innerhalb derselben vier Ebenen, einschliesslich konkreter Lebensmittel in Runde 3. Auch sie hält Kontrollkarten bis zum Ende von Runde 2 zurück.
+- Bei jeder Änderung der Regeln `RULE_VERSION` erhöhen (heute `demo-0.5`); sie steht in jedem Ereignis. `roundFlow: staged-v1` kennzeichnet den neuen Ablauf. Alte Spielstände behalten Antworten und Ausschlüsse; das bisherige Standardlimit 10 wird auf 13, Limits über 15 werden auf 15 angepasst. Frühere G-Runden werden als Runde 4 fortgesetzt.
 
 ## Präferenzmodell und Kontrollkarten
 
 - **Direkt:** Mag ich nicht −1, Mag ich +1, Mag ich sehr +2. „Kenne ich nicht“ und „Vertrage ich nicht“ sind kein Geschmack.
 - **Vermutet:** Eine Karte ohne eigene Bewertung erbt die Bewertung ihrer nächsten bewerteten Gruppe, pro Stufe mit dem Faktor 0.5 abgeschwächt (nurec Kap. 7: „nur ein vorsichtiger Hinweis“). „Mag ich sehr“ wird nie vermutet. Zusammengesetzte Produkte und Gerichte sind eigene Einheiten: keine Vermutung, und ihre Antwort geht nie auf Zutaten über. Variante für die Auswertung: bewertete Geschwister zählen mit (`siblingWeight`, Standard 0 = aus).
 - Alle Zahlen sind Annahmen [V] (`PREFERENCE_MODEL` in `src/config.js`). Ohne Geschwister hängt die Richtung einer Vermutung nur am Vorzeichen; Faktor und Gewichte ändern die Trefferquote nicht (Test in `src/logic/preferences.test.js`).
-- **Kontrollkarten:** Nach „Stimmt so“ zieht die App pro Person 6 Untergruppen zufällig (eine pro Gruppe, Zufall aus der `sessionId`, Ereignis `HOLDOUT_DRAWN`). Sie kommen nie in der Auswahl vor, sondern am Ende der letzten Runde, und sehen aus wie alle anderen Karten. An ihnen prüft die Auswertung, ob die Vermutungen stimmen.
+- **Kontrollkarten:** Nach „Stimmt so“ zieht die App sechs Untergruppen zufällig (bei kleineren Limits höchstens so viele wie Rundenplätze). Sie erscheinen am Ende von Runde 2. Die Lernkurve verwendet ausschliesslich normale Antworten vor der ersten Kontrollkarte; spätere Lebensmittelantworten bleiben im Profil und den Pilotkennzahlen erhalten, verändern aber die gemessene Vorhersage nicht rückwirkend.
 - **Auswertung:** `npm run auswertung -- <export.json>` rechnet aus dem Protokoll nach, was die App nach k Antworten vermutet hätte (Lernkurve), mit den Vergleichswerten „immer Mag ich“ und „andere Personen“ und 95-%-Intervallen. Alles Weitere, auch Kriterium und Pilottest: [`docs/messkonzept.md`](docs/messkonzept.md).
 
 ## Mobile-Kriterien
@@ -302,7 +302,7 @@ Ausserdem:
 - Marken und Herkunft: Wirkung erst mit Produktdaten (z. B. von nurec).
 - Echte SMS über Firebase: Die Handynummer geht für die einmalige Registrierung an Google (USA). Teamentscheid 15.10.: in Ordnung; im Einwilligungstext der Studie erwähnen (Frage F4). Kosten pro SMS über den Blaze-Tarif. Für Testpersonen ohne eigenes Handy `?sms=sim`.
 - Stufe 3 und 4 (82 konkrete Lebensmittel in den Blöcken 3.1 bis 3.7 und 18 Gerichte) sind Team-Ergänzungen [V] nach den Beispielen im Konzept: Auswahl, Titel und Tags mit nurec prüfen. Die Gerichte der Nährwertdatenbank sind weiterhin nicht in der Suche.
-- Gerichte als freiwillige Runde ausserhalb der vier Runden: mit dem Dozenten klären, ob das so in Ordnung ist.
+- Gerichte sind gemäss Teamvorgabe vom 18.10.2026 in Runde 4 enthalten; eine zusätzliche Runde entfällt.
 - Fotos für konkrete Lebensmittel: 26 nutzen ein vorhandenes Foto, das genau sie zeigt (z. B. Lachs, Erdbeeren); die übrigen und alle Gerichte zeigen die Illustration ihrer Gruppe bzw. einen Teller. Eigene Fotos nachliefern.
 - Profilstand: Gewichte 35/30/35 sind ein Entwurf von nurec, `stage3Target` (12) ist eine Annahme; im Pilot prüfen.
 - Alltagsprofil und Marken wirken erst mit Produkt- und Rezeptdaten; die fehlenden Küchengeräte werden als feste Grenze gespeichert (z. B. kein Ofen).
@@ -311,7 +311,7 @@ Ausserdem:
 - Synonyme: unsichere Begriffe in `synonymTodos` (z. B. „Baumnuss“ für Walnuss vs. Kartentitel „Baumnüsse“, Peperoni in Deutschland).
 - Glutenfreie Varianten: Früher hiess es „Nur glutenfrei“, mit Tags entfällt die Familie Brot bei „Alles mit Gluten“ ganz.
 - Werden die neuen Begriffe im Pilot verstanden?
-- Standardwert für das Kartenlimit (heute 10 Karten je Runde; Runde 1 zeigt 10 von 13 Gruppen, Runde 2 beginnt mit den übrigen 3).
+- Standardwert für das Kartenlimit: 13, absolute Obergrenze 15. Belastung und Antwortzeiten im Pilot prüfen; jede Runde bleibt auf ihrer Ebene.
 - Wird „Vertrage ich nicht“ übersehen oder mit „Mag ich nicht“ verwechselt? Im Pilot über `inputMethod = link` und Rückgängig-Ereignisse auswertbar.
 - Tutorial: seit dem 13.10. aus. Ein Pilot-Vergleich ist mit `TUTORIAL_ENABLED = true` möglich (nicht über die URL).
 - Zusammenfassung vor dem ersten Swipe: am 13.10. entfernt, am 14.10. in kurzer Form wieder eingebaut, weil nurec v0.2, Kap. 2.2 [D] sie verlangt („Die Person bestätigt oder korrigiert jede Regel.“). Mit dem Team bestätigen. Wie lange sie dauert, zeigt das Protokoll (Bildschirmwechsel, `stage0_edit`, `stage0_confirm`).
@@ -326,7 +326,7 @@ Ausserdem:
 - Fotos fehlen für **Vollkornpasta** und **Pasta aus Hülsenfrüchten**: In den gespeicherten Unsplash-Suchen gab es kein passendes freies Foto (die Live-Suche ist durch eine Bot-Sperre blockiert). Die Karten zeigen die Pasta-Illustration; das Bildraster „Pasta“ zeigt drei Weizenpasten. Nachliefern, z. B. mit einem eigenen Foto oder einem Unsplash- bzw. Pexels-Zugang.
 - Adaptive Auswahl und Präferenzmodell (Version 0.7): Rangfolge der Regeln, Annahmen (−1/+1/+2, Faktor 0.5, ohne Geschwister) und Kriterium „aussagekräftig“ im Team bestätigen, im Pilot prüfen und vor der Hauptstudie festschreiben (Messkonzept, Abschnitte 5 und 6).
 - Eigenleistung: Auswahl, Modell und Auswertung wurden mit Claude Code umgesetzt. Mit Tibor klären, wie das deklariert wird.
-- Kontrollkarten am Ende der letzten Runde: Wer vorher aufhört, liefert keine. In der Studie deshalb bis zum Abschluss der letzten Runde führen (die Ansicht für die Testleitung zeigt den Stand).
+- Kontrollkarten am Ende von Runde 2: Wer vorher aufhört, liefert keine. Die Ansicht für die Testleitung zeigt den Stand; spätere Antworten werden nicht rückwirkend als Vorwissen gewertet.
 - Gerichte (Stufe 4): Die Kontrollkarten und die Lernkurve decken nur Lebensmittel ab, nicht Gerichte (Gerichte werden nie vermutet).
 - Rückmeldung Team (12.10.) statt A7: Eingetippte Notizen blenden das Wort als Beispiel aus, schliessen aber keine Gruppe aus. Bestätigen, dass das so bleiben soll.
 
@@ -339,9 +339,9 @@ Ausserdem:
 | 2.1 | Allergen-Auswahlliste, frei benennbare Lebensmittel | 14 Hauptallergene, Suche über rund 560 Lebensmittel der Nährwertdatenbank, Notiz mit Status „prüfen“ |
 | 2.2 | Zusammenfassung vor Stufe 1, jede Regel bestätigen oder korrigieren; offen bleibt offen; Speicherung von Typ, ID, Geltungsbereich, Quelle, Prüfstatus, Datum; REJECT vor jedem Score, auch für Produkte | „Stimmt das so?“ mit „Ändern“; Regeln mit `medical`, `scope`, `status`; Filter auch über Zutaten von Produkten und Gerichten |
 | 2.3 | Freiwilliges Alltagsprofil nach den Runden, ausgelassen = unbekannt, nicht im Prozentwert | Bildschirm „Alltag“, sechs Bereiche, überspringbar, `PRACTICAL_SAVED` |
-| 3 | Ablauf: Familien → Antwort → kurze Runde → Untergruppen freiwillig → konkrete Lebensmittel und optional Gerichte → getrennt speichern | Runden mit Abschluss, Stufe 2 und 3 adaptiv, Gerichte als freiwillige Runde |
+| 3 | Ablauf: Familien → Antwort → kurze Runde → Untergruppen freiwillig → konkrete Lebensmittel und optional Gerichte → getrennt speichern | Vier Runden mit Abschluss: Familien, Untergruppen, konkrete Lebensmittel, Gerichte. Fortsetzen bleibt freiwillig; keine fünfte Runde |
 | 4 | Drei Wischrichtungen, „Kenne ich nicht“ als Knopf, kein „Ist okay“, kein Überspringen; UNRATED ≠ UNFAMILIAR | umgesetzt; dazu „Vertrage ich nicht“ als Link (Addendum A4); Wortlaut von LIKE im Pilot prüfen |
-| 5 | Vier Stufen mit Haltepunkten, nach jeder Runde aufhören können; Stufe 4 nach Stufe 2 | Stufe 0 bis 4; „Runde beenden“ und Abschluss nach jeder Runde; Gerichte erst nach Stufe 2 oder am Ende |
+| 5 | Vier Stufen mit Haltepunkten, nach jeder Runde aufhören können; Stufe 4 nach Stufe 2 | Stufe 0 vorab, danach je Runde eine Ebene; „Runde beenden“ und Abschluss nach jeder Runde; Gerichte in Runde 4 |
 | 6 | Auswahl: Familien abdecken, eine Ausnahme bei DISLIKE, Unterschiede bei LIKE/PREFER, nach UNFAMILIAR sofort ein Kind und höchstens ein zweites; Zusatzkarten zählen zum Limit; protokollieren von ID, Stufe, Grund, Regelversion, Antwort, Abbruch; stoppen ohne neue Information | `selection.js` (siehe „Kartenauswahl“); `selectionReason`, `ruleVersion`, `QUESTION_ABORTED` |
 | 7 | Familie gibt nur vorsichtige Hinweise, explizite Antworten zählen stärker; abgeleitete Präferenz mit Quelle; Produkte und Gerichte nicht auf Zutaten übertragen | `preferences.js`, Vermutungen mit Begründung, keine Vermutung für Produkte und Gerichte |
 | 8 | Datenmodell: Constraint, PurchasePreference, PreferenceResponse, DerivedPreference, QuestionEvent, PreferenceEntity | Ausschlüsse mit Zusätzen, Marken und Alltagsprofil, ANSWER-Ereignisse, `predicted`, Protokoll mit `alternatives`, `kind` je Karte |

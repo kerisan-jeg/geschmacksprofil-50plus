@@ -9,18 +9,19 @@
 //
 // Alle Funktionen sind rein (kein Zufall, keine Uhrzeit).
 
-import { MAX_ROUNDS, PREFERENCE_MODEL } from '../config.js';
+import { cardLimit, MAX_ROUNDS, PREFERENCE_MODEL } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, RESPONSE_SEMANTICS, RESPONSES, UNDO, UNFAMILIAR, isTasteSignal } from './answers.js';
 import { ANSWER, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, HOLDOUT_DRAWN, RATING_CHANGED, SOURCE_PROFILE, eventType, isProfileEvent } from './events.js';
 import { annotateCard, buildExclusions, displayCardTitle, isVisible } from './filter.js';
 import { predictedRating, predictScores } from './preferences.js';
 import { sectionOf } from './profile.js';
-import { isDone, rankedCards, REASONS } from './selection.js';
+import { isDone, rankedStageCards, REASONS } from './selection.js';
 import { SOURCE_SWIPE } from './stage0.js';
 
 // demo-0.3: adaptive Kartenauswahl, Kontrollkarten und Präferenzmodell (Version 0.7)
 // demo-0.4: Regeln nach nurec v0.2, Kap. 6 und 11 (Ausnahme, Kontrastpaar, Klärung auch auf Stufe 2, Stufe 3, Gerichte)
-export const RULE_VERSION = 'demo-0.4';
+// demo-0.5: je Runde eine Ebene, Gerichte in Runde 4, maximal 15 Karten; Kontrollen in Runde 2.
+export const RULE_VERSION = 'demo-0.5';
 
 // Antwort-Ereignis (so wird es auch protokolliert, siehe logging/logger.js):
 // { cardId, stage, parentId, round, positionInRound, response, timestamp, responseTimeMs,
@@ -30,7 +31,8 @@ export const RULE_VERSION = 'demo-0.4';
 // round: Nummer der Runde (1, 2, …). Ereignisse ohne das Feld stammen aus Runde 1.
 
 export function roundOfEvent(event) {
-  return event?.round ?? 1;
+  const round = event?.round ?? 1;
+  return typeof round === 'string' && round.startsWith('G') ? 4 : round;
 }
 
 function swipeEntries(event) {
@@ -135,8 +137,10 @@ export function deriveRoundState({ index, onboarding, diets, events = [], round 
   const played = replay(events);
   const { entries, diet, ratings, profileRated } = applyEvents(events, played, onboarding);
   const exclusions = buildExclusions(entries, { diet, diets, index });
-  const roundSequence = played.sequence.filter((id) => played.answeredInRound[id] === round);
-  const lastEvent = roundOfEvent(played.lastEvent) === round ? played.lastEvent : null;
+  // Alte Sitzungen können mehrere Ebenen in derselben Runde enthalten. Ihre Antworten bleiben
+  // erhalten, zählen aber nur dann zum neuen Rundenlimit, wenn sie zur aktuellen Ebene gehören.
+  const roundSequence = played.sequence.filter((id) => played.answeredInRound[id] === round && index.get(id)?.stage === round);
+  const lastEvent = roundOfEvent(played.lastEvent) === round && index.get(played.lastEvent?.cardId)?.stage === round ? played.lastEvent : null;
   return {
     index,
     onboarding,
@@ -165,12 +169,11 @@ export function openHoldout(state) {
     .filter((card) => card && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions));
 }
 
-// Gerichte (Stufe 4, nurec v0.2 Kap. 5): freiwillige eigene Runden mit der Nummer „G1“, „G2“ … Sie zählen nicht zu
-// den MAX_ROUNDS Runden der Profilerstellung, haben keine Kontrollkarten und keine Vermutungen.
+// Gerichte bilden Runde 4. Das alte G-Präfix bleibt nur zum Lesen gespeicherter Protokolle erhalten.
 export const DISH_ROUND_PREFIX = 'G';
 
 export function isDishRound(round) {
-  return typeof round === 'string' && round.startsWith(DISH_ROUND_PREFIX);
+  return round === 4 || (typeof round === 'string' && round.startsWith(DISH_ROUND_PREFIX));
 }
 
 export function dishRoundId(number) {
@@ -179,24 +182,31 @@ export function dishRoundId(number) {
 
 // Gerichte, die noch bewertet werden können: sichtbar (Ausschlüsse wirken auch hier) und noch offen.
 export function openDishes(state) {
-  return state.index.cards.filter((card) => card.stage === 4 && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions));
+  const predictions = predictScores(state.index, state.ratings ?? state.answers);
+  const affinity = (card) => {
+    const scores = (card.ingredients ?? []).map((id) => predictions.get(id)?.score ?? 0);
+    return scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
+  };
+  return state.index.cards
+    .filter((card) => card.stage === 4 && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions))
+    .map((card, position) => ({ card, position, score: affinity(card) }))
+    .sort((a, b) => b.score - a.score || a.position - b.position)
+    .map(({ card }) => card);
 }
 
 // Welche Karten in dieser Runde noch kommen.
 //
 // Auswahl: src/logic/selection.js (config.selection: 'adaptive' oder 'fixed'; ohne Angabe 'fixed').
-// Je Runde höchstens das Kartenlimit, insgesamt höchstens MAX_ROUNDS Runden. Die Kontrollkarten kommen
-// immer zuletzt: Die normale Auswahl bekommt nur so viele Plätze, dass bis zum Ende von Runde MAX_ROUNDS
-// alle Kontrollkarten Platz haben. Endet die Auswahl früher (keine sinnvolle Karte mehr), folgen sie direkt.
-export function selectNextCards(state, config) {
-  const remaining = config.roundCardLimit - answeredCount(state);
-  if (isDishRound(state.round)) return remaining > 0 ? openDishes(state).slice(0, remaining) : [];
-  if (state.round > MAX_ROUNDS) return [];
+// Jede Runde bleibt auf ihrer Ebene und hat höchstens 15 Karten. Kontrollkarten teilen das Budget
+// ihrer Ebene (normalerweise Untergruppen in Runde 2), Runde 4 bleibt vollständig für Gerichte frei.
+export function selectNextCards(state, config = {}) {
+  const remaining = cardLimit(config) - answeredCount(state);
+  if (!Number.isInteger(state.round) || state.round < 1 || state.round > MAX_ROUNDS) return [];
   if (remaining <= 0) return [];
-  const checks = openHoldout(state);
-  const slotsLeft = (MAX_ROUNDS - state.round) * config.roundCardLimit + remaining;
-  const main = rankedCards(state, config.selection)
-    .slice(0, Math.max(0, slotsLeft - checks.length))
+  if (isDishRound(state.round)) return openDishes(state).slice(0, remaining);
+  const checks = openHoldout(state).filter((card) => card.stage === state.round);
+  const main = rankedStageCards(state, config.selection)
+    .slice(0, Math.max(0, remaining - checks.length))
     .map((entry) => entry.card);
   return [...main, ...checks].slice(0, remaining);
 }
@@ -204,13 +214,25 @@ export function selectNextCards(state, config) {
 // Gibt es nach dieser Runde noch eine erlaubte weitere Runde mit offenen Karten?
 // nextRoundCards: die Karten der nächsten Runde (für den Ausblick im Abschluss).
 export function hasMoreCards(state, config = {}) {
-  if (isDishRound(state.round)) return false;
-  return state.round < MAX_ROUNDS && (rankedCards(state, config.selection).length > 0 || openHoldout(state).length > 0);
+  return nextRoundNumber(state, config) !== null;
+}
+
+function inRound(state, round) {
+  const roundSequence = state.sequence.filter((id) => state.answeredInRound[id] === round && state.index.get(id)?.stage === round);
+  return { ...state, round, roundSequence, lastEvent: null };
+}
+
+export function nextRoundNumber(state, config = {}) {
+  if (!Number.isInteger(state.round)) return null;
+  for (let round = state.round + 1; round <= MAX_ROUNDS; round += 1) {
+    if (selectNextCards(inRound(state, round), config).length > 0) return round;
+  }
+  return null;
 }
 
 export function nextRoundCards(state, config) {
-  if (!hasMoreCards(state, config)) return [];
-  return selectNextCards({ ...state, round: state.round + 1, roundSequence: [], lastEvent: null }, config);
+  const round = nextRoundNumber(state, config);
+  return round === null ? [] : selectNextCards(inRound(state, round), config);
 }
 
 // Warum eine Karte gezeigt wird (Feld selectionReason im Protokoll, Gründe in selection.js).
@@ -218,8 +240,8 @@ export function selectionReason(state, card, config = {}) {
   if (!card) return null;
   if ((state.holdout ?? []).includes(card.id)) return REASONS.HOLDOUT;
   if (card.stage === 4) return REASONS.DISH;
-  const entry = rankedCards(state, config.selection).find((ranked) => ranked.card.id === card.id);
-  return entry?.reason ?? (card.stage === 1 ? REASONS.FIXED_STAGE1 : REASONS.FIXED_STAGE2);
+  const entry = rankedStageCards(state, config.selection).find((ranked) => ranked.card.id === card.id);
+  return entry?.reason ?? (card.stage === 1 ? REASONS.FIXED_STAGE1 : card.stage === 2 ? REASONS.FIXED_STAGE2 : REASONS.FIXED_STAGE3);
 }
 
 // Kontrollkarte oder normale Auswahl (Feld phase im Protokoll).

@@ -4,8 +4,8 @@
 //   mit Registrierung (AUTH_ENABLED):  start → register-name → register-phone → register-code → about → …
 //   ohne Registrierung:                about (Vorname freiwillig) → …
 //   danach:                            questions → summary → round → complete → round (Runde 2) → complete …
-//   freiwillig nach Stufe 2:           Gerichte (Stufe 4, eigene Runde „G1“, zählt nicht zu MAX_ROUNDS) und das
-//                                      Alltagsprofil (practical, nurec v0.2 Kap. 2.3), danach zurück, wo man war
+//   Runden 1 bis 4:                    Familien → Untergruppen → konkrete Lebensmittel → Gerichte
+//   freiwillig danach:                Alltagsprofil (practical, nurec v0.2 Kap. 2.3)
 // Nach Frage 3 folgt die Zusammenfassung (nurec v0.2, Kap. 2.2): Die Person bestätigt die festen Regeln
 // („Stimmt so“) oder korrigiert sie („Ändern“ führt zur passenden Frage und wieder zurück). Danach kommt
 // direkt die erste Karte; das Tutorial (intro) nur, wenn TUTORIAL_ENABLED eingeschaltet ist.
@@ -17,9 +17,9 @@
 // Profiländerungen und die Ereignisse der Registrierung stehen darin. Der Zustand der Runde und des
 // Profils wird immer daraus abgeleitet (deriveRoundState → replay).
 
-import { MAX_ROUNDS } from '../config.js';
+import { MAX_ROUNDS, normalizeConfig } from '../config.js';
 import { UNDO } from '../logic/answers.js';
-import { deriveRoundState, dishRoundId, hasMoreCards, isRoundComplete, openDishes, progress } from '../logic/engine.js';
+import { deriveRoundState, isRoundComplete, nextRoundNumber, progress } from '../logic/engine.js';
 import { ANSWER, eventType } from '../logic/events.js';
 import { deriveOnboarding, emptyAnswers } from '../logic/stage0.js';
 
@@ -38,7 +38,7 @@ export const SCREENS = {
   PRACTICAL: 'practical',
 };
 
-// Art der laufenden Runde: Profilerstellung (Stufe 1 bis 3, höchstens MAX_ROUNDS) oder Gerichte (Stufe 4, freiwillig)
+// DISHES bleibt nur für die Migration früherer separater Gerichte-Runden erhalten.
 export const ROUND_MODES = { MAIN: 'main', DISHES: 'dishes' };
 
 export const TABS = { CREATE: 'create', PROFILE: 'profile' };
@@ -91,9 +91,9 @@ export function creationSteps(state, round) {
 }
 
 export function createAppModel({ index, stage0, allergens }) {
-  // Zustand der laufenden Runde: Profilerstellung (Nummer 1 bis MAX_ROUNDS) oder Gerichte („G1“, „G2“ …).
+  // Zustand der laufenden Ebene, Runde 1 bis MAX_ROUNDS; Runde 4 enthält Gerichte.
   function roundOf(state, events = state.events) {
-    const round = state.roundMode === ROUND_MODES.DISHES ? dishRoundId(state.dishRound ?? 1) : state.roundNumber ?? 1;
+    const round = state.roundNumber ?? 1;
     return deriveRoundState({ index, onboarding: state.onboarding, diets: stage0.diets, events, round });
   }
 
@@ -105,6 +105,7 @@ export function createAppModel({ index, stage0, allergens }) {
   // saved: gespeicherter Stand (storage/local.js), account: Konto auf diesem Gerät.
   // Gibt es einen Stand, beginnt die App mit „Willkommen zurück“ und macht danach dort weiter.
   function initialState(config, { account = null, saved = null } = {}) {
+    config = normalizeConfig(config);
     const base = {
       screen: firstScreen(config),
       tab: TABS.CREATE,
@@ -120,7 +121,7 @@ export function createAppModel({ index, stage0, allergens }) {
       events: [],
       // Laufende Runde (1 bis MAX_ROUNDS); jede Antwort trägt sie im Event-Log (event.round).
       roundNumber: 1,
-      // Gerichte (Stufe 4): eigene, freiwillige Runden; roundMode zeigt, welche Runde gerade läuft
+      // Legacy-Felder für bereits gespeicherte Sitzungen; neue Runden gehören zum selben Ablauf.
       roundMode: ROUND_MODES.MAIN,
       dishRound: 0,
       // Alltagsprofil: von wo es geöffnet wurde (dorthin geht es danach zurück)
@@ -129,13 +130,20 @@ export function createAppModel({ index, stage0, allergens }) {
       resume: null,
     };
     if (!saved?.state) return base;
-    const restored = { ...base, ...saved.state, account, registration: EMPTY_REGISTRATION };
+    const restored = { ...base, ...saved.state, config: normalizeConfig(saved.state.config ?? config), account, registration: EMPTY_REGISTRATION };
+    if (restored.roundMode === ROUND_MODES.DISHES) restored.roundNumber = 4;
+    restored.roundMode = ROUND_MODES.MAIN;
     // Alte Sitzungen jenseits der neuen Obergrenze abschliessen; bisherige Antworten bleiben erhalten.
-    if (restored.roundNumber > MAX_ROUNDS) {
+    const beyondLimit = restored.roundNumber > MAX_ROUNDS;
+    if (beyondLimit) {
       restored.roundNumber = MAX_ROUNDS;
       restored.screen = SCREENS.COMPLETE;
       restored.endedEarly = false;
     }
+    // Eine gespeicherte vierte Runde mit Lebensmitteln darf jetzt mit Gerichten weitergehen.
+    // Schon bewertete Karten und Ausschlüsse bleiben im selben Event-Log erhalten.
+    if (restored.onboarding && restored.screen === SCREENS.ROUND && isRoundComplete(roundOf(restored), restored.config)) restored.screen = SCREENS.COMPLETE;
+    if (!beyondLimit && restored.onboarding && restored.roundNumber === 4 && restored.screen === SCREENS.COMPLETE && !saved.state.config?.roundFlow && !isRoundComplete(roundOf(restored), restored.config)) restored.screen = SCREENS.ROUND;
     return { ...restored, screen: SCREENS.WELCOME_BACK, tab: TABS.CREATE, resume: { screen: restored.screen, tab: restored.tab ?? TABS.CREATE } };
   }
 
@@ -191,15 +199,9 @@ export function createAppModel({ index, stage0, allergens }) {
       // „Weiter mit Runde 2“ nach dem Abschluss: nächste Runde mit den noch offenen Karten (auch nach Gerichten).
       case 'nextRound': {
         const main = { ...state, roundMode: ROUND_MODES.MAIN };
-        if (state.screen !== SCREENS.COMPLETE || !hasMoreCards(roundOf(main), state.config)) return state;
-        return enterRound({ ...main, roundNumber: (state.roundNumber ?? 1) + 1 });
-      }
-      // Gerichte bewerten (Stufe 4, freiwillig): nur nach einer abgeschlossenen Runde und solange es offene Gerichte gibt.
-      case 'startDishes': {
         if (state.screen !== SCREENS.COMPLETE) return state;
-        const dishes = { ...state, roundMode: ROUND_MODES.DISHES, dishRound: (state.dishRound ?? 0) + 1 };
-        if (openDishes(roundOf(dishes)).length === 0) return state;
-        return { ...dishes, tab: TABS.CREATE, screen: SCREENS.ROUND, endedEarly: false };
+        const number = nextRoundNumber(roundOf(main), state.config);
+        return number === null ? state : enterRound({ ...main, roundNumber: number });
       }
       // Alltagsprofil öffnen und danach dorthin zurück, wo die Person war (Abschluss oder „Mein Profil“).
       case 'openPractical':

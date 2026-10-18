@@ -132,6 +132,11 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [] }
     trace: [],
   };
   if (!existing && seedEvents.length > 0) session.events = seedEvents.map((event) => eventForLog({ ...event, sessionId: session.sessionId }));
+  if (existing && config.roundFlow && existing.config?.roundFlow !== config.roundFlow) {
+    session.configHistory = [...(session.configHistory ?? []), { config: session.config, ruleVersion: session.ruleVersion }];
+    session.config = { ...config };
+    session.ruleVersion = RULE_VERSION;
+  }
   // Erst speichern, wenn sich jemand angemeldet hat: So entstehen keine leeren Sitzungen.
   let stored = Boolean(existing);
 

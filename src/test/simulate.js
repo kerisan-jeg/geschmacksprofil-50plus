@@ -2,10 +2,10 @@
 // Spielt eine ganze Sitzung durch, wie die App sie protokolliert: Kontrollkarten ziehen (HOLDOUT_DRAWN),
 // dann Runde für Runde die nächste Karte beantworten, bis keine Runde mehr möglich ist.
 
-import { MAX_ROUNDS } from '../config.js';
-import { INTOLERANT } from '../logic/answers.js';
+import { cardLimit, MAX_ROUNDS } from '../config.js';
+import { INTOLERANT, UNFAMILIAR } from '../logic/answers.js';
 import { deriveRoundState, hasMoreCards, isHoldoutCard, selectNextCards, selectionReason } from '../logic/engine.js';
-import { ANSWER, HOLDOUT_DRAWN, PHASE_HOLDOUT, PHASE_MAIN } from '../logic/events.js';
+import { ANSWER, HOLDOUT_DRAWN, PHASE_DISH, PHASE_HOLDOUT, PHASE_MAIN } from '../logic/events.js';
 import { drawHoldout } from '../logic/holdout.js';
 
 export const NO_ONBOARDING = { diet: null, exclusions: [], cardLabels: {} };
@@ -14,7 +14,7 @@ export const NO_ONBOARDING = { diet: null, exclusions: [], cardLabels: {} };
 export function simulateSession({ index, diets, config, respond, sessionId = 'sim-1', participantCode = null, onboarding = NO_ONBOARDING }) {
   const events = [];
   const at = (round) => deriveRoundState({ index, onboarding, diets, events, round });
-  const holdout = drawHoldout(at(1), { count: config.holdout ?? 0, seed: sessionId });
+  const holdout = drawHoldout(at(1), { count: Math.min(config.holdout ?? 0, cardLimit(config)), seed: sessionId });
   if (holdout.cardIds.length > 0) events.push({ type: HOLDOUT_DRAWN, sessionId, ...holdout });
   let clock = Date.parse('2026-10-15T09:00:00.000Z');
   for (let round = 1; round <= MAX_ROUNDS; round += 1) {
@@ -32,7 +32,7 @@ export function simulateSession({ index, diets, config, respond, sessionId = 'si
         parentId: card.parentId,
         round,
         positionInRound: position,
-        phase: isHoldoutCard(state, card.id) ? PHASE_HOLDOUT : PHASE_MAIN,
+        phase: card.stage === 4 ? PHASE_DISH : isHoldoutCard(state, card.id) ? PHASE_HOLDOUT : PHASE_MAIN,
         response,
         timestamp: new Date(clock).toISOString(),
         responseTimeMs: 2500,
@@ -58,6 +58,8 @@ export function simulateSession({ index, diets, config, respond, sessionId = 'si
 export function tasteByFamily(index, byFamily, own = {}) {
   return (card) => {
     if (own[card.id]) return own[card.id];
+    // Gerichte erben auch in Testdaten keine Zutatenvorlieben.
+    if (card.stage === 4) return UNFAMILIAR;
     let family = card;
     while (family.parentId) family = index.get(family.parentId);
     return byFamily[family.id];

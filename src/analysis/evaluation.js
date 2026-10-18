@@ -119,7 +119,7 @@ export function pilotMetrics(index, events, main, model = PREFERENCE_MODEL) {
 
 // Eine Sitzung (wie im JSON-Export) für die Auswertung aufbereiten.
 // main: Antworten der normalen Auswahl in der Reihenfolge des Wischens (nach Rückgängig; ohne Kontrollkarten und
-// ohne Gerichte, die eine eigene, freiwillige Runde haben), checks: Antworten auf die Kontrollkarten,
+// ohne Gerichte aus Runde 4), checks: Antworten auf die Kontrollkarten,
 // visible: am Ende sichtbare Karten (für die Vollständigkeit).
 export function prepareSession(session, { index, diets }) {
   const events = session.events ?? [];
@@ -131,6 +131,10 @@ export function prepareSession(session, { index, diets }) {
   const isDishCard = (id) => index.get(id)?.stage === 4;
   const main = played.sequence.filter((id) => !holdout.has(id) && !isDishCard(id)).map((cardId) => ({ cardId, response: played.answers[cardId] }));
   const checks = drawn.filter((id) => id in played.answers).map((cardId) => ({ cardId, response: played.answers[cardId] }));
+  // Kontrollkarten werden in Runde 2 beantwortet. Spätere Lebensmittelantworten dürfen
+  // nicht rückwirkend als Wissen vor der Kontrollfrage in die Genauigkeit einfliessen.
+  const firstCheckAt = Math.min(Infinity, ...checks.map(({ cardId }) => played.answeredAt[cardId]));
+  const learningMain = main.filter(({ cardId }) => played.answeredAt[cardId] < firstCheckAt);
   const state = deriveRoundState({ index, onboarding: session.onboarding ?? null, diets, events });
   const visible = index.cards.filter((card) => card.stage < 4 && isVisible(card, index, state.exclusions)).map((card) => card.id);
   const answerEvents = played.sequence.map((id) => events[played.answeredAt[id]]);
@@ -143,6 +147,7 @@ export function prepareSession(session, { index, diets }) {
     roundCardLimit: session.config?.roundCardLimit ?? null,
     holdout: drawn,
     main,
+    learningMain,
     checks,
     visible,
     rounds: Math.max(0, ...answerEvents.map((event) => event.round ?? 1).filter((round) => typeof round === 'number')),
@@ -157,7 +162,7 @@ export function prepareSession(session, { index, diets }) {
 
 // Was die App nach den ersten k Antworten der normalen Auswahl über die Kontrollkarten vermutet hätte.
 export function scoreAfter(index, data, k, model = PREFERENCE_MODEL) {
-  const first = data.main.slice(0, k);
+  const first = (data.learningMain ?? data.main).slice(0, k);
   const ratings = Object.fromEntries(first.map((answer) => [answer.cardId, answer.response]));
   const predictions = predictScores(index, ratings, model);
   const items = [];
@@ -222,10 +227,10 @@ const share = (result) => (result.usable > 0 ? result.correct / result.usable : 
 export function learningCurve(datas, { index, model = PREFERENCE_MODEL, ks = null, resamples = RESAMPLES, seed = 'lernkurve' } = {}) {
   const persons = datas.filter((data) => data.checks.some((check) => isTasteSignal(check.response)));
   const others = othersBaseline(datas, model);
-  const longest = Math.max(0, ...persons.map((data) => data.main.length));
+  const longest = Math.max(0, ...persons.map((data) => (data.learningMain ?? data.main).length));
   const steps = ks ?? Array.from({ length: longest + 1 }, (_, k) => k);
   return steps.map((k) => {
-    const group = persons.filter((data) => data.main.length >= k);
+    const group = persons.filter((data) => (data.learningMain ?? data.main).length >= k);
     const rows = group.map((data) => {
       const result = scoreAfter(index, data, k, model);
       return {

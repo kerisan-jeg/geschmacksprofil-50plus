@@ -19,9 +19,9 @@ const steps = [
   { id: 'profile', state: 'done' },
 ];
 
-function render(round, nextTitles) {
+function render(round, nextTitles, extra = {}) {
   return renderToStaticMarkup(
-    createElement(CompleteScreen, { round, endedEarly: false, firstName: 'Anna', ruleCount: 0, steps, nextTitles, onNextRound() {}, onToProfile() {} })
+    createElement(CompleteScreen, { round, endedEarly: false, firstName: 'Anna', ruleCount: 0, steps, nextTitles, onNextRound() {}, onToProfile() {}, ...extra })
   );
 }
 
@@ -32,7 +32,7 @@ test('Abschluss von Runde 1: „Weiter mit Runde 2“ mit Ausblick auf die näch
   assert.ok(html.includes(COMPLETE.kickerDone(1)));
   assert.ok(html.includes(COMPLETE.nextRound(2)));
   assert.ok(html.includes(COMPLETE.nextHint(nextTitles.slice(0, 3))));
-  assert.ok(html.includes('Gegartes Gemüse'), 'die übrigen Gruppen kommen zuerst');
+  assert.ok(nextRoundCards(round, config).every((card) => card.stage === 2), 'nur Untergruppen als nächster Schritt');
   assert.ok(html.includes(COMPLETE.toProfile));
   assert.ok(html.includes(COMPLETE.leadDone(10)));
 });
@@ -47,16 +47,20 @@ test('Sind alle Karten beantwortet, gibt es keine weitere Runde, nur „Mein Pro
 });
 
 test('Nach Runde 4 führt der Abschluss trotz offener Karten nur noch zum Profil', () => {
-  const initial = deriveRoundState({ index, onboarding: null, diets });
-  const events = selectNextCards(initial, { roundCardLimit: 100 }).slice(0, 40)
-    .map((card, i) => ({ cardId: card.id, response: 'LIKE', round: 1 + Math.floor(i / 10) }));
+  const initial = deriveRoundState({ index, onboarding: null, diets, round: 4 });
+  const events = selectNextCards(initial, config).map((card) => ({ cardId: card.id, response: 'LIKE', round: 4 }));
   const round = deriveRoundState({ index, onboarding: null, diets, events, round: 4 });
-  const html = render(round, nextRoundCards(round, config).map((card) => card.title));
+  const html = render(round, nextRoundCards(round, config).map((card) => card.title), {
+    dishes: { available: true, started: true }, onStartDishes() {}, practicalDone: false, onOpenPractical() {},
+  });
   assert.ok(html.includes(COMPLETE.kickerDone(4)));
-  assert.ok(html.includes(COMPLETE.leadComplete));
+  assert.ok(html.includes(COMPLETE.leadDishes(10)));
   assert.ok(html.includes(COMPLETE.profileHint));
   assert.ok(html.includes(COMPLETE.toProfile));
   assert.ok(!html.includes('Weiter mit Runde'));
   assert.ok(!html.includes('Als Nächstes zum Beispiel'));
   assert.ok(!html.includes('Du hast alle Karten beantwortet.'));
+  assert.ok(!html.includes('Gerichte bewerten'));
+  assert.ok(!html.includes('Weitere Gerichte bewerten'));
+  assert.ok(html.includes(COMPLETE.startPractical), 'Alltag bleibt nach Runde 4 freiwillig möglich');
 });

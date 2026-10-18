@@ -37,6 +37,16 @@ function answered(config) {
 const finishQuestions = (state) => run(state, { type: 'step', to: stage0.questions.length });
 const toRound = (state) => run(finishQuestions(state), { type: 'confirmSummary' });
 
+function finishRound(state) {
+  for (let i = 0; state.screen === SCREENS.ROUND && i < 16; i += 1) {
+    const card = nextCard(model.roundOf(state), state.config);
+    assert.ok(card);
+    state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: card.id, stage: card.stage, response: LIKE, round: state.roundNumber } });
+  }
+  assert.equal(state.screen, SCREENS.COMPLETE);
+  return state;
+}
+
 test('Registrierung: Willkommen → Vorname → Handynummer → SMS-Code → Onboarding', () => {
   assert.equal(AUTH_ENABLED, true, 'Standard: Registrierung an');
   let state = model.initialState(DEFAULT_CONFIG);
@@ -134,7 +144,7 @@ test('Untere Leiste erst ab dem Abschluss der Runde und in „Mein Profil“', (
   assert.equal(round.screen, SCREENS.ROUND);
   assert.equal(isNavVisible(round), false, 'Runde: ganzer Bildschirm für Karte und Knöpfe');
   assert.equal(isNavVisible(run(questions, { type: 'tab', tab: TABS.PROFILE })), true, '„Mein Profil“ über den Knopf oben rechts, zurück über die Leiste');
-  const done = run(round, ...['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10'].map((cardId) => ({ type: 'event', event: { type: 'ANSWER', cardId, response: LIKE, round: 1 } })));
+  const done = finishRound(round);
   assert.equal(done.screen, SCREENS.COMPLETE);
   assert.equal(isNavVisible(done), true, 'ab dem Abschluss');
 });
@@ -149,7 +159,8 @@ test('Nach Runde 1 geht es mit Runde 2 weiter; Rundennummer im Zustand und in de
   assert.equal(isNavVisible(state), false);
   const [, roundStep] = creationSteps(state, model.roundOf(state));
   assert.deepEqual([roundStep.state, roundStep.number, roundStep.answered, roundStep.total], ['current', 2, 0, 4]);
-  for (const cardId of ['F05', 'F06', 'F07', 'F08']) state = run(state, answer(cardId));
+  assert.equal(nextCard(model.roundOf(state), state.config).stage, 2);
+  state = finishRound(state);
   assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 2]);
   // Neues Ausfüllen der Fragen beginnt wieder bei Runde 1
   assert.equal(finishQuestions({ ...state, screen: SCREENS.QUESTIONS, step: 2 }).roundNumber, 1);
@@ -158,24 +169,17 @@ test('Nach Runde 1 geht es mit Runde 2 weiter; Rundennummer im Zustand und in de
   assert.deepEqual([back.screen, back.roundNumber], [SCREENS.COMPLETE, 2]);
 });
 
-test('Die Profilerstellung endet unabhängig vom Kartenlimit spätestens nach Runde 4', () => {
-  // Alles „Mag ich“: Die feste Reihenfolge kennt 49 Karten (Stufe 1 und 2). Die adaptive Auswahl fragt die
-  // 13 Gruppen und je Gruppe zwei Untergruppen als Kontrast (nurec v0.2, Kap. 11); weil beide gleich ausfallen,
-  // ist jeder Zweig danach geklärt: 13 + 11 × 2 = 35 Karten.
-  for (const [selection, roundCardLimit, expectedRounds, expectedAnswers] of [
-    ['fixed', 4, 4, 16],
-    ['fixed', 10, 4, 40],
-    ['fixed', 30, 2, 49],
-    ['adaptive', 4, 4, 16],
-    ['adaptive', 10, 4, 35],
-    ['adaptive', 30, 2, 35],
-  ]) {
+test('Vier Runden steigen jeweils eine Ebene ab und überschreiten auch mit alten Limits nie 15 Karten', () => {
+  for (const selection of ['fixed', 'adaptive']) for (const roundCardLimit of [4, 12, 13, 15, 30]) {
     let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit, selection, holdout: 0 }));
+    const counts = new Map();
     while (state.screen === SCREENS.ROUND) {
       assert.ok(state.roundNumber <= 4, `Kartenlimit ${roundCardLimit}: keine fünfte Runde`);
       while (state.screen === SCREENS.ROUND) {
         const card = nextCard(model.roundOf(state), state.config);
         assert.ok(card, 'jede laufende Runde hat eine nächste Karte');
+        assert.equal(card.stage, state.roundNumber, 'jede Runde bleibt auf ihrer Ebene');
+        counts.set(state.roundNumber, (counts.get(state.roundNumber) ?? 0) + 1);
         state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: card.id, response: LIKE, round: state.roundNumber } });
       }
       assert.equal(state.screen, SCREENS.COMPLETE);
@@ -183,25 +187,25 @@ test('Die Profilerstellung endet unabhängig vom Kartenlimit spätestens nach Ru
       if (next === state) break;
       state = next;
     }
-    assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, expectedRounds]);
-    assert.equal(model.roundOf(state).sequence.length, expectedAnswers);
+    assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 4]);
+    assert.deepEqual([...counts.keys()], [1, 2, 3, 4]);
+    assert.ok([...counts.values()].every((count) => count <= Math.min(roundCardLimit, 15)));
+    assert.ok(model.roundOf(state).sequence.some((id) => index.get(id).stage === 4));
     assert.equal(run(state, { type: 'nextRound' }, { type: 'nextRound' }), state, 'weitere Klicks starten keine Runde');
     assert.equal(run(state, { type: 'tab', tab: TABS.PROFILE }).tab, TABS.PROFILE);
   }
 });
 
-test('Auch vorzeitig beendete Runden zählen zur Obergrenze; laufende Runden lassen sich nicht überspringen', () => {
+test('Nach Abbruch ohne Antworten werden leere Vertiefungen übersprungen; keine zusätzliche Gerichte-Runde', () => {
   let state = toRound(answered(DEFAULT_CONFIG));
   assert.equal(run(state, { type: 'nextRound' }), state);
-  for (let number = 1; number <= 4; number += 1) {
-    assert.equal(state.roundNumber, number);
-    state = run(state, { type: 'end' });
-    assert.equal(state.endedEarly, true);
-    const next = run(state, { type: 'nextRound' });
-    if (number < 4) assert.deepEqual([next.screen, next.roundNumber], [SCREENS.ROUND, number + 1]);
-    else assert.equal(next, state);
-    state = next;
-  }
+  state = run(state, { type: 'end' });
+  assert.equal(state.endedEarly, true);
+  state = run(state, { type: 'nextRound' });
+  assert.deepEqual([state.screen, state.roundNumber], [SCREENS.ROUND, 4]);
+  assert.equal(nextCard(model.roundOf(state), state.config).stage, 4);
+  state = run(state, { type: 'end' });
+  assert.equal(run(state, { type: 'nextRound' }), state);
   assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 4]);
 });
 
@@ -209,7 +213,7 @@ test('Gespeicherte Sitzungen ab Runde 5 kehren zum Abschluss zurück und behalte
   const base = toRound(answered(DEFAULT_CONFIG));
   const events = [{ type: 'ANSWER', cardId: 'F01', response: LIKE, round: 1 }, { type: 'ANSWER', cardId: 'F11', response: LIKE, round: 5 }];
   for (const screen of [SCREENS.ROUND, SCREENS.COMPLETE]) {
-    const saved = { sessionId: 'legacy', state: { ...base, screen, roundNumber: 5, events } };
+    const saved = { sessionId: 'legacy', state: { ...base, config: { roundCardLimit: 10 }, screen, roundNumber: 5, events } };
     const restored = model.initialState(DEFAULT_CONFIG, { account, saved });
     assert.equal(restored.screen, SCREENS.WELCOME_BACK);
     const resumed = run(restored, { type: 'welcomeContinue' });
@@ -267,29 +271,26 @@ test('Bleibt nach den Angaben keine Karte übrig, geht es nach „Stimmt so“ d
   assert.equal(next.screen, SCREENS.COMPLETE);
 });
 
-test('Gerichte (Stufe 4): eigene freiwillige Runde, zählt nicht zu den vier Runden, danach weiter mit der Profilerstellung', () => {
+test('Gerichte sind Runde 4; startDishes kann weder vorher noch danach eine zusätzliche Runde starten', () => {
   let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit: 4, holdout: 0 }));
   assert.equal(run(state, { type: 'startDishes' }), state, 'nicht mitten in einer Runde');
-  for (const cardId of ['F01', 'F02', 'F03', 'F04']) state = run(state, { type: 'event', event: { type: 'ANSWER', cardId, response: LIKE, round: 1 } });
-  assert.equal(state.screen, SCREENS.COMPLETE);
-  state = run(state, { type: 'startDishes' });
-  assert.deepEqual([state.screen, state.roundMode, state.dishRound, state.roundNumber], [SCREENS.ROUND, 'dishes', 1, 1]);
+  for (let round = 1; round <= 3; round += 1) {
+    state = finishRound(state);
+    assert.equal(run(state, { type: 'startDishes' }), state);
+    state = run(state, { type: 'nextRound' });
+  }
+  assert.deepEqual([state.screen, state.roundMode, state.dishRound, state.roundNumber], [SCREENS.ROUND, 'main', 0, 4]);
   const dishRound = model.roundOf(state);
-  assert.equal(dishRound.round, 'G1');
+  assert.equal(dishRound.round, 4);
   const first = nextCard(dishRound, state.config);
   assert.equal(first.stage, 4, 'nur Gerichte');
   assert.equal(first.dish, true);
-  assert.deepEqual(creationSteps(state, dishRound)[1].kind, 'dishes');
-  for (let i = 0; i < 4; i += 1) {
-    const card = nextCard(model.roundOf(state), state.config);
-    state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: card.id, response: LIKE, round: 'G1' } });
-  }
+  assert.equal(creationSteps(state, dishRound)[1].number, 4);
+  state = finishRound(state);
   assert.equal(state.screen, SCREENS.COMPLETE, 'Gerichte-Runde nach dem Kartenlimit fertig');
-  // Zurück zur Profilerstellung: Runde 2, die Gerichte zählen nicht als Runde
-  state = run(state, { type: 'nextRound' });
-  assert.deepEqual([state.screen, state.roundMode, state.roundNumber], [SCREENS.ROUND, 'main', 2]);
-  assert.ok(nextCard(model.roundOf(state), state.config).stage < 4);
-  assert.equal(model.mainRoundOf(state).sequence.length, 8, 'Antworten beider Runden im selben Log');
+  assert.equal(run(state, { type: 'nextRound' }), state);
+  assert.equal(run(state, { type: 'startDishes' }), state);
+  assert.equal(model.mainRoundOf(state).sequence.length, 16, 'alle Antworten im selben Log');
 });
 
 test('Alltagsprofil öffnen und danach dorthin zurück, wo man war', () => {
@@ -301,4 +302,32 @@ test('Alltagsprofil öffnen und danach dorthin zurück, wo man war', () => {
   assert.deepEqual([run(fromProfile, { type: 'closePractical' }).screen, run(fromProfile, { type: 'closePractical' }).tab], [SCREENS.COMPLETE, TABS.PROFILE]);
   const fromComplete = run(state, { type: 'openPractical' }, { type: 'closePractical' });
   assert.deepEqual([fromComplete.screen, fromComplete.tab], [SCREENS.COMPLETE, TABS.CREATE]);
+});
+
+test('Alte vierte Runde setzt mit Gerichten fort; gespeicherte Antworten und Ausschlüsse bleiben erhalten', () => {
+  const base = toRound(answered(DEFAULT_CONFIG));
+  const events = [{ type: 'ANSWER', cardId: 'F12.1.1', response: LIKE, round: 4 }];
+  const saved = { sessionId: 'alt-runde4', state: { ...base, config: { roundCardLimit: 30 }, screen: SCREENS.COMPLETE, roundNumber: 4, events } };
+  const resumed = run(model.initialState(DEFAULT_CONFIG, { account, saved }), { type: 'welcomeContinue' });
+  assert.deepEqual([resumed.screen, resumed.roundNumber, resumed.config.roundCardLimit], [SCREENS.ROUND, 4, 15]);
+  assert.deepEqual(resumed.events, events);
+  assert.deepEqual(resumed.onboarding, base.onboarding);
+  assert.equal(nextCard(model.roundOf(resumed), resumed.config).stage, 4);
+  assert.equal(model.roundOf(resumed).roundSequence.length, 0, 'frühere Lebensmittel verbrauchen keine Gerichteplätze');
+  const stopped = run(resumed, { type: 'end' });
+  const reopened = run(model.initialState(DEFAULT_CONFIG, { account, saved: { state: stopped } }), { type: 'welcomeContinue' });
+  assert.equal(reopened.screen, SCREENS.COMPLETE, 'bewusst beendete neue Runde wird nicht wieder geöffnet');
+});
+
+test('Alte G1-Gerichte werden Runde 4 zugeordnet und zählen zu ihrer Obergrenze', () => {
+  const base = toRound(answered(DEFAULT_CONFIG));
+  const events = [{ type: 'ANSWER', cardId: 'D01', response: LIKE, round: 'G1' }];
+  const saved = { state: { ...base, config: { roundCardLimit: 10 }, screen: SCREENS.ROUND, roundMode: 'dishes', dishRound: 1, events } };
+  const resumed = run(model.initialState(DEFAULT_CONFIG, { account, saved }), { type: 'welcomeContinue' });
+  assert.equal(resumed.roundNumber, 4);
+  assert.equal(resumed.roundMode, 'main');
+  assert.equal(resumed.config.roundCardLimit, 13);
+  assert.deepEqual(model.roundOf(resumed).roundSequence, ['D01']);
+  assert.notEqual(nextCard(model.roundOf(resumed), resumed.config).id, 'D01');
+  assert.equal(run(finishRound(resumed), { type: 'startDishes' }).screen, SCREENS.COMPLETE);
 });

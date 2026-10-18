@@ -5,7 +5,8 @@
 export const APP_VERSION = '0.8.0-demo';
 
 // Karten pro Runde (ROUND_CARD_LIMIT). Fortschrittsanzeigen leiten ihre Werte davon ab.
-export const ROUND_CARD_LIMIT = 10;
+export const ROUND_CARD_LIMIT = 13;
+export const ROUND_FLOW = 'staged-v1';
 
 // Vorgabe des Dozenten: höchstens vier Swipe-Runden, unabhängig vom Kartenlimit.
 export const MAX_ROUNDS = 4;
@@ -16,7 +17,7 @@ export const MAX_ROUNDS = 4;
 export const SELECTION_MODE = 'adaptive';
 
 // Kontrollkarten (Messkonzept, docs/messkonzept.md): So viele Untergruppen werden pro Person zu Beginn
-// zufällig zurückgehalten, nie in der Auswahl gezeigt und erst am Ende der letzten Runde abgefragt.
+// zufällig zurückgehalten und am Ende der Untergruppenrunde (Runde 2) abgefragt.
 // Damit lässt sich prüfen, ob die Vermutungen der App stimmen. 0 schaltet sie ab (?holdout=0).
 export const HOLDOUT_CARDS = 6;
 export const HOLDOUT_RANGE = { min: 0, max: 10 };
@@ -72,7 +73,7 @@ export function firebaseConfigFrom(env = {}) {
 export const FIREBASE_CONFIG = firebaseConfigFrom(import.meta.env ?? {});
 
 // Standardwerte für den Testablauf (A10). URL-Parameter überschreiben sie, z. B.
-//   ?limit=6           Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 30
+//   ?limit=12          Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 15
 //   ?admin=1           Ansicht für die Testleitung (Export, Sitzungen)
 //   ?sms=sim           SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne Handy)
 //   ?selection=fixed   feste Reihenfolge statt adaptiver Auswahl (Vergleich)
@@ -82,6 +83,7 @@ export const FIREBASE_CONFIG = firebaseConfigFrom(import.meta.env ?? {});
 // Begründung [V]: Kernfrage 2 (Anzahl Abfragen) [A] soll im Test ohne neuen Build vergleichbar sein.
 export const DEFAULT_CONFIG = {
   roundCardLimit: ROUND_CARD_LIMIT,
+  roundFlow: ROUND_FLOW,
   tutorial: TUTORIAL_ENABLED, // Für bestehende Sitzungen und Exporte bleibt das Datenfeld erhalten.
   imageStyle: IMAGE_STYLE,
   auth: AUTH_ENABLED,
@@ -90,7 +92,20 @@ export const DEFAULT_CONFIG = {
   holdout: HOLDOUT_CARDS,
 };
 
-export const ROUND_CARD_LIMIT_RANGE = { min: 4, max: 30 };
+export const ROUND_CARD_LIMIT_RANGE = { min: 4, max: 15 };
+
+// Auch gespeicherte Sitzungen und direkte Aufrufer dürfen die absolute Obergrenze nie umgehen.
+export function cardLimit(config = {}) {
+  const requested = Number(config.roundCardLimit);
+  return Number.isInteger(requested) && requested > 0 ? Math.min(requested, ROUND_CARD_LIMIT_RANGE.max) : ROUND_CARD_LIMIT;
+}
+
+export function normalizeConfig(config = {}) {
+  const migrated = { ...DEFAULT_CONFIG, ...config, roundFlow: ROUND_FLOW };
+  if (!config.roundFlow && config.roundCardLimit === 10) migrated.roundCardLimit = ROUND_CARD_LIMIT;
+  migrated.roundCardLimit = cardLimit(migrated);
+  return migrated;
+}
 
 function integerParam(params, name, { min, max }) {
   const raw = params.get(name);

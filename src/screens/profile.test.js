@@ -82,6 +82,15 @@ test('Ohne Meeresfrüchte nennt auch das Profil die bewertete Gruppe, Vermutunge
   await view.unmount();
 });
 
+test('Bewertete Gerichte stehen im Profil getrennt und führen nach Runde 4 zu keiner zusätzlichen Runde', async () => {
+  const view = await setup({ sessionEvents: [{ cardId: 'F01', response: 'LIKE', round: 1 }, { cardId: 'D05', response: 'PREFER', round: 4 }] });
+  const dishes = view.container.querySelector('[aria-labelledby="group-dishes"]');
+  assert.ok(dishes.textContent.includes('Rösti mit Spiegelei'));
+  assert.ok(!view.container.querySelector('[aria-labelledby="group-groups"]').textContent.includes('Rösti mit Spiegelei'));
+  assert.ok([...view.container.querySelectorAll('button')].every((button) => !button.textContent.includes('Gerichte bewerten')));
+  await view.unmount();
+});
+
 test('Dashboard nach nurec Anhang B: Profilstand, Favoriten, Gruppen, „eher ungern“ mit Ausnahme, Offenes, Alltag', async () => {
   const { PROGRESS } = await import('../labels.js');
   const practicalDefinition = read('../data/practical.json');

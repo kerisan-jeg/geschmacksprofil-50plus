@@ -15,7 +15,7 @@
 //                   { cardId, stage, round, positionInRound, selectionReason, ruleVersion }
 // PRACTICAL_SAVED   Alltagsprofil gespeichert (Kap. 2.3, freiwillig): { practical }. Es gilt das letzte Ereignis.
 // HOLDOUT_DRAWN     Kontrollkarten gezogen (nach „Stimmt so“): { cardIds, method, eligible }. Diese Karten
-//                   kommen nie in der Auswahl vor, sondern erst am Ende der letzten Runde (Messkonzept).
+//                   kommen erst am Ende von Runde 2, der Untergruppenebene (Messkonzept).
 //                   Es gilt das letzte Ereignis dieses Typs.
 // Profiländerungen tragen immer source = "profile".
 

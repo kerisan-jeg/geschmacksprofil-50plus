@@ -4,11 +4,11 @@ import stage0 from './data/stage0.json';
 import allergens from './data/allergens.json';
 import foodList from './data/foods.json';
 import practicalDefinition from './data/practical.json';
-import { isAdminMode, resolveConfig } from './config.js';
+import { cardLimit, isAdminMode, normalizeConfig, resolveConfig } from './config.js';
 import { ImageFilterContext, ImageStyleContext } from './lib/images.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
-import { buildProfile, eligibleFamilies, hasMoreCards, isDishRound, isHoldoutCard, nextCard, nextRoundCards, openDishes, RULE_VERSION, selectionReason, selectNextCards } from './logic/engine.js';
+import { buildProfile, eligibleFamilies, hasMoreCards, isDishRound, isHoldoutCard, nextCard, nextRoundCards, nextRoundNumber, RULE_VERSION, selectionReason, selectNextCards } from './logic/engine.js';
 import {
   ANSWER,
   AUTH_COMPLETED,
@@ -25,7 +25,7 @@ import {
   RATING_CHANGED,
   SOURCE_PROFILE,
 } from './logic/events.js';
-import { dishesAvailable, profileProgress } from './logic/dashboard.js';
+import { profileProgress } from './logic/dashboard.js';
 import { practicalAnswered, practicalOf } from './logic/practical.js';
 import { drawHoldout } from './logic/holdout.js';
 import { createRedundancyCheck } from './logic/stage0.js';
@@ -59,8 +59,8 @@ import AdminScreen from './screens/AdminScreen.jsx';
 // Ablauf „Profil erstellen“: Begrüssung → Registrierung (Vorname, Handynummer, SMS-Code) → Über dich →
 // Fragebogen (Stufe 0) → Zusammenfassung → höchstens vier Runden mit Abschluss (Tutorial vor Runde 1 nur mit
 // TUTORIAL_ENABLED). Die Karten wählt src/logic/selection.js je nach Antwort; die Kontrollkarten
-// (Messkonzept, docs/messkonzept.md) kommen am Ende der letzten Runde. Freiwillig nach Stufe 2: Gerichte
-// (Stufe 4, eigene Runde) und das Alltagsprofil (nurec v0.2, Kap. 2.3).
+// (Messkonzept, docs/messkonzept.md) kommen am Ende von Runde 2. Runde 3 enthält konkrete Lebensmittel,
+// Runde 4 Gerichte. Freiwillig danach: Alltagsprofil (nurec v0.2, Kap. 2.3).
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
 // Lebensmittel für die Suche: handgepflegte Schweizer Begriffe, dann die Schweizer Nährwertdatenbank (BLV).
@@ -83,7 +83,7 @@ export default function Root() {
 function boot() {
   const saved = loadAppState();
   const account = loadAccount();
-  const config = saved?.state?.config ?? CONFIG;
+  const config = normalizeConfig(saved?.state?.config ?? CONFIG);
   return { saved, account, config };
 }
 
@@ -106,10 +106,6 @@ function App() {
   const practical = useMemo(() => practicalOf(events), [events]);
   const progress = useMemo(() => (mainRound ? profileProgress(mainRound) : null), [mainRound]);
   const moreRounds = Boolean(mainRound) && hasMoreCards(mainRound, config);
-  const dishes = {
-    available: Boolean(mainRound) && dishesAvailable(mainRound, { moreRounds }),
-    started: (dishRound ?? 0) > 0,
-  };
   const navVisible = isNavVisible(state);
   const steps = creationSteps(state, round);
   // Bilder zeigen nie, was die Person ausgeschlossen hat (siehe allowedPhotos in lib/images.js).
@@ -225,7 +221,7 @@ function App() {
   // Danach werden die Kontrollkarten gezogen: nach den Ausschlüssen aus Stufe 0, vor der ersten Karte.
   function handleConfirmSummary() {
     logger.trace('stage0_confirm', { eligible: eligibleFamilies(round).map((card) => card.id) });
-    const holdout = drawHoldout(round, { count: config.holdout ?? 0, seed: logger.session.sessionId });
+    const holdout = drawHoldout(round, { count: Math.min(config.holdout ?? 0, cardLimit(config)), seed: logger.session.sessionId });
     if (holdout.cardIds.length > 0) log({ type: HOLDOUT_DRAWN, ...holdout });
     dispatch({ type: 'confirmSummary' });
   }
@@ -261,12 +257,6 @@ function App() {
     dispatch({ type: 'end' });
   }
 
-  // Gerichte (Stufe 4, freiwillig): eigene Runde, nur nach einer abgeschlossenen Runde.
-  function handleStartDishes() {
-    logger.trace('dishes_start', { open: openDishes(mainRound).length });
-    dispatch({ type: 'startDishes' });
-  }
-
   // Alltagsprofil (Kap. 2.3, freiwillig)
   function handleOpenPractical() {
     logger.trace('practical_open', { from: screen, tab });
@@ -282,8 +272,7 @@ function App() {
   function nextStep() {
     if (!mainRound) return null;
     if (screen !== SCREENS.COMPLETE) return { type: 'continue' };
-    if (moreRounds) return { type: 'round', number: (roundNumber ?? 1) + 1, titles: nextRoundCards(mainRound, config).slice(0, 3).map((card) => displayCardTitle(card, INDEX, mainRound.exclusions)) };
-    if (dishes.available) return { type: 'dishes' };
+    if (moreRounds) return { type: 'round', number: nextRoundNumber(mainRound, config), titles: nextRoundCards(mainRound, config).slice(0, 3).map((card) => displayCardTitle(card, INDEX, mainRound.exclusions)) };
     if (practicalAnswered(practicalDefinition, practical) === 0) return { type: 'practical' };
     return { type: 'done' };
   }
@@ -292,8 +281,7 @@ function App() {
     if (next.type === 'round') {
       handleTab(TABS.CREATE);
       handleNextRound();
-    } else if (next.type === 'dishes') handleStartDishes();
-    else if (next.type === 'practical') handleOpenPractical();
+    } else if (next.type === 'practical') handleOpenPractical();
     else handleTab(TABS.CREATE);
   }
 
@@ -473,11 +461,9 @@ function App() {
             ruleCount={round.entries.filter((entry) => !entry.freeText).length + (round.diet && round.diet !== 'none' ? 1 : 0)}
             steps={steps}
             nextTitles={moreRounds ? nextRoundCards(mainRound, config).map((card) => displayCardTitle(card, INDEX, mainRound.exclusions)) : []}
-            nextNumber={(roundNumber ?? 1) + 1}
-            dishes={dishes}
+            nextNumber={nextRoundNumber(mainRound, config)}
             practicalDone={practicalAnswered(practicalDefinition, practical) > 0}
             onNextRound={handleNextRound}
-            onStartDishes={handleStartDishes}
             onOpenPractical={handleOpenPractical}
             onToProfile={() => handleTab(TABS.PROFILE)}
           />
@@ -503,12 +489,10 @@ function App() {
               next={nextStep()}
               practical={practical}
               practicalDefinition={practicalDefinition}
-              dishes={{ available: dishes.available && screen === SCREENS.COMPLETE }}
               canSignOut={Boolean(account?.phoneMasked)}
               onCreate={() => handleTab(TABS.CREATE)}
               onNext={handleNextStep}
               onOpenPractical={handleOpenPractical}
-              onStartDishes={handleStartDishes}
               onRestart={handleRestart}
               onSignOut={handleSignOut}
               onChange={profileHandlers}

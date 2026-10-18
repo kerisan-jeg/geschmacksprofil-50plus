@@ -21,20 +21,22 @@ const noSeafood = deriveOnboarding(definition, answersWithoutSeafood, { allergen
 const answer = (cardId, response, extra = {}) => ({ cardId, response, ...extra });
 const state = (events, onboarding = noOnboarding, round = 1) => deriveRoundState({ index, onboarding, diets, events, round });
 
-test('selectNextCards: feste Reihenfolge, zuerst alle Gruppen, dann die Untergruppen abwechselnd (Platzhalter)', () => {
+test('Feste Auswahl hält jede Runde auf einer Ebene und begrenzt direkte Aufrufe mit Limit 100', () => {
   const cards = selectNextCards(state([]), { roundCardLimit: 30 });
-  assert.equal(cards.length, 30);
+  assert.equal(cards.length, 13);
   assert.deepEqual(cards.slice(0, 13).map((card) => card.stage), Array(13).fill(1));
   assert.deepEqual(cards.slice(0, 3).map((card) => card.id), ['F01', 'F02', 'F03']);
   // Danach von jeder Gruppe die erste Untergruppe, dann die zweite: nie mehrere aus derselben Gruppe hintereinander
-  assert.deepEqual(cards.slice(13, 18).map((card) => card.id), ['F01.1', 'F02.1', 'F04.1', 'F05.1', 'F06.1']);
-  const subgroups = cards.slice(13);
+  const subgroups = selectNextCards(state([], noOnboarding, 2), { roundCardLimit: 100 });
+  assert.deepEqual(subgroups.slice(0, 5).map((card) => card.id), ['F01.1', 'F02.1', 'F04.1', 'F05.1', 'F06.1']);
   assert.ok(subgroups.every((card) => card.stage === 2));
   for (let i = 1; i < subgroups.length; i += 1) assert.notEqual(subgroups[i].parentId, subgroups[i - 1].parentId, subgroups[i].id);
   // Stufe 3 (Team-Ergänzung für einzelne Allergene) kommt in keiner Runde vor
-  const all = selectNextCards(state([]), { roundCardLimit: 100 });
-  assert.equal(all.length, 13 + 36);
-  assert.ok(all.every((card) => card.stage <= 2));
+  for (let round = 1; round <= 4; round += 1) {
+    const offered = selectNextCards(state([], noOnboarding, round), { roundCardLimit: 100 });
+    assert.ok(offered.length <= 15);
+    assert.ok(offered.every((card) => card.stage === round));
+  }
   assert.equal(selectionReason(state([]), index.get('F01')), 'stage1_fixed_order');
   assert.equal(selectionReason(state([]), index.get('F01.2')), 'stage2_fixed_order');
 });
@@ -146,12 +148,12 @@ test('Die Detailauswahl zeigt nur, was nach den Ausschlüssen noch sichtbar ist'
 
 const roundOne = ['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10'].map((id) => answer(id, LIKE, { round: 1 }));
 
-test('Runde 2 setzt fort, wo Runde 1 aufgehört hat: übrige Gruppen, dann Untergruppen', () => {
+test('Runde 2 fragt ausschliesslich Untergruppen, auch wenn nach einem alten Limit Familien offen sind', () => {
   assert.equal(isRoundComplete(state(roundOne), config), true, 'Runde 1 ist nach 10 Karten fertig');
   assert.equal(hasMoreCards(state(roundOne)), true);
   const second = state(roundOne, noOnboarding, 2);
   assert.deepEqual(progress(second, config), { answered: 0, total: 10, percent: 0 }, 'Fortschritt zählt je Runde');
-  assert.deepEqual(selectNextCards(second, config).map((card) => card.id), ['F11', 'F12', 'F13', 'F01.1', 'F02.1', 'F04.1', 'F05.1', 'F06.1', 'F07.1', 'F08.1']);
+  assert.deepEqual(selectNextCards(second, config).map((card) => card.id), ['F01.1', 'F02.1', 'F04.1', 'F05.1', 'F06.1', 'F07.1', 'F08.1', 'F10.1', 'F11.1', 'F12.1']);
   assert.deepEqual(nextRoundCards(state(roundOne), config).map((card) => card.id), selectNextCards(second, config).map((card) => card.id));
   // Antworten ohne Rundennummer zählen zu Runde 1 (ältere Protokolle)
   assert.deepEqual(state(roundOne.map(({ round, ...event }) => event), noOnboarding, 2).roundSequence, []);
@@ -160,10 +162,10 @@ test('Runde 2 setzt fort, wo Runde 1 aufgehört hat: übrige Gruppen, dann Unter
 test('Rückgängig wirkt nur in der laufenden Runde', () => {
   const second = state(roundOne, noOnboarding, 2);
   assert.equal(second.lastEvent, null, 'zu Beginn von Runde 2 gibt es nichts rückgängig zu machen');
-  const answered = state([...roundOne, answer('F11', LIKE, { round: 2 })], noOnboarding, 2);
-  assert.equal(answered.lastEvent.cardId, 'F11');
-  assert.deepEqual(answered.roundSequence, ['F11']);
-  const undone = state([...roundOne, answer('F11', LIKE, { round: 2 }), answer('F11', UNDO, { round: 2 })], noOnboarding, 2);
+  const answered = state([...roundOne, answer('F01.1', LIKE, { round: 2 })], noOnboarding, 2);
+  assert.equal(answered.lastEvent.cardId, 'F01.1');
+  assert.deepEqual(answered.roundSequence, ['F01.1']);
+  const undone = state([...roundOne, answer('F01.1', LIKE, { round: 2 }), answer('F01.1', UNDO, { round: 2 })], noOnboarding, 2);
   assert.deepEqual(undone.roundSequence, []);
   assert.equal(undone.sequence.length, 10, 'Runde 1 bleibt unverändert');
 });
@@ -180,14 +182,14 @@ test('Ausschlüsse gelten in jeder Runde: keine Untergruppen von ausgeschlossene
 test('Untergruppen nennen ihre Gruppe; nach allen Karten gibt es keine weitere Runde', () => {
   assert.equal(presentCard(state([]), index.get('F01.2')).group, 'Fleisch und Geflügel');
   assert.equal(presentCard(state([]), index.get('F01')).group, undefined);
-  const everything = selectNextCards(state([]), { roundCardLimit: 100 }).map((card) => answer(card.id, LIKE));
+  const everything = index.cards.map((card) => answer(card.id, LIKE, { round: card.stage }));
   assert.equal(hasMoreCards(state(everything)), false);
   assert.deepEqual(nextRoundCards(state(everything), config), []);
 });
 
-test('Frage 3 ohne Meeresfrüchte: Karte 5 der zweiten Runde heisst auch im Etikett nur Fisch', () => {
+test('Frage 3 ohne Meeresfrüchte: Fisch in Runde 2 heisst auch im Etikett nur Fisch', () => {
   const second = state(roundOne, noSeafood, 2);
-  const fish = presentCard(second, selectNextCards(second, config)[4]);
+  const fish = presentCard(second, selectNextCards(second, config).find((card) => card.id === 'F02.1'));
   assert.equal(fish.id, 'F02.1');
   assert.equal(fish.title, 'Fisch');
   assert.equal(fish.group, 'Fisch');
@@ -245,16 +247,28 @@ test('Runde 4 bleibt spielbar, bietet aber trotz offener Karten keine fünfte Ru
   assert.equal(hasMoreCards(fourth), false);
   assert.deepEqual(nextRoundCards(fourth, config), []);
 
-  events.push(...cards.slice(30, 40).map((card) => answer(card.id, LIKE, { round: 4 })));
+  events.push(...selectNextCards(fourth, config).map((card) => answer(card.id, LIKE, { round: 4 })));
   const done = state(events, noOnboarding, 4);
   assert.equal(isRoundComplete(done, config), true);
-  assert.equal(done.sequence.length, 40, 'neun der 49 Karten bleiben offen');
+  assert.ok(index.cards.some((card) => !(card.id in done.answers)), 'weitere Karten bleiben bewusst offen');
   assert.equal(hasMoreCards(done), false);
   assert.deepEqual(nextRoundCards(done, config), []);
-  assert.equal(buildProfile(done).taste.LIKE.length, 40);
+  assert.equal(buildProfile(done).taste.LIKE.length, done.sequence.length);
 
   const fifth = state(events, noOnboarding, 5);
   assert.equal(nextCard(fifth, config), null);
   assert.deepEqual(selectNextCards(fifth, config), []);
   assert.equal(isRoundComplete(fifth, config), true);
+});
+
+test('Gerichte werden nach zulässigen Vorlieben sortiert und übertragen keine Bewertung auf Zutaten', () => {
+  const fourth = state([answer('F08.1', PREFER, { round: 2 })], noOnboarding, 4);
+  const offered = selectNextCards(fourth, { roundCardLimit: 15 });
+  assert.ok(offered.every((card) => card.stage === 4));
+  assert.ok(offered.findIndex((card) => card.id === 'D10') < offered.findIndex((card) => card.id === 'D01'), 'Reisvorliebe priorisiert Pilzrisotto');
+  const vegetarian = state([], { ...noOnboarding, diet: 'vegetarian' }, 4);
+  assert.ok(selectNextCards(vegetarian, { roundCardLimit: 15 }).every((card) => !card.animalOrigin.some((origin) => ['meat', 'pork', 'fish', 'seafood'].includes(origin))));
+  const after = state([answer('D01', PREFER, { round: 4 })], noOnboarding, 4);
+  assert.equal(after.ratings['F04.2.3'], undefined, 'Pizza macht Frischkäse nicht zum Favoriten');
+  assert.ok(!buildProfile(after).predicted.some((entry) => entry.basisId === 'D01'));
 });

@@ -6,7 +6,7 @@ import { indexCatalog } from './catalog.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
 import { buildProfile, computeProfile, deriveRoundState, derivedEntries, hasMoreCards, nextCard, nextRoundCards, openHoldout, selectionReason, selectNextCards, tasteSignals } from './engine.js';
 import { HOLDOUT_DRAWN, PHASE_HOLDOUT, RATING_CHANGED } from './events.js';
-import { rankedCards, REASONS, SELECTION } from './selection.js';
+import { rankedCards, rankedStageCards, REASONS, SELECTION } from './selection.js';
 import { NO_ONBOARDING, simulateSession, tasteByFamily } from '../test/simulate.js';
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
@@ -29,34 +29,34 @@ test('Runde 1 beginnt mit den Gruppen in Katalogreihenfolge', () => {
 
 const reasonsOf = (entries, parentId) => entries.filter((entry) => entry.card.parentId === parentId).map((entry) => [entry.card.id, entry.reason]);
 
-test('„Kenne ich nicht“ bei einer Gruppe: sofort ein verbreitetes Kind, höchstens zwei, dann bleibt die Gruppe unbekannt', () => {
+test('„Kenne ich nicht“ wird auf der nächsten Ebene mit höchstens zwei Kindern geklärt', () => {
   const unknown = [answer('F01', LIKE), answer('F02', UNFAMILIAR)];
-  assert.equal(nextCard(state(unknown), config).id, 'F02.1', 'direkt danach');
-  assert.equal(selectionReason(state(unknown), index.get('F02.1'), config), REASONS.AFTER_UNFAMILIAR);
+  assert.equal(nextCard(state(unknown), config).id, 'F03', 'Runde 1 bleibt bei Familien');
+  assert.equal(nextCard(state(unknown, 2), config).id, 'F02.1', 'Klärung zuerst in Runde 2');
+  assert.equal(selectionReason(state(unknown, 2), index.get('F02.1'), config), REASONS.AFTER_UNFAMILIAR);
   // Auch das Kind unbekannt: ein zweites, andersartiges, danach keines mehr
-  const twice = [...unknown, answer('F02.1', UNFAMILIAR)];
-  assert.equal(nextCard(state(twice), config).id, 'F02.2');
-  const thrice = [...twice, answer('F02.2', UNFAMILIAR)];
-  assert.equal(nextCard(state(thrice), config).id, 'F03');
-  assert.ok(!ids(ranked(thrice)).includes('F02.3'), 'höchstens zwei Klärungskarten');
+  const twice = [...unknown, answer('F02.1', UNFAMILIAR, { round: 2 })];
+  assert.equal(nextCard(state(twice, 2), config).id, 'F02.2');
+  const thrice = [...twice, answer('F02.2', UNFAMILIAR, { round: 2 })];
+  assert.ok(!ids(rankedStageCards(state(thrice, 2), SELECTION.ADAPTIVE)).includes('F02.3'), 'höchstens zwei Klärungskarten');
   // Das Kind wird bewertet (gern oder nicht): Die Antwort gilt nur für das Kind, die Gruppe bleibt unbekannt
   for (const response of [LIKE, DISLIKE]) {
     assert.ok(!ids(ranked([...unknown, answer('F02.1', response)])).some((id) => id.startsWith('F02.')), response);
   }
 });
 
-test('Kap. 11: „Gegartes Fruchtgemüse“ unbekannt → sofort Zucchetti, falls unbekannt Peperoni; nur in derselben Runde', () => {
+test('Unbekanntes Fruchtgemüse in Runde 2 → Zucchetti und höchstens Peperoni in Runde 3', () => {
   const roundOne = allFamilies({}).map((event) => ({ ...event, round: 1 }));
   const unknown = [...roundOne, answer('F11.1', LIKE, { round: 2 }), answer('F11.3', UNFAMILIAR, { round: 2 })];
-  assert.equal(nextCard(state(unknown, 2), config).id, 'F11.3.1');
+  assert.ok(selectNextCards(state(unknown, 2), config).every((card) => card.stage === 2));
+  assert.equal(nextCard(state(unknown, 3), config).id, 'F11.3.1');
   assert.equal(index.get('F11.3.1').title, 'Zucchetti');
-  assert.equal(selectionReason(state(unknown, 2), index.get('F11.3.1'), config), REASONS.AFTER_UNFAMILIAR_DETAIL);
-  const again = [...unknown, answer('F11.3.1', UNFAMILIAR, { round: 2 })];
-  assert.equal(nextCard(state(again, 2), config).id, 'F11.3.2');
+  assert.equal(selectionReason(state(unknown, 3), index.get('F11.3.1'), config), REASONS.AFTER_UNFAMILIAR_DETAIL);
+  const again = [...unknown, answer('F11.3.1', UNFAMILIAR, { round: 3 })];
+  assert.equal(nextCard(state(again, 3), config).id, 'F11.3.2');
   assert.equal(index.get('F11.3.2').title, 'Gegarte Peperoni');
-  assert.ok(!ids(ranked([...again, answer('F11.3.2', UNFAMILIAR, { round: 2 })])).some((id) => id.startsWith('F11.3.')), 'danach unbekannt');
-  // Endet die Runde vor der Klärung, bleibt der Zweig unbekannt (keine Klärung in der nächsten Runde)
-  assert.ok(!ids(rankedCards(state(unknown, 3), SELECTION.ADAPTIVE)).includes('F11.3.1'));
+  assert.ok(!ids(rankedStageCards(state([...again, answer('F11.3.2', UNFAMILIAR, { round: 3 })], 3), SELECTION.ADAPTIVE)).some((id) => id.startsWith('F11.3.')), 'danach unbekannt');
+  assert.ok(selectNextCards(state(unknown, 4), config).every((card) => card.stage === 4), 'Runde 4 holt keine Lebensmittel nach');
 });
 
 test('Kap. 11: Hülsenfrüchte „Mag ich nicht“ → Sojaprodukte als Ausnahme; bei „Mag ich“ Naturtofu oder Tempeh, sonst stoppen', () => {
@@ -168,50 +168,44 @@ test('Ausschlüsse wirken auch in der adaptiven Auswahl', () => {
 const HOLDOUT = ['F12.3', 'F01.2', 'F05.4', 'F10.1', 'F08.2', 'F04.1'];
 const holdoutEvent = { type: HOLDOUT_DRAWN, cardIds: HOLDOUT, method: 'test', eligible: 36 };
 
-test('Kontrollkarten kommen nie in der Auswahl vor, sondern am Ende von Runde 4', () => {
-  const session = simulateSession({ index, diets, config: { ...config, holdout: 6 }, respond: () => LIKE, sessionId: 'budget' });
+test('Kontrollkarten schliessen Runde 2 ab; Runde 4 enthält ausschliesslich Gerichte', () => {
+  const session = simulateSession({ index, diets, config: { ...config, roundCardLimit: 13, holdout: 6 }, respond: () => LIKE, sessionId: 'budget' });
   const answers = session.events.filter((event) => event.type === 'ANSWER');
-  assert.equal(answers.length, MAX_ROUNDS * 10, 'vier volle Runden');
+  assert.equal(answers.length, MAX_ROUNDS * 13, 'vier volle Runden');
   const checks = answers.filter((event) => event.phase === PHASE_HOLDOUT);
   assert.equal(checks.length, 6);
-  assert.deepEqual(answers.slice(-6), checks, 'die letzten sechs Karten');
-  assert.ok(checks.every((event) => event.round === 4 && event.selectionReason === REASONS.HOLDOUT));
+  assert.deepEqual(answers.filter((event) => event.round === 2).slice(-6), checks, 'die letzten sechs Karten von Runde 2');
+  assert.ok(checks.every((event) => event.round === 2 && event.selectionReason === REASONS.HOLDOUT));
+  assert.ok(answers.filter((event) => event.round === 4).every((event) => event.stage === 4 && event.phase === 'dish'));
   const holdout = session.events[0].cardIds;
   assert.deepEqual(checks.map((event) => event.cardId), holdout, 'in der gezogenen Reihenfolge');
-  for (let round = 1; round <= 4; round += 1) assert.ok(answers.filter((event) => event.round === round).length <= 10);
+  for (let round = 1; round <= 4; round += 1) assert.ok(answers.filter((event) => event.round === round).length <= 13);
 });
 
-test('Endet die Auswahl früher, folgen die Kontrollkarten direkt', () => {
+test('Bei durchgängiger Ablehnung werden keine langen Lebensmittel-Nachfragen angehängt', () => {
   // Alles „Mag ich nicht“ ohne Ausnahme: 13 Gruppen und je eine Ausnahme, dann nichts mehr
   const session = simulateSession({ index, diets, config: { ...config, holdout: 6 }, respond: () => DISLIKE, sessionId: 'kurz' });
   const answers = session.events.filter((event) => event.type === 'ANSWER');
-  const main = answers.filter((event) => event.phase !== PHASE_HOLDOUT);
+  const main = answers.filter((event) => event.phase === 'main');
   // 11 Gruppen haben Untergruppen; jede bekommt genau eine Ausnahme, auch wenn eine Untergruppe Kontrollkarte ist
-  assert.equal(main.filter((event) => event.selectionReason === REASONS.EXCEPTION).length, 11);
-  assert.equal(main.length, 13 + 11);
-  assert.deepEqual(answers.slice(-6).map((event) => event.phase), Array(6).fill(PHASE_HOLDOUT));
+  assert.ok(main.filter((event) => event.selectionReason === REASONS.EXCEPTION).length <= 10 - 6);
+  assert.ok(!answers.some((event) => event.stage === 3), 'abgelehnte Untergruppen werden nicht beliebig vertieft');
+  assert.deepEqual(answers.filter((event) => event.round === 2).slice(-6).map((event) => event.phase), Array(6).fill(PHASE_HOLDOUT));
+  assert.ok(answers.some((event) => event.round === 4 && event.stage === 4));
   const last = deriveRoundState({ index, onboarding: NO_ONBOARDING, diets, events: session.events, round: answers.at(-1).round });
   assert.equal(hasMoreCards(last, config), false);
   assert.deepEqual(openHoldout(last), []);
 });
 
-test('Budget: In Runde 4 bekommt die Auswahl nur so viele Plätze, dass alle Kontrollkarten Platz haben', () => {
-  // Drei volle Runden, alles „Mag ich“
-  const answered = [];
-  for (let round = 1; round <= 3; round += 1) {
-    for (let card = nextCard(state([holdoutEvent, ...answered], round), config); card; card = nextCard(state([holdoutEvent, ...answered], round), config)) {
-      answered.push(answer(card.id, LIKE, { round }));
-    }
-  }
-  assert.equal(answered.length, 30);
-  assert.ok(!answered.some((event) => HOLDOUT.includes(event.cardId)));
-  const fourth = state([holdoutEvent, ...answered], 4);
-  const cards = selectNextCards(fourth, config).map((card) => card.id);
+test('Kontrollkarten teilen das Budget von Runde 2 und erscheinen nie verspätet in Runde 4', () => {
+  const answered = allFamilies({});
+  const second = state([holdoutEvent, ...answered], 2);
+  const cards = selectNextCards(second, config).map((card) => card.id);
   assert.equal(cards.length, 10);
   assert.deepEqual(cards.slice(4), HOLDOUT);
   assert.ok(!cards.slice(0, 4).some((id) => HOLDOUT.includes(id)));
-  // Der Ausblick nach Runde 3 zeigt genau diese Karten
-  assert.deepEqual(nextRoundCards(state([holdoutEvent, ...answered], 3), config).map((card) => card.id), cards);
+  assert.deepEqual(nextRoundCards(state([holdoutEvent, ...answered]), config).map((card) => card.id), cards);
+  assert.ok(selectNextCards(state([holdoutEvent, ...answered], 4), config).every((card) => card.stage === 4));
   // Eine im Profil ausgeschlossene Kontrollkarte fällt weg
   const excluded = [holdoutEvent, ...answered, { type: 'EXCLUSION_ADDED', source: 'profile', section: 'never', exclusions: [{ type: 'card', value: 'F12.3' }] }];
   assert.deepEqual(openHoldout(state(excluded, 4)).map((card) => card.id), HOLDOUT.slice(1));
@@ -274,6 +268,20 @@ test('Simulierte Sitzungen: jede Runde höchstens 10 Karten, nie eine Karte dopp
     assert.equal(new Set(answers.map((event) => event.cardId)).size, answers.length, `p${i}`);
     assert.ok(answers.length <= 40);
     assert.equal(answers.filter((event) => event.phase === PHASE_HOLDOUT).length, 6, `p${i}: alle Kontrollkarten gezeigt`);
+  }
+});
+
+test('Normale Vertiefung wechselt auch bei laufender Neuberechnung zwischen Familien', () => {
+  const session = simulateSession({ index, diets, config: { ...config, roundCardLimit: 13, holdout: 6 }, respond: () => LIKE, sessionId: 'wechsel' });
+  const familyOf = (id) => {
+    let card = index.get(id);
+    while (card.parentId) card = index.get(card.parentId);
+    return card.id;
+  };
+  for (const round of [2, 3]) {
+    const normal = session.events.filter((event) => event.round === round && event.phase === 'main');
+    assert.ok(normal.length > 3);
+    for (let i = 1; i < normal.length; i += 1) assert.notEqual(familyOf(normal[i - 1].cardId), familyOf(normal[i].cardId), `Runde ${round}: verschiedene Gruppen nacheinander`);
   }
 });
 

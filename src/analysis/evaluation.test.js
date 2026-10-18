@@ -65,6 +65,26 @@ test('Lernkurve aus dem Protokoll: Was hätte die App nach k Antworten vermutet?
   assert.ok(two.completeness > one.completeness && one.completeness > none.completeness, 'Vollständigkeit wächst, Genauigkeit nicht');
 });
 
+test('Antworten nach den Kontrollkarten ändern die gemessene Vorhersage nicht rückwirkend', () => {
+  const before = prepare(session('vorher', [
+    { type: 'HOLDOUT_DRAWN', cardIds: ['F12.3'] },
+    answer('F12', LIKE),
+    answer('F12.3', LIKE, { round: 2, phase: 'holdout' }),
+  ]));
+  const after = prepare(session('nachher', [
+    { type: 'HOLDOUT_DRAWN', cardIds: ['F12.3'] },
+    answer('F12', LIKE),
+    answer('F12.3', LIKE, { round: 2, phase: 'holdout' }),
+    answer('F12.1.1', DISLIKE, { round: 3 }),
+    answer('D01', PREFER, { round: 4, phase: 'dish' }),
+  ]));
+  assert.equal(after.main.length, 2, 'spätere Lebensmittelantwort bleibt im Profil und den Pilotdaten');
+  assert.deepEqual(after.learningMain, before.learningMain);
+  assert.deepEqual(scoreAfter(index, after, 100), scoreAfter(index, before, 100));
+  assert.equal(learningCurve([after], { index, resamples: 10 }).at(-1).k, 1);
+  assert.equal(after.dishes, 1);
+});
+
 test('„Kenne ich nicht“ bei einer Kontrollkarte ist keine Bewertung und zählt nicht zur Trefferquote', () => {
   const data = prepare(session('u1', [{ type: 'HOLDOUT_DRAWN', cardIds: ['F12.3'] }, answer('F12', LIKE), answer('F12.3', UNFAMILIAR, { phase: 'holdout' })]));
   assert.equal(scoreAfter(index, data, 1).usable, 0);
@@ -102,7 +122,7 @@ function consistentPeople(count, selection = SELECTION.ADAPTIVE) {
   return Array.from({ length: count }, (_, i) => {
     const random = seededRandom(`person-${i}`);
     const byFamily = Object.fromEntries(families.map((id) => [id, random() < 0.35 ? DISLIKE : random() < 0.5 ? PREFER : LIKE]));
-    return simulateSession({ index, diets, config: { roundCardLimit: 10, selection, holdout: 6 }, respond: tasteByFamily(index, byFamily), sessionId: `p${i}`, participantCode: `T${i}` });
+    return simulateSession({ index, diets, config: { roundCardLimit: 13, selection, holdout: 6 }, respond: tasteByFamily(index, byFamily), sessionId: `p${i}`, participantCode: `T${i}` });
   });
 }
 

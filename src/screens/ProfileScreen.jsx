@@ -145,12 +145,10 @@ export default function ProfileScreen({
   next = null,
   practical = null,
   practicalDefinition = null,
-  dishes = { available: false },
   canSignOut,
   onCreate,
   onNext,
   onOpenPractical,
-  onStartDishes,
   onRestart,
   onSignOut,
   onChange,
@@ -371,7 +369,7 @@ export default function ProfileScreen({
         </section>
       )}
 
-      {(board.dishes.length > 0 || dishes.available) && (
+      {board.dishes.length > 0 && (
         <section className="stack" aria-labelledby="dishes-title">
           <div className="stack-tight">
             <h2 id="dishes-title" className="title-section">
@@ -380,12 +378,6 @@ export default function ProfileScreen({
             <p className="note">{board.dishes.length > 0 ? PROFILE.dishesLead : PROFILE.dishesEmpty}</p>
           </div>
           <TasteGroup id="dishes" title={PROFILE.dishesTitle} icon={Soup} entries={board.dishes} index={index} titleOf={titleOf} onSelect={openRating} />
-          {dishes.available && onStartDishes && (
-            <button type="button" className="button-secondary" onClick={onStartDishes}>
-              <Soup aria-hidden="true" />
-              {PROFILE.dishesAction(board.dishes.length > 0)}
-            </button>
-          )}
         </section>
       )}
 

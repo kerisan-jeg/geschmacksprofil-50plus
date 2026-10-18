@@ -1,4 +1,4 @@
-import { ArrowRight, CircleCheck, Lock, Soup, Sparkles } from 'lucide-react';
+import { ArrowRight, CircleCheck, Lock, Sparkles } from 'lucide-react';
 import CreationSteps from '../components/CreationSteps.jsx';
 import Avatar from '../components/Avatar.jsx';
 import ProfileStatus from '../components/ProfileStatus.jsx';
@@ -12,10 +12,10 @@ const ROWS = [PREFER, LIKE, DISLIKE, UNFAMILIAR, INTOLERANT];
 
 // Abschluss nach jeder Runde (nurec v0.2, Kap. 3: „Kurze Runde beenden und Profilstand sichern“):
 // kurze Übersicht, „Profil aufgebaut“ (Anhang B2), dann weiter, solange eine weitere Runde erlaubt ist, oder
-// „Mein Profil ansehen“. Freiwillig danach: Gerichte (Stufe 4, nach Stufe 2) und das Alltagsprofil (Kap. 2.3).
+// „Mein Profil ansehen“. Gerichte gehören zu Runde 4; danach bleibt das Alltagsprofil freiwillig (Kap. 2.3).
 // Zahlen sind reine Zählungen der Antworten; der Prozentwert ist ein Erfassungsgrad (siehe ProfileStatus).
-// mode: 'main' (Profilerstellung) oder 'dishes' (Gerichte). nextTitles: Karten der nächsten Runde (leer = keine),
-// nextNumber: Nummer dieser nächsten Runde (nach Gerichten ist round.round „G1“, daher von aussen).
+// Runde 4 schliesst mit Gerichten ab. nextNumber berücksichtigt übersprungene leere Ebenen;
+// nextTitles sind die Karten dieser nächsten Runde, leer nach dem endgültigen Abschluss.
 export default function CompleteScreen({
   round,
   mode = 'main',
@@ -26,14 +26,12 @@ export default function CompleteScreen({
   steps,
   nextTitles,
   nextNumber,
-  dishes = { available: false, started: false },
   practicalDone = true,
   onNextRound,
-  onStartDishes,
   onOpenPractical,
   onToProfile,
 }) {
-  const dishMode = mode === 'dishes';
+  const dishMode = round.round === 4 || mode === 'dishes';
   const { groups, intolerant } = computeProfile(round);
   const inMode = (id) => (round.index.get(id)?.stage === 4) === dishMode;
   const counts = {
@@ -51,9 +49,8 @@ export default function CompleteScreen({
   else if (answered === 0) lead = COMPLETE.leadEmpty;
   else if (endedEarly) lead = COMPLETE.leadEnded(answered);
   let kicker = endedEarly ? COMPLETE.kickerEnded(round.round) : COMPLETE.kickerDone(round.round);
-  if (dishMode) kicker = COMPLETE.kickerDishes;
   const showPractical = finished && !practicalDone && Boolean(onOpenPractical);
-  const showOptional = (dishes.available && Boolean(onStartDishes)) || showPractical;
+  const showOptional = showPractical;
 
   return (
     <main className="screen screen-complete">
@@ -104,15 +101,6 @@ export default function CompleteScreen({
           <h2 id="optional-title" className="panel-title">
             {COMPLETE.optionalTitle}
           </h2>
-          {dishes.available && onStartDishes && (
-            <div className="optional-item">
-              <p className="note">{COMPLETE.dishesHint}</p>
-              <button type="button" className="button-secondary" onClick={onStartDishes}>
-                <Soup aria-hidden="true" />
-                {dishes.started ? COMPLETE.moreDishes : COMPLETE.startDishes}
-              </button>
-            </div>
-          )}
           {showPractical && (
             <div className="optional-item">
               <p className="note">{COMPLETE.practicalHint}</p>

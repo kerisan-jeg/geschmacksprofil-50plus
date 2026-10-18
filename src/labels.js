@@ -356,7 +356,7 @@ export const COMPLETE = {
   // Gerichte (Stufe 4, freiwillig)
   kickerDishes: 'Gerichte bewertet',
   leadDishes: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet.`,
-  leadDishesEnded: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet. Weitere kannst du jederzeit später bewerten.`,
+  leadDishesEnded: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet. Deine bisherigen Antworten sind gespeichert.`,
   optionalTitle: 'Freiwillig',
   startDishes: 'Gerichte bewerten',
   moreDishes: 'Weitere Gerichte bewerten',

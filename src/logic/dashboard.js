@@ -123,12 +123,3 @@ export function buildDashboard(state) {
   const dishes = rated.filter((entry) => isDish(entry.card) && isTasteSignal(entry.rating)).map((entry) => ({ id: entry.card.id, rating: entry.rating }));
   return { favorites, groups, dislikes, unfamiliar, unasked, details, dishes };
 }
-
-// Gerichte sind freiwillig und kommen nach Stufe 2 (nurec v0.2, Kap. 5: „Stufe 4 kann nach Stufe 2 gezielt beginnen“):
-// verfügbar, sobald Stufe 2 abgeschlossen ist oder die Profilerstellung keine weitere Runde mehr hat (dann ist
-// nichts anderes mehr möglich, z. B. nach Runde 4).
-export function dishesAvailable(state, { moreRounds }) {
-  const open = state.index.cards.some((card) => card.stage === 4 && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions));
-  if (!open) return false;
-  return !moreRounds || profileProgress(state).stage >= 2;
-}

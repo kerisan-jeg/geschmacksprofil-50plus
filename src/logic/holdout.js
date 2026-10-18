@@ -1,7 +1,7 @@
 // Kontrollkarten (Messkonzept, docs/messkonzept.md). Reine Funktionen.
 //
 // Nach „Stimmt so“ werden pro Person einige Untergruppen (Stufe 2) zufällig zurückgehalten. Sie kommen nie in
-// der Kartenauswahl vor, sondern erst am Ende der letzten Runde (engine.js). Ihre Antworten sind der
+// normalen Kartenauswahl vor, sondern am Ende von Runde 2 (engine.js). Ihre Antworten sind der
 // Massstab dafür, ob die Vermutungen der App stimmen.
 //
 // - Vorher und zufällig gezogen, nicht nach der Vermutung der App: Sonst würden nur einfache Fälle geprüft.
