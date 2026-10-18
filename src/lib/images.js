@@ -9,7 +9,7 @@
 import { createContext } from 'react';
 import credits from '../data/image-credits.json';
 import { IMAGE_STYLE } from '../config.js';
-import { foodMatches, isVisible } from '../logic/filter.js';
+import { annotateCard, foodMatches, isVisible } from '../logic/filter.js';
 
 // Bildstil der Karten ('photo' oder 'illustration', siehe IMAGE_STYLE in config.js).
 // App.jsx setzt den Wert der Sitzung; Artwork.jsx liest ihn.
@@ -57,6 +57,21 @@ export function allowedPhotos(photos, filter) {
         return !card || isVisible(card, index, exclusions);
       }) && !(photo.foods ?? []).some((word) => foods.some((food) => foodMatches(word, food)))
   );
+}
+
+// Geerbte Illustrationen können ausgeschlossene Geschwister zeigen (F02.svg: Fisch und Garnele).
+// Bei Einschränkungen der dargestellten Gruppe ersetzt ein neutrales Symbol die Illustration,
+// auch während ein Foto lädt oder nach einem Ladefehler.
+export function illustrationForCard(card, filter) {
+  if (!card.illustration || !filter?.exclusions) return card.illustration ?? null;
+  const { index, exclusions } = filter;
+  let owner = index.get(card.id) ?? card;
+  let parent = index.get(owner.parentId);
+  while (parent && parent.illustration === card.illustration) {
+    owner = parent;
+    parent = index.get(owner.parentId);
+  }
+  return isVisible(owner, index, exclusions) && !(annotateCard(owner, index, exclusions).notes?.length) ? card.illustration : null;
 }
 
 // Zwei Grössen pro Foto: gross für die Karte, klein für Vorschaubilder und Bildraster.

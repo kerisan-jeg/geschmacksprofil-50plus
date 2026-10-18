@@ -29,6 +29,7 @@ import { dishesAvailable, profileProgress } from './logic/dashboard.js';
 import { practicalAnswered, practicalOf } from './logic/practical.js';
 import { drawHoldout } from './logic/holdout.js';
 import { createRedundancyCheck } from './logic/stage0.js';
+import { displayCardTitle } from './logic/filter.js';
 import { mergeFoods } from './logic/foodSearch.js';
 import { summarySections } from './logic/profile.js';
 import { createLogger, storageAvailable } from './logging/logger.js';
@@ -281,7 +282,7 @@ function App() {
   function nextStep() {
     if (!mainRound) return null;
     if (screen !== SCREENS.COMPLETE) return { type: 'continue' };
-    if (moreRounds) return { type: 'round', number: (roundNumber ?? 1) + 1, titles: nextRoundCards(mainRound, config).slice(0, 3).map((card) => card.title) };
+    if (moreRounds) return { type: 'round', number: (roundNumber ?? 1) + 1, titles: nextRoundCards(mainRound, config).slice(0, 3).map((card) => displayCardTitle(card, INDEX, mainRound.exclusions)) };
     if (dishes.available) return { type: 'dishes' };
     if (practicalAnswered(practicalDefinition, practical) === 0) return { type: 'practical' };
     return { type: 'done' };
@@ -471,7 +472,7 @@ function App() {
             firstName={firstName}
             ruleCount={round.entries.filter((entry) => !entry.freeText).length + (round.diet && round.diet !== 'none' ? 1 : 0)}
             steps={steps}
-            nextTitles={moreRounds ? nextRoundCards(mainRound, config).map((card) => card.title) : []}
+            nextTitles={moreRounds ? nextRoundCards(mainRound, config).map((card) => displayCardTitle(card, INDEX, mainRound.exclusions)) : []}
             nextNumber={(roundNumber ?? 1) + 1}
             dishes={dishes}
             practicalDone={practicalAnswered(practicalDefinition, practical) > 0}

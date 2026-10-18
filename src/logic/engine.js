@@ -12,7 +12,7 @@
 import { MAX_ROUNDS, PREFERENCE_MODEL } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, RESPONSE_SEMANTICS, RESPONSES, UNDO, UNFAMILIAR, isTasteSignal } from './answers.js';
 import { ANSWER, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, HOLDOUT_DRAWN, RATING_CHANGED, SOURCE_PROFILE, eventType, isProfileEvent } from './events.js';
-import { annotateCard, buildExclusions, isVisible } from './filter.js';
+import { annotateCard, buildExclusions, displayCardTitle, isVisible } from './filter.js';
 import { predictedRating, predictScores } from './preferences.js';
 import { sectionOf } from './profile.js';
 import { isDone, rankedCards, REASONS } from './selection.js';
@@ -234,7 +234,7 @@ export function presentCard(state, card) {
   const presented = annotateCard(card, state.index, state.exclusions, state.cardLabels);
   if (card.stage === 4) return { ...presented, group: null, dish: true };
   const parent = card.stage >= 2 ? state.index.get(card.parentId) : null;
-  return parent ? { ...presented, group: parent.title } : presented;
+  return parent ? { ...presented, group: displayCardTitle(parent, state.index, state.exclusions) } : presented;
 }
 
 export function nextCard(state, config) {

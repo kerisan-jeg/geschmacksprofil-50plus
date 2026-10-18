@@ -12,7 +12,7 @@ const VISIBLE = 5;
 // Vermutungen der App in „Mein Profil“ (derivedEntries in src/logic/engine.js): getrennt von den eigenen
 // Bewertungen, gestrichelt umrandet und mit Begründung („Vermutet, weil du „Obst“ magst“).
 // Tippen öffnet die Bewertung; die eigene Antwort ersetzt dann die Vermutung.
-export default function DerivedTaste({ entries, index, onSelect }) {
+export default function DerivedTaste({ entries, index, titleOf = (id) => index.get(id)?.title ?? '', onSelect }) {
   const [expanded, setExpanded] = useState({});
   if (entries.length === 0) return null;
 
@@ -42,13 +42,14 @@ export default function DerivedTaste({ entries, index, onSelect }) {
             <ul className="taste-list" id={listId}>
               {(open ? list : list.slice(0, VISIBLE)).map((entry) => {
                 const card = index.get(entry.cardId);
-                const reason = PROFILE.derived.reason(index.get(entry.basisId)?.title ?? '', entry.basisRating);
+                const title = titleOf(entry.cardId);
+                const reason = PROFILE.derived.reason(titleOf(entry.basisId), entry.basisRating);
                 return (
                   <li key={entry.cardId}>
-                    <button type="button" className="taste-row" onClick={() => onSelect(entry)} aria-label={PROFILE.derived.rowLabel(card.title, reason)}>
+                    <button type="button" className="taste-row" onClick={() => onSelect(entry)} aria-label={PROFILE.derived.rowLabel(title, reason)}>
                       <Artwork card={card} size="thumb" className="thumb" />
                       <span className="taste-text">
-                        <span className="taste-title">{card.title}</span>
+                        <span className="taste-title">{title}</span>
                         <span className="taste-reason">{reason}</span>
                       </span>
                       <ChevronRight className="row-chevron" aria-hidden="true" />

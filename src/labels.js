@@ -335,6 +335,7 @@ export const ROUND = {
 export const CARD_NOTES = {
   without: (name) => `Ohne ${name}`,
   more: (count) => `und ${count} weitere`,
+  joinTitles: (titles) => titles.length <= 1 ? titles[0] ?? '' : `${titles.slice(0, -1).join(', ')} und ${titles.at(-1)}`,
 };
 
 // Abschluss nach der Runde

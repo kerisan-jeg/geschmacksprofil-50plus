@@ -17,11 +17,11 @@ import Sheet from '../components/Sheet.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
 import { allPhotos } from '../lib/images.js';
 import { allergenLabel } from '../logic/allergens.js';
-import { computeProfile, derivedEntries } from '../logic/engine.js';
+import { computeProfile, derivedEntries, presentCard } from '../logic/engine.js';
 import { buildDashboard, profileProgress } from '../logic/dashboard.js';
 import { practicalAnswered, summarizePractical } from '../logic/practical.js';
 import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
-import { buildExclusions } from '../logic/filter.js';
+import { buildExclusions, displayCardTitle } from '../logic/filter.js';
 import { buildFoodIndex } from '../logic/foodSearch.js';
 import { groupExclusions, sectionOf } from '../logic/profile.js';
 import { parseKey, redundancyFor } from '../logic/stage0.js';
@@ -82,7 +82,7 @@ function ExclusionList({ items, onRemove }) {
 }
 
 // Eine Liste bewerteter Karten (Bild, Titel, Bewertung, optional eine Zeile darunter). Tippen öffnet die Bewertung.
-function TasteGroup({ id, title, icon: Icon, tone, entries, index, note, onSelect }) {
+function TasteGroup({ id, title, icon: Icon, tone, entries, index, titleOf, note, onSelect }) {
   if (entries.length === 0) return null;
   return (
     <section className={`panel taste-group${tone ? ` tone-${tone}` : ''}`} aria-labelledby={`group-${id}`}>
@@ -100,10 +100,10 @@ function TasteGroup({ id, title, icon: Icon, tone, entries, index, note, onSelec
           const card = index.get(entry.id);
           return (
             <li key={entry.id}>
-              <button type="button" className="taste-row" onClick={() => onSelect(entry.id)} aria-label={PROFILE.editRatingFor(card.title)}>
+              <button type="button" className="taste-row" onClick={() => onSelect(entry.id)} aria-label={PROFILE.editRatingFor(titleOf(entry.id))}>
                 <Artwork card={card} size="thumb" className="thumb" />
                 <span className="taste-text">
-                  <span className="taste-title">{card.title}</span>
+                  <span className="taste-title">{titleOf(entry.id)}</span>
                   <RatingChip answer={entry.rating} />
                   {entry.sub && <span className="taste-reason">{entry.sub}</span>}
                 </span>
@@ -186,7 +186,7 @@ export default function ProfileScreen({
   const board = buildDashboard(round);
   const hasTaste = board.favorites.length + board.groups.length + board.dislikes.length + board.unfamiliar.length + board.dishes.length > 0;
   const practicalLines = practicalDefinition ? summarizePractical(practicalDefinition, practical, PRACTICAL) : [];
-  const titleOf = (id) => index.get(id)?.title ?? id;
+  const titleOf = (id) => index.get(id) ? displayCardTitle(index.get(id), index, round.exclusions) : id;
   const openRating = (cardId) => setSheet({ type: 'rating', cardId });
   const sections = groupExclusions(round.entries, { allergens, index });
   const diet = dietOptions.options.find((option) => option.id === round.diet);
@@ -244,8 +244,8 @@ export default function ProfileScreen({
     };
   }
 
-  const ratingCard = sheet?.type === 'rating' ? index.get(sheet.cardId) : null;
-  const predictionCard = sheet?.type === 'prediction' ? index.get(sheet.entry.cardId) : null;
+  const ratingCard = sheet?.type === 'rating' ? presentCard(round, index.get(sheet.cardId)) : null;
+  const predictionCard = sheet?.type === 'prediction' ? presentCard(round, index.get(sheet.entry.cardId)) : null;
 
   return (
     <main className="screen screen-profile">
@@ -300,10 +300,11 @@ export default function ProfileScreen({
             tone={ANSWER_META[rating].tone}
             entries={board.favorites.filter((entry) => entry.rating === rating)}
             index={index}
+            titleOf={titleOf}
             onSelect={openRating}
           />
         ))}
-        <TasteGroup id="groups" title={PROFILE.groupsTitle} icon={Layers} entries={board.groups} index={index} note={PROFILE.groupsLead} onSelect={openRating} />
+        <TasteGroup id="groups" title={PROFILE.groupsTitle} icon={Layers} entries={board.groups} index={index} titleOf={titleOf} note={PROFILE.groupsLead} onSelect={openRating} />
         <TasteGroup
           id="dislikes"
           title={PROFILE.dislikesTitle}
@@ -315,12 +316,13 @@ export default function ProfileScreen({
             sub: entry.exceptions.length > 0 ? PROFILE.exception(entry.exceptions.map((exception) => titleOf(exception.id)).join(', ')) : null,
           }))}
           index={index}
+          titleOf={titleOf}
           note={PROFILE.dislikeNote}
           onSelect={openRating}
         />
       </section>
 
-      <DerivedTaste entries={derived} index={index} onSelect={(entry) => setSheet({ type: 'prediction', entry })} />
+      <DerivedTaste entries={derived} index={index} titleOf={titleOf} onSelect={(entry) => setSheet({ type: 'prediction', entry })} />
 
       {(board.unfamiliar.length > 0 || board.unasked.length > 0) && (
         <section className="stack" aria-labelledby="open-title">
@@ -337,6 +339,7 @@ export default function ProfileScreen({
             tone={ANSWER_META[UNFAMILIAR].tone}
             entries={board.unfamiliar.map((id) => ({ id, rating: UNFAMILIAR }))}
             index={index}
+            titleOf={titleOf}
             onSelect={openRating}
           />
           {board.unasked.length > 0 && (
@@ -376,7 +379,7 @@ export default function ProfileScreen({
             </h2>
             <p className="note">{board.dishes.length > 0 ? PROFILE.dishesLead : PROFILE.dishesEmpty}</p>
           </div>
-          <TasteGroup id="dishes" title={PROFILE.dishesTitle} icon={Soup} entries={board.dishes} index={index} onSelect={openRating} />
+          <TasteGroup id="dishes" title={PROFILE.dishesTitle} icon={Soup} entries={board.dishes} index={index} titleOf={titleOf} onSelect={openRating} />
           {dishes.available && onStartDishes && (
             <button type="button" className="button-secondary" onClick={onStartDishes}>
               <Soup aria-hidden="true" />

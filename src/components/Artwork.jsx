@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { Utensils } from 'lucide-react';
-import { allowedPhotos, assetUrl, ImageFilterContext, ImageStyleContext, photosForCard, photoSources } from '../lib/images.js';
+import { allowedPhotos, assetUrl, illustrationForCard, ImageFilterContext, ImageStyleContext, photosForCard, photoSources } from '../lib/images.js';
 
 // Bild einer Karte. Zustände (data-state):
 //   loading – Fotos laden, der Platzhalter pulsiert ruhig
@@ -20,7 +20,9 @@ const COLLAGE_SIZES = {
 };
 
 export default function Artwork({ card, size = 'card', className = '' }) {
-  const photos = allowedPhotos(photosForCard(card.id, useContext(ImageStyleContext)), useContext(ImageFilterContext));
+  const filter = useContext(ImageFilterContext);
+  const photos = allowedPhotos(photosForCard(card.id, useContext(ImageStyleContext)), filter);
+  const illustration = illustrationForCard(card, filter);
   const collage = photos.length > 1;
   // Ladezustand je Bildquelle, damit neue Fotos nie den Zustand der alten erben.
   const [status, setStatus] = useState({});
@@ -44,8 +46,8 @@ export default function Artwork({ card, size = 'card', className = '' }) {
       style={{ '--tint': card.tint }}
     >
       <div className="artwork-placeholder" aria-hidden="true">
-        {card.illustration ? (
-          <img className="artwork-illustration" src={assetUrl(`illustrations/${card.illustration}`)} alt="" draggable={false} />
+        {illustration ? (
+          <img className="artwork-illustration" src={assetUrl(`illustrations/${illustration}`)} alt="" draggable={false} />
         ) : (
           <Utensils className="artwork-fallback-icon" />
         )}

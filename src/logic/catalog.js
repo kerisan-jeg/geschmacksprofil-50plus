@@ -83,6 +83,14 @@ export function validateCatalog(cards) {
     for (const id of card.ingredients ?? []) {
       if (!index.get(id)) errors.push(`${card.id}: Zutat ${id} unbekannt`);
     }
+    if (card.titleParts) {
+      const children = card.titleParts.flatMap((part) => part.children ?? []);
+      if (card.titleParts.some((part) => !part.title?.trim() || !part.children?.length) ||
+          children.length !== card.children.length || new Set(children).size !== children.length ||
+          children.some((id) => !card.children.includes(id))) {
+        errors.push(`${card.id}: titleParts müssen alle direkten Kinder genau einmal mit Titel zuordnen`);
+      }
+    }
     if (card.exceptionCandidate && index.get(card.exceptionCandidate)?.parentId !== card.id) errors.push(`${card.id}: Ausnahme ist kein Kind`);
     for (const id of card.contrastPair ?? []) {
       if (index.get(id)?.parentId !== card.id) errors.push(`${card.id}: Kontrast ${id} ist kein Kind`);

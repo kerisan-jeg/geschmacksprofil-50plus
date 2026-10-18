@@ -112,15 +112,25 @@ function withoutFoods(exclusions) {
   return { ...exclusions, foods: [] };
 }
 
+// Zusammengesetzte Namen nennen nur noch vorhandene Teile: ohne Meeresfrüchte heisst
+// die Gruppe „Fisch“, ohne Fisch „Meeresfrüchte“. Die gespeicherte Karten-ID bleibt gleich.
+export function displayCardTitle(card, index, exclusions) {
+  if (!card.titleParts) return card.title;
+  const visible = card.titleParts.filter((part) => part.children.some((id) => isVisible(index.get(id), index, exclusions)));
+  if (visible.length === 0 || visible.length === card.titleParts.length) return card.title;
+  return CARD_NOTES.joinTitles(visible.map((part) => part.title));
+}
+
 // Hinweise und Beispiele einer Karte an die Ausschlüsse anpassen:
 // - Familien zeigen nur Beispiele aus sichtbaren Kindern und „Ohne Haselnüsse“.
 // - Lebensmittel-Einträge („Tomate“) verschwinden aus den Beispielen und erscheinen als „Ohne Tomate“.
 // labels: optionale Wörter der Person für eine Karten-ID, z. B. { 'F01.3': 'Schweinefleisch' }.
 export function annotateCard(card, index, exclusions, labels = {}) {
+  const title = displayCardTitle(card, index, exclusions);
   const hidden = isFamily(card) ? hiddenRoots(card, index, withoutFoods(exclusions)) : [];
   const pool = examplePool(card, index, withoutFoods(exclusions));
   const hiddenFoods = (exclusions.foods ?? []).filter((food) => pool.some((example) => foodMatches(example, food)));
-  if (hidden.length === 0 && hiddenFoods.length === 0) return card;
+  if (hidden.length === 0 && hiddenFoods.length === 0 && title === card.title) return card;
 
   let examples = hidden.length > 0 ? derivedExamples(card, index, exclusions) : card.examples;
   if (hiddenFoods.length > 0) {
@@ -139,7 +149,7 @@ export function annotateCard(card, index, exclusions, labels = {}) {
 
   const names = [...hidden.map((id) => labels[id] ?? index.get(id).title), ...hiddenFoods];
   const notes = names.length <= 2 ? names.map(CARD_NOTES.without) : [CARD_NOTES.without(names[0]), CARD_NOTES.more(names.length - 1)];
-  return { ...card, examples, notes };
+  return { ...card, title, examples, notes };
 }
 
 // Oberste ausgeblendete Nachkommen, deren Elternteil sichtbar ist.
