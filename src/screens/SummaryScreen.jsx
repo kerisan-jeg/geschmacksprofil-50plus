@@ -3,7 +3,7 @@ import CreationSteps from '../components/CreationSteps.jsx';
 import Avatar from '../components/Avatar.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { hasSummaryRules } from '../logic/profile.js';
-import { BRANDS, ONBOARDING, PROFILE, SUMMARY } from '../labels.js';
+import { BRANDS, DIET, ONBOARDING, PROFILE, SUMMARY } from '../labels.js';
 
 // Zusätze zu einer Regel (nurec v0.2, Kap. 2.2): ärztlich vorgegeben, kleine Mengen gehen
 const FLAG_TEXT = { medical: PROFILE.medical, limited: PROFILE.scopeLimited };
@@ -35,6 +35,7 @@ export default function SummaryScreen({ sections, noCards, firstName, steps, onC
           const Icon = SECTION_ICONS[section.id];
           const title = SUMMARY.sections[section.id];
           const empty = section.items.length === 0 && section.notes.length === 0;
+          const rules = section.dietaryRules ?? [];
           const hasBrands = section.brands.length > 0 || section.origins.length > 0;
           return (
             <section key={section.id} className="exclusion-section" aria-labelledby={`summary-${section.id}`}>
@@ -85,6 +86,11 @@ export default function SummaryScreen({ sections, noCards, firstName, steps, onC
                 </ul>
               )}
               {section.notes.length > 0 && <p className="note">{ONBOARDING.entryEffect}</p>}
+              {rules.length > 0 && (
+                <p className="note">
+                  {DIET.rulesLine(rules)}. {DIET.rulesEffect}
+                </p>
+              )}
 
               {hasBrands && (
                 <>

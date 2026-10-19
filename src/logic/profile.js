@@ -9,12 +9,14 @@
 
 import { describeSelection } from './allergens.js';
 
-export const EXCLUSION_SECTIONS = ['allergies', 'intolerances', 'never', 'notes'];
+// diet: Einzelausschlüsse aus Frage 1, Teil B (z. B. kein Schweinefleisch), bei der Ernährungsform angezeigt.
+export const EXCLUSION_SECTIONS = ['diet', 'allergies', 'intolerances', 'never', 'notes'];
 
 // Einträge aus dem Profil tragen ihren Abschnitt selbst (section), z. B. Laktose unter „Vertrage ich nicht“.
 export function sectionOf(entry) {
   if (entry.section && EXCLUSION_SECTIONS.includes(entry.section)) return entry.section;
   if (entry.freeText) return 'notes';
+  if (entry.origin === 'diet') return 'diet';
   if (entry.type === 'allergen') return 'allergies';
   if (entry.source === 'swipe' || entry.origin === 'intolerances') return 'intolerances';
   return 'never';
@@ -88,7 +90,7 @@ export function groupExclusions(entries, { allergens, index }) {
 //   open: Unsicherheits-Flag aus Frage 2. Die Frage bleibt offen, daraus folgt keine Freigabe.
 export const SUMMARY_SECTIONS = ['diet', 'intolerances', 'never'];
 
-export function summarySections(state, { onboarding, diets, allergens, index }) {
+export function summarySections(state, { onboarding, diets, allergens, index, dietRules = [] }) {
   const grouped = groupExclusions(state.entries, { allergens, index });
   const plain = (items) => items.map(({ key, label, flags }) => ({ key, label, flags: flags ?? [] }));
   const notesOf = (question) => [
@@ -100,7 +102,16 @@ export function summarySections(state, { onboarding, diets, allergens, index }) 
   ];
   const dietRule = diets?.[state.diet]?.rule;
   return [
-    { id: 'diet', items: dietRule ? [{ key: `diet:${state.diet}`, label: dietRule }] : [], notes: [], open: false, brands: [], origins: [] },
+    {
+      id: 'diet',
+      items: [...(dietRule ? [{ key: `diet:${state.diet}`, label: dietRule, flags: [] }] : []), ...plain(grouped.diet)],
+      notes: [],
+      open: false,
+      brands: [],
+      origins: [],
+      // Speisevorschriften (Teil C): als Angabe gezeigt, ohne eigene Wirkung
+      dietaryRules: (onboarding?.dietaryRules ?? []).map((id) => dietRules.find((rule) => rule.id === id)?.label ?? id),
+    },
     {
       id: 'intolerances',
       items: plain([...grouped.allergies, ...grouped.intolerances]),

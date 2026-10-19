@@ -9,7 +9,7 @@
 import { createContext } from 'react';
 import credits from '../data/image-credits.json';
 import { IMAGE_STYLE } from '../config.js';
-import { annotateCard, foodMatches, isVisible } from '../logic/filter.js';
+import { annotateCard, displayCardTitle, foodMatches, isVisible } from '../logic/filter.js';
 
 // Bildstil der Karten ('photo' oder 'illustration', siehe IMAGE_STYLE in config.js).
 // App.jsx setzt den Wert der Sitzung; Artwork.jsx liest ihn.
@@ -71,7 +71,8 @@ export function illustrationForCard(card, filter) {
     owner = parent;
     parent = index.get(owner.parentId);
   }
-  return isVisible(owner, index, exclusions) && !(annotateCard(owner, index, exclusions).notes?.length) ? card.illustration : null;
+  const unchanged = displayCardTitle(owner, index, exclusions) === owner.title;
+  return isVisible(owner, index, exclusions) && unchanged && !(annotateCard(owner, index, exclusions).notes?.length) ? card.illustration : null;
 }
 
 // Zwei Grössen pro Foto: gross für die Karte, klein für Vorschaubilder und Bildraster.

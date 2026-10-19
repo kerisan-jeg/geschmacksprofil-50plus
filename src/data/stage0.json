@@ -52,23 +52,14 @@
     {
       "id": "diet",
       "covers": "0.4",
-      "type": "single",
+      "type": "diet",
       "source": "Ernährungsweise",
-      "title": "Hältst du eine feste Ernährungs­weise ein?",
-      "hint": "Nur was du immer einhältst, auch aus religiösen Gründen. Isst du meistens vegetarisch, aber nicht immer, wähle „Nein“.",
+      "title": "Wie isst du?",
+      "hint": "Nur was du immer einhältst. Isst du meistens vegetarisch, aber nicht immer, wähle „Keine besondere Ernährungsform“.",
       "options": [
         {
           "id": "none",
-          "label": "Nein, ich esse alles"
-        },
-        {
-          "id": "no_pork",
-          "label": "Kein Schweinefleisch"
-        },
-        {
-          "id": "no_fish",
-          "label": "Kein Fisch",
-          "detail": "Fleisch ja, aber kein Fisch"
+          "label": "Keine besondere Ernährungsform"
         },
         {
           "id": "pescetarian",
@@ -84,6 +75,72 @@
           "id": "vegan",
           "label": "Vegan",
           "detail": "Nichts vom Tier"
+        }
+      ],
+      "formTitle": "Ernährungsform",
+      "exclusionsTitle": "Lässt du etwas immer weg?",
+      "exclusionsHint": "Freiwillig. Egal aus welchem Grund, du musst nichts begründen.",
+      "exclusions": [
+        {
+          "key": "animalOrigin:pork",
+          "label": "Kein Schweinefleisch",
+          "noun": "Schweinefleisch"
+        },
+        {
+          "key": "animalOrigin:beef",
+          "label": "Kein Rindfleisch",
+          "detail": "auch Kalb",
+          "noun": "Rindfleisch"
+        },
+        {
+          "key": "animalOrigin:poultry",
+          "label": "Kein Geflügel",
+          "noun": "Geflügel"
+        },
+        {
+          "key": "animalOrigin:fish",
+          "label": "Kein Fisch",
+          "noun": "Fisch"
+        },
+        {
+          "key": "animalOrigin:seafood",
+          "label": "Keine Meeresfrüchte",
+          "detail": "Krebstiere und Muscheln",
+          "noun": "Meeresfrüchte"
+        },
+        {
+          "key": "food:Alkohol",
+          "label": "Kein Alkohol",
+          "detail": "z. B. Wein in Gerichten",
+          "noun": "Alkohol"
+        },
+        {
+          "key": "animalOrigin:gelatin",
+          "label": "Keine Gelatine",
+          "noun": "Gelatine",
+          "suggestOnly": true
+        }
+      ],
+      "rulesTitle": "Hältst du eine Speisevorschrift ein?",
+      "rulesHint": "Freiwillig.",
+      "rules": [
+        {
+          "id": "halal",
+          "label": "Halal",
+          "suggest": [
+            "animalOrigin:pork",
+            "animalOrigin:gelatin",
+            "food:Alkohol"
+          ]
+        },
+        {
+          "id": "kosher",
+          "label": "Koscher",
+          "suggest": [
+            "animalOrigin:pork",
+            "animalOrigin:gelatin",
+            "animalOrigin:seafood"
+          ]
         }
       ]
     },
@@ -127,14 +184,6 @@
       "detailTitle": "Was sollen wir weglassen?",
       "detailHint": "Tippe auf ein Beispiel oder suche nach einem Lebensmittel.",
       "quickPicks": [
-        {
-          "key": "card:F01.3",
-          "label": "Schweinefleisch"
-        },
-        {
-          "key": "card:F01.2",
-          "label": "Rindfleisch"
-        },
         {
           "key": "animalOrigin:seafood",
           "label": "Meeresfrüchte"

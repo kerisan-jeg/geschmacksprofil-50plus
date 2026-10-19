@@ -315,6 +315,16 @@
   background: var(--color-primary-soft);
 }
 
+.choice.is-disabled {
+  border-style: dashed;
+  background: var(--color-surface-sunken);
+  cursor: default;
+}
+
+.choice.is-disabled:active {
+  transform: none;
+}
+
 .choice-mark {
   display: grid;
   flex: none;

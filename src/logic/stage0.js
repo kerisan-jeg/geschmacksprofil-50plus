@@ -17,15 +17,53 @@
 // Alle Funktionen sind rein: Gleiche Antworten ergeben immer dieselben Regeln.
 
 import { allergenLabel, categoryIds, summarizeSelection } from './allergens.js';
-import { buildExclusions, foodMatches, isVisible } from './filter.js';
+import { buildExclusions, foodMatches, isVisible, MEAT_KINDS } from './filter.js';
 import { buildFoodIndex, searchFoods } from './foodSearch.js';
 
 export const SOURCE_ONBOARDING = 'onboarding';
 export const SOURCE_SWIPE = 'swipe';
 
+// Frage 1 (Dozentenfeedback 19.10.2026 [K]): Ernährungsform, einzelne Ausschlüsse und Speisevorschriften getrennt.
+//   form        Ernährungsform (none, pescetarian, vegetarian, vegan), wirkt über die Tabelle `diets`
+//   exclusions  Einzelausschlüsse als kanonische Schlüssel (animalOrigin:pork, food:Alkohol …)
+//   rules       Speisevorschriften (halal, kosher). Sie schliessen selbst nichts aus [V]: Vorgeschlagene
+//               Ausschlüsse übernimmt die Person einzeln (dann stehen sie in exclusions).
+// Es gibt keine Frage nach Religion und keine Ableitung daraus.
+export const EMPTY_DIET = { form: null, exclusions: [], rules: [] };
+
+// Frühere Stände: Frage 1 war eine Einfachauswahl. „Kein Schweinefleisch“ und „Kein Fisch“ werden zu
+// Ernährungsform „keine besondere“ mit den gleichwertigen Einzelausschlüssen; gespeicherte Daten bleiben unverändert.
+const LEGACY_DIETS = {
+  no_pork: { form: 'none', exclusions: ['animalOrigin:pork', 'animalOrigin:gelatin'] },
+  no_fish: { form: 'none', exclusions: ['animalOrigin:fish', 'animalOrigin:seafood'] },
+};
+
+export function dietAnswer(value) {
+  if (value == null) return { ...EMPTY_DIET };
+  if (typeof value === 'string') return { ...EMPTY_DIET, ...(LEGACY_DIETS[value] ?? { form: value }) };
+  return { ...EMPTY_DIET, ...value, exclusions: [...(value.exclusions ?? [])], rules: [...(value.rules ?? [])] };
+}
+
+// Schon durch die Ernährungsform abgedeckt? (z. B. „Kein Fisch“ bei vegetarisch)
+export function coveredByForm(definition, form, key) {
+  const { type, value } = parseKey(key);
+  const excluded = definition?.diets?.[form]?.excludesAnimalOrigin ?? [];
+  // meat umfasst alle Fleischarten: Vegetarisch deckt „Kein Schweinefleisch“ ab
+  return type === 'animalOrigin' && (excluded.includes(value) || (MEAT_KINDS.includes(value) && excluded.includes('meat')));
+}
+
+// Eine Karte, die genau einer Restriktion entspricht (restrictionTag im Katalog, z. B. „Schwein“), erzeugt
+// dieselbe Ausschluss-ID wie Frage 1, Teil B: Dieselbe Restriktion wirkt immer gleich, egal wo sie erfasst wird.
+export function canonicalKey(catalogIndex, key) {
+  const { type, value } = parseKey(key);
+  const tag = type === 'card' ? catalogIndex?.get(value)?.restrictionTag : null;
+  return tag ? `animalOrigin:${tag}` : key;
+}
+
 export function emptyAnswers(questions) {
   const empty = {
     single: () => null,
+    diet: () => ({ ...EMPTY_DIET }),
     // medical: ärztlich oder fachlich festgestellt (0.2); scopes: Geltungsbereich je Unverträglichkeit (0.3)
     allergens: () => ({ gate: null, selected: [], items: [], notes: [], unsureMore: false, medical: false, scopes: {} }),
     never: () => ({ gate: null, selected: [], notes: [], brands: [], origins: [] }),
@@ -37,6 +75,7 @@ export function emptyAnswers(questions) {
 // Bei „Ja“ muss etwas ausgewählt oder eingetragen sein, sonst bleibt unklar, was gemeint ist.
 export function isAnswered(question, answer) {
   if (question.type === 'single') return answer != null;
+  if (question.type === 'diet') return dietAnswer(answer).form != null;
   if (!answer || !question.gate.some((option) => option.id === answer.gate)) return false;
   if (answer.gate !== 'yes') return true;
   if (question.type === 'never') {
@@ -87,6 +126,8 @@ export function keyLabel(question, catalogIndex, key) {
   if (question?.tagLabels?.[key]) return question.tagLabels[key];
   const { type, value } = parseKey(key);
   if (type === 'card') return catalogIndex.get(value)?.title ?? value;
+  // Fleischarten und Fisch: Name der entsprechenden Karte („Schweinefleisch“)
+  if (type === 'animalOrigin') return catalogIndex?.cards.find((card) => card.restrictionTag === value)?.restrictionLabel ?? value;
   return value;
 }
 
@@ -94,11 +135,13 @@ export const neverLabel = keyLabel;
 
 // ---------- Ableitung ----------
 
-function keyEntry(question, catalogIndex, key, origin, cardLabels) {
+function keyEntry(question, catalogIndex, rawKey, origin, cardLabels) {
+  const key = canonicalKey(catalogIndex, rawKey);
   const { type, value } = parseKey(key);
   const label = keyLabel(question, catalogIndex, key);
   if (type === 'card') cardLabels[value] = label;
-  return { type, value, source: SOURCE_ONBOARDING, origin, label };
+  // Gewählt als Karte (z. B. „Schweinefleisch“ in der Suche), gespeichert als kanonische Restriktion
+  return { type, value, source: SOURCE_ONBOARDING, origin, label, ...(key !== rawKey ? { selectedAs: rawKey } : {}) };
 }
 
 function noteEntry(text, origin, extra = {}) {
@@ -119,7 +162,8 @@ function constraintExtra(answer, id) {
 }
 
 // Liefert:
-//  - diet:          gewählte Ernährungsweise (wirkt über die Tabelle `diets`)
+//  - diet:          gewählte Ernährungsform (wirkt über die Tabelle `diets`)
+//  - dietaryRules:  Speisevorschriften (halal, kosher), ohne eigene Wirkung auf die Karten
 //  - exclusions:    ExclusionEntries mit source "onboarding"
 //  - uncertain:     Unsicherheits-Flag (erzeugt keine Ausschlüsse)
 //  - freeTextNotes: frei eingetippte Einträge ohne Treffer (als Lebensmittel-Eintrag wirksam, siehe oben)
@@ -135,9 +179,21 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
   const questions = definition.questions.filter((_, index) => index <= upTo);
   const byId = Object.fromEntries(questions.map((question) => [question.id, question]));
 
-  const diet = byId.diet ? answers.diet ?? null : null;
+  const dietQuestion = byId.diet ?? null;
+  const dietChoice = dietQuestion ? dietAnswer(answers.diet) : { ...EMPTY_DIET };
+  const diet = dietChoice.form;
   const dietRule = definition.diets?.[diet]?.rule;
-  if (dietRule) rules.push({ id: `diet.${diet}`, kind: 'diet', text: dietRule, source: byId.diet.source });
+  if (dietRule) rules.push({ id: `diet.${diet}`, kind: 'diet', text: dietRule, source: dietQuestion.source });
+  for (const key of new Set(dietChoice.exclusions)) {
+    // Durch die Ernährungsform schon abgedeckt (vegetarisch + kein Schwein): bleibt in der Antwort, damit es nach
+    // einem Wechsel der Form wieder gilt, steht aber nicht doppelt in den Regeln.
+    if (coveredByForm(definition, diet, key)) continue;
+    const { type, value } = parseKey(key);
+    const option = dietQuestion.exclusions?.find((entry) => entry.key === key);
+    exclusions.push({ type, value, source: SOURCE_ONBOARDING, origin: 'diet', label: option?.label ?? keyLabel(null, catalogIndex, key) });
+    rules.push({ id: `diet.${key}`, kind: 'diet', text: option?.label ?? key, source: dietQuestion.source });
+  }
+  const dietaryRules = dietChoice.rules.filter((id) => dietQuestion?.rules?.some((rule) => rule.id === id));
 
   const intolerances = byId.intolerances ? answers.intolerances : null;
   if (intolerances?.gate === 'yes') {
@@ -177,7 +233,7 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
     }
   }
 
-  return { diet, exclusions, uncertain: uncertaintyFlag(answers), freeTextNotes, avoidBrands, avoidOrigins, cardLabels, rules };
+  return { diet, dietaryRules, exclusions, uncertain: uncertaintyFlag(answers), freeTextNotes, avoidBrands, avoidOrigins, cardLabels, rules };
 }
 
 // ---------- Schon ausgeschlossen? ----------
@@ -198,7 +254,11 @@ function affectedCards(entry, catalogIndex) {
 export function createRedundancyCheck(definition, answers, { allergens, catalogIndex, upTo }) {
   const base = deriveOnboarding(definition, answers, { allergens, catalogIndex, upTo });
   const exclusions = buildExclusions(base.exclusions, { diet: base.diet, diets: definition.diets, index: catalogIndex });
-  return redundancyFor(exclusions, catalogIndex);
+  const check = redundancyFor(exclusions, catalogIndex);
+  // Genau dieselbe Angabe schon in einer früheren Frage (z. B. „Kein Alkohol“ in Frage 1): nicht noch einmal anbieten
+  const given = new Set(base.exclusions.map((entry) => `${entry.type}:${entry.value}`));
+  const repeated = (key) => Boolean(key) && given.has(canonicalKey(catalogIndex, key));
+  return { ...check, key: (key) => repeated(key) || check.key(key), hit: (hit) => repeated(hit.key) || check.hit(hit) };
 }
 
 // Dieselbe Prüfung für bereits berechnete Ausschlüsse (z. B. in „Mein Profil“).

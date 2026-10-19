@@ -67,11 +67,12 @@ test('„Alle Nüsse“ schliesst Erdnüsse ein; eine Erdnuss allein bleibt einz
   assert.equal(searchIntolerances(allergens, index, 'erdnuss')[0].key, 'peanut');
 });
 
-test('Frage 3: Treffer wird zum harten Ausschluss mit Katalog-ID', () => {
-  const answers = answersWith({ never: yes3({ selected: ['card:F01.3', 'animalOrigin:seafood'] }) });
+test('Frage 3: Treffer wird zum harten Ausschluss; Schweinefleisch führt auf dieselbe ID wie Frage 1, Teil B', () => {
+  const answers = answersWith({ never: yes3({ selected: ['card:F01.3', 'animalOrigin:seafood', 'card:F05.4'] }) });
   const result = derive(answers);
-  assert.deepEqual(result.exclusions.map(({ type, value }) => [type, value]), [['card', 'F01.3'], ['animalOrigin', 'seafood']]);
-  assert.equal(result.cardLabels['F01.3'], 'Schweinefleisch');
+  assert.deepEqual(result.exclusions.map(({ type, value }) => [type, value]), [['animalOrigin', 'pork'], ['animalOrigin', 'seafood'], ['card', 'F05.4']]);
+  assert.equal(result.exclusions[0].label, 'Schweinefleisch');
+  assert.equal(result.exclusions[0].selectedAs, 'card:F01.3', 'Herkunft der Eingabe bleibt erhalten');
   const ids = families(answers);
   assert.ok(ids.includes('F01') && ids.includes('F02'), 'Fleisch ohne Schwein und Fisch ohne Meeresfrüchte bleiben');
 });

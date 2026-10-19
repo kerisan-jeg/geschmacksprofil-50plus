@@ -124,7 +124,12 @@ def run(p, W, H):
     pg.get_by_text('60 bis 69').click()
     pg.get_by_text('Ich bin einverstanden').click(); pg.get_by_role('button', name='Weiter', exact=True).click()
     check(pg, 'frage1', results, W)
-    pg.get_by_text('Nein, ich esse alles').click(); pg.get_by_role('button', name='Weiter', exact=True).click()
+    # Frage 1 in drei Teilen (Dozentenfeedback 19.10.): Form, Einzelausschluss, Speisevorschrift mit Vorschlägen
+    pg.get_by_text('Keine besondere Ernährungsform', exact=True).click()
+    pg.get_by_text('Kein Schweinefleisch', exact=True).click()
+    pg.get_by_text('Halal', exact=True).click()
+    pg.get_by_text('Keine Gelatine', exact=True).scroll_into_view_if_needed(); check(pg, 'frage1_teile', results, W)
+    pg.get_by_role('button', name='Weiter', exact=True).click()
     pg.get_by_text('Ja', exact=True).click()
     pg.get_by_role('button', name='Weitere anzeigen').click()
     pg.get_by_role('button', name='Soja').click()
@@ -141,7 +146,7 @@ def run(p, W, H):
     pg.get_by_role('button', name='Abbrechen').click()
     pg.get_by_role('button', name='Weiter', exact=True).click()
     pg.get_by_text('Ja', exact=True).click()
-    pg.get_by_role('button', name='Schweinefleisch').click()
+    pg.get_by_role('button', name='Meeresfrüchte').click()
     # Alle Zutaten und Getränke sind wählbar (Schweizer Nährwertdatenbank), auch in der Mehrzahl
     pg.get_by_label('Anderes Lebensmittel suchen').fill('Oliven')
     check(pg, 'frage3', results, W)
@@ -177,8 +182,10 @@ def run(p, W, H):
     pg.get_by_role('button', name='Weiter mit Runde 3').click(); answer_until_complete(pg)
     pg.get_by_role('button', name='Weiter mit Runde 4').click(); answer_until_complete(pg)
     check(pg, 'abschluss_ende', results, W)
-    pg.get_by_role('button', name='Gerichte bewerten').click(); check(pg, 'gerichte_runde', results, W)
-    answer_until_complete(pg); check(pg, 'gerichte_abschluss', results, W)
+    # Seit dem Stufenablauf (18.10.) ist Runde 4 die Gerichte-Runde; ein eigener Gerichte-Schritt nur, falls angeboten
+    if pg.get_by_role('button', name='Gerichte bewerten').count():
+        pg.get_by_role('button', name='Gerichte bewerten').click(); check(pg, 'gerichte_runde', results, W)
+        answer_until_complete(pg); check(pg, 'gerichte_abschluss', results, W)
     pg.get_by_role('button', name='Alltag ergänzen').click(); check(pg, 'alltag', results, W)
     pg.locator('label.choice').nth(1).click(); pg.get_by_role('button', name='Weiter', exact=True).click()
     pg.get_by_role('button', name='Überspringen').click(); pg.get_by_role('button', name='Überspringen').click()

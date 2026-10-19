@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { CircleAlert } from 'lucide-react';
 import ChoiceList from '../components/ChoiceList.jsx';
 import AllergenPicker from '../components/AllergenPicker.jsx';
+import DietPicker from '../components/DietPicker.jsx';
 import NeverPicker from '../components/NeverPicker.jsx';
 import SegmentedProgress from '../components/SegmentedProgress.jsx';
 import TopBar, { BackButton } from '../components/TopBar.jsx';
@@ -54,7 +55,7 @@ function ConstraintDetails({ allergens, answer, onChange }) {
 // Erst bei „Ja“ erscheint die Detailauswahl (nurec v0.2, Kap. 2: nur bei „vorhanden“ nachfragen).
 // editing: über „Ändern“ aus der Zusammenfassung geöffnet. Dann führen „Zurück“ und der Hauptknopf
 // zurück zur Übersicht, aber erst mit einer gültigen Antwort (keine offene Sicherheitsfrage).
-export default function QuestionnaireScreen({ questions, step, answers, firstName, allergens, catalogIndex, foods, redundancy, onChange, onStep, onOpenProfile, editing = false }) {
+export default function QuestionnaireScreen({ definition, questions, step, answers, firstName, allergens, catalogIndex, foods, redundancy, onChange, onStep, onOpenProfile, editing = false }) {
   const question = questions[step];
   const answer = answers[question.id];
   const [showError, setShowError] = useState(false);
@@ -110,9 +111,11 @@ export default function QuestionnaireScreen({ questions, step, answers, firstNam
         <p className="lead">{question.hint}</p>
       </div>
 
-      {question.type === 'single' ? (
+      {question.type === 'diet' && <DietPicker definition={definition} question={question} answer={answer} onChange={update} />}
+      {question.type === 'single' && (
         <ChoiceList name={question.id} options={question.options} value={answer} onChange={update} labelledBy={`q-${question.id}`} />
-      ) : (
+      )}
+      {question.type !== 'single' && question.type !== 'diet' && (
         <>
           <ChoiceList
             name={question.id}

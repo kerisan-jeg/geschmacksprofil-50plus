@@ -154,6 +154,7 @@
   }
 }
 
+.diet-picker,
 .allergen-picker,
 .never-picker {
   display: grid;

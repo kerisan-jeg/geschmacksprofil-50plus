@@ -24,8 +24,8 @@ import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 import { buildExclusions, displayCardTitle } from '../logic/filter.js';
 import { buildFoodIndex } from '../logic/foodSearch.js';
 import { groupExclusions, sectionOf } from '../logic/profile.js';
-import { parseKey, redundancyFor } from '../logic/stage0.js';
-import { ANSWER_LABELS, BRANDS, COMMON, ONBOARDING, PRACTICAL, PROFILE } from '../labels.js';
+import { canonicalKey, coveredByForm, keyLabel, parseKey, redundancyFor } from '../logic/stage0.js';
+import { ANSWER_LABELS, BRANDS, COMMON, DIET, ONBOARDING, PRACTICAL, PROFILE } from '../labels.js';
 
 const SECTION_ICONS = { allergies: ShieldAlert, diet: Salad, intolerances: Ban, never: Utensils, notes: NotebookPen };
 // Entfernen nur mit Bestätigung: Allergien und Unverträglichkeiten (Gesundheit)
@@ -121,7 +121,10 @@ function TasteGroup({ id, title, icon: Icon, tone, entries, index, titleOf, note
 // Ein Treffer der Suche als Ausschluss-Eintrag (gleiches Format wie im Onboarding, siehe filter.js).
 function exclusionsForHit(hit, { allergens, index }) {
   if (hit.kind === 'allergen') return hit.ids.map((id) => ({ type: 'allergen', value: id, label: allergenLabel(allergens, id) }));
-  const { type, value } = parseKey(hit.key);
+  // „Schweinefleisch“ aus der Suche: dieselbe Ausschluss-ID wie Frage 1, Teil B
+  const key = canonicalKey(index, hit.key);
+  const { type, value } = parseKey(key);
+  if (key !== hit.key) return [{ type, value, label: keyLabel(null, index, key), selectedAs: hit.key }];
   if (type === 'card') return [{ type, value, label: index.get(value)?.title ?? hit.label }];
   return [{ type, value, label: hit.label }];
 }
@@ -188,6 +191,9 @@ export default function ProfileScreen({
   const openRating = (cardId) => setSheet({ type: 'rating', cardId });
   const sections = groupExclusions(round.entries, { allergens, index });
   const diet = dietOptions.options.find((option) => option.id === round.diet);
+  // Frühere Stände (z. B. „Kein Schweinefleisch“ als Ernährungsweise): Regeltext aus der Tabelle diets
+  const dietLabel = diet ? (diet.id === 'none' ? PROFILE.noDiet : diet.label) : (dietOptions.diets[round.diet]?.rule ?? PROFILE.noDiet);
+  const dietKeys = sections.diet.flatMap((item) => item.exclusions.map((exclusion) => `${exclusion.type}:${exclusion.value}`));
   const currentAllergens = round.entries.filter((entry) => sectionOf(entry) === 'allergies').map((entry) => entry.value);
   const credits = allPhotos().map((photo) => ({ ...photo, cardTitle: photo.usedBy.map((id) => index.get(id)?.title ?? id).join(', ') }));
   const redundancy = redundancyFor(round.exclusions, index);
@@ -407,12 +413,22 @@ export default function ProfileScreen({
 
           <section className="exclusion-section" aria-labelledby="ex-diet">
             <SectionHead id="diet" title={PROFILE.sections.diet} />
-            <button type="button" className="exclusion-row exclusion-row-button" onClick={() => setSheet({ type: 'diet' })} aria-label={PROFILE.changeDietFor(diet && diet.id !== 'none' ? diet.label : PROFILE.noDiet)}>
+            <button type="button" className="exclusion-row exclusion-row-button" onClick={() => setSheet({ type: 'diet' })} aria-label={PROFILE.changeDietFor(dietLabel)}>
               <span className="exclusion-text">
-                <span className="exclusion-label">{diet && diet.id !== 'none' ? diet.label : PROFILE.noDiet}</span>
+                <span className="exclusion-label">{dietLabel}</span>
                 <span className="exclusion-source">{sourceText([round.diet === onboarding.diet ? 'onboarding' : 'profile'])}</span>
               </span>
               <ChevronRight className="row-chevron" aria-hidden="true" />
+            </button>
+            <ExclusionList items={sections.diet} onRemove={(item) => requestRemoval('diet', item)} />
+            {onboarding.dietaryRules?.length > 0 && (
+              <p className="note">
+                {DIET.rulesLine(onboarding.dietaryRules.map((id) => dietOptions.rules.find((rule) => rule.id === id)?.label ?? id))}. {DIET.rulesEffect}
+              </p>
+            )}
+            <button type="button" className="button-ghost is-strong add-button" onClick={() => setSheet({ type: 'dietExclusions' })}>
+              <Plus aria-hidden="true" />
+              {PROFILE.add}
             </button>
           </section>
 
@@ -588,6 +604,44 @@ export default function ProfileScreen({
               onClick={() => {
                 const next = draft?.diet;
                 if (next && next !== (round.diet ?? 'none')) onChange.diet(next, round.diet ?? null);
+                close();
+              }}
+            >
+              {PROFILE.done}
+            </button>
+          </div>
+        </Sheet>
+      )}
+
+      {sheet?.type === 'dietExclusions' && (
+        <Sheet title={DIET.addTitle} onClose={close}>
+          <div className="sheet-body">
+            <ChoiceList
+              name="profile-diet-exclusions"
+              multiple
+              options={dietOptions.exclusions.map((entry) => {
+                const covered = coveredByForm(dietOptions.definition, round.diet, entry.key);
+                return { id: entry.key, label: entry.label, detail: covered ? DIET.coveredBy(dietLabel) : entry.detail, disabled: covered };
+              })}
+              value={(draft?.selected ?? dietKeys).concat(dietOptions.exclusions.filter((entry) => coveredByForm(dietOptions.definition, round.diet, entry.key)).map((entry) => entry.key))}
+              onChange={(key) => {
+                const current = draft?.selected ?? dietKeys;
+                setDraft({ selected: current.includes(key) ? current.filter((other) => other !== key) : [...current, key] });
+              }}
+            />
+          </div>
+          <div className="sheet-actions">
+            <button type="button" className="button-secondary" onClick={close}>
+              {COMMON.cancel}
+            </button>
+            <button
+              type="button"
+              className="button-primary"
+              onClick={() => {
+                const next = draft?.selected ?? dietKeys;
+                const toEntry = (key) => ({ ...parseKey(key), label: dietOptions.exclusions.find((entry) => entry.key === key)?.label ?? key, origin: 'diet' });
+                onChange.addExclusions('diet', next.filter((key) => !dietKeys.includes(key)).map(toEntry));
+                onChange.removeExclusions('diet', dietKeys.filter((key) => !next.includes(key)).map(parseKey));
                 close();
               }}
             >

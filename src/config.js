@@ -160,6 +160,9 @@ export const FEATURES = {
 // Seit dem Addendum (A9) speichert jede Sitzung die Ausschlüsse mit source, also z. B. welche Allergie
 // jemand angegeben hat. Das sind Gesundheitsdaten; Einwilligung und Umgang (Frage F4) sind noch offen.
 // Mit false werden statt der Werte nur Typ und Herkunft gespeichert (z. B. "allergen" aus "onboarding").
+// Speisevorschriften (halal, koscher) können Rückschlüsse auf religiöse Überzeugungen erlauben. Mit false werden
+// sie nicht protokolliert (Einwilligung in der Studie offen, siehe docs/dozentenfeedback-2026-10-19.md).
 export const PRIVACY = {
   logExclusionValues: true,
+  logDietaryRules: true,
 };

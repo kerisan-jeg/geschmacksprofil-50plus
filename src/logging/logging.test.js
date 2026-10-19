@@ -181,3 +181,19 @@ test('CSV ab Version 0.8: Entitätstyp, nicht gezeigte Kandidaten, Abbruch und A
   assert.equal(cell(lines[1], 'type'), 'QUESTION_ABORTED');
   assert.ok(lines[2].includes('""budget"":""low""'), 'Alltagsprofil als JSON in einer Zelle');
 });
+
+test('Speisevorschriften: im Protokoll und als eigene CSV-Spalte; die Spalte type ist der Ereignistyp (eventType)', () => {
+  globalThis.localStorage = fakeStorage();
+  const logger = createLogger({ roundCardLimit: 8 });
+  logger.start({ participantCode: 'T02', ageGroup: '70-79' });
+  logger.setOnboarding({ diet: 'none', dietaryRules: ['halal'], exclusions: [], uncertain: false, freeTextNotes: [] });
+  logger.recordEvent(event);
+  const [session] = listSessions();
+  assert.deepEqual(session.onboarding.dietaryRules, ['halal']);
+  assert.ok(!('religion' in session.onboarding));
+  const [header, row] = sessionsToCsv([session]).trim().split('\r\n');
+  const columns = header.split(',');
+  assert.equal(row.split(',')[columns.indexOf('dietaryRules')], 'halal');
+  assert.ok(columns.includes('type') && !columns.includes('eventType'));
+  deleteAllSessions();
+});

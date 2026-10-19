@@ -65,8 +65,13 @@ import AdminScreen from './screens/AdminScreen.jsx';
 const INDEX = indexCatalog(catalog.cards);
 // Lebensmittel für die Suche: handgepflegte Schweizer Begriffe, dann die Schweizer Nährwertdatenbank (BLV).
 const FOODS = mergeFoods(catalog.foods ?? [], foodList.foods);
+const DIET_QUESTION = stage0.questions.find((question) => question.id === 'diet');
 const STAGE0_FOR_PROFILE = {
-  options: stage0.questions.find((question) => question.id === 'diet')?.options ?? [],
+  definition: stage0,
+  options: DIET_QUESTION?.options ?? [],
+  // Frage 1, Teil B (ohne reine Vorschläge wie Gelatine) und Teil C für die Anzeige
+  exclusions: (DIET_QUESTION?.exclusions ?? []).filter((entry) => !entry.suggestOnly),
+  rules: DIET_QUESTION?.rules ?? [],
   diets: stage0.diets,
   tagLabels: stage0.questions.find((question) => question.id === 'never')?.tagLabels ?? {},
 };
@@ -402,6 +407,7 @@ function App() {
         return (
           <QuestionnaireScreen
             key={step}
+            definition={stage0}
             questions={stage0.questions}
             step={step}
             answers={answers}
@@ -419,7 +425,7 @@ function App() {
       case SCREENS.SUMMARY:
         return (
           <SummaryScreen
-            sections={summarySections(round, { onboarding, diets: stage0.diets, allergens, index: INDEX })}
+            sections={summarySections(round, { onboarding, diets: stage0.diets, allergens, index: INDEX, dietRules: DIET_QUESTION?.rules })}
             noCards={eligibleFamilies(round).length === 0}
             firstName={firstName}
             steps={steps}

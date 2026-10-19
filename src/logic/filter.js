@@ -50,10 +50,19 @@ export function buildExclusions(entries = [], { diet = null, diets = {}, index =
 }
 
 // Reine Entscheidung für eine einzelne Karte anhand ihrer eigenen Tags und ihrer ID.
+// Fleischarten unter dem Oberbegriff meat. Eine Karte mit Fleisch unbekannter Art (meat ohne Art) fällt
+// vorsichtshalber weg, sobald irgendeine Fleischart ausgeschlossen ist (Dozentenfeedback 19.10.2026 [V]).
+export const MEAT_KINDS = ['pork', 'beef', 'poultry', 'lamb'];
+
+export function hasUnknownMeat(card) {
+  return card.animalOrigin.includes('meat') && !card.animalOrigin.some((tag) => MEAT_KINDS.includes(tag));
+}
+
 export function isAllowed(card, exclusions) {
   if (exclusions.cardIds.has(card.id)) return false;
   if (card.allergens.some((tag) => exclusions.allergens.has(tag))) return false;
   if (card.animalOrigin.some((tag) => exclusions.animalOrigin.has(tag))) return false;
+  if (hasUnknownMeat(card) && MEAT_KINDS.some((kind) => exclusions.animalOrigin.has(kind))) return false;
   if ((card.ingredients ?? []).some((id) => exclusions.cardIds.has(id))) return false;
   if (card.stage >= 3 && (exclusions.foods ?? []).some((food) => namedFoods(card).some((word) => foodMatches(word, food)))) return false;
   return true;
@@ -112,6 +121,13 @@ function withoutFoods(exclusions) {
   return { ...exclusions, foods: [] };
 }
 
+// Titelteile, die nach den Ausschlüssen nichts Sichtbares mehr enthalten (z. B. „Fleisch“ ohne Rind und Schwein).
+function droppedTitleParts(card, index, exclusions) {
+  if (!card.titleParts) return [];
+  const visible = card.titleParts.filter((part) => part.children.some((id) => isVisible(index.get(id), index, exclusions)));
+  return visible.length === 0 ? [] : card.titleParts.filter((part) => !visible.includes(part));
+}
+
 // Zusammengesetzte Namen nennen nur noch vorhandene Teile: ohne Meeresfrüchte heisst
 // die Gruppe „Fisch“, ohne Fisch „Meeresfrüchte“. Die gespeicherte Karten-ID bleibt gleich.
 export function displayCardTitle(card, index, exclusions) {
@@ -123,16 +139,21 @@ export function displayCardTitle(card, index, exclusions) {
 
 // Hinweise und Beispiele einer Karte an die Ausschlüsse anpassen:
 // - Familien zeigen nur Beispiele aus sichtbaren Kindern und „Ohne Haselnüsse“.
+// - Ein Hinweis erscheint nur, wenn die angezeigte Karte das Ausgeschlossene dem Namen nach noch umfasst
+//   (Dozentenfeedback 19.10.2026 [K]): Heisst „Fleisch und Geflügel“ ohne Rind und Schwein nur noch „Geflügel“,
+//   steht dort kein „Ohne Rindfleisch“. Ohne Schwein allein bleibt der Titel, und „Ohne Schweinefleisch“ erscheint.
 // - Lebensmittel-Einträge („Tomate“) verschwinden aus den Beispielen und erscheinen als „Ohne Tomate“.
 // labels: optionale Wörter der Person für eine Karten-ID, z. B. { 'F01.3': 'Schweinefleisch' }.
 export function annotateCard(card, index, exclusions, labels = {}) {
   const title = displayCardTitle(card, index, exclusions);
-  const hidden = isFamily(card) ? hiddenRoots(card, index, withoutFoods(exclusions)) : [];
+  const dropped = new Set(droppedTitleParts(card, index, withoutFoods(exclusions)).flatMap((part) => part.children));
+  const hiddenAll = isFamily(card) ? hiddenRoots(card, index, withoutFoods(exclusions)) : [];
+  const hidden = hiddenAll.filter((id) => !coveredBy(index, id, dropped));
   const pool = examplePool(card, index, withoutFoods(exclusions));
   const hiddenFoods = (exclusions.foods ?? []).filter((food) => pool.some((example) => foodMatches(example, food)));
-  if (hidden.length === 0 && hiddenFoods.length === 0 && title === card.title) return card;
+  if (hiddenAll.length === 0 && hiddenFoods.length === 0 && title === card.title) return card;
 
-  let examples = hidden.length > 0 ? derivedExamples(card, index, exclusions) : card.examples;
+  let examples = hiddenAll.length > 0 ? derivedExamples(card, index, exclusions) : card.examples;
   if (hiddenFoods.length > 0) {
     const kept = examples.filter((example) => !isHiddenExample(example, exclusions));
     // Nachfüllen nur bei Familien; Untergruppen haben eigene, kurze Beispiellisten.
@@ -147,9 +168,15 @@ export function annotateCard(card, index, exclusions, labels = {}) {
   }
   examples = examples.slice(0, 3);
 
-  const names = [...hidden.map((id) => labels[id] ?? index.get(id).title), ...hiddenFoods];
+  const names = [...hidden.map((id) => labels[id] ?? index.get(id).restrictionLabel ?? index.get(id).title), ...hiddenFoods];
   const notes = names.length <= 2 ? names.map(CARD_NOTES.without) : [CARD_NOTES.without(names[0]), CARD_NOTES.more(names.length - 1)];
   return { ...card, title, examples, notes };
+}
+
+// Liegt die Karte unter einem der weggefallenen Titelteile?
+function coveredBy(index, id, dropped) {
+  for (let card = index.get(id); card; card = index.get(card.parentId)) if (dropped.has(card.id)) return true;
+  return false;
 }
 
 // Oberste ausgeblendete Nachkommen, deren Elternteil sichtbar ist.

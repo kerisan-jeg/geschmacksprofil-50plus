@@ -144,3 +144,44 @@ test('„Ja“ in Frage 2 und 3 öffnet Auswahl und vollständige Suche; Zurück
   assert.ok(container.querySelector('.chips-block').textContent.includes('Koriander'));
   await unmount();
 });
+
+test('Frage 1: Abgedecktes ist gesperrt, Speisevorschrift zeigt ehrlichen Hinweis und einzelne Vorschläge', async () => {
+  const { DIET } = await import('../labels.js');
+  let latest = null;
+  function Questionnaire() {
+    const [answers, setAnswers] = useState(() => emptyAnswers(definition.questions));
+    latest = answers.diet;
+    return h(QuestionnaireScreen, {
+      definition,
+      questions: definition.questions,
+      step: 0,
+      answers,
+      firstName: 'Anna',
+      allergens,
+      catalogIndex: index,
+      foods,
+      redundancy: createRedundancyCheck(definition, answers, { allergens, catalogIndex: index, upTo: 0 }),
+      onChange: (id, answer) => setAnswers((previous) => ({ ...previous, [id]: answer })),
+      onStep() {},
+      onOpenProfile() {},
+    });
+  }
+  const { container, unmount } = await render(h(Questionnaire));
+  const input = (name, value) => container.querySelector(`input[name="${name}"][value="${value}"]`);
+  await click(input('diet-form', 'vegetarian'));
+  const fish = input('diet-exclusions', 'animalOrigin:fish');
+  assert.equal(fish.disabled, true);
+  assert.equal(fish.checked, true);
+  assert.ok(fish.closest('label').textContent.includes(DIET.coveredBy('Vegetarisch')));
+  assert.equal(input('diet-exclusions', 'animalOrigin:gelatin'), null, 'Gelatine nur als Vorschlag');
+  await click(input('diet-form', 'none'));
+  assert.equal(input('diet-exclusions', 'animalOrigin:fish').disabled, false);
+  await click(input('diet-rules', 'halal'));
+  assert.ok(container.textContent.includes(DIET.rulesNote));
+  assert.deepEqual(latest.exclusions, [], 'Halal allein schliesst nichts aus');
+  await click(input('diet-suggest', 'animalOrigin:gelatin'));
+  assert.deepEqual(latest, { form: 'none', exclusions: ['animalOrigin:gelatin'], rules: ['halal'] });
+  assert.ok(input('diet-exclusions', 'animalOrigin:gelatin').checked, 'bestätigt erscheint es auch in Teil B');
+  assert.doesNotMatch(container.textContent, /geeignet|sicher für/i);
+  await unmount();
+});

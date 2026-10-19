@@ -162,6 +162,8 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [] }
       session.onboarding = {
         ageGroup: session.onboarding?.ageGroup ?? null,
         diet: onboarding.diet ?? null,
+        // Speisevorschriften (halal, kosher): möglicher Rückschluss auf Überzeugungen, siehe PRIVACY
+        dietaryRules: PRIVACY.logDietaryRules ? [...(onboarding.dietaryRules ?? [])] : [],
         exclusions: onboarding.exclusions.map(exclusionForLog),
         uncertaintyFlag: onboarding.uncertain,
         freeTextNotes: [...onboarding.freeTextNotes],

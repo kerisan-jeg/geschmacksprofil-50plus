@@ -187,6 +187,18 @@ export const QUESTIONS = {
   backToSummary: 'Zurück zur Übersicht',
 };
 
+// Frage 1: Ernährungsform, Einzelausschlüsse, Speisevorschriften (Dozentenfeedback 19.10.2026).
+// Die Fragen selbst stehen in src/data/stage0.json. Keine Frage nach Religion, keine Aussage wie „geeignet“.
+export const DIET = {
+  coveredBy: (form) => `Schon durch „${form}“ abgedeckt`,
+  rulesNote: 'Halal und koscher betreffen auch Zubereitung und Herkunft. Das können wir nicht prüfen. Wir lassen nur weg, was du hier bestätigst.',
+  suggestTitle: (rules) => `Oft weggelassen bei ${rules.join(' und ')}. Was gilt für dich?`,
+  suggestNone: 'Bestätigst du nichts, schliessen wir deswegen nichts aus.',
+  rulesLine: (rules) => `Speisevorschrift: ${rules.join(', ')}`,
+  rulesEffect: 'Weggelassen wird nur, was du bestätigt hast.',
+  addTitle: 'Lässt du etwas immer weg?',
+};
+
 // Onboarding (Stufe 0): Allergien und „Nie vorschlagen“
 export const ONBOARDING = {
   showMore: (count) => `Weitere anzeigen (${count})`,
@@ -272,7 +284,7 @@ export const SUMMARY = {
   lead: 'Diese Zutaten, Lebensmittel und Produkte schlagen wir dir nie vor, egal wie du später wischst.',
   leadNone: 'Du hast nichts angegeben, das wir weglassen müssen.',
   sections: { diet: 'Ernährungsweise', intolerances: 'Allergien und Unverträglichkeiten', never: 'Möchte ich nicht essen' },
-  none: { diet: 'Keine feste Ernährungsweise', intolerances: 'Keine bekannt', never: 'Nichts angegeben' },
+  none: { diet: 'Keine besondere Ernährungsform', intolerances: 'Keine bekannt', never: 'Nichts angegeben' },
   edit: 'Ändern',
   editFor: (section) => `${section} ändern`,
   // Unsicherheits-Flag aus Frage 2: Die Frage bleibt offen, daraus folgt keine Freigabe (Kap. 2.2).
@@ -483,7 +495,7 @@ export const PROFILE = {
     profile: 'im Profil',
   },
   sourceLine: (texts) => `Angegeben ${texts.join(' und ')}`,
-  noDiet: 'Keine feste Ernährungsweise',
+  noDiet: 'Keine besondere Ernährungsform',
   sectionEmpty: 'Nichts angegeben',
   unsure: 'Du bist dir nicht sicher, ob es weitere Unverträglichkeiten gibt.',
   emptyTitle: 'Noch kein Geschmacksprofil',
@@ -510,7 +522,7 @@ export const PROFILE = {
   editAllergies: 'Allergien ändern',
   allergiesHint: 'Tippe an, was zutrifft. Bei Nüssen und Gluten kannst du einzelne Einträge wählen.',
   change: 'Ändern',
-  changeDietFor: (label) => `Ernährungsweise ändern: ${label}`,
+  changeDietFor: (label) => `Ernährungsform ändern: ${label}`,
   add: 'Hinzufügen',
   remove: (label) => `${label} entfernen`,
   searchIntolerances: 'Was verträgst du nicht?',
