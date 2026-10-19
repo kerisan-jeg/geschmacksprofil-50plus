@@ -330,6 +330,21 @@ export const TUTORIAL = {
   demoLabel: 'Beispielkarte',
 };
 
+// Rundenübersicht (Dozentenfeedback 19.10.2026, Verbesserung 7): Abschluss und während des Wischens
+export const ROUNDS = {
+  title: 'Deine Runden',
+  status: { open: 'Noch offen', started: 'Begonnen', completed: 'Abgeschlossen' },
+  progress: (answered, total) => `${answered} von ${total} Karten`,
+  done: (answered) => (answered === 1 ? '1 Karte' : `${answered} Karten`),
+  empty: 'Keine passenden Karten nach deinen Angaben',
+  locked: (round) => `Startet nach Runde ${round}`,
+  resume: (round) => `Runde ${round} fortsetzen`,
+  resumeNote: 'Bereits beantwortete Karten kommen nicht noch einmal.',
+  openOverview: 'Übersicht der Runden öffnen',
+  sheetIntro: 'Deine Antworten bleiben gespeichert. Die Zeit für die Karte läuft nicht weiter.',
+  backToCard: 'Zurück zur Karte',
+};
+
 // Während der Runde
 export const ROUND = {
   undo: 'Rückgängig',

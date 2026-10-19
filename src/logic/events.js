@@ -17,6 +17,9 @@
 // HOLDOUT_DRAWN     Kontrollkarten gezogen (nach „Stimmt so“): { cardIds, method, eligible }. Diese Karten
 //                   kommen erst am Ende von Runde 2, der Untergruppenebene (Messkonzept).
 //                   Es gilt das letzte Ereignis dieses Typs.
+// NAVIGATION        Navigation, keine Antwort (Dozentenfeedback 19.10.2026, Verbesserung 7):
+//                   { action: 'overview_open' | 'overview_close' | 'round_resume', round }. Replay, Profil und
+//                   Antwortzeiten ignorieren sie; die Antwortzeit pausiert, solange die Übersicht offen ist.
 // Profiländerungen tragen immer source = "profile".
 
 export const ANSWER = 'ANSWER';
@@ -29,6 +32,8 @@ export const AUTH_COMPLETED = 'AUTH_COMPLETED';
 export const HOLDOUT_DRAWN = 'HOLDOUT_DRAWN';
 export const QUESTION_ABORTED = 'QUESTION_ABORTED';
 export const PRACTICAL_SAVED = 'PRACTICAL_SAVED';
+export const NAVIGATION = 'NAVIGATION';
+export const NAVIGATION_ACTIONS = { OVERVIEW_OPEN: 'overview_open', OVERVIEW_CLOSE: 'overview_close', ROUND_RESUME: 'round_resume' };
 
 // Phase einer Antwort beim Wischen (Feld phase im ANSWER-Ereignis)
 export const PHASE_MAIN = 'main';

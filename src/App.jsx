@@ -8,6 +8,7 @@ import { cardLimit, isAdminMode, normalizeConfig, resolveConfig } from './config
 import { ImageFilterContext, ImageStyleContext } from './lib/images.js';
 import { ScaleConfigContext } from './components/answerMeta.js';
 import { labelShown, scaleVariant } from './logic/scale.js';
+import { roundOverview } from './logic/rounds.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
 import { buildProfile, eligibleFamilies, hasMoreCards, isDishRound, isHoldoutCard, nextCard, nextRoundCards, nextRoundNumber, RULE_VERSION, selectionReason, selectNextCards } from './logic/engine.js';
@@ -22,6 +23,8 @@ import {
   PHASE_DISH,
   PHASE_HOLDOUT,
   PHASE_MAIN,
+  NAVIGATION,
+  NAVIGATION_ACTIONS,
   PRACTICAL_SAVED,
   QUESTION_ABORTED,
   RATING_CHANGED,
@@ -113,6 +116,8 @@ function App() {
   const practical = useMemo(() => practicalOf(events), [events]);
   const progress = useMemo(() => (mainRound ? profileProgress(mainRound) : null), [mainRound]);
   const moreRounds = Boolean(mainRound) && hasMoreCards(mainRound, config);
+  // Rundenübersicht (Verbesserung 7): Status je Runde aus dem Event-Log
+  const rounds = useMemo(() => (onboarding ? roundOverview({ index: INDEX, onboarding, diets: stage0.diets, events, config }) : null), [onboarding, events, config]);
   const navVisible = isNavVisible(state);
   const steps = creationSteps(state, round);
   // Bilder zeigen nie, was die Person ausgeschlossen hat (siehe allowedPhotos in lib/images.js).
@@ -245,6 +250,16 @@ function App() {
 
   function handleNextRound() {
     dispatch({ type: 'nextRound' });
+  }
+
+  // Navigation (Verbesserung 7): eigenes Ereignis, keine Antwort; verändert keine Antwortzeit.
+  function handleNavigate(action, extra = {}) {
+    log({ type: NAVIGATION, action, round: round?.round ?? null, ...extra });
+  }
+
+  function handleResumeRound(number) {
+    handleNavigate(NAVIGATION_ACTIONS.ROUND_RESUME, { round: number, fromRound: round?.round ?? null });
+    dispatch({ type: 'resumeRound', round: number });
   }
 
   // „Runde beenden“: Die Karte, die gerade zu sehen war, als Abbruch protokollieren (nurec v0.2, Kap. 6).
@@ -457,6 +472,8 @@ function App() {
             onAnswer={handleAnswer}
             onUndo={handleUndo}
             onEndRound={handleEndRound}
+            rounds={rounds}
+            onNavigate={handleNavigate}
           />
         );
       case SCREENS.PRACTICAL:
@@ -482,6 +499,8 @@ function App() {
             nextNumber={nextRoundNumber(mainRound, config)}
             practicalDone={practicalAnswered(practicalDefinition, practical) > 0}
             onNextRound={handleNextRound}
+            rounds={rounds}
+            onResumeRound={handleResumeRound}
             onOpenPractical={handleOpenPractical}
             onToProfile={() => handleTab(TABS.PROFILE)}
           />

@@ -1,12 +1,15 @@
+import { useContext } from 'react';
 import { ArrowRight, CircleCheck, Lock, Sparkles } from 'lucide-react';
 import CreationSteps from '../components/CreationSteps.jsx';
 import Avatar from '../components/Avatar.jsx';
 import ProfileStatus from '../components/ProfileStatus.jsx';
+import RoundOverview from '../components/RoundOverview.jsx';
 import TopBar from '../components/TopBar.jsx';
-import { ANSWER_META } from '../components/answerMeta.js';
+import { metaFor, ScaleConfigContext } from '../components/answerMeta.js';
+import { scaleVariant, SCALE_VARIANTS } from '../logic/scale.js';
 import { computeProfile } from '../logic/engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
-import { COMPLETE } from '../labels.js';
+import { COMPLETE, ROUNDS } from '../labels.js';
 
 const ROWS = [PREFER, LIKE, DISLIKE, UNFAMILIAR, INTOLERANT];
 
@@ -27,11 +30,16 @@ export default function CompleteScreen({
   nextTitles,
   nextNumber,
   practicalDone = true,
+  rounds = null,
+  onResumeRound,
   onNextRound,
   onOpenPractical,
   onToProfile,
 }) {
   const dishMode = round.round === 4 || mode === 'dishes';
+  // Nach Runde 1 (nur Gruppen) dieselben Begriffe wie in der Runde („Eher gern“), sonst die aus A3
+  const scaleConfig = useContext(ScaleConfigContext);
+  const variant = round.round === 1 ? scaleVariant({ stage: 1 }, scaleConfig) : SCALE_VARIANTS.STANDARD;
   const { groups, intolerant } = computeProfile(round);
   const inMode = (id) => (round.index.get(id)?.stage === 4) === dishMode;
   const counts = {
@@ -67,6 +75,16 @@ export default function CompleteScreen({
 
       {progress && <ProfileStatus progress={progress} />}
 
+      {rounds && (
+        <section className="panel" aria-labelledby="rounds-title">
+          <h2 id="rounds-title" className="panel-title">
+            {ROUNDS.title}
+          </h2>
+          <RoundOverview rounds={rounds} current={round.round} onResume={onResumeRound} />
+          {rounds.some((entry) => entry.canResume) && <p className="note">{ROUNDS.resumeNote}</p>}
+        </section>
+      )}
+
       {Object.values(counts).some((count) => count > 0) && (
         <section className="panel" aria-labelledby="overview-title">
           <h2 id="overview-title" className="panel-title">
@@ -74,7 +92,7 @@ export default function CompleteScreen({
           </h2>
           <ul className="count-list">
             {ROWS.filter((answer) => counts[answer] > 0).map((answer) => {
-              const { Icon, label, tone } = ANSWER_META[answer];
+              const { Icon, label, tone } = metaFor(answer, variant);
               return (
                 <li key={answer} className={`count-row tone-${tone}`}>
                   <span className="count-icon">

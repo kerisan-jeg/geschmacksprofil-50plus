@@ -37,6 +37,7 @@ export const CSV_COLUMNS = [
   'cardIds',
   'ruleVersion',
   'type',
+  'action',
   'source',
   'rating',
   'previousRating',

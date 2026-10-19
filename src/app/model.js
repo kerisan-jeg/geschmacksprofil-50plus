@@ -19,7 +19,7 @@
 
 import { MAX_ROUNDS, normalizeConfig } from '../config.js';
 import { UNDO } from '../logic/answers.js';
-import { deriveRoundState, isRoundComplete, nextRoundNumber, progress } from '../logic/engine.js';
+import { canResumeRound, deriveRoundState, isRoundComplete, nextRoundNumber, progress } from '../logic/engine.js';
 import { ANSWER, eventType } from '../logic/events.js';
 import { deriveOnboarding, emptyAnswers } from '../logic/stage0.js';
 
@@ -202,6 +202,13 @@ export function createAppModel({ index, stage0, allergens }) {
         if (state.screen !== SCREENS.COMPLETE) return state;
         const number = nextRoundNumber(roundOf(main), state.config);
         return number === null ? state : enterRound({ ...main, roundNumber: number });
+      }
+      // „Runde fortsetzen“ in der Rundenübersicht (Verbesserung 7): nur begonnene Runden, solange in einer späteren
+      // Runde nichts beantwortet ist. Beantwortete Karten kommen nicht noch einmal (Auswahl aus dem Event-Log).
+      case 'resumeRound': {
+        if (state.screen !== SCREENS.COMPLETE) return state;
+        const target = { ...state, roundMode: ROUND_MODES.MAIN, roundNumber: action.round };
+        return canResumeRound(roundOf(target), state.config) ? enterRound(target) : state;
       }
       // Alltagsprofil öffnen und danach dorthin zurück, wo die Person war (Abschluss oder „Mein Profil“).
       case 'openPractical':

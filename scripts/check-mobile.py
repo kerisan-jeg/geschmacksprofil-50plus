@@ -53,6 +53,8 @@ CHECK = r"""
     let a = el;
     while (a && a !== document.body) {
       const cs = getComputedStyle(a);
+      // Eigener Scrollbereich (z. B. Inhalt eines Blatts): Text darin ist erreichbar, nicht abgeschnitten
+      if (/(auto|scroll)/.test(cs.overflowY)) break;
       if (/(hidden|clip)/.test(cs.overflowX + cs.overflowY) && !a.classList.contains('sr-only')) {
         const ar = a.getBoundingClientRect();
         if (tr.bottom > ar.bottom + 1 || tr.top < ar.top - 1 || tr.right > ar.right + 1 || tr.left < ar.left - 1)
@@ -194,6 +196,9 @@ def run(p, W, H):
     pg.get_by_role('button', name='Allergien und Unverträglichkeiten ändern').click(); check(pg, 'zusammenfassung_aendern', results, W)
     pg.get_by_role('button', name='Zurück zur Übersicht').click(); pg.wait_for_selector('.screen-summary')
     pg.get_by_role('button', name='Stimmt so').click(); check(pg, 'runde', results, W)
+    # Rundenübersicht während des Wischens (Verbesserung 7): öffnen und zurück zur Karte
+    pg.locator('.round-title-button').click(); check(pg, 'runde_uebersicht', results, W)
+    pg.get_by_role('button', name='Zurück zur Karte').click(); pg.wait_for_timeout(200)
     # Reduced motion: Karte verlässt den Stapel ohne Animation
     trans = pg.evaluate("getComputedStyle(document.querySelector('.swipe-card')).transitionDuration + ' / ' + getComputedStyle(document.querySelector('.swipe-card-inner')).animationDuration")
     # Runde 1: eigene Begriffe (Dozentenfeedback 19.10.): Eher ungern / Eher gern / Sehr gern

@@ -64,3 +64,17 @@ test('Nach Runde 4 führt der Abschluss trotz offener Karten nur noch zum Profil
   assert.ok(!html.includes('Weitere Gerichte bewerten'));
   assert.ok(html.includes(COMPLETE.startPractical), 'Alltag bleibt nach Runde 4 freiwillig möglich');
 });
+
+test('Abschluss: Rundenübersicht mit Status; „Runde fortsetzen“ nur für eine begonnene Runde', async () => {
+  const { roundOverview } = await import('../logic/rounds.js');
+  const onboarding = { diet: null, exclusions: [], cardLabels: {} };
+  const events = [{ cardId: 'F01', response: 'LIKE', round: 1 }, { type: 'QUESTION_ABORTED', cardId: 'F02', round: 1 }];
+  const round = deriveRoundState({ index, onboarding, diets, events, round: 1 });
+  const rounds = roundOverview({ index, onboarding, diets, events, config });
+  const html = render(round, ['Fisch'], { endedEarly: true, rounds, onResumeRound() {} });
+  assert.ok(html.includes('Deine Runden'));
+  assert.ok(html.includes('Begonnen · 1 von 10 Karten'));
+  assert.ok(!html.includes('Abgeschlossen'), 'eine vorzeitig beendete Runde ist nie „Abgeschlossen“');
+  assert.ok(html.includes('Runde 1 fortsetzen'));
+  assert.ok(html.includes('Startet nach Runde 2'), 'Runde 3 gesperrt, solange Runde 2 offen ist');
+});

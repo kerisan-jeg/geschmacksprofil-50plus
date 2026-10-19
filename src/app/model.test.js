@@ -331,3 +331,19 @@ test('Alte G1-Gerichte werden Runde 4 zugeordnet und zählen zu ihrer Obergrenze
   assert.notEqual(nextCard(model.roundOf(resumed), resumed.config).id, 'D01');
   assert.equal(run(finishRound(resumed), { type: 'startDishes' }).screen, SCREENS.COMPLETE);
 });
+
+test('Runde fortsetzen: begonnene Runde wieder öffnen, ohne beantwortete Karten; nicht mehr nach Antworten in Runde 2', () => {
+  let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit: 4 }));
+  const first = nextCard(model.roundOf(state), state.config).id;
+  state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: first, response: LIKE, round: 1 } });
+  state = run(state, { type: 'end' });
+  assert.equal(state.screen, SCREENS.COMPLETE);
+  const resumed = run(state, { type: 'resumeRound', round: 1 });
+  assert.deepEqual([resumed.screen, resumed.roundNumber], [SCREENS.ROUND, 1]);
+  assert.notEqual(nextCard(model.roundOf(resumed), resumed.config).id, first, 'beantwortete Karte kommt nicht noch einmal');
+  // Weiter mit Runde 2 und dort antworten: Runde 1 lässt sich nicht mehr fortsetzen
+  let later = run(state, { type: 'nextRound' });
+  later = run(later, { type: 'event', event: { type: 'ANSWER', cardId: nextCard(model.roundOf(later), later.config).id, response: LIKE, round: 2 } });
+  later = run(later, { type: 'end' });
+  assert.equal(run(later, { type: 'resumeRound', round: 1 }), later);
+});

@@ -431,6 +431,86 @@
   align-content: center;
 }
 
+/* ---------- Rundenübersicht (Verbesserung 7) ---------- */
+
+.round-overview {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.round-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-3) 0;
+}
+
+.round-row + .round-row {
+  border-top: var(--border-hairline) solid var(--color-line);
+}
+
+.round-row-icon {
+  display: grid;
+  place-items: center;
+  color: var(--color-ink-secondary);
+}
+
+.round-row.is-completed .round-row-icon {
+  color: var(--color-primary);
+}
+
+.round-row-icon svg {
+  width: var(--size-icon-m);
+  height: var(--size-icon-m);
+}
+
+.round-row-text {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.round-row-name {
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+}
+
+.round-row-status {
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-snug);
+}
+
+.round-row.is-current .round-row-name {
+  color: var(--color-primary);
+}
+
+.round-resume {
+  grid-column: 1 / -1;
+}
+
+/* Rundenanzeige als Knopf: öffnet die Übersicht, ohne die Runde zu verlassen */
+.round-title-button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--size-touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.round-title-button svg {
+  flex: none;
+  width: var(--size-icon-m);
+  height: var(--size-icon-m);
+  color: var(--color-primary);
+}
+
 /* ---------- Abschluss ---------- */
 
 .count-list {

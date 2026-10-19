@@ -197,6 +197,18 @@ Hülsenfrüchte ohne Umschreibung (Teamentscheid). Die übrigen Begriffe gelten 
 
 Folge: Mit `CUISINE_MIN_RATED = 3` entsteht in einer Sitzung meist nur für die schweizerische Küche und (über den Oberbegriff) für die asiatische eine Tendenz. Für italienisch, mexikanisch, französisch und österreichisch reicht es selten. Die Reihenfolge der Gerichte ist Teil der Auswahllogik (Eigenleistung Team) und wurde nicht geändert; ein Ausgleich nach Küchen wäre eine eigene Entscheidung (siehe „Noch offen“).
 
+### Verbesserung 7: Rundenübersicht [K]
+
+- **Übersicht der vier Runden** (src/components/RoundOverview.jsx, Logik src/logic/rounds.js): Name, Status mit Symbol und Text, Fortschritt in Karten („1 von 13 Karten“). Keine Statistik, kein weiterer Balken.
+- **Status** [V], aus dem Event-Log abgeleitet: „Noch offen“ (keine Antwort), „Begonnen“ (Karten offen, auch nach „Runde beenden“), „Abgeschlossen“ (Kartenlimit erreicht oder keine Karte mehr, auch nach dem Fortsetzen). „Abgeschlossen“ steht nie für eine vorzeitig beendete Runde mit offenen Karten. Das vorzeitige Ende bleibt als `QUESTION_ABORTED` im Log.
+- **Runde ohne passende Karte** (z. B. alle Gerichte durch Ausschlüsse weg): „Abgeschlossen · Keine passenden Karten nach deinen Angaben“, sobald die Runden davor nicht mehr offen sind. Annahme [V]: Es gibt nur die drei Status; „keine Karte mehr“ zählt nach eurer Regel als abgeschlossen.
+- **Sperre:** Eine Runde ist gesperrt, solange eine frühere noch offen ist („Startet nach Runde 2“). Nach „Runde beenden“ ist die nächste Runde frei (Teamentscheid AP1).
+- **Runde fortsetzen** auf dem Abschluss nach jeder Runde: nur für begonnene Runden, solange in einer späteren Runde noch nichts beantwortet ist (die Auswahl der späteren Runde beruht auf dem Stand bei Rundenende). Bereits beantwortete Karten kommen nicht noch einmal.
+- **Während des Wischens erreichbar:** Die Rundenanzeige über dem Stapel ist ein Knopf und öffnet die Übersicht als Blatt (nur Ansicht, „Zurück zur Karte“). Die Antwortzeit pausiert, solange das Blatt offen ist; `responseTimeMs` zählt nur die Zeit, in der die Karte sichtbar war (Test in src/components/round.test.js).
+- **Navigationsereignisse:** eigener Typ `NAVIGATION` mit `action` (`overview_open`, `overview_close`, `round_resume`) und `round`. Keine Antwort: Replay, Profil und Rundenstatus ignorieren sie. Im CSV: Spalte `type` = NAVIGATION, neue Spalte `action`.
+- Zustand bleibt beim Wechsel zwischen Ansichten erhalten, weil alles aus dem Event-Log abgeleitet wird.
+- Rückgängig wirkt wie bisher nur innerhalb der laufenden Runde; über die Rundengrenze geht es nicht (unverändert, A8).
+
 ## Noch offen (Entscheid oder Pilot)
 
 - **Wirkt Runde 1 ohne Bilder monoton?** Alle 13 Gruppen zeigen dasselbe Symbol. Im Pilot prüfen (Rückmeldungen, Antwortzeiten, Abbrüche in Runde 1) und Tibor zeigen.

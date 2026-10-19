@@ -170,3 +170,32 @@ test('?r1scale=2: in Runde 1 nur „Eher ungern“ und „Eher gern“, Pfeil na
   assert.deepEqual(onAnswer.calls[0].slice(1, 2).concat(onAnswer.calls[0][6]), [LIKE, 'r1-2']);
   await unmount();
 });
+
+test('Rundenübersicht während des Wischens: eigenes Navigationsereignis, Antwortzeit ohne die Zeit in der Übersicht', async () => {
+  const { roundOverview } = await import('../logic/rounds.js');
+  const { ROUNDS } = await import('../labels.js');
+  let clock = 1000;
+  const original = Object.getOwnPropertyDescriptor(performance, 'now') ?? { value: performance.now, configurable: true, writable: true };
+  Object.defineProperty(performance, 'now', { value: () => clock, configurable: true, writable: true });
+  try {
+    const onAnswer = spy();
+    const onNavigate = spy();
+    const round = roundAfter([]);
+    const rounds = roundOverview({ index, onboarding, diets, events: [], config });
+    const { container, unmount } = await render(h(RoundScreen, { round, config, canUndo: false, onAnswer, onUndo: spy(), onEndRound: spy(), rounds, onNavigate }));
+    clock = 3000;
+    await click(container.querySelector('.round-title-button'));
+    assert.ok(document.body.textContent.includes(ROUNDS.title));
+    assert.ok(document.body.textContent.includes('Noch offen'));
+    clock = 13000;
+    await click(buttonByText(document.body, ROUNDS.backToCard));
+    clock = 14000;
+    await click(buttonByText(container, 'Eher gern'));
+    assert.deepEqual(onNavigate.calls.map(([action]) => action), ['overview_open', 'overview_close']);
+    // sichtbar 1000→3000 und 13000→14000: 3 Sekunden, nicht 13
+    assert.equal(onAnswer.calls[0][3], 3000);
+    await unmount();
+  } finally {
+    Object.defineProperty(performance, 'now', original);
+  }
+});
