@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { indexCatalog } from './catalog.js';
-import { buildProfile, deriveRoundState, hasMoreCards, isRoundComplete, nextCard, nextRoundCards, presentCard, progress, replay, selectionReason, selectNextCards, tasteSignals } from './engine.js';
+import { buildProfile, canResumeRound, deriveRoundState, ROUND_STATUS, roundStatus, hasMoreCards, isRoundComplete, nextCard, nextRoundCards, presentCard, progress, replay, selectionReason, selectNextCards, tasteSignals } from './engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
 import { deriveOnboarding, emptyAnswers } from './stage0.js';
 
@@ -271,4 +271,35 @@ test('Gerichte werden nach zulässigen Vorlieben sortiert und übertragen keine 
   const after = state([answer('D01', PREFER, { round: 4 })], noOnboarding, 4);
   assert.equal(after.ratings['F04.2.3'], undefined, 'Pizza macht Frischkäse nicht zum Favoriten');
   assert.ok(!buildProfile(after).predicted.some((entry) => entry.basisId === 'D01'));
+});
+
+test('Rundenstatus: vorzeitig beendet bleibt „begonnen“, nach dem Fortsetzen bis zum Limit „abgeschlossen“', () => {
+  const limit = { roundCardLimit: 4 };
+  assert.equal(roundStatus(state([]), limit), ROUND_STATUS.OPEN);
+  const events = [];
+  for (let i = 0; i < 2; i += 1) events.push(answer(nextCard(state(events), limit).id, LIKE, { round: 1 }));
+  // „Runde beenden“ mit offener Karte: Abbruch im Log, Runde bleibt begonnen und lässt sich fortsetzen
+  events.push({ type: 'QUESTION_ABORTED', cardId: nextCard(state(events), limit).id, round: 1 });
+  assert.equal(roundStatus(state(events), limit), ROUND_STATUS.STARTED);
+  assert.equal(canResumeRound(state(events), limit), true);
+  // Fortsetzen bis zum Kartenlimit
+  for (let i = 0; i < 2; i += 1) events.push(answer(nextCard(state(events), limit).id, LIKE, { round: 1 }));
+  assert.equal(roundStatus(state(events), limit), ROUND_STATUS.COMPLETED);
+  assert.equal(canResumeRound(state(events), limit), false);
+  assert.ok(events.some((event) => event.type === 'QUESTION_ABORTED'), 'das vorzeitige Ende bleibt im Log');
+});
+
+test('Rundenstatus: ohne offene Karte abgeschlossen; Fortsetzen nur, solange die nächste Runde unberührt ist', () => {
+  const limit = { roundCardLimit: 4 };
+  const events = [answer(nextCard(state([]), limit).id, LIKE, { round: 1 })];
+  assert.equal(canResumeRound(state(events), limit), true);
+  events.push(answer(nextCard(state(events, noOnboarding, 2), limit).id, LIKE, { round: 2 }));
+  assert.equal(roundStatus(state(events), limit), ROUND_STATUS.STARTED, 'bleibt begonnen');
+  assert.equal(canResumeRound(state(events), limit), false, 'Runde 2 hat schon eine Antwort');
+  // Keine Karte mehr übrig (alles ausgeschlossen): abgeschlossen, auch wenn das Limit nicht erreicht ist
+  const big = { roundCardLimit: 15 };
+  const families = selectNextCards(state([]), big);
+  const played = families.map((card) => answer(card.id, LIKE, { round: 1 }));
+  assert.ok(played.length < 15);
+  assert.equal(roundStatus(state(played), big), ROUND_STATUS.COMPLETED);
 });

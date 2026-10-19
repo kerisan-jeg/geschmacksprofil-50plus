@@ -114,22 +114,33 @@ function integerParam(params, name, { min, max }) {
   return value >= min && value <= max ? value : null;
 }
 
-// Ungültige Werte fallen still auf den Standard zurück.
+// Ungültige Werte fallen auf den Standard zurück. Damit das nicht unbemerkt bleibt, stehen ignorierte Parameter
+// in ignoredParams (nur wenn es welche gibt), werden mit der Sitzung gespeichert und in der Admin-Ansicht gezeigt.
 export function resolveConfig(search = '') {
   const params = new URLSearchParams(search);
   const config = { ...DEFAULT_CONFIG };
+  const ignored = [];
+  const ignore = (name) => params.has(name) && ignored.push({ name, value: params.get(name) });
 
   const limit = integerParam(params, 'limit', ROUND_CARD_LIMIT_RANGE);
   if (limit !== null) config.roundCardLimit = limit;
+  else ignore('limit');
 
   if (params.get('sms') === 'sim') config.sms = 'simulation';
+  else ignore('sms');
 
   const selection = params.get('selection');
   if (selection === 'fixed' || selection === 'adaptive') config.selection = selection;
+  else ignore('selection');
 
   const holdout = integerParam(params, 'holdout', HOLDOUT_RANGE);
   if (holdout !== null) config.holdout = holdout;
+  else ignore('holdout');
 
+  // ?tutorial wirkt seit dem 13.10. nicht mehr
+  ignore('tutorial');
+
+  if (ignored.length > 0) config.ignoredParams = ignored;
   return config;
 }
 
@@ -160,9 +171,10 @@ export const FEATURES = {
 // Seit dem Addendum (A9) speichert jede Sitzung die Ausschlüsse mit source, also z. B. welche Allergie
 // jemand angegeben hat. Das sind Gesundheitsdaten; Einwilligung und Umgang (Frage F4) sind noch offen.
 // Mit false werden statt der Werte nur Typ und Herkunft gespeichert (z. B. "allergen" aus "onboarding").
-// Speisevorschriften (halal, koscher) können Rückschlüsse auf religiöse Überzeugungen erlauben. Mit false werden
-// sie nicht protokolliert (Einwilligung in der Studie offen, siehe docs/dozentenfeedback-2026-10-19.md).
+// Speisevorschriften (halal, koscher) werden standardmässig nicht protokolliert (Teamentscheid 19.10.2026): kleine
+// Stichprobe, möglicher Rückschluss auf Religion, kaum Nutzen für die Auswertung (docs/dozentenfeedback-2026-10-19.md).
+// Die Wirkung bleibt: Bestätigte Ausschlüsse (z. B. Schweinefleisch) stehen wie alle Ausschlüsse im Protokoll.
 export const PRIVACY = {
   logExclusionValues: true,
-  logDietaryRules: true,
+  logDietaryRules: false,
 };

@@ -18,6 +18,7 @@ function fakeStorage({ broken = false } = {}) {
 }
 
 const { createLogger, deleteAllSessions, listSessions } = await import('./logger.js');
+const { PRIVACY } = await import('../config.js');
 
 const event = {
   cardId: 'F13',
@@ -182,18 +183,48 @@ test('CSV ab Version 0.8: Entitätstyp, nicht gezeigte Kandidaten, Abbruch und A
   assert.ok(lines[2].includes('""budget"":""low""'), 'Alltagsprofil als JSON in einer Zelle');
 });
 
-test('Speisevorschriften: im Protokoll und als eigene CSV-Spalte; die Spalte type ist der Ereignistyp (eventType)', () => {
-  globalThis.localStorage = fakeStorage();
-  const logger = createLogger({ roundCardLimit: 8 });
-  logger.start({ participantCode: 'T02', ageGroup: '70-79' });
-  logger.setOnboarding({ diet: 'none', dietaryRules: ['halal'], exclusions: [], uncertain: false, freeTextNotes: [] });
-  logger.recordEvent(event);
-  const [session] = listSessions();
-  assert.deepEqual(session.onboarding.dietaryRules, ['halal']);
-  assert.ok(!('religion' in session.onboarding));
-  const [header, row] = sessionsToCsv([session]).trim().split('\r\n');
-  const columns = header.split(',');
-  assert.equal(row.split(',')[columns.indexOf('dietaryRules')], 'halal');
+test('Speisevorschriften: standardmässig nicht protokolliert, nur mit PRIVACY.logDietaryRules; type ist der Ereignistyp', () => {
+  const logSession = () => {
+    globalThis.localStorage = fakeStorage();
+    const logger = createLogger({ roundCardLimit: 8 });
+    logger.start({ participantCode: 'T02', ageGroup: '70-79' });
+    logger.setOnboarding({ diet: 'none', dietaryRules: ['halal'], exclusions: [], uncertain: false, freeTextNotes: [] });
+    logger.recordEvent(event);
+    return listSessions()[0];
+  };
+  const cell = (session, column) => {
+    const [header, row] = sessionsToCsv([session]).trim().split('\r\n');
+    return row.split(',')[header.split(',').indexOf(column)];
+  };
+  assert.equal(PRIVACY.logDietaryRules, false);
+  const hidden = logSession();
+  assert.equal(hidden.onboarding.dietaryRules, null, 'nicht erfasst');
+  assert.equal(cell(hidden, 'dietaryRules'), '');
+  assert.ok(!('religion' in hidden.onboarding));
+  PRIVACY.logDietaryRules = true;
+  try {
+    assert.equal(cell(logSession(), 'dietaryRules'), 'halal');
+  } finally {
+    PRIVACY.logDietaryRules = false;
+  }
+  const columns = sessionsToCsv([hidden]).split('\r\n')[0].split(',');
   assert.ok(columns.includes('type') && !columns.includes('eventType'));
-  deleteAllSessions();
+});
+
+test('Alte Sitzungen: diet als Ernährungsform wie heute gelesen, dietOriginal mit dem damaligen Wert', () => {
+  const cells = (diet) => {
+    const [header, row] = sessionsToCsv([{ sessionId: 'alt', onboarding: { diet }, events: [event] }]).trim().split('\r\n');
+    const columns = header.split(',');
+    const values = row.split(',');
+    return [values[columns.indexOf('diet')], values[columns.indexOf('dietOriginal')]];
+  };
+  assert.deepEqual(cells('no_pork'), ['none', 'no_pork']);
+  assert.deepEqual(cells('no_fish'), ['none', 'no_fish']);
+  assert.deepEqual(cells('vegetarian'), ['vegetarian', '']);
+});
+
+test('Admin: ignorierte URL-Parameter stehen in der Sitzungsübersicht', () => {
+  const summary = summarizeSession({ sessionId: 's', startedAt: '2026-10-19T10:00:00Z', config: { roundCardLimit: 13, ignoredParams: [{ name: 'limit', value: '30' }] }, events: [] });
+  assert.deepEqual(summary.ignoredParams, [{ name: 'limit', value: '30' }]);
+  assert.deepEqual(summarizeSession({ sessionId: 't', events: [] }).ignoredParams, []);
 });

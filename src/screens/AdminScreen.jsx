@@ -61,6 +61,11 @@ export default function AdminScreen() {
             holdout: config.holdout,
           })}
         </p>
+        {config.ignoredParams && (
+          <p className="form-error" role="alert">
+            {ADMIN.ignoredNext(config.ignoredParams)}
+          </p>
+        )}
       </div>
 
       <button
@@ -107,14 +112,19 @@ export default function AdminScreen() {
                 {formatDate(summary.startedAt)} · {summary.finished ? ADMIN.finished(formatDuration(summary.durationMs)) : ADMIN.unfinished}
               </span>
               <span className="note">
-                {ADMIN.details({
-                  answers: summary.answers,
-                  undos: summary.undos,
+                {ADMIN.details({ answers: summary.answers, undos: summary.undos, sessionId: summary.sessionId })}
+              </span>
+              <span className="note">
+                {ADMIN.config({
                   limit: summary.config?.roundCardLimit,
                   tutorial: summary.config?.tutorial,
-                  sessionId: summary.sessionId,
+                  selection: summary.config?.selection ?? 'fixed',
+                  holdout: summary.config?.holdout ?? 0,
+                  imageStyle: summary.config?.imageStyle,
+                  r1scale: summary.config?.r1scale,
                 })}
               </span>
+              {summary.ignoredParams.length > 0 && <span className="form-error">{ADMIN.ignored(summary.ignoredParams)}</span>}
               <span className="note">{ADMIN.checks(summary.checks)}</span>
             </li>
           ))}

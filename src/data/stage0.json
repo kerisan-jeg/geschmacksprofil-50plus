@@ -84,7 +84,11 @@
         {
           "key": "animalOrigin:pork",
           "label": "Kein Schweinefleisch",
-          "noun": "Schweinefleisch"
+          "noun": "Schweinefleisch",
+          "detail": "auch keine Gelatine, oft vom Schwein",
+          "includes": [
+            "animalOrigin:gelatin"
+          ]
         },
         {
           "key": "animalOrigin:beef",

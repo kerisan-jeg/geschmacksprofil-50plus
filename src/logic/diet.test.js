@@ -72,7 +72,7 @@ test('Vegetarisch und zusätzlich kein Schwein: keine doppelte Regel; nach Wechs
   assert.deepEqual(vegetarian.rules.map((rule) => rule.id), ['diet.vegetarian']);
   assert.deepEqual(vegetarian.exclusions, []);
   const back = derive(withDiet({ form: 'none', exclusions: ['animalOrigin:pork'] }));
-  assert.deepEqual(back.exclusions.map(({ type, value, origin }) => [type, value, origin]), [['animalOrigin', 'pork', 'diet']]);
+  assert.deepEqual(back.exclusions.map(({ type, value, origin }) => [type, value, origin]), [['animalOrigin', 'pork', 'diet'], ['animalOrigin', 'gelatin', 'diet']]);
 });
 
 test('Halal ohne Bestätigung schliesst nichts aus, steht aber als Speisevorschrift im Ergebnis', () => {
@@ -87,7 +87,7 @@ test('Speisevorschriften: Vorschläge wie vereinbart, jeder Punkt wirkt erst ein
   assert.deepEqual(suggest.halal, ['animalOrigin:pork', 'animalOrigin:gelatin', 'food:Alkohol']);
   assert.deepEqual(suggest.kosher, ['animalOrigin:pork', 'animalOrigin:gelatin', 'animalOrigin:seafood']);
   const confirmed = derive(withDiet({ form: 'none', rules: ['kosher'], exclusions: ['animalOrigin:pork'] }));
-  assert.deepEqual(confirmed.exclusions.map(({ value }) => value), ['pork']);
+  assert.deepEqual(confirmed.exclusions.map(({ value }) => value), ['pork', 'gelatin'], 'Schwein schliesst Gelatine ein');
   assert.deepEqual(confirmed.dietaryRules, ['kosher']);
 });
 
@@ -102,7 +102,7 @@ test('Fleisch unbekannter Art fällt weg, sobald irgendeine Fleischart ausgeschl
 });
 
 test('Frühere Antworten: „Kein Schweinefleisch“ wird zu „keine besondere“ mit Einzelausschlüssen', () => {
-  assert.deepEqual(dietAnswer('no_pork'), { form: 'none', exclusions: ['animalOrigin:pork', 'animalOrigin:gelatin'], rules: [] });
+  assert.deepEqual(dietAnswer('no_pork'), { form: 'none', exclusions: ['animalOrigin:pork'], rules: [] });
   assert.deepEqual(dietAnswer('no_fish'), { form: 'none', exclusions: ['animalOrigin:fish', 'animalOrigin:seafood'], rules: [] });
   assert.deepEqual(dietAnswer('vegetarian'), { form: 'vegetarian', exclusions: [], rules: [] });
   assert.equal(isAnswered(dietQuestion, 'none'), true);
@@ -149,4 +149,17 @@ test('„Kein Alkohol“ aus Frage 1 wird in Frage 3 nicht noch einmal angeboten
   const answers = withDiet({ form: 'none', exclusions: ['food:Alkohol'] });
   assert.equal(createRedundancyCheck(definition, answers, { allergens, catalogIndex: index, upTo: 1 }).key('food:Alkohol'), true);
   assert.equal(createRedundancyCheck(definition, withDiet({ form: 'none' }), { allergens, catalogIndex: index, upTo: 1 }).key('food:Alkohol'), false);
+});
+
+test('„Kein Schweinefleisch“ schliesst Gelatine ein, sichtbar und im Profil als ein Eintrag', async () => {
+  const { groupExclusions } = await import('./profile.js');
+  const pork = dietQuestion.exclusions.find((entry) => entry.key === 'animalOrigin:pork');
+  assert.equal(pork.detail, 'auch keine Gelatine, oft vom Schwein');
+  const result = derive(withDiet({ form: 'none', exclusions: ['animalOrigin:pork'] }));
+  assert.equal(result.exclusions[1].includedBy, 'animalOrigin:pork');
+  assert.deepEqual(result.rules.map((rule) => rule.id), ['diet.animalOrigin:pork'], 'Gelatine ist keine eigene Regel');
+  const { diet } = groupExclusions(stateFor(withDiet({ form: 'none', exclusions: ['animalOrigin:pork'] })).entries, { allergens, index });
+  assert.deepEqual(diet.map((item) => [item.label, item.exclusions.map(({ value }) => value)]), [['Kein Schweinefleisch', ['pork', 'gelatin']]]);
+  // Vegetarisch deckt Gelatine schon ab: kein zusätzlicher Eintrag
+  assert.deepEqual(derive(withDiet({ form: 'vegetarian', exclusions: ['animalOrigin:pork'] })).exclusions, []);
 });

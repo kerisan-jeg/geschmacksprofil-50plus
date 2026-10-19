@@ -1,6 +1,6 @@
 import { Info } from 'lucide-react';
 import ChoiceList from './ChoiceList.jsx';
-import { coveredByForm, dietAnswer } from '../logic/stage0.js';
+import { coveredByForm, dietAnswer, includedBy } from '../logic/stage0.js';
 import { DIET } from '../labels.js';
 
 // Frage 1 in drei Teilen (Dozentenfeedback 19.10.2026):
@@ -11,7 +11,9 @@ import { DIET } from '../labels.js';
 export default function DietPicker({ definition, question, answer, onChange }) {
   const value = dietAnswer(answer);
   const formLabel = question.options.find((option) => option.id === value.form)?.label;
-  const covered = (key) => coveredByForm(definition, value.form, key);
+  const parentOf = (key) => includedBy(question, value.exclusions, key);
+  const covered = (key) => coveredByForm(definition, value.form, key) || Boolean(parentOf(key));
+  const coveredText = (key) => (coveredByForm(definition, value.form, key) ? formLabel : parentOf(key)?.label);
 
   function update(changes) {
     onChange({ ...value, ...changes });
@@ -31,7 +33,7 @@ export default function DietPicker({ definition, question, answer, onChange }) {
   const option = (entry) => ({
     id: entry.key,
     label: entry.label,
-    detail: covered(entry.key) ? DIET.coveredBy(formLabel) : entry.detail,
+    detail: covered(entry.key) ? DIET.coveredBy(coveredText(entry.key)) : entry.detail,
     disabled: covered(entry.key),
   });
   const checked = (keys) => keys.filter((key) => covered(key) || value.exclusions.includes(key));

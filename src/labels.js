@@ -562,8 +562,20 @@ export const ADMIN = {
   finished: (duration) => `fertig, ${duration}`,
   unfinished: 'nicht beendet',
   duration: (minutes, seconds) => `${minutes}:${String(seconds).padStart(2, '0')} min`,
-  details: ({ answers, undos, limit, tutorial, sessionId }) =>
-    `${answers} Antworten, ${undos} × Rückgängig · Limit ${limit}, Tutorial ${tutorial ? 'an' : 'aus'} · ${sessionId}`,
+  details: ({ answers, undos, sessionId }) => `${answers} Antworten, ${undos} × Rückgängig · ${sessionId}`,
+  // Effektive Konfiguration der Sitzung (so wie sie lief). r1scale folgt mit Arbeitspaket 2.
+  config: ({ limit, tutorial, selection, holdout, imageStyle, r1scale }) =>
+    [
+      `Limit ${limit ?? '–'}`,
+      `Tutorial ${tutorial ? 'an' : 'aus'}`,
+      selection === 'fixed' ? 'feste Reihenfolge' : 'adaptiv',
+      plural(holdout ?? 0, 'Kontrollkarte', 'Kontrollkarten'),
+      imageStyle === 'illustration' ? 'Illustrationen' : 'Fotos',
+      ...(r1scale ? [`Skala Runde 1: ${r1scale}`] : []),
+    ].join(' · '),
+  // Stiller Rückfall: Ein URL-Parameter war ungültig, es galt der Standard
+  ignored: (params) => `Achtung, ignoriert: ${params.map(({ name, value }) => `?${name}=${value}`).join(', ')}. Es galt der Standard.`,
+  ignoredNext: (params) => `Achtung, in dieser Adresse ignoriert: ${params.map(({ name, value }) => `?${name}=${value}`).join(', ')}. Es gilt der Standard.`,
   // Kontrollkarten (Messkonzept): nur vollständige Sitzungen eignen sich für die Auswertung
   checks: ({ answered, drawn }) => (drawn === 0 ? 'Ohne Kontrollkarten' : `Kontrollkarten: ${answered} von ${drawn} beantwortet`),
   deleteAll: 'Alle Daten löschen',

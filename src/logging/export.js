@@ -1,6 +1,7 @@
 // Export der Sitzungen (A9). Reine Funktionen ohne Browser-Zugriff, damit sie testbar sind.
 
 import { replay } from '../logic/engine.js';
+import { dietAnswer, isLegacyDiet } from '../logic/stage0.js';
 import { HOLDOUT_DRAWN } from '../logic/events.js';
 
 // Pflichtfelder pro Ereignis (A9) und Sitzungsangaben, die in jeder CSV-Zeile wiederholt werden.
@@ -46,6 +47,7 @@ export const CSV_COLUMNS = [
   'participantCode',
   'ageGroup',
   'diet',
+  'dietOriginal',
   'dietaryRules',
   'uncertaintyFlag',
   'roundCardLimit',
@@ -73,8 +75,11 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
     const shared = {
       participantCode: session.participantCode,
       ageGroup: session.onboarding?.ageGroup ?? null,
-      diet: session.onboarding?.diet ?? null,
-      dietaryRules: session.onboarding?.dietaryRules ?? [],
+      // Alte Sitzungen („Kein Schweinefleisch“ als Ernährungsweise): diet ist die Ernährungsform wie heute
+      // gelesen, dietOriginal der damals gespeicherte Wert (nur bei solchen Sitzungen gefüllt).
+      diet: isLegacyDiet(session.onboarding?.diet) ? dietAnswer(session.onboarding.diet).form : (session.onboarding?.diet ?? null),
+      dietOriginal: isLegacyDiet(session.onboarding?.diet) ? session.onboarding.diet : null,
+      dietaryRules: session.onboarding?.dietaryRules ?? null,
       uncertaintyFlag: session.onboarding?.uncertaintyFlag ?? null,
       roundCardLimit: session.config?.roundCardLimit,
       tutorial: session.config?.tutorial,
@@ -128,5 +133,6 @@ export function summarizeSession(session) {
     // Kontrollkarten: beantwortet von gezogen (für die Testleitung: Wurde die Sitzung bis zum Ende gespielt?)
     checks: { answered: holdout.filter((id) => id in played.answers).length, drawn: holdout.length },
     config: session.config,
+    ignoredParams: session.config?.ignoredParams ?? [],
   };
 }

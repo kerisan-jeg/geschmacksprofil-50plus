@@ -33,7 +33,7 @@ test('Alte ?tutorial-Parameter können das entfernte Tutorial nicht aktivieren',
   for (const value of ['0', '1', 'nein']) {
     assert.equal(resolveConfig(`?tutorial=${value}`).tutorial, false);
   }
-  assert.deepEqual(resolveConfig('?limit=8&tutorial=0'), { ...DEFAULTS, roundCardLimit: 8 });
+  assert.deepEqual(resolveConfig('?limit=8&tutorial=0'), { ...DEFAULTS, roundCardLimit: 8, ignoredParams: [{ name: 'tutorial', value: '0' }] });
 });
 
 test('?selection und ?holdout für den Vergleich im Pilot; ungültige Werte fallen auf den Standard zurück', () => {
@@ -50,4 +50,11 @@ test('Admin-Ansicht nur mit ?admin=1', () => {
   assert.equal(isAdminMode('?admin=1'), true);
   assert.equal(isAdminMode('?admin=true'), false);
   assert.equal(isAdminMode(''), false);
+});
+
+test('Ignorierte Parameter werden festgehalten, damit stille Rückfälle auffallen', () => {
+  assert.deepEqual(resolveConfig('?limit=30').ignoredParams, [{ name: 'limit', value: '30' }]);
+  assert.equal(resolveConfig('?limit=30').roundCardLimit, 13);
+  assert.deepEqual(resolveConfig('?limit=20&holdout=12&selection=zufall&sms=echt').ignoredParams.map((entry) => entry.name), ['limit', 'sms', 'selection', 'holdout']);
+  assert.equal('ignoredParams' in resolveConfig('?limit=8&holdout=2'), false, 'nur wenn etwas ignoriert wurde');
 });

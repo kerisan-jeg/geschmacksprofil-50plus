@@ -69,6 +69,12 @@ export function groupExclusions(entries, { allergens, index }) {
     const section = sectionOf(entry);
     if (section === 'allergies') continue;
     const key = `${entry.type}:${entry.value}`;
+    // Eingeschlossen (Gelatine bei „Kein Schweinefleisch“): gehört zum Hauptpunkt und wird mit ihm entfernt
+    const parent = entry.includedBy && sections[section].find((item) => item.key === entry.includedBy);
+    if (parent) {
+      if (!parent.exclusions.some((other) => other.type === entry.type && other.value === entry.value)) parent.exclusions.push({ type: entry.type, value: entry.value });
+      continue;
+    }
     const existing = sections[section].find((item) => item.key === key);
     if (existing) {
       existing.sources = addSource(existing.sources, entry.source);

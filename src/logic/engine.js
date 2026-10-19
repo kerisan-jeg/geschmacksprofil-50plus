@@ -268,6 +268,26 @@ export function isRoundComplete(state, config) {
   return selectNextCards(state, config).length === 0;
 }
 
+// Status einer Runde (Dozentenfeedback 19.10.2026, Korrektur nach AP1). state: deriveRoundState für diese Runde.
+//   open        noch keine Karte beantwortet
+//   started     begonnen, Karten offen (auch nach „Runde beenden“; das vorzeitige Ende steht als QUESTION_ABORTED im Log)
+//   completed   Kartenlimit erreicht oder keine Karte mehr, auch wenn die Runde vorher beendet und fortgesetzt wurde
+//   unavailable keine Karte beantwortet und keine erlaubte Karte übrig (z. B. nach den Ausschlüssen)
+export const ROUND_STATUS = { OPEN: 'open', STARTED: 'started', COMPLETED: 'completed', UNAVAILABLE: 'unavailable' };
+
+export function roundStatus(state, config) {
+  const complete = isRoundComplete(state, config);
+  if (state.roundSequence.length === 0) return complete ? ROUND_STATUS.UNAVAILABLE : ROUND_STATUS.OPEN;
+  return complete ? ROUND_STATUS.COMPLETED : ROUND_STATUS.STARTED;
+}
+
+// Fortsetzen einer vorzeitig beendeten Runde: nur solange in einer späteren Runde noch keine Karte beantwortet ist.
+// Danach beruht die Auswahl der späteren Runde schon auf dem Stand bei Rundenende.
+export function canResumeRound(state, config) {
+  if (roundStatus(state, config) !== ROUND_STATUS.STARTED) return false;
+  return !state.sequence.some((id) => state.answeredInRound[id] > state.round);
+}
+
 // Fortschritt der Runde. total ist höchstens das Rundenlimit (ROUND_CARD_LIMIT, config.roundCardLimit)
 // und kleiner, wenn nach den Ausschlüssen weniger Karten übrig sind. percent wird daraus abgeleitet.
 export function progress(state, config) {

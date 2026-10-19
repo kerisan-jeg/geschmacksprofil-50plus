@@ -34,9 +34,28 @@ export const EMPTY_DIET = { form: null, exclusions: [], rules: [] };
 // Frühere Stände: Frage 1 war eine Einfachauswahl. „Kein Schweinefleisch“ und „Kein Fisch“ werden zu
 // Ernährungsform „keine besondere“ mit den gleichwertigen Einzelausschlüssen; gespeicherte Daten bleiben unverändert.
 const LEGACY_DIETS = {
-  no_pork: { form: 'none', exclusions: ['animalOrigin:pork', 'animalOrigin:gelatin'] },
+  no_pork: { form: 'none', exclusions: ['animalOrigin:pork'] }, // Gelatine über includes (wie früher)
   no_fish: { form: 'none', exclusions: ['animalOrigin:fish', 'animalOrigin:seafood'] },
 };
+
+export function isLegacyDiet(value) {
+  return typeof value === 'string' && value in LEGACY_DIETS;
+}
+
+// Einzelausschlüsse mit allem, was sie einschliessen: „Kein Schweinefleisch“ schliesst Gelatine ein (oft vom Schwein).
+export function withIncluded(question, keys) {
+  const out = [];
+  for (const key of keys) {
+    if (!out.includes(key)) out.push(key);
+    for (const extra of question?.exclusions?.find((entry) => entry.key === key)?.includes ?? []) if (!out.includes(extra)) out.push(extra);
+  }
+  return out;
+}
+
+// Welcher gewählte Punkt schliesst key schon ein? (z. B. Gelatine durch „Kein Schweinefleisch“)
+export function includedBy(question, keys, key) {
+  return question?.exclusions?.find((entry) => keys.includes(entry.key) && entry.key !== key && (entry.includes ?? []).includes(key)) ?? null;
+}
 
 export function dietAnswer(value) {
   if (value == null) return { ...EMPTY_DIET };
@@ -184,13 +203,23 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
   const diet = dietChoice.form;
   const dietRule = definition.diets?.[diet]?.rule;
   if (dietRule) rules.push({ id: `diet.${diet}`, kind: 'diet', text: dietRule, source: dietQuestion.source });
-  for (const key of new Set(dietChoice.exclusions)) {
+  for (const key of withIncluded(dietQuestion, dietChoice.exclusions)) {
     // Durch die Ernährungsform schon abgedeckt (vegetarisch + kein Schwein): bleibt in der Antwort, damit es nach
     // einem Wechsel der Form wieder gilt, steht aber nicht doppelt in den Regeln.
     if (coveredByForm(definition, diet, key)) continue;
     const { type, value } = parseKey(key);
     const option = dietQuestion.exclusions?.find((entry) => entry.key === key);
-    exclusions.push({ type, value, source: SOURCE_ONBOARDING, origin: 'diet', label: option?.label ?? keyLabel(null, catalogIndex, key) });
+    // Eingeschlossen (Gelatine bei Schwein): eigener Eintrag mit includedBy, im Profil zusammen mit dem Hauptpunkt
+    const parent = dietChoice.exclusions.includes(key) ? null : includedBy(dietQuestion, dietChoice.exclusions, key);
+    exclusions.push({
+      type,
+      value,
+      source: SOURCE_ONBOARDING,
+      origin: 'diet',
+      label: option?.label ?? keyLabel(null, catalogIndex, key),
+      ...(parent ? { includedBy: parent.key } : {}),
+    });
+    if (parent) continue;
     rules.push({ id: `diet.${key}`, kind: 'diet', text: option?.label ?? key, source: dietQuestion.source });
   }
   const dietaryRules = dietChoice.rules.filter((id) => dietQuestion?.rules?.some((rule) => rule.id === id));

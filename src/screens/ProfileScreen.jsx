@@ -193,7 +193,7 @@ export default function ProfileScreen({
   const diet = dietOptions.options.find((option) => option.id === round.diet);
   // Frühere Stände (z. B. „Kein Schweinefleisch“ als Ernährungsweise): Regeltext aus der Tabelle diets
   const dietLabel = diet ? (diet.id === 'none' ? PROFILE.noDiet : diet.label) : (dietOptions.diets[round.diet]?.rule ?? PROFILE.noDiet);
-  const dietKeys = sections.diet.flatMap((item) => item.exclusions.map((exclusion) => `${exclusion.type}:${exclusion.value}`));
+  const dietKeys = sections.diet.map((item) => item.key);
   const currentAllergens = round.entries.filter((entry) => sectionOf(entry) === 'allergies').map((entry) => entry.value);
   const credits = allPhotos().map((photo) => ({ ...photo, cardTitle: photo.usedBy.map((id) => index.get(id)?.title ?? id).join(', ') }));
   const redundancy = redundancyFor(round.exclusions, index);
@@ -639,9 +639,14 @@ export default function ProfileScreen({
               className="button-primary"
               onClick={() => {
                 const next = draft?.selected ?? dietKeys;
-                const toEntry = (key) => ({ ...parseKey(key), label: dietOptions.exclusions.find((entry) => entry.key === key)?.label ?? key, origin: 'diet' });
-                onChange.addExclusions('diet', next.filter((key) => !dietKeys.includes(key)).map(toEntry));
-                onChange.removeExclusions('diet', dietKeys.filter((key) => !next.includes(key)).map(parseKey));
+                const labelOf = (key) => dietOptions.exclusions.find((entry) => entry.key === key)?.label ?? key;
+                // „Kein Schweinefleisch“ bringt Gelatine mit (includedBy), wie in Frage 1
+                const toEntries = (key) => [
+                  { ...parseKey(key), label: labelOf(key), origin: 'diet' },
+                  ...(dietOptions.exclusions.find((entry) => entry.key === key)?.includes ?? []).map((extra) => ({ ...parseKey(extra), label: extra, origin: 'diet', includedBy: key })),
+                ];
+                onChange.addExclusions('diet', next.filter((key) => !dietKeys.includes(key)).flatMap(toEntries));
+                onChange.removeExclusions('diet', sections.diet.filter((item) => !next.includes(item.key)).flatMap((item) => item.exclusions));
                 close();
               }}
             >
