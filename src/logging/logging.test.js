@@ -17,7 +17,7 @@ function fakeStorage({ broken = false } = {}) {
   };
 }
 
-const { createLogger, deleteAllSessions, listSessions } = await import('./logger.js');
+const { createLogger, deleteAllSessions, listSessions, STORAGE_PREFIX } = await import('./logger.js');
 const { PRIVACY } = await import('../config.js');
 
 const event = {
@@ -237,4 +237,30 @@ test('Export: labelShown und scaleVariant je Ereignis, r1scale je Sitzung', () =
   assert.equal(values[columns.indexOf('labelShown')], 'Eher gern');
   assert.equal(values[columns.indexOf('scaleVariant')], 'r1-2');
   assert.equal(values[columns.indexOf('r1scale')], '2');
+});
+
+test('Export: alle Pflichtfelder aus A9 und die neuen Felder (Abschnitt 11C)', () => {
+  const header = sessionsToCsv([]).trim().split(',');
+  const required = [...EVENT_FIELDS, 'round', 'type', 'labelShown', 'scaleVariant', 'r1scale', 'diet', 'dietOriginal', 'dietaryRules', 'appVersion', 'cuisines', 'action'];
+  for (const column of required) assert.ok(header.includes(column), column);
+  // Abschnitt 11C nennt eventType und dietForm: type ist der Ereignistyp, diet die Ernährungsform (Teamentscheid AP1)
+  assert.ok(!header.includes('eventType'));
+});
+
+test('Alte Sitzungen bleiben unverändert gespeichert; im Export sind ihre Bewertungen als legacy gekennzeichnet', () => {
+  globalThis.localStorage = fakeStorage();
+  const old = { sessionId: 'alt', startedAt: '2026-10-10T10:00:00Z', config: { roundCardLimit: 10 }, events: [event, { ...event, response: 'UNDO' }, { type: 'NAVIGATION', action: 'overview_open' }] };
+  // Wie vor dem Update gespeichert: bleibt nach dem Update lesbar und unverändert
+  localStorage.setItem(`${STORAGE_PREFIX}alt`, JSON.stringify(old));
+  const before = JSON.stringify(old);
+  assert.equal(JSON.stringify(listSessions()[0]), before);
+  const [header, ...rows] = sessionsToCsv(listSessions()).trim().split('\r\n');
+  const at = header.split(',').indexOf('scaleVariant');
+  assert.deepEqual(rows.map((row) => row.split(',')[at]), ['legacy', '', '']);
+  assert.equal(JSON.stringify(listSessions()[0]), before, 'nichts umgeschrieben');
+  // Neue Sitzung: eigener Wert, nie legacy
+  const fresh = { ...old, config: { roundCardLimit: 13, r1scale: 3 }, events: [{ ...event, scaleVariant: 'r1-3', labelShown: 'Eher gern' }, { ...event, response: 'UNDO' }] };
+  const [, ...freshRows] = sessionsToCsv([fresh]).trim().split('\r\n');
+  assert.deepEqual(freshRows.map((row) => row.split(',')[at]), ['r1-3', '']);
+  deleteAllSessions();
 });

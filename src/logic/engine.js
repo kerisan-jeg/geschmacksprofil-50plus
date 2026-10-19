@@ -21,7 +21,9 @@ import { SOURCE_SWIPE } from './stage0.js';
 // demo-0.3: adaptive Kartenauswahl, Kontrollkarten und Präferenzmodell (Version 0.7)
 // demo-0.4: Regeln nach nurec v0.2, Kap. 6 und 11 (Ausnahme, Kontrastpaar, Klärung auch auf Stufe 2, Stufe 3, Gerichte)
 // demo-0.5: je Runde eine Ebene, Gerichte in Runde 4, maximal 15 Karten; Kontrollen in Runde 2.
-export const RULE_VERSION = 'demo-0.5';
+// demo-0.6: Dozentenfeedback 19.10.2026: negative Gruppe ist kein Ausschluss (NEGATIVE_GROUP_POLICY 'last',
+//           Quote Runde 3), Gesten und Begriffe je Runde (r1scale), Restriktionen mit Fleischarten.
+export const RULE_VERSION = 'demo-0.6';
 
 // Antwort-Ereignis (so wird es auch protokolliert, siehe logging/logger.js):
 // { cardId, stage, parentId, round, positionInRound, response, timestamp, responseTimeMs,

@@ -100,11 +100,17 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
       sessionStartedAt: session.startedAt,
       sessionEndedAt: session.endedAt,
     };
+    // Sitzungen vor dem Dozentenfeedback (ohne r1scale): Bewertungen ohne scaleVariant gelten als "legacy".
+    // Gespeichert wird nichts umgeschrieben, die Kennzeichnung entsteht nur im Export.
+    const legacy = session.config?.r1scale === undefined;
     for (const event of session.events ?? []) {
+      const type = event.type ?? 'ANSWER';
+      const rating = (type === 'ANSWER' && event.response !== 'UNDO') || (type === 'RATING_CHANGED' && event.rating != null);
       const row = {
         ...shared,
         ...event,
-        type: event.type ?? 'ANSWER',
+        type,
+        scaleVariant: event.scaleVariant ?? (legacy && rating ? 'legacy' : null),
         // Antworten ohne Rundennummer stammen aus Runde 1 (vor Runde 2 protokolliert).
         round: event.round ?? ((event.type ?? 'ANSWER') === 'ANSWER' ? 1 : null),
         exclusions: (event.exclusions ?? []).map((exclusion) => [exclusion.type, exclusion.value].filter(Boolean).join(':')),

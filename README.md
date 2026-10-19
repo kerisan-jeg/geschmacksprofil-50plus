@@ -3,6 +3,8 @@
 Mobiler Swipe-Prototyp zur Geschmacksprofilerkennung bei Personen ab 50 (WI-Projekt, Auftraggeber nurec).
 Version 0.8: vollständig nach dem nurec-Konzept v0.2 (Abgleich Kapitel für Kapitel unten unter „Abgleich mit nurec v0.2“). Stufe 0 bis 4 mit konkreten Lebensmitteln (Anhang A3) und Gerichten, Auswahlregeln nach Kap. 6 und 11, Ergebnis-Dashboard mit Profilstand (Anhang B), freiwilliges Alltagsprofil (Kap. 2.3), Kontrollkarten und Auswertung der Lernkurve mit Pilot-Kennzahlen (Messkonzept in [`docs/messkonzept.md`](docs/messkonzept.md)). Dazu wie bisher Designsystem, Swipe-Oberfläche, Registrierung mit SMS-Code (echt über Firebase oder simuliert) und einheitliche Suche über alle Lebensmittel.
 
+**Version 0.9 (Dozentenfeedback vom 19.10.2026):** Frage 1 in drei Teilen (Ernährungsform, Einzelausschlüsse, Speisevorschriften ohne eigene Wirkung), Hinweise wie „Ohne Rindfleisch“ nur, wo der Kartenname es noch umfasst, eigene Begriffe in Runde 1 („Eher ungern / Eher gern / Sehr gern“, `?r1scale=2` ohne „Sehr gern“), Gruppenkarten ohne Beispiele und Fotos mit neutralem Symbol, Rundenanzeige, kein Scrollen in der Runde, negative Gruppe ohne endgültigen Ausschluss, Esskulturen als Metadatum mit vier Zusatzgerichten, Rundenübersicht mit „Runde fortsetzen“ und Navigationsereignissen. Alle Entscheidungen, Annahmen und offenen Punkte: [`docs/dozentenfeedback-2026-10-19.md`](docs/dozentenfeedback-2026-10-19.md). Wo dieses README Version 0.8 beschreibt und die Doku zum Dozentenfeedback etwas anderes sagt, gilt die Doku.
+
 Hinweis zur Eigenleistung: Auswahl, Modell, Dashboard, Stufe 3 und 4, Alltagsprofil und Auswertung hat Claude Code (KI) im Auftrag des Teams umgesetzt (15.10.2026), auf Grundlage einer Rückmeldung zum Vorgehen und des nurec-Konzepts. Die Regeln folgen nurec v0.2 [D]; Rangfolge, Annahmen und Kriterium sind Vorschläge [V], die das Team bestätigt oder ändert. Wie die KI-Unterstützung in der Arbeit deklariert wird, mit Tibor klären.
 
 Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (Kickoff, Zwischencheck),
@@ -32,14 +34,14 @@ Wer die App auf demselben Gerät wieder öffnet, sieht „Willkommen zurück, [V
 
 | Geste | Sichtbar | Intern | Bedeutung |
 | --- | --- | --- | --- |
-| Links | Mag ich nicht | `DISLIKE` | Geschmack, kein Ausschluss |
-| Rechts | Mag ich | `LIKE` | Geschmack |
-| Oben | Mag ich sehr | `PREFER` | Geschmack (im Kickoff „Superlike“) |
+| Links | Mag ich nicht (Runde 1: Eher ungern) | `DISLIKE` | Geschmack, kein Ausschluss |
+| Rechts | Mag ich (Runde 1: Eher gern) | `LIKE` | Geschmack |
+| Oben | Mag ich sehr (Runde 1: Sehr gern; entfällt mit `?r1scale=2`) | `PREFER` | Geschmack (im Kickoff „Superlike“) |
 | Knopf | Kenne ich nicht | `UNFAMILIAR` | keine Bewertung |
 | Textlink | Vertrage ich nicht | `INTOLERANT` | harter Ausschluss, kein Geschmack |
 | Knopf | Rückgängig | `UNDO` | nimmt die letzte Antwort zurück |
 
-Begründung [V]: symmetrisch, kurz und nah an Dislike/Like/Superlike [K]. „Eher ungern“ war beim Zwischencheck unklar [K].
+Begründung [V]: symmetrisch, kurz und nah an Dislike/Like/Superlike [K]. „Eher ungern“ war beim Zwischencheck unklar [K]. Seit 0.9 schlägt der Dozent „Eher ungern / Eher gern / Sehr gern“ selbst für Runde 1 (Gruppen) vor [K]; Runden 2 bis 4 behalten diese Begriffe.
 Alle Beschriftungen stehen in `src/labels.js`; ein Test verhindert, dass sie hart im JSX auftauchen.
 Die Bedeutung jeder Antwort (Geschmackssignal ja/nein, harter Ausschluss, zählt fürs Limit) ist in `src/logic/answers.js` dokumentiert.
 
@@ -141,8 +143,9 @@ Seit Version 0.8 gilt zusätzlich (nurec Kap. 2.2: harte Ausschlüsse wirken auf
 | `?sms=sim` | SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne eigenes Handy) | echt, wenn Firebase eingerichtet ist |
 | `?selection=fixed` | feste Reihenfolge wie in Version 0.6 statt adaptiver Auswahl (Vergleich im Pilot) | adaptiv |
 | `?holdout=4` | Anzahl Kontrollkarten, gültig 0 bis 10 (0 = keine) | 6 |
+| `?r1scale=2` | Begriffe in Runde 1: 3 (Eher ungern / Eher gern / Sehr gern) oder 2 (ohne „Sehr gern“ und ohne Wischen nach oben) | 3 |
 
-Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `MAX_ROUNDS`, `SELECTION_MODE`, `HOLDOUT_CARDS`, `PREFERENCE_MODEL`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`. Explizit gew?hlte Auswahlverfahren bleiben erhalten; alle Sitzungen halten die neue Stufenfolge und die Grenze von 15 Karten ein.
+Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Ungültige Werte fallen auf den Standard zurück, stehen aber als `ignoredParams` in der Sitzung und rot in der Admin-Ansicht. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `MAX_ROUNDS`, `SELECTION_MODE`, `HOLDOUT_CARDS`, `PREFERENCE_MODEL`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`. Explizit gew?hlte Auswahlverfahren bleiben erhalten; alle Sitzungen halten die neue Stufenfolge und die Grenze von 15 Karten ein.
 
 ## Protokoll und Export
 
@@ -248,7 +251,8 @@ Die Oberfläche ruft nur `nextCard(state, config)` auf, das intern `selectNextCa
 | 6 | Untergruppe „Mag ich sehr“: bis zu drei konkrete Favoriten | `stage3_favorite` |
 | 7 | Kontrast verschieden: die übrigen Untergruppen; „Vertrage ich nicht“ nur für einen Teil: höchstens zwei der übrigen | `stage2_difference`, `stage2_after_intolerant` |
 
-- Fällt der Kontrast gleich aus, ist der Zweig geklärt: Die übrigen Untergruppen werden vermutet, nicht gefragt. Bei „Mag ich nicht“ ohne Ausnahme ebenso („bei DISLIKE vorerst stoppen“). Eier und Kartoffeln brauchen keine Untergruppe.
+- Fällt der Kontrast gleich aus, ist der Zweig geklärt: Die übrigen Untergruppen werden vermutet, nicht gefragt. Eier und Kartoffeln brauchen keine Untergruppe.
+- Seit 0.9 (Dozentenfeedback): Eine Gruppe „Mag ich nicht“ schliesst ihre übrigen Untergruppen nicht mehr endgültig aus. Sie kommen ganz am Schluss der Runde (`stage2_after_negative`), in Runde 3 höchstens zwei konkrete Lebensmittel je negativer Untergruppe (`stage3_after_negative`, `NEGATIVE_GROUP_POLICY`, `NEGATIVE_GROUP_QUOTA_STAGE3`, vorläufig).
 - Innerhalb eines Rangs wechseln sich die Gruppen ab. Eine Kontrollkarte wird durch das nächste passende Kind ersetzt.
 - Massgebend ist die aktuelle direkte Bewertung, auch wenn sie im Profil geändert wurde. Harte Ausschlüsse wirken immer.
 - **Budget:** standardmässig bis zu 4 × 13 = 52 Karten; die absolute Grenze beträgt 15 pro Runde. Die sechs Kontrollkarten teilen sich das Budget von Runde 2 mit den normalen Untergruppen. Weniger sinnvolle oder zulässige Karten verkürzen eine Runde.

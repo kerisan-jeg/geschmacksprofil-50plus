@@ -98,3 +98,31 @@ test('Feinheiten: roh und gegart nur, wenn beide beantwortet sind und sich unter
   assert.deepEqual(details, [{ rawId: 'F10.3.1', cookedId: 'F11.2.1', raw: DISLIKE, cooked: LIKE }]);
   assert.deepEqual(buildDashboard(state([...base, answer('F10.3.1', LIKE), answer('F11.2.1', LIKE)])).details, [], 'gleich: keine Feinheit');
 });
+
+test('Widersprüchliche Bewertungen werden differenziert gespeichert; die konkrete gilt, nicht „vermutlich“', async () => {
+  const { derivedEntries } = await import('./engine.js');
+  // Salat und Rohkost „Mag ich nicht“, Gurke „Mag ich“, rohe Tomaten „Mag ich nicht“
+  const current = state([answer('F10', DISLIKE), answer('F10.2.2', LIKE), answer('F10.2.1', DISLIKE)]);
+  assert.deepEqual([current.answers.F10, current.answers['F10.2.2'], current.answers['F10.2.1']], [DISLIKE, LIKE, DISLIKE]);
+  const board = buildDashboard(current);
+  assert.ok(board.favorites.some((entry) => entry.id === 'F10.2.2' && entry.rating === LIKE), 'Gurke direkt positiv');
+  assert.ok(!derivedEntries(current).some((entry) => entry.cardId === 'F10.2.2'), 'Gurke nie als Vermutung');
+  assert.deepEqual(board.dislikes.find((entry) => entry.id === 'F10').exceptions.map((entry) => entry.id), ['F10.2.2']);
+});
+
+test('„Kenne ich nicht“ ist in keiner Runde eine negative Bewertung', async () => {
+  const { derivedEntries } = await import('./engine.js');
+  const current = state([answer('F05', UNFAMILIAR), answer('F12.1', UNFAMILIAR), answer('F10.2.2', UNFAMILIAR), answer('D01', UNFAMILIAR)]);
+  const board = buildDashboard(current);
+  assert.deepEqual(board.dislikes, []);
+  assert.deepEqual(board.dishes, [], 'Gerichte mit „Kenne ich nicht“ zählen nicht');
+  assert.ok(derivedEntries(current).every((entry) => entry.rating !== DISLIKE));
+  assert.deepEqual(board.unfamiliar.sort(), ['F05', 'F10.2.2', 'F12.1']);
+});
+
+test('Alltagsprofil: Profilstand und Dashboard hängen nicht davon ab (übersprungen = vollständig nutzbar)', () => {
+  const base = families.map((id) => answer(id, LIKE));
+  const withPractical = [...base, { type: 'PRACTICAL_SAVED', source: 'practical', practical: { household: 'alone' } }];
+  assert.deepEqual(profileProgress(state(withPractical)), profileProgress(state(base)));
+  assert.deepEqual(buildDashboard(state(withPractical)), buildDashboard(state(base)));
+});

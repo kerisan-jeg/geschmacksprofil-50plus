@@ -4,6 +4,43 @@ Quellen: [A] Aufgabenstellung, [K] Dozentenfeedback 19.10.2026, [B] Befragung/Be
 
 Stand: Arbeitspakete 1 (Verbesserungen 1 und 2), 2 (Verbesserungen 3, 4 und 5) und 3 (Verbesserungen 6, 7 und 8).
 
+## Einordnung
+
+### Ausgangssituation [A] [D]
+
+Version 0.8 setzte das nurec-Konzept v0.2 um [D]: Vorfilter in drei Fragen (Frage 1 „Ernährungsweise“ als Einfachauswahl mit „Kein Schweinefleisch“ und „Kein Fisch“ als eigene Ernährungsweisen, Frage 2 Allergien und Unverträglichkeiten, Frage 3 „Nie vorschlagen“ mit Suche und Notizen), Zusammenfassung, vier Runden (Gruppen, Untergruppen, konkrete Lebensmittel, Gerichte) mit adaptiver Auswahl und Kontrollkarten, Rückgängig mit Replay (A8), Profil mit Profilstand, freiwilliges Alltagsprofil, Protokoll und Export (A9), URL-Konfiguration (A10) [A].
+
+### Feedback des Dozenten [K]
+
+1. Hinweise passen nicht zum Kartennamen („Geflügel“ mit „Ohne Rindfleisch“).
+2. Ernährungsform und einzelne Ausschlüsse sind vermischt; Restriktionen sollen unabhängig von Religion erfasst werden.
+3. Gruppen lassen sich schwer pauschal bewerten (Kürbis eher nicht, Kürbissuppe gern); Vorschlag Variante A (Eher ungern / Eher gern / Sehr gern) oder B (Eher ungern / Eher gern).
+4. Beispiele unter Gruppenkarten beeinflussen die Entscheidung; in Runde 1 weglassen.
+5. Während des Wischens ist nicht ersichtlich, in welcher Runde man ist.
+6. Gerichte nach Esskulturen strukturieren.
+7. Dashboard mit Übersicht, welche Runden abgeschlossen und welche offen sind.
+8. Alltagsmodul liegt teilweise ausserhalb des Projektumfangs, darf vorerst bleiben.
+
+### Fachliche Problemstellung
+
+- Ein Hinweis, der dem Kartennamen widerspricht, untergräbt das Vertrauen in den Vorfilter.
+- In einer Einfachauswahl konnte niemand „kein Schweinefleisch und kein Fisch“ angeben; „Kein Schweinefleisch“ als Ernährungsweise legte zudem einen religiösen Hintergrund nahe.
+- Eine negative Gruppenbewertung wirkte in der Auswahl wie ein Ausschluss: Nach „Mag ich nicht“ kamen die übrigen Untergruppen nie mehr (Kürbis-Problem).
+- Beispiele und Fotos auf Gruppenkarten verschieben die Bewertung von der Gruppe auf die gezeigten Beispiele.
+- Ohne Rundenanzeige fehlt die Orientierung. Scrollen im Rundenbildschirm kann zu Fehlbewertungen führen, weil Wischen nach oben eine Bewertung ist (Teamentscheid nach AP2).
+
+### Diskutierte Alternativen
+
+- **Zwei oder drei Bewertungen in Runde 1:** Variante A ist Standard, Variante B über `?r1scale=2` im Pilot vergleichbar [V]. Variante A ist asymmetrisch (zwei positive Stufen, eine negative). Das kann positive Antworten begünstigen; dafür liefert „Sehr gern“ ein Favoritensignal für die Vertiefung. Ob die Asymmetrie stört, zeigt erst der Vergleich im Pilot.
+- **Änderung gegenüber A3:** „Eher ungern“ wurde früher verworfen, weil es beim Zwischencheck unklar war [K]. Jetzt schlägt der Dozent es selbst für die Gruppenebene vor [K]: Für eine ganze Gruppe ist eine abgeschwächte Einschätzung ehrlicher als ein pauschales „Mag ich nicht“. Runden 2 bis 4 behalten die Begriffe aus A3.
+- **Beispiele und Bilder auf Gruppenkarten:** weglassen (gewählt), neutrale Illustration je Gruppe (verworfen: zeigt fast immer ein einzelnes Lebensmittel), abstraktes Muster oder nur Farbe (verworfen, Teamentscheid für ein gemeinsames neutrales Symbol).
+- **Restriktionen unabhängig von Religion:** Einzelausschlüsse (Schweinefleisch, Rindfleisch, Geflügel, Fisch, Meeresfrüchte, Alkohol) statt religiöser Kategorien. Halal und koscher sind Anforderungen an Zubereitung und Zertifizierung, keine Lebensmittelkategorien; sie schliessen deshalb selbst nichts aus, Vorschläge bestätigt die Person einzeln.
+- **Esskulturen sichtbar oder nur als Metadatum:** nur Metadatum [V], weil ein Label die Bewertung beeinflussen kann.
+- **Rundenfortschritt und Profilvollständigkeit:** getrennt. Während des Wischens nur Runde und Karte; der Profilstand erscheint auf dem Abschluss und im Profil, ohne Runde 4 und ohne Alltagsprofil.
+- **Negative Gruppenbewertung und Leitprinzip:** Gar keine Wirkung kostet die Effizienz der Hierarchie, endgültiger Ausschluss erzeugt das Kürbis-Problem. Varianten (a) ans Ende, (b) Quote, (c) abgeschwächte Rangzahl; umgesetzt ist (a) mit einer vorläufigen Quote in Runde 3, die Wahl trifft das Team.
+
+Die gewählten Lösungen und ihre Begründung stehen in den Abschnitten zu den Arbeitspaketen.
+
 ## Arbeitspaket 1: Vorfilter und Restriktionen
 
 ### Verbesserung 1: Hinweise passen zum angezeigten Kartennamen [K]
@@ -209,6 +246,20 @@ Folge: Mit `CUISINE_MIN_RATED = 3` entsteht in einer Sitzung meist nur für die 
 - Zustand bleibt beim Wechsel zwischen Ansichten erhalten, weil alles aus dem Event-Log abgeleitet wird.
 - Rückgängig wirkt wie bisher nur innerhalb der laufenden Runde; über die Rundengrenze geht es nicht (unverändert, A8).
 
+### Verbesserung 8: Alltagsprofil [K]
+
+- Inhalt unverändert: keine neuen Fragen, keine Erweiterung. Es bleibt als freiwillig gekennzeichnet („Alltag ergänzen (freiwillig)“).
+- Getrennt vom Geschmack: eigenes Ereignis `PRACTICAL_SAVED`, eigener Abschnitt im Profil; der Profilstand (`profileProgress`) und das Geschmacks-Dashboard hängen nicht davon ab (Test in src/logic/dashboard.test.js).
+- Profilstand heute: 35 Punkte für Gruppen mit Geschmacksantwort, 30 für beantwortete Ausnahme bzw. Kontrastpaare, 35 für konkrete Lebensmittel (voll ab 12) [D] [V]. Gerichte (Runde 4) und Alltag zählen nicht (nurec B2, Teamentscheid AP1); keine künstlich tiefen Werte.
+
+### Protokoll und Export (Version 0.9)
+
+- `appVersion` 0.9.0-demo, `ruleVersion` demo-0.6 (negative Gruppe, Begriffe je Runde, Restriktionen).
+- Je Ereignis neu: `labelShown`, `scaleVariant`, bei Gerichten `cuisines`, bei Navigation `action`. `round` gab es schon.
+- Je Sitzung neu: `r1scale`, `dietaryRules` (standardmässig nicht erfasst), `dietOriginal` für alte Sitzungen, `ignoredParams`.
+- Abschnitt 11C des Auftrags nennt `eventType` und `dietForm`: Die bestehende Spalte `type` ist der Ereignistyp, die Spalte `diet` die Ernährungsform (Teamentscheid AP1, keine doppelten Spalten).
+- **Alte Sitzungen** bleiben in localStorage unverändert. Im Export erhalten ihre Bewertungen `scaleVariant = legacy`; nichts wird nachträglich umgedeutet (Test in src/logging/logging.test.js).
+
 ## Noch offen (Entscheid oder Pilot)
 
 - **Wirkt Runde 1 ohne Bilder monoton?** Alle 13 Gruppen zeigen dasselbe Symbol. Im Pilot prüfen (Rückmeldungen, Antwortzeiten, Abbrüche in Runde 1) und Tibor zeigen.
@@ -216,9 +267,39 @@ Folge: Mit `CUISINE_MIN_RATED = 3` entsteht in einer Sitzung meist nur für die 
 - „Kenne ich nicht“ in Runde 1: wenig sinnvoll bei Eier, Milchprodukte, Brot, Pasta, Kartoffeln, Obst, Salat und Rohkost, Gegartes Gemüse; eher sinnvoll bei Hülsenfrüchte, Nüsse und Samen, Reis und andere Getreide, Fisch und Meeresfrüchte. Regelvorschlag: Knopf überall gleich lassen, im Pilot den Anteil je Karte messen.
 - `NEGATIVE_GROUP_POLICY` (Variante a, b oder c) und `STAGE_WEIGHTS` (Werte, Zusammenspiel mit inheritFactor).
 - Umschreibungen der vier Gruppen freigeben.
-- Runde 4 (Gerichte) zählt in diesem Lauf nicht zum Profilstand (nurec B2, Teamentscheid AP1).
+- Runde 4 (Gerichte) zählt in diesem Lauf nicht zum Profilstand (nurec B2, Teamentscheid AP1). Ob sie später mitzählen soll, ist offen.
 - `CUISINE_MIN_RATED` (Wert) und ob Runde 4 die Küchen ausgleichen soll (heute überwiegen Schweizer Gerichte; Tendenzen für andere Küchen entstehen selten).
 - Gerichte mit unvollständigen Zutatendaten (`ingredientData: partial`, 15 von 22): keine positive Eignungsaussage; Rezepte klären.
+
+## Auswirkungen
+
+- **Benutzerfreundlichkeit (50+):** eine Restriktion lässt sich so angeben, wie man sie lebt, ohne Begründung; keine widersprüchlichen Hinweise; Runde und Karte jederzeit sichtbar; kein Scrollen in der Runde; neutrale Gruppenkarten mit grossem Titel; Übersicht mit drei eindeutigen Status. Bedienung weiterhin auch ohne Geste über Knöpfe [V].
+- **Datenqualität:** Jede Bewertung trägt den gezeigten Begriff und die Variante; Gruppen- und Einzelbewertungen bleiben getrennt gespeichert, keine konkrete Bewertung wird durch eine Gruppe überschrieben; Navigation verfälscht keine Antwortzeit; ignorierte URL-Parameter werden sichtbar.
+- **Profil:** Gruppenwerte allein erscheinen nur als Vermutung („vermutlich“), konkrete Bewertungen ohne Einschränkung. Negative Gruppen führen nicht mehr zu blinden Flecken. Bei vielen Ablehnungen werden Runden 2 und 3 länger (nie über das Kartenlimit).
+
+## Datenschutz (offener Punkt zur Klärung)
+
+Angaben zu Allergien und Unverträglichkeiten (Gesundheit) und zu halal oder koscher (möglicher Rückschluss auf religiöse Überzeugungen) können als besonders schützenswerte Personendaten gelten. Das ist bei Einwilligung und Speicherung in der Nutzerstudie zu berücksichtigen und mit den Verantwortlichen zu klären; diese Dokumentation ist keine rechtliche Beurteilung. Umgesetzt: keine Frage nach Religion; Speisevorschriften standardmässig nicht im Protokoll (`PRIVACY.logDietaryRules = false`); Allergie-Werte lassen sich mit `PRIVACY.logExclusionValues = false` auf Typ und Herkunft reduzieren.
+
+## Validierung im Pilot
+
+Diese Entscheidungen beruhen auf Annahmen und sind im Pilot zu prüfen:
+- Variante A gegenüber B (`?r1scale`), Asymmetrie von A; werden die Begriffe als „grobe Einschätzung“ verstanden?
+- Neutrales Symbol: Wirkt Runde 1 monoton, steigen Antwortzeit oder Abbrüche?
+- Verständlichkeit der Gruppen ohne Beispiele, besonders „Gegartes Gemüse“, „Salat und Rohkost“, „Hülsenfrüchte“; Anteil „Kenne ich nicht“ je Gruppenkarte.
+- Halal und koscher: Empfinden Betroffene die Lösung (Vorschläge einzeln bestätigen) als angemessen?
+- Negative Gruppe: Ergeben die Karten am Schluss (Variante a, Quote 2) neue Ausnahmen, oder kosten sie nur Zeit?
+- Esskulturen: Reicht die Zahl bewerteter Gerichte je Küche für eine Tendenz?
+
+## Fragen für Tibor
+
+1. Variante A oder B als Standard für die Hauptstudie, falls der Pilot keinen klaren Unterschied zeigt?
+2. Ist ein gemeinsames neutrales Symbol in Runde 1 in seinem Sinn, oder wünscht er eine andere Lösung, falls Runde 1 monoton wirkt?
+3. Sind „Gegartes Gemüse“ und „Salat und Rohkost“ als Gruppen zu breit? Sollen sie geteilt werden (Katalogänderung)?
+4. Welche Priorisierung nach negativer Gruppe erwartet er fachlich: ans Ende (a), Quote (b) oder abgeschwächte Rangzahl (c)?
+5. Soll Runde 4 die Küchen ausgleichen, damit Tendenzen für mehr als die Schweizer Küche möglich werden?
+6. Ist es in Ordnung, dass Halal und koscher nur Vorschläge auslösen, oder erwartet er eine weitergehende Lösung?
+7. Wie soll die KI-Unterstützung (Claude Code) in der Projektarbeit deklariert werden?
 
 ## Befunde für das Team
 
