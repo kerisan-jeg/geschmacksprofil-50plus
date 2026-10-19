@@ -47,6 +47,10 @@ export const NEGATIVE_GROUP_POLICY = 'last';
 // Folge: Bei vielen Ablehnungen werden Runden 2 und 3 länger als vor dem 19.10. (nie über das Kartenlimit).
 export const NEGATIVE_GROUP_QUOTA_STAGE3 = 2;
 
+// Esskulturen (Dozentenfeedback 19.10.2026, Verbesserung 6): Eine Tendenz zu einer Küche erscheint im Profil erst ab so
+// vielen bewerteten Gerichten dieser Küche. „Kenne ich nicht“ zählt nicht. TODO Team: Wert festlegen (Vorschlag 3).
+export const CUISINE_MIN_RATED = 3;
+
 // Präferenzmodell (src/logic/preferences.js). Annahmen [V], im Pilot zu prüfen und vor der Hauptstudie
 // festzuschreiben (mit neuer RULE_VERSION):
 //   weights        Wert einer direkten Bewertung

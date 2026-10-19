@@ -321,6 +321,8 @@ function App() {
       source: 'swipe',
       ...(response !== UNDO ? { alternatives: selectNextCards(round, config).filter((entry) => entry.id !== card.id).slice(0, 5).map((entry) => entry.id) } : {}),
       ...(extra.excludedCardIds ? { excludedCardIds: extra.excludedCardIds } : {}),
+      // Esskultur als Metadatum der Gerichte (Verbesserung 6), für die Auswertung
+      ...(card.cuisines ? { cuisines: card.cuisines } : {}),
       // Verbesserung 3: gezeigter Begriff und Variante (die Antwortwerte bleiben DISLIKE, LIKE, PREFER …)
       ...(response !== UNDO ? scaleFields(card, response) : {}),
     };

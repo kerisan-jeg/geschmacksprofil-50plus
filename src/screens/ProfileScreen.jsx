@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import foodList from '../data/foods.json';
+import { CUISINE_MIN_RATED } from '../config.js';
+import cuisineData from '../data/cuisines.json';
 import { Ban, ChevronRight, CircleHelp, Layers, LogOut, NotebookPen, Pencil, Plus, RotateCcw, Salad, ShieldAlert, Smartphone, Soup, Sparkles, Utensils, X } from 'lucide-react';
 import AllergenPicker from '../components/AllergenPicker.jsx';
 import Artwork from '../components/Artwork.jsx';
@@ -187,7 +189,7 @@ export default function ProfileScreen({
   const profile = computeProfile(round);
   const derived = derivedEntries(round);
   const progress = profileProgress(round);
-  const board = buildDashboard(round);
+  const board = buildDashboard(round, { cuisines: cuisineData.cuisines });
   const hasTaste = board.favorites.length + board.groups.length + board.dislikes.length + board.unfamiliar.length + board.dishes.length > 0;
   const practicalLines = practicalDefinition ? summarizePractical(practicalDefinition, practical, PRACTICAL) : [];
   const titleOf = (id) => index.get(id) ? displayCardTitle(index.get(id), index, round.exclusions) : id;
@@ -387,6 +389,19 @@ export default function ProfileScreen({
             <p className="note">{board.dishes.length > 0 ? PROFILE.dishesLead : PROFILE.dishesEmpty}</p>
           </div>
           <TasteGroup id="dishes" title={PROFILE.dishesTitle} icon={Soup} entries={board.dishes} index={index} titleOf={titleOf} onSelect={openRating} />
+          <section className="stack-tight" aria-labelledby="cuisines-title">
+            <h3 id="cuisines-title" className="subsection-title">
+              {PROFILE.cuisinesTitle}
+            </h3>
+            {board.cuisines.length > 0 && (
+              <ul className="detail-lines">
+                {board.cuisines.map((entry) => (
+                  <li key={entry.id}>{PROFILE.cuisineLine(entry.label, entry.direction, entry.rated)}</li>
+                ))}
+              </ul>
+            )}
+            <p className="note">{PROFILE.cuisinesNote(CUISINE_MIN_RATED)}</p>
+          </section>
         </section>
       )}
 

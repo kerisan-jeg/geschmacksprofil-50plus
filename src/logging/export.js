@@ -30,6 +30,7 @@ export const CSV_COLUMNS = [
   'phase',
   'labelShown',
   'scaleVariant',
+  'cuisines',
   'kind',
   'alternatives',
   'excludedCardIds',

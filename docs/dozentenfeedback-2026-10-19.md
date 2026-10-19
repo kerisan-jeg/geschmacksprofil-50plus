@@ -2,7 +2,7 @@
 
 Quellen: [A] Aufgabenstellung, [K] Dozentenfeedback 19.10.2026, [B] Befragung/Beobachtung, [D] Entwurf nurec v0.2, [V] eigene Annahme des Teams.
 
-Stand: Arbeitspakete 1 (Verbesserungen 1 und 2) und 2 (Verbesserungen 3, 4 und 5). Arbeitspaket 3 folgt nach Freigabe.
+Stand: Arbeitspakete 1 (Verbesserungen 1 und 2), 2 (Verbesserungen 3, 4 und 5) und 3 (Verbesserungen 6, 7 und 8).
 
 ## Arbeitspaket 1: Vorfilter und Restriktionen
 
@@ -164,6 +164,39 @@ Hülsenfrüchte ohne Umschreibung (Teamentscheid). Die übrigen Begriffe gelten 
 - Mobil-Check (scripts/check-mobile.py) prüft auf **jeder Karte** aller Runden: Seite scrollt nicht; Karte, Antwortknöpfe, „Kenne ich nicht“, „Vertrage ich nicht“ liegen im Bild; Titel und Text der Karte sind nicht abgeschnitten. Bei 130 % Schrift: kein Scrollen, Antwortknöpfe sichtbar, Kartentext nicht abgeschnitten. Scrollen wird als Befund gemeldet.
 - Ergebnis: 360 × 640 und 430 × 932, je 100 % und 130 %: keine Befunde. Bei 130 % auf 360 × 640 ist das Bild der Karte klein oder fehlt.
 
+## Arbeitspaket 3: Gerichte, Rundenübersicht, Alltag
+
+### Verbesserung 6: Gerichte nach Esskulturen [K]
+
+- Jedes Gericht trägt `cuisines` (IDs) im Katalog; die Anzeigenamen stehen zentral in src/data/cuisines.json. „Asiatisch“ ist Oberbegriff (`parent`); differenziert ist nur, wo Gerichte im Katalog sind (thailändisch, chinesisch). Die beiden Currys bleiben „asiatisch“ (Teamentscheid AP1). Chili con Carne gilt als mexikanisch (Tex-Mex, Annahme [V]).
+- **Nur Metadatum** [V]: Die Küche erscheint nie auf der Karte, weil ein Label wie „Schweizer Küche“ die Bewertung beeinflussen kann. Sie steht in jedem Antwort-Ereignis eines Gerichts (`cuisines`, auch im CSV) für die Auswertung.
+- **Vorsichtige Tendenz** im Profil (Abschnitt Gerichte, „Tendenz nach Küche“): erst ab `CUISINE_MIN_RATED = 3` bewerteten Gerichten einer Küche (TODO Team), formuliert als „eher gern / eher ungern / gemischt“, nie als feste Vorliebe. „Kenne ich nicht“ zählt nicht (auch nicht negativ). Unterküchen zählen für den Oberbegriff.
+- Keine Abfrage oder Ableitung von Nationalität oder Herkunft, keine Annahme, dass jemand die Küche seines Landes bevorzugt.
+
+**Vier Zusatzgerichte** (Teamfreigabe nach AP2), mit Allergenen, Tierherkunft inkl. Fleischart, Zutaten-Karten, `ingredientNames` und `ingredientData`:
+
+| ID | Gericht | Küche | ingredientData | Grund für partial |
+|---|---|---|---|---|
+| D19 | Pad Thai mit Crevetten | thailändisch | partial | Fischsauce, Sojasauce und Ei je nach Rezept, konservativ getaggt |
+| D20 | Frühlingsrollen mit Gemüse | chinesisch | partial | Füllung je nach Rezept auch mit Schweinefleisch, Crevetten oder Ei |
+| D21 | Enchiladas mit Poulet | mexikanisch | partial | Tortillas aus Mais oder Weizen, mit Weizen getaggt |
+| D22 | Ratatouille | französisch | complete | – |
+
+**Bildnachweise:** Kein Gericht im Katalog hat ein Foto; alle 22 zeigen die eigene Illustration public/illustrations/dish.svg (Teamarbeit, keine Fremdrechte). Die vier neuen Gerichte ebenso. Fotos für Gerichte wären eine eigene Aufgabe (mit Nachweisen in src/data/image-credits.json wie bei den Lebensmitteln).
+
+**Verteilung** (22 Gerichte): schweizerisch 9, italienisch 5, mexikanisch 2, asiatisch 4 (davon thailändisch 1, chinesisch 1, Currys 2), österreichisch 1, französisch 1.
+
+**Wie viele erscheinen in Runde 4?** Höchstens das Kartenlimit, sortiert nach Nähe zu den Zutaten (`openDishes`, bei Gleichstand Katalogreihenfolge). Simulation mit drei Geschmacksprofilen (src/test/simulate.js, ohne Ausschlüsse):
+
+| Limit | Profil | Gezeigte Küchen |
+|---|---|---|
+| 10 | alles „Mag ich“ | schweizerisch 5, italienisch 1, mexikanisch 1, österreichisch 1, Curry 1, thailändisch 1 |
+| 10 | Gemüse und Reis „sehr“, Fleisch „nicht“ | schweizerisch 5, italienisch 2, Curry 2, thailändisch 1 |
+| 13 | alles „Mag ich“ | schweizerisch 6, italienisch 2, Curry 2, thailändisch 1, chinesisch 1, mexikanisch 1 |
+| 13 | „Fisch sehr“ | schweizerisch 6, italienisch 2, Curry 2, thailändisch 1, chinesisch 1, mexikanisch 1 |
+
+Folge: Mit `CUISINE_MIN_RATED = 3` entsteht in einer Sitzung meist nur für die schweizerische Küche und (über den Oberbegriff) für die asiatische eine Tendenz. Für italienisch, mexikanisch, französisch und österreichisch reicht es selten. Die Reihenfolge der Gerichte ist Teil der Auswahllogik (Eigenleistung Team) und wurde nicht geändert; ein Ausgleich nach Küchen wäre eine eigene Entscheidung (siehe „Noch offen“).
+
 ## Noch offen (Entscheid oder Pilot)
 
 - **Wirkt Runde 1 ohne Bilder monoton?** Alle 13 Gruppen zeigen dasselbe Symbol. Im Pilot prüfen (Rückmeldungen, Antwortzeiten, Abbrüche in Runde 1) und Tibor zeigen.
@@ -172,6 +205,8 @@ Hülsenfrüchte ohne Umschreibung (Teamentscheid). Die übrigen Begriffe gelten 
 - `NEGATIVE_GROUP_POLICY` (Variante a, b oder c) und `STAGE_WEIGHTS` (Werte, Zusammenspiel mit inheritFactor).
 - Umschreibungen der vier Gruppen freigeben.
 - Runde 4 (Gerichte) zählt in diesem Lauf nicht zum Profilstand (nurec B2, Teamentscheid AP1).
+- `CUISINE_MIN_RATED` (Wert) und ob Runde 4 die Küchen ausgleichen soll (heute überwiegen Schweizer Gerichte; Tendenzen für andere Küchen entstehen selten).
+- Gerichte mit unvollständigen Zutatendaten (`ingredientData: partial`, 15 von 22): keine positive Eignungsaussage; Rezepte klären.
 
 ## Befunde für das Team
 

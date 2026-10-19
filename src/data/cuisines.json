@@ -1,0 +1,41 @@
+{
+  "note": "Esskulturen der Gerichte (Dozentenfeedback 19.10.2026, Verbesserung 6). Nur Metadatum: Die Küche erscheint nie auf der Karte, weil ein Label wie „Schweizer Küche“ die Bewertung beeinflussen kann [V]. Differenziert nur dort, wo Gerichte im Katalog sind; „Asiatisch“ ist Oberbegriff (parent) und gilt für Gerichte ohne genauere Zuordnung (Currys). Keine Abfrage oder Ableitung von Nationalität oder Herkunft.",
+  "cuisines": [
+    {
+      "id": "swiss",
+      "label": "Schweizer Küche"
+    },
+    {
+      "id": "italian",
+      "label": "Italienische Küche"
+    },
+    {
+      "id": "french",
+      "label": "Französische Küche"
+    },
+    {
+      "id": "austrian",
+      "label": "Österreichische Küche"
+    },
+    {
+      "id": "mexican",
+      "label": "Mexikanische Küche",
+      "note": "inkl. Tex-Mex (Chili con Carne, Zuordnung als Annahme [V])"
+    },
+    {
+      "id": "asian",
+      "label": "Asiatische Küche",
+      "note": "Oberbegriff; direkt nur für Gerichte ohne genauere Zuordnung (Currys)"
+    },
+    {
+      "id": "thai",
+      "label": "Thailändische Küche",
+      "parent": "asian"
+    },
+    {
+      "id": "chinese",
+      "label": "Chinesische Küche",
+      "parent": "asian"
+    }
+  ]
+}

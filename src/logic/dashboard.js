@@ -20,6 +20,7 @@ import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR, isTasteSignal } from './
 import { isConcrete, isDish } from './catalog.js';
 import { isVisible } from './filter.js';
 import { branchCards, currentRating, isDone, isUsable, rankedCards, REASONS, SELECTION } from './selection.js';
+import { cuisineTendencies } from './cuisines.js';
 
 const LIKED = [LIKE, PREFER];
 const BRANCH_REASONS = [REASONS.AFTER_UNFAMILIAR, REASONS.EXCEPTION, REASONS.CONTRAST];
@@ -79,7 +80,8 @@ export function profileProgress(state, weights = PROFILE_PROGRESS) {
 //   unasked:    zulässige Gruppen, die noch nie gefragt wurden
 //   details:    Feinheiten roh gegenüber gegart, nur wenn beide beantwortet sind und sich unterscheiden
 //   dishes:     bewertete Gerichte (Stufe 4), getrennt von den Lebensmitteln
-export function buildDashboard(state) {
+//   cuisines:   vorsichtige Tendenz je Esskultur, erst ab CUISINE_MIN_RATED bewerteten Gerichten (cuisines.js)
+export function buildDashboard(state, { cuisines: cuisineTable = [] } = {}) {
   const { index } = state;
   const rated = ratedIds(state)
     .map((id) => ({ card: index.get(id), rating: currentRating(state, id) }))
@@ -121,5 +123,5 @@ export function buildDashboard(state) {
     .map(({ cooked, raw }) => ({ rawId: raw.id, cookedId: cooked.id, raw: currentRating(state, raw.id), cooked: currentRating(state, cooked.id) }));
 
   const dishes = rated.filter((entry) => isDish(entry.card) && isTasteSignal(entry.rating)).map((entry) => ({ id: entry.card.id, rating: entry.rating }));
-  return { favorites, groups, dislikes, unfamiliar, unasked, details, dishes };
+  return { favorites, groups, dislikes, unfamiliar, unasked, details, dishes, cuisines: cuisineTendencies(index, dishes, cuisineTable) };
 }

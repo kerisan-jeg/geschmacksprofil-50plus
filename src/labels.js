@@ -462,6 +462,11 @@ export const PROFILE = {
   dishesTitle: 'Gerichte',
   dishesLead: 'Getrennt von den Lebensmitteln: Ein Gericht sagt nichts über seine Zutaten.',
   dishesEmpty: 'Noch keine Gerichte bewertet. Das ist freiwillig.',
+  // Esskulturen: nur Tendenz, erst ab CUISINE_MIN_RATED bewerteten Gerichten einer Küche
+  cuisinesTitle: 'Tendenz nach Küche',
+  cuisineLine: (label, direction, rated) =>
+    `${label}: ${{ LIKE: 'eher gern', DISLIKE: 'eher ungern', MIXED: 'gemischt' }[direction]} (${rated} Gerichte bewertet)`,
+  cuisinesNote: (min) => `Eine Tendenz zeigen wir erst ab ${min} bewerteten Gerichten einer Küche. „Kenne ich nicht“ zählt nicht.`,
   dishesAction: (some) => (some ? 'Weitere Gerichte bewerten' : 'Gerichte bewerten'),
   practicalTitle: 'Alltag',
   practicalLead: 'Freiwillig. Hilft später bei Vorschlägen, die zu deinem Alltag passen. Wirkt noch nicht auf die Karten.',
