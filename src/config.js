@@ -22,6 +22,27 @@ export const SELECTION_MODE = 'adaptive';
 export const HOLDOUT_CARDS = 6;
 export const HOLDOUT_RANGE = { min: 0, max: 10 };
 
+// Bewertungsbegriffe in Runde 1 (Dozentenfeedback 19.10.2026, Verbesserung 3; Teamentscheid [V]):
+//   3  Eher ungern / Eher gern / Sehr gern (Standard, Variante A)
+//   2  Eher ungern / Eher gern (Variante B): Wischen nach oben und der Knopf „Sehr gern“ entfallen
+// Die internen Antwortwerte bleiben DISLIKE, LIKE, PREFER; jedes Ereignis trägt labelShown und scaleVariant.
+// Im Pilot über ?r1scale=2 umschaltbar, ohne neuen Build.
+export const R1_SCALE = 3;
+export const R1_SCALE_VALUES = [2, 3];
+
+// Gewicht einer direkten Bewertung je Ebene (Stufe 1 Gruppe … Stufe 4 Gericht). TODO Team: Werte festlegen.
+// Standard 1 auf allen Stufen = keine Wirkung. Zusammenspiel mit inheritFactor: docs/dozentenfeedback-2026-10-19.md.
+export const STAGE_WEIGHTS = { 1: 1, 2: 1, 3: 1, 4: 1 };
+
+// Negative Gruppe („Mag ich nicht“ bzw. „Eher ungern“) ist kein Ausschluss (Dozentenfeedback 19.10.2026).
+// Wie stark sie die Priorität der Unterkarten senkt, entscheidet das Team. TODO Team: Variante wählen.
+//   'last'  (a) Unterkarten kommen nach allen anderen Karten der Runde, nur wenn das Kartenlimit Platz lässt.
+//           Einzige umgesetzte Variante (vorläufiger Platzhalter).
+//   (b) Quote: pro negativer Gruppe höchstens N weitere Unterkarten (nicht umgesetzt).
+//   (c) Abgeschwächte Rangzahl: Unterkarten werden mit einem Faktor nach hinten sortiert statt in einer
+//       festen letzten Stufe (nicht umgesetzt).
+export const NEGATIVE_GROUP_POLICY = 'last';
+
 // Präferenzmodell (src/logic/preferences.js). Annahmen [V], im Pilot zu prüfen und vor der Hauptstudie
 // festzuschreiben (mit neuer RULE_VERSION):
 //   weights        Wert einer direkten Bewertung
@@ -33,6 +54,7 @@ export const PREFERENCE_MODEL = {
   weights: { DISLIKE: -1, LIKE: 1, PREFER: 2 },
   inheritFactor: 0.5,
   siblingWeight: 0,
+  stageWeights: STAGE_WEIGHTS,
 };
 
 // Profilstand „Profil aufgebaut“ (nurec v0.2, Anhang B2): ein Erfassungsgrad, keine Trefferquote.
@@ -78,6 +100,7 @@ export const FIREBASE_CONFIG = firebaseConfigFrom(import.meta.env ?? {});
 //   ?sms=sim           SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne Handy)
 //   ?selection=fixed   feste Reihenfolge statt adaptiver Auswahl (Vergleich)
 //   ?holdout=4         Anzahl Kontrollkarten, gültig 0 bis 10 (0 = keine)
+//   ?r1scale=2         Bewertungsbegriffe in Runde 1: 3 (Standard) oder 2
 // ?tutorial wirkt seit dem 13.10. nicht mehr (Tutorial nur über TUTORIAL_ENABLED).
 // Die effektiven Werte werden in jeder Sitzung gespeichert.
 // Begründung [V]: Kernfrage 2 (Anzahl Abfragen) [A] soll im Test ohne neuen Build vergleichbar sein.
@@ -90,6 +113,7 @@ export const DEFAULT_CONFIG = {
   sms: FIREBASE_CONFIG ? 'firebase' : 'simulation', // echte SMS oder Simulation
   selection: SELECTION_MODE,
   holdout: HOLDOUT_CARDS,
+  r1scale: R1_SCALE,
 };
 
 export const ROUND_CARD_LIMIT_RANGE = { min: 4, max: 15 };
@@ -136,6 +160,10 @@ export function resolveConfig(search = '') {
   const holdout = integerParam(params, 'holdout', HOLDOUT_RANGE);
   if (holdout !== null) config.holdout = holdout;
   else ignore('holdout');
+
+  const r1scale = params.get('r1scale')?.trim();
+  if (R1_SCALE_VALUES.map(String).includes(r1scale)) config.r1scale = Number(r1scale);
+  else ignore('r1scale');
 
   // ?tutorial wirkt seit dem 13.10. nicht mehr
   ignore('tutorial');

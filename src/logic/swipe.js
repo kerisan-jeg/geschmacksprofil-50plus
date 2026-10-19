@@ -8,8 +8,9 @@
 
 import { DISLIKE, LIKE, PREFER } from './answers.js';
 
-export function swipeIntent(dx, dy, swipe) {
-  if (-dy > Math.abs(dx)) return { answer: PREFER, strength: Math.min(1, -dy / swipe.thresholdUp) };
+// options.allowUp false (Runde 1 mit ?r1scale=2): Nach oben gibt es keine Antwort, die Karte springt zurück.
+export function swipeIntent(dx, dy, swipe, { allowUp = true } = {}) {
+  if (-dy > Math.abs(dx)) return allowUp ? { answer: PREFER, strength: Math.min(1, -dy / swipe.thresholdUp) } : null;
   if (dx > 0) return { answer: LIKE, strength: Math.min(1, dx / swipe.thresholdX) };
   if (dx < 0) return { answer: DISLIKE, strength: Math.min(1, -dx / swipe.thresholdX) };
   return null;
@@ -24,19 +25,19 @@ export function labelOpacity(strength, swipe) {
 }
 
 // Ein schneller, kurzer Wisch zählt auch, wenn die Distanz noch nicht erreicht ist.
-export function flingAnswer({ dx, dy, vx, vy }, swipe) {
+export function flingAnswer({ dx, dy, vx, vy }, swipe, { allowUp = true } = {}) {
   const { flingVelocity: v, flingMinDistance: d } = swipe;
-  if (-dy > Math.abs(dx) && -dy > d && -vy > v) return PREFER;
+  if (-dy > Math.abs(dx) && -dy > d && -vy > v) return allowUp ? PREFER : null;
   if (Math.abs(dx) > d && Math.abs(vx) > v && Math.sign(vx) === Math.sign(dx)) return dx > 0 ? LIKE : DISLIKE;
   return null;
 }
 
 // Entscheidung beim Loslassen: eine Antwort, wenn die Schwelle erreicht oder schnell geschnippt wurde.
 // null heisst: unter der Schwelle, die Karte springt zurück (keine Fehlauslösung).
-export function resolveRelease(motion, swipe) {
-  const fling = flingAnswer(motion, swipe);
+export function resolveRelease(motion, swipe, options = {}) {
+  const fling = flingAnswer(motion, swipe, options);
   if (fling) return fling;
-  const intent = swipeIntent(motion.dx, motion.dy, swipe);
+  const intent = swipeIntent(motion.dx, motion.dy, swipe, options);
   return intent && intent.strength >= 1 ? intent.answer : null;
 }
 

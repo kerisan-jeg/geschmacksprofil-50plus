@@ -34,6 +34,19 @@
   object-fit: contain;
 }
 
+/* Neutrales Symbol der Gruppen: gleich auf allen Karten, Kontrast über 3:1 auf jeder Kartenfarbe */
+.artwork-neutral {
+  width: 62%;
+  height: 100%;
+  max-height: var(--size-neutral-symbol-max);
+  color: var(--color-ink-secondary);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .artwork-fallback-icon {
   width: var(--size-icon-xl);
   height: var(--size-icon-xl);
@@ -195,6 +208,27 @@
   hyphenate-limit-chars: 10 4 4;
 }
 
+/* Gruppen (Runde 1): grosser Titel, neutrale Umschreibung statt Beispielen. Das Symbol bleibt sichtbar:
+   eigene Mindesthöhe und Platz oben für Hinweise wie „Ohne Schweinefleisch“ (auf 360 × 640 scrollt die
+   erste Karte mit Einleitung dann leicht, wie bei 130 % Schrift). */
+.deck .card-face.is-group .card-art {
+  min-height: var(--size-card-art-group-min);
+}
+
+.card-face.is-group .artwork-placeholder {
+  padding: var(--space-group-art-top) var(--space-3) var(--space-2);
+}
+
+.deck .card-face.is-group .card-title {
+  font-size: calc(var(--card-title-size) * 1.15);
+}
+
+.card-description {
+  color: var(--color-ink-secondary);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-snug);
+}
+
 .card-examples {
   font-size: var(--font-size-body);
   font-weight: var(--font-weight-semibold);
@@ -306,6 +340,20 @@
   }
 }
 
+/* Weniger Bewegung: keine Verschiebung, aber ein kurzes Überblenden, damit der Kartenwechsel sichtbar bleibt
+   (alle Gruppen zeigen dasselbe Symbol). --duration-card-fade ist nur bei reduzierter Bewegung gesetzt. */
+@media (prefers-reduced-motion: reduce) {
+  .swipe-card-inner {
+    animation: card-fade var(--duration-card-fade) linear;
+  }
+}
+
+@keyframes card-fade {
+  from {
+    opacity: 0.15;
+  }
+}
+
 /* ---------- Rückmeldung beim Ziehen: Beschriftung, Deckkraft wächst mit der Distanz ---------- */
 
 .feedback {
@@ -354,7 +402,7 @@
 
 .answer-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--count, 3), minmax(0, 1fr));
   gap: var(--space-2);
 }
 

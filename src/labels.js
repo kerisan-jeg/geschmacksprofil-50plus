@@ -17,6 +17,17 @@ export const ANSWER_LABELS = {
   INTOLERANT: 'Vertrage ich nicht',
 };
 
+// Bewertungsbegriffe je Variante (Dozentenfeedback 19.10.2026, Verbesserung 3). Die internen Werte bleiben
+// DISLIKE, LIKE, PREFER; welcher Begriff gezeigt wurde, steht als labelShown im Ereignis.
+//   r1-3      Runde 1 (Gruppen), Standard
+//   r1-2      Runde 1 mit ?r1scale=2: ohne „Sehr gern“
+//   standard  Runden 2 bis 4 (A3)
+export const SCALE_LABELS = {
+  'r1-3': { DISLIKE: 'Eher ungern', LIKE: 'Eher gern', PREFER: 'Sehr gern' },
+  'r1-2': { DISLIKE: 'Eher ungern', LIKE: 'Eher gern' },
+  standard: { DISLIKE: ANSWER_LABELS.DISLIKE, LIKE: ANSWER_LABELS.LIKE, PREFER: ANSWER_LABELS.PREFER },
+};
+
 export const ANSWER_HINTS = {
   DISLIKE: 'Nach links wischen oder tippen',
   LIKE: 'Nach rechts wischen oder tippen',
@@ -329,8 +340,13 @@ export const ROUND = {
   cardKind: 'Lebensmittelgruppe',
   dishKind: 'Gericht',
   examplesLabel: 'Zum Beispiel',
-  cardDescription: ({ title, notes, examples }) =>
-    [title, notes?.join(', '), examples.length > 0 && `Zum Beispiel ${examples.join(', ')}`].filter(Boolean).join('. '),
+  cardDescription: ({ title, notes, examples, description, stage }) =>
+    [title, description, notes?.join(', '), stage !== 1 && examples.length > 0 && `Zum Beispiel ${examples.join(', ')}`].filter(Boolean).join('. '),
+  // Rundenanzeige über dem Kartenstapel (Verbesserung 5). Namen nach dem Stufenablauf.
+  roundNames: { 1: 'Lebensmittelgruppen', 2: 'Genauer nachgefragt', 3: 'Einzelne Lebensmittel', 4: 'Gerichte' },
+  roundOf: (round, total, name) => `Runde ${round} von ${total} · ${name}`,
+  // Einleitung in Runde 1 (Verbesserung 3), solange noch keine Karte beantwortet ist
+  round1Intro: 'Hier geht es um eine erste grobe Einschätzung. Einzelne Lebensmittel fragen wir später genauer.',
   // Bestätigung nach „Vertrage ich nicht“ (A4)
   intolerantToast: (names) => `Wir schlagen dir ${names} nicht mehr vor.`,
   intolerantPickerTitle: 'Was verträgst du nicht?',
@@ -552,8 +568,8 @@ export const ERRORS = {
 export const ADMIN = {
   kicker: 'Nur für die Testleitung',
   title: 'Sitzungen',
-  lead: ({ sessions, events, limit, tutorial, imageStyle, selection, holdout }) =>
-    `${plural(sessions, 'Sitzung', 'Sitzungen')} mit ${plural(events, 'Ereignis', 'Ereignissen')} auf diesem Gerät. Nächste Testperson startet mit ${limit} Karten pro Runde, Tutorial ${tutorial ? 'an' : 'aus'}, ${imageStyle === 'illustration' ? 'Illustrationen' : 'Fotos'}, ${selection === 'fixed' ? 'fester Reihenfolge' : 'adaptiver Auswahl'} und ${plural(holdout, 'Kontrollkarte', 'Kontrollkarten')}.`,
+  lead: ({ sessions, events, limit, tutorial, imageStyle, selection, holdout, r1scale }) =>
+    `${plural(sessions, 'Sitzung', 'Sitzungen')} mit ${plural(events, 'Ereignis', 'Ereignissen')} auf diesem Gerät. Nächste Testperson startet mit ${limit} Karten pro Runde, Tutorial ${tutorial ? 'an' : 'aus'}, ${imageStyle === 'illustration' ? 'Illustrationen' : 'Fotos'}, ${selection === 'fixed' ? 'fester Reihenfolge' : 'adaptiver Auswahl'}, ${plural(holdout, 'Kontrollkarte', 'Kontrollkarten')} und Skala Runde 1: ${r1scale}.`,
   newParticipant: 'Neue Testperson starten',
   exportJson: 'Export JSON (alles)',
   exportCsv: 'Export CSV (Ereignisse)',

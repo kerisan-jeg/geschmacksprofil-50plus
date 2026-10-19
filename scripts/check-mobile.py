@@ -163,7 +163,8 @@ def run(p, W, H):
     pg.get_by_role('button', name='Stimmt so').click(); check(pg, 'runde', results, W)
     # Reduced motion: Karte verlässt den Stapel ohne Animation
     trans = pg.evaluate("getComputedStyle(document.querySelector('.swipe-card')).transitionDuration + ' / ' + getComputedStyle(document.querySelector('.swipe-card-inner')).animationDuration")
-    pg.get_by_role('button', name='Mag ich', exact=True).click()
+    # Runde 1: eigene Begriffe (Dozentenfeedback 19.10.): Eher ungern / Eher gern / Sehr gern
+    pg.get_by_role('button', name='Eher gern', exact=True).click()
     pg.wait_for_timeout(60)
     after = pg.locator('.progress-text').inner_text()
     pg.get_by_role('button', name='Vertrage ich nicht').click(); pg.wait_for_timeout(300)
@@ -171,8 +172,8 @@ def run(p, W, H):
         check(pg, 'runde_sheet', results, W)
         pg.locator('.sheet .choice').nth(1).click(); pg.get_by_role('button', name='Übernehmen').click()
     check(pg, 'runde_bestaetigung', results, W)
-    pg.get_by_role('button', name='Mag ich nicht').click(); pg.wait_for_timeout(150)
-    pg.get_by_role('button', name='Mag ich sehr').click(); pg.wait_for_timeout(300)
+    pg.get_by_role('button', name='Eher ungern').click(); pg.wait_for_timeout(150)
+    pg.get_by_role('button', name='Sehr gern').click(); pg.wait_for_timeout(300)
     check(pg, 'abschluss', results, W)
     # Runde 2 (adaptive Auswahl): übrige Gruppen, dann je nach Antwort; danach zurück zum Abschluss
     pg.get_by_role('button', name='Weiter mit Runde 2').click(); check(pg, 'runde_2', results, W)
@@ -198,14 +199,14 @@ def run(p, W, H):
     pg.wait_for_selector('.screen-complete')
     pg.get_by_role('button', name='Mein Profil ansehen').click(); check(pg, 'profil', results, W)
     pg.locator('button.taste-row').first.click(); check(pg, 'profil_bewertung', results, W)
-    pg.get_by_role('radio', name='Mag ich', exact=True).click(); pg.wait_for_timeout(200)
+    pg.get_by_role('radio', name=re.compile('^(Mag ich|Eher gern)$')).click(); pg.wait_for_timeout(200)
     # Vermutungen der App: getrennt und gestrichelt; alle anzeigen und eine Vermutung direkt bewerten
     more = pg.locator('.is-derived .more-button')
     if more.count():
         more.first.click(); pg.wait_for_timeout(150)
     pg.locator('.is-derived').first.scroll_into_view_if_needed(); check(pg, 'profil_vermutungen', results, W)
     pg.locator('.is-derived button.taste-row').first.click(); check(pg, 'profil_vermutung_bewerten', results, W)
-    pg.get_by_role('radio', name='Mag ich sehr').click(); pg.wait_for_timeout(200)
+    pg.get_by_role('radio', name=re.compile('^(Mag ich sehr|Sehr gern)$')).click(); pg.wait_for_timeout(200)
     pg.mouse.wheel(0, -8000); pg.wait_for_timeout(150)
     pg.get_by_role('button', name='Ändern', exact=True).first.click(); check(pg, 'profil_allergien', results, W)
     pg.get_by_role('button', name='Abbrechen').click()

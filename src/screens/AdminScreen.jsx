@@ -59,6 +59,7 @@ export default function AdminScreen() {
             imageStyle: config.imageStyle,
             selection: config.selection,
             holdout: config.holdout,
+            r1scale: config.r1scale,
           })}
         </p>
         {config.ignoredParams && (

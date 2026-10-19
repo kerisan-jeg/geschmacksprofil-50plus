@@ -70,7 +70,7 @@ test('„Alle Nüsse“ schliesst Erdnüsse ein; eine Erdnuss allein bleibt einz
 test('Frage 3: Treffer wird zum harten Ausschluss; Schweinefleisch führt auf dieselbe ID wie Frage 1, Teil B', () => {
   const answers = answersWith({ never: yes3({ selected: ['card:F01.3', 'animalOrigin:seafood', 'card:F05.4'] }) });
   const result = derive(answers);
-  assert.deepEqual(result.exclusions.map(({ type, value }) => [type, value]), [['animalOrigin', 'pork'], ['animalOrigin', 'seafood'], ['card', 'F05.4']]);
+  assert.deepEqual(result.exclusions.map(({ type, value }) => [type, value]), [['animalOrigin', 'pork'], ['animalOrigin', 'gelatin'], ['animalOrigin', 'seafood'], ['card', 'F05.4']]);
   assert.equal(result.exclusions[0].label, 'Schweinefleisch');
   assert.equal(result.exclusions[0].selectedAs, 'card:F01.3', 'Herkunft der Eingabe bleibt erhalten');
   const ids = families(answers);

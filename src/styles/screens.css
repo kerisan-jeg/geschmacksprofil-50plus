@@ -394,6 +394,18 @@
   padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
 }
 
+/* Rundenanzeige (Verbesserung 5): Runde und Name, darunter der Fortschritt der Runde (round-status) */
+.round-head {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.round-title {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-snug);
+}
+
 .round-status {
   display: grid;
   min-height: var(--size-touch);

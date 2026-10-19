@@ -1,18 +1,22 @@
-import { useRef } from 'react';
+import { useContext, useRef } from 'react';
 import { Trash2 } from 'lucide-react';
 import Sheet from './Sheet.jsx';
-import { ANSWER_META } from './answerMeta.js';
+import { metaFor, ScaleConfigContext } from './answerMeta.js';
 import { DISLIKE, LIKE, PREFER } from '../logic/answers.js';
+import { allowsPrefer, scaleVariant } from '../logic/scale.js';
 import { PROFILE } from '../labels.js';
 
-const RATINGS = [DISLIKE, LIKE, PREFER];
+const ALL_RATINGS = [DISLIKE, LIKE, PREFER];
 
 // Bewertung eines Eintrags ändern: Segmented Control mit den drei Bewertungen (Farbe, Symbol, Text)
 // und „Aus dem Profil entfernen“. Jede Änderung wird ein Ereignis RATING_CHANGED (source "profile");
 // die ursprüngliche Antwort beim Wischen bleibt im Protokoll.
 // Für Vermutungen der App: eigener Einleitungssatz (intro) und Hinweis (note), ohne „Entfernen“ (onRemove fehlt).
+// Begriffe wie in der Runde (Gruppen: „Eher ungern / Eher gern / Sehr gern“); ohne „Sehr gern“ bei ?r1scale=2.
 export default function RatingSheet({ card, rating, intro = PROFILE.ratingLabel, note = PROFILE.ratingNote, onChange, onRemove, onClose }) {
   const groupRef = useRef(null);
+  const variant = scaleVariant(card, useContext(ScaleConfigContext));
+  const RATINGS = ALL_RATINGS.filter((answer) => answer !== PREFER || allowsPrefer(variant) || rating === PREFER);
 
   // Pfeiltasten wie bei Radio-Knöpfen
   function handleKey(event) {
@@ -28,7 +32,7 @@ export default function RatingSheet({ card, rating, intro = PROFILE.ratingLabel,
     <Sheet title={card.title} intro={intro} onClose={onClose}>
       <div className="segmented" role="radiogroup" aria-label={PROFILE.ratingLabel} ref={groupRef} onKeyDown={handleKey}>
         {RATINGS.map((answer) => {
-          const { Icon, label, tone } = ANSWER_META[answer];
+          const { Icon, label, tone } = metaFor(answer, variant);
           const checked = rating === answer;
           return (
             <button

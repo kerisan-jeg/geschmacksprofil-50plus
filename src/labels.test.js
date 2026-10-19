@@ -65,9 +65,12 @@ function hardCodedTexts(file) {
 
 test('Die alten Begriffe erscheinen nirgends in der Oberfläche', () => {
   // Gross geschrieben wie in der Oberfläche; die internen Konstanten (DISLIKE) bleiben erlaubt.
+  // „Eher ungern“ gibt es seit dem Dozentenfeedback vom 19.10.2026 wieder, aber nur als Begriff für Runde 1
+  // (SCALE_LABELS in labels.js), nirgends sonst.
   const forbidden = /\b(Dislike|Superlike|Super-Like|Eher ungern|Besonders gern)\b/;
   for (const file of [...jsxFiles(), join(SRC, 'labels.js')]) {
-    const text = codeOf(file);
+    let text = codeOf(file);
+    if (file.endsWith('labels.js')) text = text.replace(/export const SCALE_LABELS = \{[\s\S]*?\n\};/, '');
     assert.ok(!forbidden.test(text), `${file} enthält einen alten Begriff`);
   }
 });

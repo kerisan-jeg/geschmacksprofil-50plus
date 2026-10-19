@@ -28,6 +28,8 @@ export const CSV_COLUMNS = [
   ...EVENT_FIELDS,
   'round',
   'phase',
+  'labelShown',
+  'scaleVariant',
   'kind',
   'alternatives',
   'excludedCardIds',
@@ -57,6 +59,7 @@ export const CSV_COLUMNS = [
   'sms',
   'selection',
   'holdout',
+  'r1scale',
   'appVersion',
   'sessionStartedAt',
   'sessionEndedAt',
@@ -89,6 +92,8 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
       // Sitzungen vor Version 0.7: feste Reihenfolge, keine Kontrollkarten
       selection: session.config?.selection ?? 'fixed',
       holdout: session.config?.holdout ?? 0,
+      // Sitzungen vor dem Dozentenfeedback: keine eigenen Begriffe in Runde 1 (leer)
+      r1scale: session.config?.r1scale ?? null,
       appVersion: session.appVersion,
       sessionStartedAt: session.startedAt,
       sessionEndedAt: session.endedAt,

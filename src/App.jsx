@@ -6,6 +6,8 @@ import foodList from './data/foods.json';
 import practicalDefinition from './data/practical.json';
 import { cardLimit, isAdminMode, normalizeConfig, resolveConfig } from './config.js';
 import { ImageFilterContext, ImageStyleContext } from './lib/images.js';
+import { ScaleConfigContext } from './components/answerMeta.js';
+import { labelShown, scaleVariant } from './logic/scale.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
 import { buildProfile, eligibleFamilies, hasMoreCards, isDishRound, isHoldoutCard, nextCard, nextRoundCards, nextRoundNumber, RULE_VERSION, selectionReason, selectNextCards } from './logic/engine.js';
@@ -168,10 +170,11 @@ function App() {
   }
 
   const profileHandlers = {
-    rating: (cardId, rating, previousRating) => profileChange({ type: RATING_CHANGED, cardId, rating, previousRating: previousRating ?? null }),
+    rating: (cardId, rating, previousRating) =>
+      profileChange({ type: RATING_CHANGED, cardId, rating, previousRating: previousRating ?? null, ...(rating ? scaleFields(INDEX.get(cardId), rating) : {}) }),
     // Vermutung der App direkt bewertet: wird zur direkten Bewertung; die Vermutung vorher bleibt im Log.
     confirmPrediction: (cardId, rating, predictedScore) =>
-      profileChange({ type: RATING_CHANGED, cardId, rating, previousRating: null, fromPrediction: true, predictedScore }),
+      profileChange({ type: RATING_CHANGED, cardId, rating, previousRating: null, fromPrediction: true, predictedScore, ...scaleFields(INDEX.get(cardId), rating) }),
     addExclusions: (section, exclusions) => exclusions.length && profileChange({ type: EXCLUSION_ADDED, section, exclusions }),
     removeExclusions: (section, exclusions) => exclusions.length && profileChange({ type: EXCLUSION_REMOVED, section, exclusions }),
     diet: (diet, previousDiet) => profileChange({ type: DIET_CHANGED, diet, previousDiet }),
@@ -318,8 +321,15 @@ function App() {
       source: 'swipe',
       ...(response !== UNDO ? { alternatives: selectNextCards(round, config).filter((entry) => entry.id !== card.id).slice(0, 5).map((entry) => entry.id) } : {}),
       ...(extra.excludedCardIds ? { excludedCardIds: extra.excludedCardIds } : {}),
+      // Verbesserung 3: gezeigter Begriff und Variante (die Antwortwerte bleiben DISLIKE, LIKE, PREFER …)
+      ...(response !== UNDO ? scaleFields(card, response) : {}),
     };
     dispatch({ type: 'event', event: logger.recordEvent(event) });
+  }
+
+  function scaleFields(card, response) {
+    const variant = scaleVariant(card, config);
+    return { scaleVariant: variant, labelShown: labelShown(variant, response) };
   }
 
   function handleAnswer(card, response, inputMethod, responseTimeMs, positionInRound, excludedCardIds) {
@@ -478,6 +488,7 @@ function App() {
   }
 
   return (
+    <ScaleConfigContext.Provider value={config}>
     <ImageStyleContext.Provider value={config.imageStyle}>
       <ImageFilterContext.Provider value={imageFilter}>
         <div className="app" data-nav={navVisible ? '' : undefined}>
@@ -512,5 +523,6 @@ function App() {
         </div>
       </ImageFilterContext.Provider>
     </ImageStyleContext.Provider>
+    </ScaleConfigContext.Provider>
   );
 }

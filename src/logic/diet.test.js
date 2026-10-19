@@ -119,7 +119,7 @@ test('Frage 3 und Teil B führen auf dieselbe Ausschluss-ID und dieselben Karten
   const viaSearch = withDiet({ form: 'none' }, { never: { ...empty.never, gate: 'yes', selected: ['card:F01.3'] } });
   const viaQ1 = withDiet({ form: 'none', exclusions: ['animalOrigin:pork'] });
   assert.deepEqual(visibleIds(viaSearch), visibleIds(viaQ1));
-  assert.deepEqual(derive(viaSearch).exclusions.map(({ type, value }) => [type, value]), [['animalOrigin', 'pork']]);
+  assert.deepEqual(derive(viaSearch).exclusions.map(({ type, value }) => [type, value]), [['animalOrigin', 'pork'], ['animalOrigin', 'gelatin']]);
   // Schon in Frage 1 ausgeschlossen: Frage 3 bietet Schweinefleisch nicht mehr an
   assert.equal(createRedundancyCheck(definition, viaQ1, { allergens, catalogIndex: index, upTo: 1 }).key('card:F01.3'), true);
 });
@@ -162,4 +162,22 @@ test('„Kein Schweinefleisch“ schliesst Gelatine ein, sichtbar und im Profil 
   assert.deepEqual(diet.map((item) => [item.label, item.exclusions.map(({ value }) => value)]), [['Kein Schweinefleisch', ['pork', 'gelatin']]]);
   // Vegetarisch deckt Gelatine schon ab: kein zusätzlicher Eintrag
   assert.deepEqual(derive(withDiet({ form: 'vegetarian', exclusions: ['animalOrigin:pork'] })).exclusions, []);
+});
+
+test('Ein Weg pro Restriktion: „Schweinefleisch“ über die Suche (Frage 2, Frage 3, Profil) schliesst Gelatine ein wie Teil B', async () => {
+  const viaQ1 = derive(withDiet({ form: 'none', exclusions: ['animalOrigin:pork'] })).exclusions;
+  const viaQ3 = derive(withDiet({ form: 'none' }, { never: { ...empty.never, gate: 'yes', selected: ['card:F01.3'] } })).exclusions;
+  const viaQ2 = derive(withDiet({ form: 'none' }, { intolerances: { ...empty.intolerances, gate: 'yes', items: ['card:F01.3'] } })).exclusions;
+  const pairs = (list) => list.map(({ type, value, includedBy }) => [type, value, includedBy ?? null]);
+  assert.deepEqual(pairs(viaQ3), pairs(viaQ1));
+  assert.deepEqual(pairs(viaQ2), pairs(viaQ1));
+  assert.deepEqual(pairs(viaQ1), [['animalOrigin', 'pork', null], ['animalOrigin', 'gelatin', 'animalOrigin:pork']]);
+  // Im Profil: gleicher Treffer, gleiche Einträge; ein Eintrag in der Liste, Entfernen nimmt beide
+  const { exclusionsForHit } = await import('../screens/ProfileScreen.jsx');
+  const hit = { key: 'card:F01.3', label: 'Schweinefleisch' };
+  const profile = exclusionsForHit(hit, { allergens, index, restrictions: dietQuestion.exclusions });
+  assert.deepEqual(pairs(profile), pairs(viaQ1));
+  const { groupExclusions } = await import('./profile.js');
+  const { never } = groupExclusions(viaQ3, { allergens, index });
+  assert.deepEqual(never.map((item) => [item.label, item.exclusions.map(({ value }) => value)]), [['Schweinefleisch', ['pork', 'gelatin']]]);
 });

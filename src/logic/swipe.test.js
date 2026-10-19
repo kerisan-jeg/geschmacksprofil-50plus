@@ -63,3 +63,13 @@ test('releaseMotion berechnet die Geschwindigkeit aus den letzten Proben', () =>
   assert.equal(motion.vy, -0.05);
   assert.deepEqual(releaseMotion([]), { dx: 0, dy: 0, vx: 0, vy: 0 });
 });
+
+test('Ohne „Sehr gern“ (?r1scale=2): Wischen und Schnippen nach oben geben keine Antwort, die Karte springt zurück', () => {
+  const noUp = { allowUp: false };
+  assert.equal(swipeIntent(0, -200, SWIPE, noUp), null);
+  assert.equal(resolveRelease(still(0, -200), SWIPE, noUp), null);
+  assert.equal(resolveRelease({ dx: 0, dy: -60, vx: 0, vy: -2 }, SWIPE, noUp), null);
+  assert.equal(resolveRelease(still(200, 0), SWIPE, noUp), LIKE, 'links und rechts bleiben gleich');
+  assert.equal(resolveRelease(still(-200, 0), SWIPE, noUp), DISLIKE);
+  assert.equal(resolveRelease(still(0, -200), SWIPE), PREFER, 'Standard unverändert');
+});

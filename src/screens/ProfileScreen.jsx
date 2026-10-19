@@ -24,7 +24,7 @@ import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 import { buildExclusions, displayCardTitle } from '../logic/filter.js';
 import { buildFoodIndex } from '../logic/foodSearch.js';
 import { groupExclusions, sectionOf } from '../logic/profile.js';
-import { canonicalKey, coveredByForm, keyLabel, parseKey, redundancyFor } from '../logic/stage0.js';
+import { canonicalKey, coveredByForm, includedEntries, keyLabel, parseKey, redundancyFor } from '../logic/stage0.js';
 import { ANSWER_LABELS, BRANDS, COMMON, DIET, ONBOARDING, PRACTICAL, PROFILE } from '../labels.js';
 
 const SECTION_ICONS = { allergies: ShieldAlert, diet: Salad, intolerances: Ban, never: Utensils, notes: NotebookPen };
@@ -104,7 +104,7 @@ function TasteGroup({ id, title, icon: Icon, tone, entries, index, titleOf, note
                 <Artwork card={card} size="thumb" className="thumb" />
                 <span className="taste-text">
                   <span className="taste-title">{titleOf(entry.id)}</span>
-                  <RatingChip answer={entry.rating} />
+                  <RatingChip answer={entry.rating} card={card} />
                   {entry.sub && <span className="taste-reason">{entry.sub}</span>}
                 </span>
                 <ChevronRight className="row-chevron" aria-hidden="true" />
@@ -119,12 +119,15 @@ function TasteGroup({ id, title, icon: Icon, tone, entries, index, titleOf, note
 }
 
 // Ein Treffer der Suche als Ausschluss-Eintrag (gleiches Format wie im Onboarding, siehe filter.js).
-function exclusionsForHit(hit, { allergens, index }) {
+export function exclusionsForHit(hit, { allergens, index, restrictions }) {
   if (hit.kind === 'allergen') return hit.ids.map((id) => ({ type: 'allergen', value: id, label: allergenLabel(allergens, id) }));
-  // „Schweinefleisch“ aus der Suche: dieselbe Ausschluss-ID wie Frage 1, Teil B
+  // „Schweinefleisch“ aus der Suche: dieselbe Ausschluss-ID wie Frage 1, Teil B, inklusive Gelatine
   const key = canonicalKey(index, hit.key);
   const { type, value } = parseKey(key);
-  if (key !== hit.key) return [{ type, value, label: keyLabel(null, index, key), selectedAs: hit.key }];
+  if (key !== hit.key) {
+    const entry = { type, value, label: keyLabel(null, index, key), selectedAs: hit.key };
+    return [entry, ...includedEntries(restrictions, entry)];
+  }
   if (type === 'card') return [{ type, value, label: index.get(value)?.title ?? hit.label }];
   return [{ type, value, label: hit.label }];
 }
@@ -236,7 +239,7 @@ export default function ProfileScreen({
 
   function pickFor(section) {
     return (hit) => {
-      onChange.addExclusions(section, exclusionsForHit(hit, { allergens, index }));
+      onChange.addExclusions(section, exclusionsForHit(hit, { allergens, index, restrictions: dietOptions.exclusions }));
       close();
     };
   }

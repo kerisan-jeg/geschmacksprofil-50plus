@@ -61,19 +61,31 @@ test('Unbekanntes Fruchtgemüse in Runde 2 → Zucchetti und höchstens Peperoni
 
 test('Kap. 11: Hülsenfrüchte „Mag ich nicht“ → Sojaprodukte als Ausnahme; bei „Mag ich“ Naturtofu oder Tempeh, sonst stoppen', () => {
   const disliked = allFamilies({ F05: DISLIKE });
-  assert.deepEqual(reasonsOf(ranked(disliked), 'F05'), [['F05.4', REASONS.EXCEPTION]]);
+  // Dozentenfeedback 19.10.2026: Die übrigen Hülsenfrüchte sind nicht ausgeschlossen, sie kommen ganz am Schluss
+  assert.deepEqual(reasonsOf(ranked(disliked), 'F05'), [
+    ['F05.4', REASONS.EXCEPTION],
+    ['F05.1', REASONS.AFTER_NEGATIVE],
+    ['F05.2', REASONS.AFTER_NEGATIVE],
+    ['F05.3', REASONS.AFTER_NEGATIVE],
+  ]);
   const liked = [...disliked, answer('F05.4', LIKE)];
   assert.deepEqual(reasonsOf(ranked(liked), 'F05.4'), [
     ['F05.4.1', REASONS.EXCEPTION_DETAIL],
     ['F05.4.2', REASONS.EXCEPTION_DETAIL],
   ]);
   assert.deepEqual([index.get('F05.4.1').title, index.get('F05.4.2').title], ['Naturtofu', 'Tempeh']);
-  assert.ok(!ids(ranked(liked)).some((id) => ['F05.1', 'F05.2', 'F05.3'].includes(id)), 'die übrigen Hülsenfrüchte bleiben vermutet');
+  const order = ranked(liked);
+  const firstNegative = order.findIndex((entry) => entry.reason === REASONS.AFTER_NEGATIVE);
+  assert.ok(order.slice(firstNegative).every((entry) => entry.reason === REASONS.AFTER_NEGATIVE), 'die übrigen Hülsenfrüchte erst nach allen anderen Karten');
   const stopped = ranked([...disliked, answer('F05.4', DISLIKE)]);
-  assert.ok(!ids(stopped).some((id) => id.startsWith('F05.')), 'bei „Mag ich nicht“ vorerst stoppen');
+  assert.ok(stopped.filter((entry) => entry.card.id.startsWith('F05.')).every((entry) => entry.reason === REASONS.AFTER_NEGATIVE), 'bei „Mag ich nicht“ keine weitere Vertiefung, nur am Schluss');
   // Fisch und Meeresfrüchte „Mag ich nicht“ → Meeresfrüchte als Ausnahme, bei „Mag ich“ Garnelen
   const fish = allFamilies({ F02: DISLIKE });
-  assert.deepEqual(reasonsOf(ranked(fish), 'F02'), [['F02.2', REASONS.EXCEPTION]]);
+  assert.deepEqual(reasonsOf(ranked(fish), 'F02'), [
+    ['F02.2', REASONS.EXCEPTION],
+    ['F02.1', REASONS.AFTER_NEGATIVE],
+    ['F02.3', REASONS.AFTER_NEGATIVE],
+  ]);
   assert.equal(ids(ranked([...fish, answer('F02.2', LIKE)])).find((id) => id.startsWith('F02.2.')), 'F02.2.1');
   assert.equal(index.get('F02.2.1').title, 'Garnelen');
 });
@@ -139,7 +151,11 @@ test('Kontrast und Ausnahme weichen einer Kontrollkarte aus', () => {
     ['F12.4', REASONS.CONTRAST],
     ['F12.2', REASONS.CONTRAST],
   ]);
-  assert.deepEqual(reasonsOf(ranked(events), 'F05'), [['F05.1', REASONS.EXCEPTION]]);
+  assert.deepEqual(reasonsOf(ranked(events), 'F05'), [
+    ['F05.1', REASONS.EXCEPTION],
+    ['F05.2', REASONS.AFTER_NEGATIVE],
+    ['F05.3', REASONS.AFTER_NEGATIVE],
+  ]);
 });
 
 test('„Vertrage ich nicht“ nur für einen Teil: höchstens zwei der übrigen Kinder', () => {
@@ -154,7 +170,7 @@ test('„Vertrage ich nicht“ nur für einen Teil: höchstens zwei der übrigen
 test('Die Regeln folgen der aktuellen Bewertung, auch wenn sie im Profil geändert wurde', () => {
   const events = [...allFamilies({}), { type: RATING_CHANGED, source: 'profile', cardId: 'F12', rating: DISLIKE, previousRating: LIKE }];
   const fruit = ranked(events).filter((entry) => entry.card.parentId === 'F12');
-  assert.deepEqual(fruit.map((entry) => entry.reason), [REASONS.EXCEPTION]);
+  assert.deepEqual(fruit.map((entry) => entry.reason), [REASONS.EXCEPTION, ...Array(4).fill(REASONS.AFTER_NEGATIVE)]);
 });
 
 test('Ausschlüsse wirken auch in der adaptiven Auswahl', () => {
@@ -189,7 +205,12 @@ test('Bei durchgängiger Ablehnung werden keine langen Lebensmittel-Nachfragen a
   const main = answers.filter((event) => event.phase === 'main');
   // 11 Gruppen haben Untergruppen; jede bekommt genau eine Ausnahme, auch wenn eine Untergruppe Kontrollkarte ist
   assert.ok(main.filter((event) => event.selectionReason === REASONS.EXCEPTION).length <= 10 - 6);
-  assert.ok(!answers.some((event) => event.stage === 3), 'abgelehnte Untergruppen werden nicht beliebig vertieft');
+  // Abgelehnte Untergruppen sind kein Ausschluss (Dozentenfeedback 19.10.2026): höchstens zwei konkrete Lebensmittel
+  // je Untergruppe, ganz am Schluss von Runde 3, nie beliebig vertieft
+  const details = answers.filter((event) => event.stage === 3);
+  assert.ok(details.every((event) => event.selectionReason === REASONS.AFTER_NEGATIVE_DETAIL), 'abgelehnte Untergruppen werden nicht beliebig vertieft');
+  const perParent = Object.groupBy(details, (event) => event.parentId);
+  assert.ok(Object.values(perParent).every((list) => list.length <= 2));
   assert.deepEqual(answers.filter((event) => event.round === 2).slice(-6).map((event) => event.phase), Array(6).fill(PHASE_HOLDOUT));
   assert.ok(answers.some((event) => event.round === 4 && event.stage === 4));
   const last = deriveRoundState({ index, onboarding: NO_ONBOARDING, diets, events: session.events, round: answers.at(-1).round });
@@ -304,4 +325,18 @@ test('nurec Kap. 9 nachgespielt: vegan, Hülsenfrüchte „Mag ich nicht“ → 
   assert.notEqual(predictions.get('F05.3')?.direct, true, 'Kichererbsen nicht direkt bewertet');
   assert.ok((predictions.get('F05.3')?.score ?? -1) < 0, 'Kichererbsen bleiben „eher ungern“ aus Hülsenfrüchte');
   assert.ok(!predictions.has('F13.2.3') || predictions.get('F13.2.3').basisId !== 'F05.3.2', 'Sesam nicht aus Hummus');
+});
+
+test('Negative Gruppe schliesst nie endgültig aus: Unterkarten und Lebensmittel kommen ganz am Schluss', () => {
+  // Kürbis-Beispiel (Tibor): Gemüse „Eher ungern“, einzelne Kinder bleiben erreichbar, wenn das Limit Platz lässt
+  const events = allFamilies({ F11: DISLIKE });
+  const order = rankedStageCards({ ...state(events, 2) }, SELECTION.ADAPTIVE, 2);
+  const negative = order.filter((entry) => entry.reason === REASONS.AFTER_NEGATIVE);
+  assert.ok(negative.length > 0);
+  assert.ok(order.findIndex((entry) => entry.reason === REASONS.AFTER_NEGATIVE) > order.findLastIndex((entry) => entry.reason !== REASONS.AFTER_NEGATIVE));
+  // Runde 3: Lebensmittel unter der negativen Gruppe (Untergruppe nie gefragt) ebenfalls am Schluss
+  const third = rankedStageCards(state(events, 3), SELECTION.ADAPTIVE, 3);
+  const late = third.filter((entry) => entry.reason === REASONS.AFTER_NEGATIVE_DETAIL);
+  assert.ok(late.length > 0 && late.every((entry) => index.get(entry.card.parentId).parentId === 'F11'));
+  assert.ok(third.findIndex((entry) => entry.reason === REASONS.AFTER_NEGATIVE_DETAIL) >= third.findLastIndex((entry) => entry.reason !== REASONS.AFTER_NEGATIVE_DETAIL));
 });

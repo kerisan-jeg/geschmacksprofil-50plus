@@ -16,8 +16,11 @@ import { PREFERENCE_MODEL } from '../config.js';
 import { DISLIKE, LIKE, isTasteSignal } from './answers.js';
 
 // Wert einer direkten Bewertung oder null (keine Bewertung, kein Geschmackssignal).
-export function directScore(rating, model = PREFERENCE_MODEL) {
-  return isTasteSignal(rating) ? model.weights[rating] : null;
+// stage: Ebene der bewerteten Karte; der Wert wird mit model.stageWeights[stage] multipliziert
+// (STAGE_WEIGHTS in config.js, Standard 1 = keine Wirkung).
+export function directScore(rating, model = PREFERENCE_MODEL, stage = null) {
+  if (!isTasteSignal(rating)) return null;
+  return model.weights[rating] * (model.stageWeights?.[stage] ?? 1);
 }
 
 // Nächste bewertete Gruppe darüber, abgeschwächt pro Stufe.
@@ -48,7 +51,7 @@ function siblingScores(index, card, scoreOf) {
 //   direct false: Vermutung; basisId ist die Gruppe, von der sie stammt (bzw. die Elternkarte bei Geschwistern)
 // Karten ohne Grundlage fehlen in der Map (keine Vermutung möglich).
 export function predictScores(index, ratings = {}, model = PREFERENCE_MODEL) {
-  const scoreOf = (id) => directScore(ratings[id], model);
+  const scoreOf = (id) => directScore(ratings[id], model, index.get(id)?.stage ?? null);
   const predictions = new Map();
   for (const card of index.cards) {
     const own = scoreOf(card.id);

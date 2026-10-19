@@ -52,6 +52,23 @@ export function withIncluded(question, keys) {
   return out;
 }
 
+// Was eine Restriktion zusätzlich einschliesst, egal wo sie erfasst wird (Frage 1, Suche in Frage 3, Profil).
+// restrictions: Einzelausschlüsse aus Frage 1 (stage0.json), key: kanonischer Schlüssel.
+export function restrictionIncludes(restrictions, key) {
+  return restrictions?.find((entry) => entry.key === key)?.includes ?? [];
+}
+
+// Einträge für das Eingeschlossene (z. B. Gelatine bei Schweinefleisch), mit includedBy auf den Hauptpunkt.
+export function includedEntries(restrictions, entry, extra = {}) {
+  const key = `${entry.type}:${entry.value}`;
+  return restrictionIncludes(restrictions, key).map((included) => ({
+    ...parseKey(included),
+    label: restrictions.find((other) => other.key === included)?.label ?? included,
+    includedBy: key,
+    ...extra,
+  }));
+}
+
 // Welcher gewählte Punkt schliesst key schon ein? (z. B. Gelatine durch „Kein Schweinefleisch“)
 export function includedBy(question, keys, key) {
   return question?.exclusions?.find((entry) => keys.includes(entry.key) && entry.key !== key && (entry.includes ?? []).includes(key)) ?? null;
@@ -235,7 +252,7 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
     }
     for (const key of intolerances.items) {
       const entry = { ...keyEntry(question, catalogIndex, key, 'intolerances', cardLabels), ...constraintExtra(intolerances, key) };
-      exclusions.push(entry);
+      exclusions.push(entry, ...includedEntries(dietQuestion?.exclusions, entry, { source: SOURCE_ONBOARDING, origin: 'intolerances' }));
       rules.push({ id: `intolerances.${key}`, kind: 'allergen', text: entry.label, source: question.source });
     }
     for (const note of intolerances.notes) {
@@ -252,7 +269,8 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
     const question = byId.never;
     for (const key of never.selected) {
       const entry = keyEntry(question, catalogIndex, key, 'never', cardLabels);
-      exclusions.push(entry);
+      // „Schweinefleisch“ über die Suche wirkt wie „Kein Schweinefleisch“ in Frage 1, Teil B (inkl. Gelatine)
+      exclusions.push(entry, ...includedEntries(dietQuestion?.exclusions, entry, { source: SOURCE_ONBOARDING, origin: 'never' }));
       rules.push({ id: `never.${key}`, kind: 'never', text: entry.label, source: question.source });
     }
     for (const note of never.notes) {

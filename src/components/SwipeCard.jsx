@@ -1,9 +1,10 @@
 import { useImperativeHandle, useRef, useState } from 'react';
 import CardFace from './CardFace.jsx';
-import { ANSWER_META } from './answerMeta.js';
+import { metaFor } from './answerMeta.js';
 import { FEATURES, SWIPE } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 import { labelOpacity, releaseMotion, resolveRelease, swipeIntent } from '../logic/swipe.js';
+import { allowsPrefer, SCALE_VARIANTS } from '../logic/scale.js';
 import { ROUND } from '../labels.js';
 import { readDuration } from '../theme/motion.js';
 
@@ -28,7 +29,9 @@ function vibrate() {
 // Karte, die gewischt oder über commit() von aussen beantwortet wird (Knöpfe, Link, Tastatur).
 // Die Gestenlogik (Schwelle, Rückfederung, Schnippen) steht rein und getestet in logic/swipe.js.
 // extra wird unverändert an onCommitted weitergegeben (z. B. excludedCardIds bei INTOLERANT).
-export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
+// variant: Begriffe je Runde (scale.js); ohne „Sehr gern“ gibt es kein Wischen nach oben.
+export default function SwipeCard({ card, onCommitted, onIntent, ref, variant = SCALE_VARIANTS.STANDARD }) {
+  const gesture = { allowUp: allowsPrefer(variant) };
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [leaving, setLeaving] = useState(null);
@@ -65,14 +68,14 @@ export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
     const dy = event.clientY - current.y;
     current.samples = [...current.samples.slice(-5), { dx, dy, t: performance.now() }];
     setOffset({ x: dx, y: dy });
-    onIntent?.(swipeIntent(dx, dy, SWIPE));
+    onIntent?.(swipeIntent(dx, dy, SWIPE, gesture));
   }
 
   function handlePointerEnd() {
     const current = drag.current;
     if (!current) return;
     drag.current = null;
-    const answer = resolveRelease(releaseMotion(current.samples), SWIPE);
+    const answer = resolveRelease(releaseMotion(current.samples), SWIPE, gesture);
     if (answer) {
       commit(answer, 'swipe');
       return;
@@ -84,10 +87,10 @@ export default function SwipeCard({ card, onCommitted, onIntent, ref }) {
   }
 
   // Beim Wegfliegen zeigt die Karte die gewählte Antwort; „Vertrage ich nicht“ bestätigt ein Hinweis oben.
-  const intent = leaving ? (leaving === INTOLERANT ? null : { answer: leaving, strength: 1 }) : swipeIntent(offset.x, offset.y, SWIPE);
+  const intent = leaving ? (leaving === INTOLERANT ? null : { answer: leaving, strength: 1 }) : swipeIntent(offset.x, offset.y, SWIPE, gesture);
   const lift = offset.y < 0 ? offset.y : offset.y * 0.25;
   const transform = leaving ? EXIT_TRANSFORM[leaving] : `translate(${offset.x}px, ${lift}px) rotate(${offset.x / 16}deg)`;
-  const meta = intent ? ANSWER_META[intent.answer] : null;
+  const meta = intent ? metaFor(intent.answer, variant) : null;
   const opacity = intent ? labelOpacity(intent.strength, SWIPE) : 0;
 
   const classes = ['swipe-card'];

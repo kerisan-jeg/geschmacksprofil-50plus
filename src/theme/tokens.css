@@ -135,6 +135,7 @@
   --duration-screen: 260ms; /* Seitenübergang */
   --duration-swipe-exit: 280ms; /* Karte fliegt weg */
   --duration-card-enter: 320ms; /* nächste Karte rückt nach */
+  --duration-card-fade: 0ms; /* Überblenden statt Nachrücken, nur bei reduzierter Bewegung */
   --duration-banner: 360ms; /* SMS-Mitteilung fährt ein */
   --duration-demo: 9s; /* Tutorial: Schleife der Wisch-Demo */
   --duration-spin: 900ms; /* Ladeanzeige */
@@ -170,6 +171,9 @@
   --size-demo: 12rem; /* Fläche der Tutorial-Demo */
   --size-demo-card: 7.5rem;
   --size-card-art-min: 6rem; /* Kartenbild in der Runde wird nie kleiner */
+  --size-card-art-group-min: 7.5rem; /* Gruppen: Platz für Hinweis oben und das neutrale Symbol darunter */
+  --space-group-art-top: 2.9rem; /* Höhe der Hinweiszeile oben auf dem Bild */
+  --size-neutral-symbol-max: 9rem; /* neutrales Symbol der Gruppen höchstens so hoch */
   --deck-max-ratio: 1.38; /* Kartenstapel höchstens so hoch wie Breite × Faktor (hohe Handys) */
   --card-title-size: var(--font-size-title-l);
   --size-sheet-max: 92dvh;
@@ -215,6 +219,7 @@
     --duration-screen: 0ms;
     --duration-swipe-exit: 0ms;
     --duration-card-enter: 0ms;
+    --duration-card-fade: 240ms;
     --duration-banner: 0ms;
     --duration-spin: 0ms;
     --motion-shift-s: 0px;

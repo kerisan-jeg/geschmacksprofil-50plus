@@ -19,6 +19,9 @@
 //   6     stage3_favorite            Untergruppe „Mag ich sehr“: konkrete Favoriten (höchstens drei)
 //   7     stage2_difference          Kontrast unterschiedlich: die übrigen Untergruppen dieser Gruppe
 //         stage2_after_intolerant    „Vertrage ich nicht“ nur für einen Teil: höchstens zwei der übrigen Kinder
+//   8     stage2_after_negative      Gruppe „Mag ich nicht“: die übrigen Untergruppen, ganz am Schluss
+//         stage3_after_negative      (NEGATIVE_GROUP_POLICY 'last', Dozentenfeedback 19.10.2026): Eine negative
+//                                    Gruppe ist kein Ausschluss; ihre Kinder kommen, wenn das Kartenlimit Platz lässt.
 //
 // Was keine Regel trifft, wird nicht gefragt, sondern vermutet (preferences.js): z. B. die übrigen Untergruppen,
 // wenn der Kontrast gleich ausfällt, oder einer Gruppe „Mag ich nicht“ ohne Ausnahme. So bleibt die Zahl der
@@ -30,6 +33,7 @@
 //
 // 'fixed': feste Reihenfolge als Vergleich im Pilot, ebenfalls eine Ebene je Runde (inklusive Stufe 3).
 
+import { NEGATIVE_GROUP_POLICY } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR, isTasteSignal } from './answers.js';
 import { isVisible } from './filter.js';
 
@@ -57,11 +61,14 @@ export const REASONS = {
   FAVORITE_DETAIL: 'stage3_favorite',
   DIFFERENCE: 'stage2_difference',
   AFTER_INTOLERANT: 'stage2_after_intolerant',
+  AFTER_NEGATIVE: 'stage2_after_negative',
+  AFTER_NEGATIVE_DETAIL: 'stage3_after_negative',
   HOLDOUT: 'holdout_check',
   DISH: 'stage4_dish',
 };
 
-const TIERS = ['clarify', 'family', 'exception', 'contrast', 'precise', 'favorite', 'difference'];
+const TIERS = ['clarify', 'family', 'exception', 'contrast', 'precise', 'favorite', 'difference', 'negative'];
+const NEGATIVE_LAST = NEGATIVE_GROUP_POLICY === 'last';
 const LIKED = [LIKE, PREFER];
 
 // Aktuelle direkte Bewertung: beim Wischen oder im Profil geändert (null = aus dem Profil entfernt).
@@ -157,6 +164,8 @@ export function rankedCards(state, mode = SELECTION.FIXED, { stage = null } = {}
     switch (rating(family)) {
       case DISLIKE: {
         const exception = candidates(family, [family.exceptionCandidate].filter(Boolean))[0];
+        // Kein endgültiger Ausschluss: Die übrigen Untergruppen kommen ganz am Schluss (NEGATIVE_GROUP_POLICY).
+        if (NEGATIVE_LAST) add('negative', candidates(family).filter((child) => child !== exception && open(child)), REASONS.AFTER_NEGATIVE);
         if (!exception) break;
         if (!isDone(state, exception.id)) add('exception', [exception], REASONS.EXCEPTION);
         else if (LIKED.includes(rating(exception))) {
@@ -257,6 +266,19 @@ export function rankedStageCards(state, mode = SELECTION.FIXED, stage = state.ro
     const reason = mode !== SELECTION.ADAPTIVE ? REASONS.FIXED_STAGE3 : rating === UNFAMILIAR ? REASONS.AFTER_UNFAMILIAR_DETAIL : REASONS.DETAIL;
     return children.filter((card) => card.stage === 3 && !isDone(state, card.id)).slice(0, Math.max(0, limit - asked)).map((card) => ({ card, reason }));
   });
+  // Negative Untergruppe (oder nie gefragte Untergruppe einer negativen Gruppe): kein Ausschluss, ihre konkreten
+  // Lebensmittel kommen ganz am Schluss (NEGATIVE_GROUP_POLICY 'last'), höchstens so viele wie sonst bei Details.
+  const negative = !NEGATIVE_LAST || mode !== SELECTION.ADAPTIVE ? [] : details.map((parent) => {
+    const own = currentRating(state, parent.id);
+    const groupNegative = own === DISLIKE || (own == null && currentRating(state, parent.parentId) === DISLIKE);
+    if (!groupNegative) return [];
+    const children = usableChildren(state, parent);
+    const asked = children.filter((card) => isDone(state, card.id)).length;
+    return children
+      .filter((card) => card.stage === 3 && !isDone(state, card.id))
+      .slice(0, Math.max(0, UNKNOWN_CHILD_LIMIT - asked))
+      .map((card) => ({ card, reason: REASONS.AFTER_NEGATIVE_DETAIL }));
+  });
   const seen = new Set();
-  return [...preferred, ...balance(interleave(extra))].filter((entry) => !seen.has(entry.card.id) && seen.add(entry.card.id));
+  return [...preferred, ...balance(interleave(extra)), ...balance(interleave(negative))].filter((entry) => !seen.has(entry.card.id) && seen.add(entry.card.id));
 }

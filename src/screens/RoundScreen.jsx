@@ -8,6 +8,8 @@ import SegmentedProgress from '../components/SegmentedProgress.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { collapseIntolerance, intoleranceOptions, presentCard, progress, selectNextCards } from '../logic/engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
+import { allowsPrefer, scaleVariant } from '../logic/scale.js';
+import { MAX_ROUNDS } from '../config.js';
 import { ROUND } from '../labels.js';
 import { readDuration } from '../theme/motion.js';
 
@@ -30,16 +32,21 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
   const picker = pickerFor.cardId === card?.id ? pickerFor.options : null;
   const pickerOpen = useRef(false);
   pickerOpen.current = picker !== null;
+  const variant = scaleVariant(card, config);
+  const preferAllowed = useRef(true);
+  preferAllowed.current = allowsPrefer(variant);
 
-  // Antwortzeit ab dem Moment, in dem die Karte vollständig sichtbar ist (nach der Einblendung).
+  // Antwortzeit ab dem Moment, in dem die Karte vollständig sichtbar ist (nach der Einblendung bzw. dem
+  // Überblenden bei reduzierter Bewegung).
   useEffect(() => {
-    shownAt.current = performance.now() + readDuration('--duration-card-enter');
+    shownAt.current = performance.now() + readDuration('--duration-card-enter') + readDuration('--duration-card-fade');
   }, [card?.id]);
 
   useEffect(() => {
     function handleKey(event) {
       const answer = KEY_TO_ANSWER[event.key];
       if (!answer || pickerOpen.current || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (answer === PREFER && !preferAllowed.current) return;
       event.preventDefault();
       cardRef.current?.commit(answer, 'keyboard');
     }
@@ -61,7 +68,7 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
       : null;
 
   function handleCommitted(answer, method, decidedAt, extra) {
-    onAnswer(card, answer, method, Math.max(0, Math.round(decidedAt - shownAt.current)), position, extra?.excludedCardIds);
+    onAnswer(card, answer, method, Math.max(0, Math.round(decidedAt - shownAt.current)), position, extra?.excludedCardIds, variant);
   }
 
   function handleIntolerant() {
@@ -88,6 +95,11 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
           )
         }
       />
+
+      <div className="round-head">
+        <p className="round-title">{ROUND.roundOf(round.round, MAX_ROUNDS, ROUND.roundNames[round.round] ?? '')}</p>
+        {round.round === 1 && answered === 0 && <p className="note round-intro">{ROUND.round1Intro}</p>}
+      </div>
 
       <div className="round-status">
         {toast ? (
@@ -123,12 +135,13 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
           key={card.id}
           ref={cardRef}
           card={card}
+          variant={variant}
           onCommitted={handleCommitted}
           onIntent={(next) => setIntentFor({ cardId: card.id, intent: next })}
         />
       </div>
 
-      <AnswerButtons intent={intent} onAnswer={(answer) => cardRef.current?.commit(answer, 'button')} onIntolerant={handleIntolerant} />
+      <AnswerButtons variant={variant} intent={intent} onAnswer={(answer) => cardRef.current?.commit(answer, 'button')} onIntolerant={handleIntolerant} />
 
       {picker && (
         <DetailPicker

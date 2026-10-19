@@ -69,3 +69,14 @@ test('Variante mit Geschwistern: bewertete Untergruppen können die Vermutung um
   const siblingsOnly = predictScores(index, { 'F05.1': LIKE, 'F05.2': PREFER }, { ...PREFERENCE_MODEL, siblingWeight: 1 });
   assert.deepEqual(siblingsOnly.get('F05.3'), { score: 0.75, direct: false, basisId: 'F05' });
 });
+
+test('STAGE_WEIGHTS: Standard 1 auf allen Stufen (keine Wirkung); eigene Werte gewichten die Ebene der Bewertung', () => {
+  assert.deepEqual(PREFERENCE_MODEL.stageWeights, { 1: 1, 2: 1, 3: 1, 4: 1 });
+  assert.equal(directScore(LIKE, PREFERENCE_MODEL, 1), directScore(LIKE));
+  const ratings = { F12: LIKE };
+  const base = predictScores(index, ratings).get('F12.1.1').score;
+  const weighted = predictScores(index, ratings, { ...PREFERENCE_MODEL, stageWeights: { 1: 0.5, 2: 1, 3: 1, 4: 1 } }).get('F12.1.1').score;
+  // Doppelte Abschwächung: Gewicht der Stufe 1 mal inheritFactor pro Stufe (siehe Doku)
+  assert.equal(weighted, base * 0.5);
+  assert.equal(predictedRating(weighted), predictedRating(base), 'die Richtung bleibt');
+});

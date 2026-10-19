@@ -228,3 +228,13 @@ test('Admin: ignorierte URL-Parameter stehen in der Sitzungsübersicht', () => {
   assert.deepEqual(summary.ignoredParams, [{ name: 'limit', value: '30' }]);
   assert.deepEqual(summarizeSession({ sessionId: 't', events: [] }).ignoredParams, []);
 });
+
+test('Export: labelShown und scaleVariant je Ereignis, r1scale je Sitzung', () => {
+  const session = { sessionId: 'r1', config: { roundCardLimit: 13, r1scale: 2 }, events: [{ ...event, stage: 1, labelShown: 'Eher gern', scaleVariant: 'r1-2' }] };
+  const [header, row] = sessionsToCsv([session]).trim().split('\r\n');
+  const columns = header.split(',');
+  const values = row.split(',');
+  assert.equal(values[columns.indexOf('labelShown')], 'Eher gern');
+  assert.equal(values[columns.indexOf('scaleVariant')], 'r1-2');
+  assert.equal(values[columns.indexOf('r1scale')], '2');
+});

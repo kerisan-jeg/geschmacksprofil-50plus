@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { cardLimit, DEFAULT_CONFIG, isAdminMode, normalizeConfig, resolveConfig } from './config.js';
 
-const DEFAULTS = { roundCardLimit: 13, roundFlow: 'staged-v1', tutorial: false, imageStyle: 'photo', auth: true, sms: 'simulation', selection: 'adaptive', holdout: 6 };
+const DEFAULTS = { roundCardLimit: 13, roundFlow: 'staged-v1', tutorial: false, imageStyle: 'photo', auth: true, sms: 'simulation', selection: 'adaptive', holdout: 6, r1scale: 3 };
 
 test('Standard: 13 Karten für die 13 Familien, vier gestufte Runden, sechs Kontrollkarten', () => {
   assert.deepEqual(resolveConfig(''), DEFAULTS);
@@ -57,4 +57,15 @@ test('Ignorierte Parameter werden festgehalten, damit stille Rückfälle auffall
   assert.equal(resolveConfig('?limit=30').roundCardLimit, 13);
   assert.deepEqual(resolveConfig('?limit=20&holdout=12&selection=zufall&sms=echt').ignoredParams.map((entry) => entry.name), ['limit', 'sms', 'selection', 'holdout']);
   assert.equal('ignoredParams' in resolveConfig('?limit=8&holdout=2'), false, 'nur wenn etwas ignoriert wurde');
+});
+
+test('?r1scale: 3 (Standard) oder 2; ungültige Werte fallen zurück und werden als ignoriert vermerkt', () => {
+  assert.equal(resolveConfig('').r1scale, 3);
+  assert.equal(resolveConfig('?r1scale=2').r1scale, 2);
+  assert.equal(resolveConfig('?r1scale=3').r1scale, 3);
+  for (const value of ['1', '4', 'zwei', '', '2.0']) {
+    const config = resolveConfig(`?r1scale=${value}`);
+    assert.equal(config.r1scale, 3, value);
+    assert.deepEqual(config.ignoredParams, [{ name: 'r1scale', value }]);
+  }
 });

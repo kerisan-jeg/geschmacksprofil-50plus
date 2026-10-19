@@ -19,10 +19,26 @@ const COLLAGE_SIZES = {
   thumb: '4rem',
 };
 
+// Gruppen (Stufe 1) zeigen kein Foto und keine Illustration, sondern auf allen Karten dasselbe neutrale Symbol:
+// einen leeren Teller mit Besteck (Dozentenfeedback 19.10.2026, Verbesserung 4, Variante A). Ein Bild mit Tomaten
+// auf „Gemüse“ wirkt wie ein Beispiel. Unterscheidung über Titel und Kartenfarbe (tint).
+function NeutralPlate() {
+  return (
+    <svg className="artwork-neutral" viewBox="0 0 240 150" aria-hidden="true">
+      <circle cx="120" cy="75" r="50" />
+      <circle cx="120" cy="75" r="34" opacity="0.55" />
+      <path d="M44 32v30a8 8 0 0 0 8 8h0a8 8 0 0 0 8-8V32 M52 32v26 M52 70v50" />
+      <path d="M196 120V32c-10 6-14 18-14 30v14a6 6 0 0 0 6 6h8" />
+    </svg>
+  );
+}
+
 export default function Artwork({ card, size = 'card', className = '' }) {
   const filter = useContext(ImageFilterContext);
-  const photos = allowedPhotos(photosForCard(card.id, useContext(ImageStyleContext)), filter);
-  const illustration = illustrationForCard(card, filter);
+  const style = useContext(ImageStyleContext);
+  const neutral = card.stage === 1;
+  const photos = neutral ? [] : allowedPhotos(photosForCard(card.id, style), filter);
+  const illustration = neutral ? null : illustrationForCard(card, filter);
   const collage = photos.length > 1;
   // Ladezustand je Bildquelle, damit neue Fotos nie den Zustand der alten erben.
   const [status, setStatus] = useState({});
@@ -46,11 +62,9 @@ export default function Artwork({ card, size = 'card', className = '' }) {
       style={{ '--tint': card.tint }}
     >
       <div className="artwork-placeholder" aria-hidden="true">
-        {illustration ? (
-          <img className="artwork-illustration" src={assetUrl(`illustrations/${illustration}`)} alt="" draggable={false} />
-        ) : (
-          <Utensils className="artwork-fallback-icon" />
-        )}
+        {neutral && <NeutralPlate />}
+        {!neutral && illustration && <img className="artwork-illustration" src={assetUrl(`illustrations/${illustration}`)} alt="" draggable={false} />}
+        {!neutral && !illustration && <Utensils className="artwork-fallback-icon" />}
       </div>
       {sources.length > 0 && state !== 'error' && (
         <div className="artwork-photos">

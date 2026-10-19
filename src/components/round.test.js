@@ -13,6 +13,7 @@ const { ANSWER_LABELS, ROUND } = await import('../labels.js');
 const { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } = await import('../logic/answers.js');
 const { indexCatalog } = await import('../logic/catalog.js');
 const { deriveRoundState } = await import('../logic/engine.js');
+const { labelShown } = await import('../logic/scale.js');
 const { ImageFilterContext } = await import('../lib/images.js');
 
 const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), 'utf8'));
@@ -51,7 +52,8 @@ test('In der Runde lösen alle Knöpfe die passende Antwort aus (inputMethod but
   for (const answer of [DISLIKE, PREFER, LIKE, UNFAMILIAR]) {
     const onAnswer = spy();
     const { container, unmount } = await render(h(RoundScreen, { round: roundAfter([]), config, canUndo: false, onAnswer, onUndo: spy(), onEndRound: spy() }));
-    await click(buttonByText(container, ANSWER_LABELS[answer]));
+    // Runde 1: Begriffe der Variante r1-3 („Eher ungern / Eher gern / Sehr gern“)
+    await click(buttonByText(container, labelShown('r1-3', answer)));
     assert.equal(onAnswer.calls.length, 1, answer);
     const [card, response, inputMethod, , position] = onAnswer.calls[0];
     assert.deepEqual([card.id, response, inputMethod, position], ['F01', answer, 'button', 1]);
@@ -130,5 +132,40 @@ test('Runde 2 zeigt Fisch ohne Meeresfrüchte im Etikett, auch im Stapel und nac
   await rerender(viewFor(4, onboarding));
   assert.equal(front().querySelector('.card-kind').textContent, 'Fisch und Meeresfrüchte', 'nach Entfernen des Ausschlusses wieder die ganze Gruppe');
   assert.ok(front().querySelector('.artwork-illustration'));
+  await unmount();
+});
+
+test('Runde 1: eigene Begriffe, Rundenanzeige und Einleitung; ab Runde 2 die Begriffe aus A3', async () => {
+  const { container, unmount } = await render(h(RoundScreen, { round: roundAfter([]), config, canUndo: false, onAnswer: spy(), onUndo: spy(), onEndRound: spy() }));
+  const labels = [...container.querySelectorAll('.answer-row .answer-label')].map((node) => node.textContent);
+  assert.deepEqual(labels, ['Eher ungern', 'Sehr gern', 'Eher gern']);
+  assert.ok(container.textContent.includes('Runde 1 von 4 · Lebensmittelgruppen'));
+  assert.ok(container.textContent.includes(ROUND.round1Intro));
+  assert.equal(container.querySelector('.card-examples'), null, 'keine Beispiele in Runde 1');
+  assert.ok(container.querySelector('.artwork-neutral'), 'neutrales Symbol');
+  assert.equal(container.querySelector('.artwork-photo'), null, 'kein Foto');
+  await unmount();
+  // Nach der ersten Antwort verschwindet die Einleitung, die Rundenanzeige bleibt
+  const later = await render(h(RoundScreen, { round: roundAfter(['F01']), config, canUndo: true, onAnswer: spy(), onUndo: spy(), onEndRound: spy() }));
+  assert.ok(!later.container.textContent.includes(ROUND.round1Intro));
+  assert.ok(later.container.textContent.includes('Runde 1 von 4'));
+  await later.unmount();
+  // Runde 2: Untergruppen mit den Begriffen aus A3
+  const events = index.cards.filter((card) => card.stage === 1).map((card, i) => ({ cardId: card.id, response: LIKE, round: 1, positionInRound: i + 1 }));
+  const round2 = deriveRoundState({ index, onboarding, diets, events, round: 2 });
+  const second = await render(h(RoundScreen, { round: round2, config, canUndo: false, onAnswer: spy(), onUndo: spy(), onEndRound: spy() }));
+  assert.deepEqual([...second.container.querySelectorAll('.answer-row .answer-label')].map((node) => node.textContent), [ANSWER_LABELS.DISLIKE, ANSWER_LABELS.PREFER, ANSWER_LABELS.LIKE]);
+  assert.ok(second.container.textContent.includes('Runde 2 von 4 · Genauer nachgefragt'));
+  await second.unmount();
+});
+
+test('?r1scale=2: in Runde 1 nur „Eher ungern“ und „Eher gern“, Pfeil nach oben wirkt nicht', async () => {
+  const onAnswer = spy();
+  const { container, unmount } = await render(h(RoundScreen, { round: roundAfter([]), config: { ...config, r1scale: 2 }, canUndo: false, onAnswer, onUndo: spy(), onEndRound: spy() }));
+  assert.deepEqual([...container.querySelectorAll('.answer-row button')].map((button) => button.dataset.answer), [DISLIKE, LIKE]);
+  await act(async () => window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowUp' })));
+  assert.equal(onAnswer.calls.length, 0);
+  await click(buttonByText(container, 'Eher gern'));
+  assert.deepEqual(onAnswer.calls[0].slice(1, 2).concat(onAnswer.calls[0][6]), [LIKE, 'r1-2']);
   await unmount();
 });

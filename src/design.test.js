@@ -94,6 +94,12 @@ test('Weniger Bewegung: alle Dauern werden auf 0 gesetzt', () => {
   const durations = [...tokensCss.matchAll(/(--duration-[a-z-]+):\s*([\d.]+m?s)/g)].map((match) => match[1]);
   for (const name of new Set(durations)) {
     if (name === '--duration-demo') continue; // Demo-Schleife wird stattdessen angehalten (animation: none)
+    // Überblenden statt Nachrücken: nur bei reduzierter Bewegung gesetzt, keine Bewegung (Kartenwechsel sichtbar)
+    if (name === '--duration-card-fade') {
+      assert.match(tokensCss, /--duration-card-fade:\s*0ms/);
+      assert.match(reduced, /--duration-card-fade:\s*\d+ms/);
+      continue;
+    }
     assert.match(reduced, new RegExp(`${name}:\\s*0ms`), name);
   }
   assert.equal(parseDuration('280ms'), 280);
