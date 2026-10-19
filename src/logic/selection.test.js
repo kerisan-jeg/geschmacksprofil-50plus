@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { MAX_ROUNDS } from '../config.js';
+import { MAX_ROUNDS, NEGATIVE_GROUP_QUOTA_STAGE3 } from '../config.js';
 import { indexCatalog } from './catalog.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
 import { buildProfile, computeProfile, deriveRoundState, derivedEntries, hasMoreCards, nextCard, nextRoundCards, openHoldout, selectionReason, selectNextCards, tasteSignals } from './engine.js';
@@ -210,7 +210,7 @@ test('Bei durchgängiger Ablehnung werden keine langen Lebensmittel-Nachfragen a
   const details = answers.filter((event) => event.stage === 3);
   assert.ok(details.every((event) => event.selectionReason === REASONS.AFTER_NEGATIVE_DETAIL), 'abgelehnte Untergruppen werden nicht beliebig vertieft');
   const perParent = Object.groupBy(details, (event) => event.parentId);
-  assert.ok(Object.values(perParent).every((list) => list.length <= 2));
+  assert.ok(Object.values(perParent).every((list) => list.length <= NEGATIVE_GROUP_QUOTA_STAGE3), 'vorläufige Quote je Untergruppe');
   assert.deepEqual(answers.filter((event) => event.round === 2).slice(-6).map((event) => event.phase), Array(6).fill(PHASE_HOLDOUT));
   assert.ok(answers.some((event) => event.round === 4 && event.stage === 4));
   const last = deriveRoundState({ index, onboarding: NO_ONBOARDING, diets, events: session.events, round: answers.at(-1).round });

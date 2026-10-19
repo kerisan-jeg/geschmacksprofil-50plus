@@ -97,8 +97,7 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
       />
 
       <div className="round-head">
-        <p className="round-title">{ROUND.roundOf(round.round, MAX_ROUNDS, ROUND.roundNames[round.round] ?? '')}</p>
-        {round.round === 1 && answered === 0 && <p className="note round-intro">{ROUND.round1Intro}</p>}
+        <p className="round-title">{ROUND.roundOf(round.round, MAX_ROUNDS, ROUND.roundNames[round.round], ROUND.roundHints[round.round])}</p>
       </div>
 
       <div className="round-status">

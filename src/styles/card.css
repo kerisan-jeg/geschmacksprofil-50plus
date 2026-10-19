@@ -208,13 +208,8 @@
   hyphenate-limit-chars: 10 4 4;
 }
 
-/* Gruppen (Runde 1): grosser Titel, neutrale Umschreibung statt Beispielen. Das Symbol bleibt sichtbar:
-   eigene Mindesthöhe und Platz oben für Hinweise wie „Ohne Schweinefleisch“ (auf 360 × 640 scrollt die
-   erste Karte mit Einleitung dann leicht, wie bei 130 % Schrift). */
-.deck .card-face.is-group .card-art {
-  min-height: var(--size-card-art-group-min);
-}
-
+/* Gruppen (Runde 1): grosser Titel, neutrale Umschreibung statt Beispielen. Platz oben für Hinweise wie
+   „Ohne Schweinefleisch“; das Symbol nimmt den Rest und wird bei wenig Platz kleiner (nie Scrollen). */
 .card-face.is-group .artwork-placeholder {
   padding: var(--space-group-art-top) var(--space-3) var(--space-2);
 }
@@ -256,8 +251,8 @@
 
 /* ---------- Kartenstapel in der Runde ---------- */
 
-/* Der Stapel füllt den freien Platz zwischen Fortschritt und Knöpfen. Er wird nie kleiner als
-   Bild-Untergrenze plus Text (automatische Mindesthöhe): Dann scrollt die Seite, nichts wird abgeschnitten. */
+/* Der Stapel füllt den freien Platz zwischen Fortschritt und Knöpfen. Die Runde scrollt nie: Bei wenig Höhe
+   wird zuerst das Bild kleiner (bis ganz weg), Titel und Text der Karte bleiben vollständig. */
 .deck {
   position: relative;
   display: grid;
@@ -265,12 +260,30 @@
   flex: 1 1 0;
   /* Auf hohen Handys nicht endlos hoch: Rest des Platzes geht als Rand ober- und unterhalb weg */
   max-height: calc(100cqw * var(--deck-max-ratio));
+  min-height: 0;
   margin-block: auto;
 }
 
 .deck > * {
   grid-area: 1 / 1;
   min-width: 0;
+}
+
+/* Sehr wenig Höhe (z. B. 130 % Schrift mit Hinweis oben): Bild weg, Titel etwas kleiner, damit er ganz sichtbar
+   bleibt und die Runde nicht scrollt. */
+.deck {
+  container: deck / size;
+}
+
+@container deck (max-height: 6rem) {
+  .card-art {
+    display: none;
+  }
+
+  .card-title,
+  .deck .card-face.is-group .card-title {
+    font-size: var(--font-size-title-s);
+  }
 }
 
 .deck .card-face {
@@ -281,7 +294,7 @@
 
 .deck .card-art {
   flex: 1 1 0;
-  min-height: var(--size-card-art-min);
+  min-height: 0;
 }
 
 .deck .card-art .artwork {

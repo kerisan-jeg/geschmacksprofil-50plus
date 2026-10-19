@@ -384,12 +384,15 @@
 /* ---------- Runde ---------- */
 
 /* Volle Höhe ohne Navigation: Kopf, Fortschritt, Kartenstapel (füllt den Rest), Antwortknöpfe unten.
-   Reicht die Höhe nicht (z. B. 130 % Schrift auf 360 × 640), wird die Seite länger und scrollt. */
+   Die Runde scrollt nie (Dozentenfeedback 19.10.2026): Wischen nach oben ist eine Bewertung, Scrollen könnte zu
+   Fehlbewertungen führen. Reicht die Höhe nicht (z. B. 130 % Schrift auf 360 × 640), gibt die Karte Platz ab,
+   zuerst das Bild; Antwortknöpfe, „Kenne ich nicht“ und „Vertrage ich nicht“ bleiben immer sichtbar. */
 .screen-round {
   container-type: inline-size;
   gap: var(--space-3);
   height: 100dvh;
-  min-height: min-content;
+  min-height: 0;
+  overflow: hidden;
   padding-top: max(var(--space-2), env(safe-area-inset-top));
   padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom));
 }
@@ -404,6 +407,22 @@
   font-size: var(--font-size-caption);
   font-weight: var(--font-weight-bold);
   line-height: var(--line-height-snug);
+}
+
+/* Kopfzeile der Runde bleibt einzeilig (jede Zeile fehlt sonst der Karte); bei grosser Schrift ohne Symbole */
+.screen-round .top-bar {
+  flex-wrap: nowrap;
+}
+
+.screen-round .top-bar .button-ghost {
+  font-size: var(--font-size-caption);
+  white-space: nowrap;
+}
+
+@container (max-width: 17rem) {
+  .screen-round .top-bar .button-ghost svg {
+    display: none;
+  }
 }
 
 .round-status {

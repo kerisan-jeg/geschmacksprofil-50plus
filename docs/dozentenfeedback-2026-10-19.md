@@ -93,7 +93,23 @@ Bisher schlossen zwei Stellen in src/logic/selection.js endgültig aus: Bei eine
 | (b) Quote | höchstens N weitere Unterkarten je negativer Gruppe | nicht umgesetzt |
 | (c) abgeschwächte Rangzahl | Unterkarten mit einem Faktor nach hinten sortiert statt in einer festen letzten Stufe | nicht umgesetzt |
 
-Mit (a) hängt Runde 2 die übrigen Untergruppen ganz hinten an (`stage2_after_negative`), Runde 3 höchstens zwei konkrete Lebensmittel je negativer Untergruppe (`stage3_after_negative`). Eine negative Gruppe erzeugt nie eine Ausschluss-ID, keine Allergie und keine Restriktion. Folge: Bei durchgängiger Ablehnung werden Runden 2 und 3 länger als bisher, aber nie länger als das Kartenlimit.
+Mit (a) hängt Runde 2 die übrigen Untergruppen ganz hinten an (`stage2_after_negative`). Runde 3 hängt je negativer Untergruppe konkrete Lebensmittel ganz hinten an (`stage3_after_negative`), höchstens `NEGATIVE_GROUP_QUOTA_STAGE3 = 2`. Diese Begrenzung ist eine **Quote (Element von Variante b)** und eine **vorläufige Entscheidung** (TODO Team in src/config.js), keine reine Variante (a). Eine negative Gruppe erzeugt nie eine Ausschluss-ID, keine Allergie und keine Restriktion.
+
+**Folge:** Bei vielen Ablehnungen werden Runden 2 und 3 länger als vor dem 19.10.2026, aber nie länger als das Kartenlimit. Beispiel aus dem Test „durchgängige Ablehnung“: Bisher endete die Profilerstellung nach Runde 2 ohne konkrete Lebensmittel; jetzt füllt Runde 3 mit höchstens zwei Lebensmitteln je Untergruppe.
+
+Angepasste Tests (src/logic/selection.test.js), alte und neue Erwartung:
+
+| Test | Alt | Neu |
+|---|---|---|
+| Hülsenfrüchte „Mag ich nicht“ → Sojaprodukte als Ausnahme | nur Sojaprodukte (Ausnahme) | Sojaprodukte (Ausnahme), danach Linsen, Bohnen, Erbsen mit `stage2_after_negative` |
+| … nach „Sojaprodukte: Mag ich“ | übrige Hülsenfrüchte kommen nie | übrige Hülsenfrüchte erst nach allen anderen Karten |
+| … nach „Sojaprodukte: Mag ich nicht“ | keine Karte mehr aus Hülsenfrüchte | nur noch `stage2_after_negative`, keine weitere Vertiefung |
+| … Fisch und Meeresfrüchte „Mag ich nicht“ | nur Meeresfrüchte (Ausnahme) | Meeresfrüchte (Ausnahme), danach Fisch und dritte Untergruppe am Schluss |
+| Kontrast und Ausnahme weichen einer Kontrollkarte aus | Hülsenfrüchte: nur Ersatz-Ausnahme | Ersatz-Ausnahme, danach die zwei übrigen am Schluss |
+| Regeln folgen der aktuellen Bewertung (Obst im Profil auf „Mag ich nicht“) | nur die Ausnahme | Ausnahme, danach vier Untergruppen am Schluss |
+| Durchgängige Ablehnung | keine Antwort auf Stufe 3 | Stufe 3 nur mit `stage3_after_negative`, höchstens `NEGATIVE_GROUP_QUOTA_STAGE3` je Untergruppe |
+
+Neu dazugekommen ist der Test „Negative Gruppe schliesst nie endgültig aus“ (Kürbis-Beispiel).
 
 ### Gewichtung je Ebene: STAGE_WEIGHTS und inheritFactor
 
@@ -120,11 +136,11 @@ Tibors Wunsch [K]: Beispiele unter Gruppenkarten lenken die Einschätzung („Ge
 
 - **keinen Beispieltext und kein Foto**, auch im Stapel dahinter und im Profil;
 - auf allen Karten **dasselbe neutrale Symbol**, einen leeren Teller mit Besteck (Variante A, Teamentscheid). Kein Symbol zeigt ein einzelnes Lebensmittel;
-- je Gruppe eine **eigene Kartenfarbe**. Die Farben sind neu gewählt (OKLCH, abwechselnd heller und etwas dunkler), damit sich alle 13 deutlich unterscheiden: kleinster Abstand ΔE(OKLab) 0.041 statt 0.004 vorher (Hülsenfrüchte und Kartoffeln waren fast gleich). Test: src/tints.test.js;
+- je Gruppe eine **eigene Kartenfarbe**. Die Farben sind neu gewählt (OKLCH, abwechselnd heller und etwas dunkler), damit sich alle 13 deutlich unterscheiden: kleinster Abstand ΔE(OKLab) 0.037 statt 0.004 vorher (Hülsenfrüchte und Kartoffeln waren fast gleich). Test: src/tints.test.js;
 - einen **grösseren Titel** (1.15-fach);
 - auch bei **reduzierter Bewegung** einen sichtbaren Kartenwechsel: kurzes Überblenden (240 ms, nur Deckkraft, keine Bewegung) statt sofortigem Austausch. Dazu wechselt „Karte 3 von 13“, und der Screenreader sagt die neue Karte an.
 
-Kontraste (A11, gemessen und im Test geprüft): Symbol (`--color-ink-secondary`) auf jeder Gruppenfarbe 4.4:1 bis 5.7:1 (Grafik mindestens 3:1), dunkler Text (`--color-ink`) 10.2:1 bis 13.3:1. Titel und Umschreibung stehen wie bisher auf Weiss.
+Kontraste (A11, gemessen und im Test geprüft, Korrektur nach AP2): Jeder Text der Karte erreicht auf jeder der 13 Kartenfarben und auf Weiss mindestens 4.5:1, auch wenn Titel und Umschreibung heute auf Weiss stehen. Titel (`--color-ink`) 10.6:1 bis 13.4:1; Umschreibung, Art der Karte und Symbol (`--color-ink-secondary`) 4.6:1 bis 5.8:1; Hinweise (`--color-rule`) ebenfalls über 4.5:1. Dafür sind die dunkleren Kartenfarben leicht aufgehellt.
 
 Neutrale Umschreibungen (`description` im Katalog, `descriptionStatus: provisional`, **vorläufig**, Freigabe offen):
 
@@ -139,9 +155,14 @@ Hülsenfrüchte ohne Umschreibung (Teamentscheid). Die übrigen Begriffe gelten 
 
 ### Verbesserung 5: Aktuelle Runde sichtbar [K]
 
-Über dem Kartenstapel steht „Runde 1 von 4 · Lebensmittelgruppen“, darunter der bestehende Fortschritt der Runde „Karte 3 von 13“ (bezogen auf das tatsächliche Rundenlimit). Rundennamen: Lebensmittelgruppen, Genauer nachgefragt, Einzelne Lebensmittel, Gerichte. Während des Wischens erscheint kein Profilstand, also höchstens zwei Angaben. Beides leitet sich aus dem Event-Log ab und folgt Rückgängig sofort.
+Über dem Kartenstapel steht „Runde 1 von 4 · Lebensmittelgruppen · erste grobe Einschätzung“ (in Runde 1; sonst ohne Zusatz), darunter der bestehende Fortschritt der Runde „Karte 3 von 13“ (bezogen auf das tatsächliche Rundenlimit). Rundennamen: Lebensmittelgruppen, Genauer nachgefragt, Einzelne Lebensmittel, Gerichte. Während des Wischens erscheint kein Profilstand, also höchstens zwei Angaben. Beides leitet sich aus dem Event-Log ab und folgt Rückgängig sofort.
 
-Auf 360 × 640 scrollt die **erste** Karte von Runde 1 leicht (Einleitung plus Symbol); „Vertrage ich nicht“ liegt dann knapp unter dem Rand. Ab der zweiten Karte passt alles. Bei 130 % Schrift scrollte die Runde schon vorher.
+**Kein Scrollen in der Runde** (Korrektur nach AP2): Wischen nach oben ist eine Bewertung, Scrollen könnte zu Fehlbewertungen führen. Deshalb:
+- Der ausführliche Einleitungssatz steht auf der Zusammenfassung vor Runde 1 („Danach: Runde 1“), nicht mehr auf der Karte.
+- Der Rundenbildschirm scrollt nie. Fehlt Höhe, gibt die Karte Platz ab: zuerst das Bild, bei sehr wenig Höhe fällt es weg und der Titel wird etwas kleiner. Die Kopfzeile bleibt einzeilig (bei grosser Schrift ohne Symbole).
+- Die Karte selbst lässt sich nie scrollen (`touch-action: none`): Eine Bewegung auf der Karte ist immer eine Geste.
+- Mobil-Check (scripts/check-mobile.py) prüft auf **jeder Karte** aller Runden: Seite scrollt nicht; Karte, Antwortknöpfe, „Kenne ich nicht“, „Vertrage ich nicht“ liegen im Bild; Titel und Text der Karte sind nicht abgeschnitten. Bei 130 % Schrift: kein Scrollen, Antwortknöpfe sichtbar, Kartentext nicht abgeschnitten. Scrollen wird als Befund gemeldet.
+- Ergebnis: 360 × 640 und 430 × 932, je 100 % und 130 %: keine Befunde. Bei 130 % auf 360 × 640 ist das Bild der Karte klein oder fehlt.
 
 ## Noch offen (Entscheid oder Pilot)
 
@@ -156,3 +177,5 @@ Auf 360 × 640 scrollt die **erste** Karte von Runde 1 leicht (Einleitung plus S
 
 - **?limit:** Der URL-Parameter deckt nicht mehr 4 bis 30 ab, sondern nur noch 4 bis 15 (`ROUND_CARD_LIMIT_RANGE.max = 15` seit dem Stufenablauf vom 18.10.). Werte über 15 fallen still auf den Standard 13 zurück; gespeicherte Sitzungen mit mehr als 15 werden auf 15 gekürzt (`cardLimit`). Für einen Vergleich mit mehr Karten pro Runde müsste das Maximum angehoben werden (Teamentscheid).
 - **Mobil-Check** (scripts/check-mobile.py): erwartete nach Runde 4 noch einen eigenen Schritt „Gerichte bewerten“. Seit dem Stufenablauf ist Runde 4 selbst die Gerichte-Runde; der Schritt ist im Skript jetzt optional.
+- **Mobil-Check, Runde 3:** Die Kontrollkarten werden je Sitzung zufällig gezogen. Im kurzen Testablauf (`?limit=4`) kann Runde 3 deshalb leer sein; die App bietet dann direkt Runde 4 an (korrekt). Das Skript erwartete fest Runde 3 und brach gelegentlich ab; es folgt jetzt dem Angebot der App.
+- **„Karte 1 von 4“** auf den Screenshots: Der Mobil-Check startet mit `?limit=4` (kurzer Ablauf), das ist korrekt.

@@ -22,6 +22,7 @@
 //   8     stage2_after_negative      Gruppe „Mag ich nicht“: die übrigen Untergruppen, ganz am Schluss
 //         stage3_after_negative      (NEGATIVE_GROUP_POLICY 'last', Dozentenfeedback 19.10.2026): Eine negative
 //                                    Gruppe ist kein Ausschluss; ihre Kinder kommen, wenn das Kartenlimit Platz lässt.
+//                                    Runde 3: höchstens NEGATIVE_GROUP_QUOTA_STAGE3 je Untergruppe (vorläufige Quote).
 //
 // Was keine Regel trifft, wird nicht gefragt, sondern vermutet (preferences.js): z. B. die übrigen Untergruppen,
 // wenn der Kontrast gleich ausfällt, oder einer Gruppe „Mag ich nicht“ ohne Ausnahme. So bleibt die Zahl der
@@ -33,7 +34,7 @@
 //
 // 'fixed': feste Reihenfolge als Vergleich im Pilot, ebenfalls eine Ebene je Runde (inklusive Stufe 3).
 
-import { NEGATIVE_GROUP_POLICY } from '../config.js';
+import { NEGATIVE_GROUP_POLICY, NEGATIVE_GROUP_QUOTA_STAGE3 } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR, isTasteSignal } from './answers.js';
 import { isVisible } from './filter.js';
 
@@ -267,7 +268,8 @@ export function rankedStageCards(state, mode = SELECTION.FIXED, stage = state.ro
     return children.filter((card) => card.stage === 3 && !isDone(state, card.id)).slice(0, Math.max(0, limit - asked)).map((card) => ({ card, reason }));
   });
   // Negative Untergruppe (oder nie gefragte Untergruppe einer negativen Gruppe): kein Ausschluss, ihre konkreten
-  // Lebensmittel kommen ganz am Schluss (NEGATIVE_GROUP_POLICY 'last'), höchstens so viele wie sonst bei Details.
+  // Lebensmittel kommen ganz am Schluss (NEGATIVE_GROUP_POLICY 'last'), je Untergruppe höchstens
+  // NEGATIVE_GROUP_QUOTA_STAGE3 (vorläufige Quote, Variante b).
   const negative = !NEGATIVE_LAST || mode !== SELECTION.ADAPTIVE ? [] : details.map((parent) => {
     const own = currentRating(state, parent.id);
     const groupNegative = own === DISLIKE || (own == null && currentRating(state, parent.parentId) === DISLIKE);
@@ -276,7 +278,7 @@ export function rankedStageCards(state, mode = SELECTION.FIXED, stage = state.ro
     const asked = children.filter((card) => isDone(state, card.id)).length;
     return children
       .filter((card) => card.stage === 3 && !isDone(state, card.id))
-      .slice(0, Math.max(0, UNKNOWN_CHILD_LIMIT - asked))
+      .slice(0, Math.max(0, NEGATIVE_GROUP_QUOTA_STAGE3 - asked))
       .map((card) => ({ card, reason: REASONS.AFTER_NEGATIVE_DETAIL }));
   });
   const seen = new Set();

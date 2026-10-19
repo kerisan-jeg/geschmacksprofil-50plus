@@ -185,3 +185,11 @@ test('Frage 1: Abgedecktes ist gesperrt, Speisevorschrift zeigt ehrlichen Hinwei
   assert.doesNotMatch(container.textContent, /geeignet|sicher für/i);
   await unmount();
 });
+
+test('Zusammenfassung: Einleitung zu Runde 1 vor „Stimmt so“ (nicht auf der Karte)', async () => {
+  const { ROUND } = await import('../labels.js');
+  const { container, unmount } = await render(summary([section('diet'), section('intolerances'), section('never')]).element);
+  assert.ok(container.textContent.includes(SUMMARY.nextTitle));
+  assert.ok(container.textContent.includes(ROUND.round1Intro));
+  await unmount();
+});

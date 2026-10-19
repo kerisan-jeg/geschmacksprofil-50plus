@@ -3,7 +3,7 @@ import CreationSteps from '../components/CreationSteps.jsx';
 import Avatar from '../components/Avatar.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { hasSummaryRules } from '../logic/profile.js';
-import { BRANDS, DIET, ONBOARDING, PROFILE, SUMMARY } from '../labels.js';
+import { BRANDS, DIET, ONBOARDING, PROFILE, ROUND, SUMMARY } from '../labels.js';
 
 // Zusätze zu einer Regel (nurec v0.2, Kap. 2.2): ärztlich vorgegeben, kleine Mengen gehen
 const FLAG_TEXT = { medical: PROFILE.medical, limited: PROFILE.scopeLimited };
@@ -118,6 +118,15 @@ export default function SummaryScreen({ sections, noCards, firstName, steps, onC
           <Info aria-hidden="true" />
           {SUMMARY.noCards}
         </p>
+      )}
+
+      {!noCards && (
+        <section className="stack-tight" aria-labelledby="summary-next">
+          <h2 id="summary-next" className="title-section">
+            {SUMMARY.nextTitle}
+          </h2>
+          <p className="note">{ROUND.round1Intro}</p>
+        </section>
       )}
 
       <div className="action-bar">

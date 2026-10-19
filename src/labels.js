@@ -302,6 +302,8 @@ export const SUMMARY = {
   open: 'Offen: Du bist dir nicht sicher, ob es weitere gibt. Merkst du beim Wischen etwas, tippe auf „Vertrage ich nicht“.',
   noCards: 'Nach deinen Angaben bleibt keine Karte übrig. Prüfe deine Angaben oder schliesse direkt ab.',
   confirm: 'Stimmt so',
+  // Einleitung zu Runde 1 (Dozentenfeedback 19.10.2026), Text in ROUND.round1Intro
+  nextTitle: 'Danach: Runde 1',
 };
 
 // Mini-Tutorial: höchstens drei kurze Schritte. Standardmässig aus (TUTORIAL_ENABLED in config.js)
@@ -344,8 +346,10 @@ export const ROUND = {
     [title, description, notes?.join(', '), stage !== 1 && examples.length > 0 && `Zum Beispiel ${examples.join(', ')}`].filter(Boolean).join('. '),
   // Rundenanzeige über dem Kartenstapel (Verbesserung 5). Namen nach dem Stufenablauf.
   roundNames: { 1: 'Lebensmittelgruppen', 2: 'Genauer nachgefragt', 3: 'Einzelne Lebensmittel', 4: 'Gerichte' },
-  roundOf: (round, total, name) => `Runde ${round} von ${total} · ${name}`,
-  // Einleitung in Runde 1 (Verbesserung 3), solange noch keine Karte beantwortet ist
+  roundOf: (round, total, name, hint) => [`Runde ${round} von ${total}`, name, hint].filter(Boolean).join(' · '),
+  // Kurzer Zusatz in der Rundenanzeige (Verbesserung 3). Der ausführliche Satz steht auf der Zusammenfassung.
+  roundHints: { 1: 'erste grobe Einschätzung' },
+  // Einleitung zu Runde 1 auf der Zusammenfassung davor (nicht auf der Karte: kein Scrollen in der Runde)
   round1Intro: 'Hier geht es um eine erste grobe Einschätzung. Einzelne Lebensmittel fragen wir später genauer.',
   // Bestätigung nach „Vertrage ich nicht“ (A4)
   intolerantToast: (names) => `Wir schlagen dir ${names} nicht mehr vor.`,

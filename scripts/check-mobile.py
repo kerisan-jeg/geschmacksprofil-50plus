@@ -63,6 +63,25 @@ CHECK = r"""
     }
     if (el.scrollWidth > el.clientWidth + 1 && getComputedStyle(el).overflowX !== 'visible') out.clipped.push(`scrollWidth "${node.textContent.trim().slice(0,25)}"`);
   }
+  // Rundenbildschirm (Dozentenfeedback 19.10.): Wischen nach oben ist eine Bewertung, Scrollen ist ein Befund.
+  // fit: Seite scrollt, oder Karte, Antwortknöpfe, „Kenne ich nicht“, „Vertrage ich nicht“ liegen unter dem Rand.
+  if (document.querySelector('.screen-round')) {
+    out.roundFit = [];
+    const H = window.innerHeight;
+    const se = document.scrollingElement;
+    if (se.scrollHeight > se.clientHeight + 1) out.roundFit.push(`scroll ${se.scrollHeight}>${se.clientHeight}`);
+    const parts = [['.swipe-card', 'Karte'], ['.answer-row button', 'Antwortknopf'], ['.answer-unknown', 'Kenne ich nicht'], ['.answer-intolerant', 'Vertrage ich nicht']];
+    for (const [selector, label] of parts) for (const el of document.querySelectorAll(selector)) {
+      const r = el.getBoundingClientRect();
+      if (r.bottom > H + 0.5 || r.top < -0.5) out.roundFit.push(`${label} ausserhalb (${Math.round(r.top)}–${Math.round(r.bottom)} / ${H})`);
+    }
+    // Titel und Text der obersten Karte müssen innerhalb der Karte ganz sichtbar sein
+    const face = document.querySelector('.swipe-card .card-face')?.getBoundingClientRect();
+    for (const el of document.querySelectorAll('.swipe-card .card-title, .swipe-card .card-examples, .swipe-card .card-description')) {
+      const r = el.getBoundingClientRect();
+      if (face && (r.bottom > face.bottom + 0.5 || r.top < face.top - 0.5 || r.height === 0)) out.roundFit.push(`Kartentext abgeschnitten: ${el.textContent.trim().slice(0, 30)}`);
+    }
+  }
   return out;
 }
 """
@@ -88,10 +107,24 @@ def check(pg, name, results, W):
         pg.screenshot(path=str(SHOTS / f'{W}-{int(ZOOM * 100)}-{name}.png'))
 
 
+FIT = []  # Befunde „Rundenbildschirm passt nicht“ über alle Karten aller Runden
+
+
+def round_fit(pg, where):
+    if ZOOM != 1.0:
+        pg.add_style_tag(content=f'html {{ font-size: calc(118.75% * {ZOOM}) !important; }}')
+    issues = pg.evaluate(CHECK).get('roundFit') or []
+    # Bei 130 % Schrift genügt: Antwortknöpfe sichtbar und kein Scrollen (Vorgabe Team 19.10.)
+    if ZOOM != 1.0:
+        issues = [issue for issue in issues if issue.startswith(('scroll', 'Antwortknopf', 'Kartentext'))]
+    FIT.extend(f'{where}: {issue}' for issue in issues)
+
+
 def answer_until_complete(pg, label='Mag ich'):
-    for _ in range(40):
+    for position in range(40):
         if pg.locator('.screen-complete').count():
             return
+        round_fit(pg, f'Karte {position + 1}')
         pg.get_by_role('button', name=label, exact=True).click()
         pg.wait_for_timeout(120)
 
@@ -167,12 +200,14 @@ def run(p, W, H):
     pg.get_by_role('button', name='Eher gern', exact=True).click()
     pg.wait_for_timeout(60)
     after = pg.locator('.progress-text').inner_text()
+    pg.wait_for_timeout(300); round_fit(pg, 'Runde 1, Karte 2')
     pg.get_by_role('button', name='Vertrage ich nicht').click(); pg.wait_for_timeout(300)
     if pg.locator('.sheet').count():
         check(pg, 'runde_sheet', results, W)
         pg.locator('.sheet .choice').nth(1).click(); pg.get_by_role('button', name='Übernehmen').click()
     check(pg, 'runde_bestaetigung', results, W)
-    pg.get_by_role('button', name='Eher ungern').click(); pg.wait_for_timeout(150)
+    pg.get_by_role('button', name='Eher ungern').click(); pg.wait_for_timeout(300)
+    round_fit(pg, 'Runde 1, Karte 4')
     pg.get_by_role('button', name='Sehr gern').click(); pg.wait_for_timeout(300)
     check(pg, 'abschluss', results, W)
     # Runde 2 (adaptive Auswahl): übrige Gruppen, dann je nach Antwort; danach zurück zum Abschluss
@@ -180,8 +215,12 @@ def run(p, W, H):
     pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(300)
     pg.get_by_role('button', name='Runde beenden').click(); check(pg, 'abschluss_2', results, W)
     # Runde 3 und 4 bis zum Ende der Profilerstellung, dann freiwillig Gerichte (Stufe 4) und Alltag (Kap. 2.3)
-    pg.get_by_role('button', name='Weiter mit Runde 3').click(); answer_until_complete(pg)
-    pg.get_by_role('button', name='Weiter mit Runde 4').click(); answer_until_complete(pg)
+    # Runde 3 kann je nach gezogenen Kontrollkarten leer sein; dann bietet die App direkt Runde 4 an
+    for _ in range(2):
+        nxt = pg.get_by_role('button', name=re.compile('^Weiter mit Runde [34]'))
+        if not nxt.count():
+            break
+        nxt.first.click(); answer_until_complete(pg)
     check(pg, 'abschluss_ende', results, W)
     # Seit dem Stufenablauf (18.10.) ist Runde 4 die Gerichte-Runde; ein eigener Gerichte-Schritt nur, falls angeboten
     if pg.get_by_role('button', name='Gerichte bewerten').count():
@@ -219,6 +258,8 @@ def run(p, W, H):
     pg.mouse.wheel(0, 4000); check(pg, 'profil_unten', results, W)
     pg.reload(); pg.wait_for_selector('.screen-welcome'); check(pg, 'willkommen_zurueck', results, W)
     pg.goto(BASE + '?admin=1'); check(pg, 'admin', results, W)
+    results['runde_jede_karte'] = {'roundFit': list(FIT)}
+    FIT.clear()
     b.close()
     return results, errors, trans, after
 

@@ -135,20 +135,20 @@ test('Runde 2 zeigt Fisch ohne Meeresfrüchte im Etikett, auch im Stapel und nac
   await unmount();
 });
 
-test('Runde 1: eigene Begriffe, Rundenanzeige und Einleitung; ab Runde 2 die Begriffe aus A3', async () => {
+test('Runde 1: eigene Begriffe und Rundenanzeige mit Zusatz, Einleitung nicht auf der Karte; ab Runde 2 die Begriffe aus A3', async () => {
   const { container, unmount } = await render(h(RoundScreen, { round: roundAfter([]), config, canUndo: false, onAnswer: spy(), onUndo: spy(), onEndRound: spy() }));
   const labels = [...container.querySelectorAll('.answer-row .answer-label')].map((node) => node.textContent);
   assert.deepEqual(labels, ['Eher ungern', 'Sehr gern', 'Eher gern']);
-  assert.ok(container.textContent.includes('Runde 1 von 4 · Lebensmittelgruppen'));
-  assert.ok(container.textContent.includes(ROUND.round1Intro));
+  assert.ok(container.textContent.includes('Runde 1 von 4 · Lebensmittelgruppen · erste grobe Einschätzung'));
+  // Der ausführliche Satz steht auf der Zusammenfassung (kein Scrollen in der Runde)
+  assert.ok(!container.textContent.includes(ROUND.round1Intro));
   assert.equal(container.querySelector('.card-examples'), null, 'keine Beispiele in Runde 1');
   assert.ok(container.querySelector('.artwork-neutral'), 'neutrales Symbol');
   assert.equal(container.querySelector('.artwork-photo'), null, 'kein Foto');
   await unmount();
-  // Nach der ersten Antwort verschwindet die Einleitung, die Rundenanzeige bleibt
+  // Die Rundenanzeige bleibt auf jeder Karte gleich
   const later = await render(h(RoundScreen, { round: roundAfter(['F01']), config, canUndo: true, onAnswer: spy(), onUndo: spy(), onEndRound: spy() }));
-  assert.ok(!later.container.textContent.includes(ROUND.round1Intro));
-  assert.ok(later.container.textContent.includes('Runde 1 von 4'));
+  assert.ok(later.container.textContent.includes('Runde 1 von 4 · Lebensmittelgruppen · erste grobe Einschätzung'));
   await later.unmount();
   // Runde 2: Untergruppen mit den Begriffen aus A3
   const events = index.cards.filter((card) => card.stage === 1).map((card, i) => ({ cardId: card.id, response: LIKE, round: 1, positionInRound: i + 1 }));
@@ -156,6 +156,7 @@ test('Runde 1: eigene Begriffe, Rundenanzeige und Einleitung; ab Runde 2 die Beg
   const second = await render(h(RoundScreen, { round: round2, config, canUndo: false, onAnswer: spy(), onUndo: spy(), onEndRound: spy() }));
   assert.deepEqual([...second.container.querySelectorAll('.answer-row .answer-label')].map((node) => node.textContent), [ANSWER_LABELS.DISLIKE, ANSWER_LABELS.PREFER, ANSWER_LABELS.LIKE]);
   assert.ok(second.container.textContent.includes('Runde 2 von 4 · Genauer nachgefragt'));
+  assert.ok(!second.container.textContent.includes('erste grobe Einschätzung'));
   await second.unmount();
 });
 

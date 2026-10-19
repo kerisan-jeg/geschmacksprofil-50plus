@@ -170,8 +170,6 @@
   --size-hero-card: 8.8rem;
   --size-demo: 12rem; /* Fläche der Tutorial-Demo */
   --size-demo-card: 7.5rem;
-  --size-card-art-min: 6rem; /* Kartenbild in der Runde wird nie kleiner */
-  --size-card-art-group-min: 7.5rem; /* Gruppen: Platz für Hinweis oben und das neutrale Symbol darunter */
   --space-group-art-top: 2.9rem; /* Höhe der Hinweiszeile oben auf dem Bild */
   --size-neutral-symbol-max: 9rem; /* neutrales Symbol der Gruppen höchstens so hoch */
   --deck-max-ratio: 1.38; /* Kartenstapel höchstens so hoch wie Breite × Faktor (hohe Handys) */
@@ -205,7 +203,6 @@
 @media (max-height: 700px) {
   :root {
     --size-answer: var(--size-answer-compact);
-    --size-card-art-min: 4.5rem;
     --card-title-size: var(--font-size-title-m);
   }
 }

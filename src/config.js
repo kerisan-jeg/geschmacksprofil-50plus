@@ -42,6 +42,10 @@ export const STAGE_WEIGHTS = { 1: 1, 2: 1, 3: 1, 4: 1 };
 //   (c) Abgeschwächte Rangzahl: Unterkarten werden mit einem Faktor nach hinten sortiert statt in einer
 //       festen letzten Stufe (nicht umgesetzt).
 export const NEGATIVE_GROUP_POLICY = 'last';
+// Vorläufige Quote (Element von Variante b) innerhalb von 'last': In Runde 3 kommen je negativer Untergruppe höchstens
+// so viele konkrete Lebensmittel, ganz am Schluss. TODO Team: Wert bestätigen oder ändern (0 = keine).
+// Folge: Bei vielen Ablehnungen werden Runden 2 und 3 länger als vor dem 19.10. (nie über das Kartenlimit).
+export const NEGATIVE_GROUP_QUOTA_STAGE3 = 2;
 
 // Präferenzmodell (src/logic/preferences.js). Annahmen [V], im Pilot zu prüfen und vor der Hauptstudie
 // festzuschreiben (mit neuer RULE_VERSION):
