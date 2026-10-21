@@ -14,7 +14,9 @@ Nachweis in image-credits.json (Fotograf, Link, APA 7) und nennt nach dem tatsä
 
 Voraussetzung: pip install pillow
 
-  python scripts/prepare-card-images.py stock             Unsplash-Fotos ins A15-Format bringen (lokal oder über imageUrl)
+  python scripts/prepare-card-images.py stock [id ...]    Unsplash-Fotos ins A15-Format bringen (lokal oder über imageUrl);
+                                                          mit Karten-IDs nur diese
+  python scripts/prepare-card-images.py groups            Gruppenbilder aus je drei Fotos (groupImages in image-credits.json)
   python scripts/prepare-card-images.py check             alle Bilder prüfen (Datei, 4:3, Breite, Grösse, alt-Text)
   python scripts/prepare-card-images.py review            Prüfseite docs/bilder-review.html neu erzeugen (nur lokal)
 Nicht mehr benötigt seit A16 (bleibt für den Fall, dass doch KI-Bilder kommen):
@@ -72,23 +74,35 @@ def save_catalog(data):
 
 # ---------- Bild umwandeln ----------
 
+def crop_to(image, ratio, focus=(0.5, 0.5)):
+    """Auf das Seitenverhältnis ratio = (Breite, Höhe) zuschneiden, um den Fokuspunkt herum."""
+    width, height = image.size
+    if width * ratio[1] > height * ratio[0]:
+        new_width = round(height * ratio[0] / ratio[1])
+        left = min(max(0, round(width * focus[0] - new_width / 2)), width - new_width)
+        return image.crop((left, 0, left + new_width, height))
+    if width * ratio[1] < height * ratio[0]:
+        new_height = round(width * ratio[1] / ratio[0])
+        top = min(max(0, round(height * focus[1] - new_height / 2)), height - new_height)
+        return image.crop((0, top, width, top + new_height))
+    return image
+
+
 def to_webp(source, target, focus=(0.5, 0.5)):
     from PIL import Image  # pip install pillow
 
-    image = Image.open(source)
-    image = image.convert('RGB')
-    width, height = image.size
-    # Auf 4:3 zuschneiden, um den Fokuspunkt herum
-    if width * RATIO[1] > height * RATIO[0]:
-        new_width = round(height * RATIO[0] / RATIO[1])
-        left = min(max(0, round(width * focus[0] - new_width / 2)), width - new_width)
-        image = image.crop((left, 0, left + new_width, height))
-    elif width * RATIO[1] < height * RATIO[0]:
-        new_height = round(width * RATIO[1] / RATIO[0])
-        top = min(max(0, round(height * focus[1] - new_height / 2)), height - new_height)
-        image = image.crop((0, top, width, top + new_height))
+    image = crop_to(Image.open(source).convert('RGB'), RATIO, focus)
+    return save_webp(image, target, source)
+
+
+PART_WIDTHS = (800, 720, 640)  # Teilbilder der Gruppen: kleiner, erscheinen nur im Raster
+
+
+def save_webp(image, target, name, widths=(MAX_WIDTH, 1080, 960, 840, 720)):
+    from PIL import Image  # pip install pillow
+
     # Höchstens 1200 px breit. Sehr feine Motive (z. B. Bulgur) werden zuerst mit tieferer Qualität, dann schmaler gespeichert.
-    for width in (MAX_WIDTH, 1080, 960, 840, 720):
+    for width in widths:
         scaled = image.resize((width, round(width * RATIO[1] / RATIO[0])), Image.LANCZOS) if image.width > width else image
         for quality in range(86, 49, -4):
             buffer = io.BytesIO()
@@ -99,7 +113,7 @@ def to_webp(source, target, focus=(0.5, 0.5)):
             image = scaled
             break
     else:
-        sys.exit(f'{source}: auch kleiner und mit tiefer Qualität grösser als 150 KB')
+        sys.exit(f'{name}: auch kleiner und mit tiefer Qualität grösser als 150 KB')
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(buffer.getvalue())
     return image.width, image.height, buffer.tell(), quality
@@ -121,14 +135,58 @@ def original(photo):
     return target
 
 
+GAP = 6  # Abstand zwischen den drei Fotos eines Gruppenbilds (weiss)
+
+
+def command_groups():
+    """Gruppenbilder: je drei Fotos aus groupImages (image-credits.json), wie das frühere Bildraster zusammengesetzt:
+    das erste gross links (Breite 1.2 : 1), die anderen zwei rechts übereinander. 4:3, WebP unter 150 KB.
+    Dazu je Foto ein Teilbild (cards/parts/{Gruppe}-{n}.webp): Zeigt ein Teil Ausgeschlossenes, setzt die App das Bild
+    aus den erlaubten Teilen zusammen."""
+    from PIL import Image  # pip install pillow
+
+    credits = json.loads(CREDITS.read_text(encoding='utf-8'))
+    photos = {photo['key']: photo for photo in credits['photos']}
+    groups = {key: value for key, value in credits.get('groupImages', {}).items() if key != 'note'}
+    data = load_catalog()
+    width, height = MAX_WIDTH, MAX_WIDTH * RATIO[1] // RATIO[0]
+    left_width = round((width - GAP) * 1.2 / 2.2)
+    right_width = width - GAP - left_width
+    half = (height - GAP) // 2
+    cells = [(0, 0, left_width, height), (left_width + GAP, 0, right_width, half), (left_width + GAP, half + GAP, right_width, height - half - GAP)]
+    for card in data['cards']:
+        group = groups.get(card['id'])
+        if not group:
+            continue
+        canvas = Image.new('RGB', (width, height), 'white')
+        for key, (x, y, w, h) in zip(group['photos'], cells):
+            photo = photos[key]
+            image = Image.open(original(photo)).convert('RGB')
+            image = crop_to(image, (w, h), (photo.get('focusX', 0.5), photo.get('focusY', 0.5)))
+            canvas.paste(image.resize((w, h), Image.LANCZOS), (x, y))
+        size = save_webp(canvas, CARDS_DIR / f"{card['id']}.webp", card['id'])
+        parts = []
+        for number, part in enumerate(group['parts'], start=1):
+            photo = photos[part['photo']]
+            image = crop_to(Image.open(original(photo)).convert('RGB'), RATIO, (photo.get('focusX', 0.5), photo.get('focusY', 0.5)))
+            src = f"cards/parts/{card['id']}-{number}.webp"
+            save_webp(image, ROOT / 'public' / src, src, PART_WIDTHS)
+            parts.append({'src': src, 'alt': photo['title'].strip('[]'), 'shows': part['shows'], 'foods': part['foods']})
+        card['image'] = entry(card['id'], alt=group['alt'], source='stock', license='Unsplash License', credit=group['photos'],
+                              shows=group['shows'], foods=group['foods'], todo=group.get('todo'), parts=parts)
+        print(f"{card['id']}: {size[0]}×{size[1]}, {size[2] // 1024} KB (Qualität {size[3]})")
+    save_catalog(data)
+
+
 def entry(card_id, **fields):
     return {'src': f'cards/{card_id}.webp', **{key: value for key, value in fields.items() if value is not None}}
 
 
 # ---------- Befehle ----------
 
-def command_stock():
-    """Unsplash-Fotos der Untergruppen und der Lebensmittel, die genau dieses Foto zeigen (cardPhotos)."""
+def command_stock(only=None):
+    """Unsplash-Fotos der Untergruppen und der Lebensmittel, die genau dieses Foto zeigen (cardPhotos).
+    only: nur diese Karten-IDs neu erzeugen (sonst alle)."""
     credits = json.loads(CREDITS.read_text(encoding='utf-8'))
     by_key = {photo['key']: photo for photo in credits['photos']}
     targets = {photo['cardId']: photo for photo in credits['photos'] if photo.get('cardId')}
@@ -136,7 +194,7 @@ def command_stock():
     data = load_catalog()
     for card in data['cards']:
         photo = targets.get(card['id'])
-        if not photo:
+        if not photo or (only and card['id'] not in only):
             continue
         size = to_webp(original(photo), CARDS_DIR / f"{card['id']}.webp", (photo.get('focusX', 0.5), photo.get('focusY', 0.5)))
         card['image'] = entry(card['id'], alt=photo['title'].strip('[]'), source='stock', license=photo['license'], credit=photo['key'],
@@ -194,15 +252,16 @@ def command_check():
             problems.append(f'{name}: alt-Text fehlt')
         if image.get('source') not in SOURCES:
             problems.append(f'{name}: source {image.get("source")}')
-        path = ROOT / 'public' / image.get('src', '')
-        if not path.is_file():
-            problems.append(f'{name}: Datei fehlt')
-            continue
-        with Image.open(path) as opened:
-            width, height = opened.size
-            kind = opened.format
-        if kind != 'WEBP' or width > MAX_WIDTH or width * RATIO[1] != height * RATIO[0] or path.stat().st_size > MAX_BYTES:
-            problems.append(f'{name}: {kind} {width}×{height}, {path.stat().st_size // 1024} KB')
+        for src in [image.get('src', '')] + [part.get('src', '') for part in image.get('parts', [])]:
+            path = ROOT / 'public' / src
+            if not path.is_file():
+                problems.append(f'{name}: Datei {src} fehlt')
+                continue
+            with Image.open(path) as opened:
+                width, height = opened.size
+                kind = opened.format
+            if kind != 'WEBP' or width > MAX_WIDTH or width * RATIO[1] != height * RATIO[0] or path.stat().st_size > MAX_BYTES:
+                problems.append(f'{name}: {src} {kind} {width}×{height}, {path.stat().st_size // 1024} KB')
     print('\n'.join(problems) if problems else 'Alle Bilder in Ordnung.')
     sys.exit(1 if problems else 0)
 
@@ -224,8 +283,9 @@ def command_review():
     tiles, todos = [], []
     for card in data['cards']:
         image = card.get('image')
-        photo = photos.get((image or {}).get('credit'))
-        if card['stage'] == 1:
+        credit = (image or {}).get('credit')
+        used = [photos[key] for key in (credit if isinstance(credit, list) else [credit]) if key in photos]
+        if card['stage'] == 1 and not image:
             art, kind = PLATE, 'plate'
         elif image:
             art, kind = f'<img src="../public/{esc(image["src"])}" alt="{esc(image["alt"])}" loading="lazy">', 'image'
@@ -238,8 +298,8 @@ def command_review():
             rows.append('<dt>shows</dt><dd>' + ', '.join(f'{esc(i)} {esc(titles.get(i, "?"))}' for i in image.get('shows', [])) + '</dd>')
             rows.append(f'<dt>foods</dt><dd>{esc(", ".join(image.get("foods", [])))}</dd>')
             source = f'{esc(image["source"])}, {esc(image.get("license", ""))}'
-            if photo:
-                source += f' · <a href="{esc(photo["url"])}">{esc(photo["photographer"])}</a>'
+            if used:
+                source += ' · ' + ', '.join(f'<a href="{esc(photo["url"])}">{esc(photo["photographer"])}</a>' for photo in used)
             rows.append(f'<dt>Quelle</dt><dd>{source}</dd>')
         todo = (image or {}).get('todo')
         if todo:
@@ -250,7 +310,7 @@ def command_review():
     counts = {
         'gesamt': len(data['cards']),
         'mit Bild': sum(1 for card in data['cards'] if card.get('image')),
-        'Teller (Gruppen)': sum(1 for card in data['cards'] if card['stage'] == 1),
+        'Teller (Gruppen ohne Bild)': sum(1 for card in data['cards'] if card['stage'] == 1 and not card.get('image')),
         'ohne passendes Bild': sum(1 for card in data['cards'] if card['stage'] > 1 and not card.get('image')),
     }
     none_list = ''.join(f'<li><a href="#{esc(card_id)}">{esc(card_id)} {esc(titles.get(card_id, ""))}</a>: {esc(entry_.get("reason", ""))}</li>'
@@ -300,12 +360,14 @@ if __name__ == '__main__':
     if not args:
         sys.exit(__doc__)
     if args[0] == 'stock':
-        command_stock()
+        command_stock(set(args[1:]) or None)
     elif args[0] == 'gemini' and len(args) >= 2:
         license_text = args[args.index('--license') + 1] if '--license' in args else None
         command_gemini(args[1], license_text)
     elif args[0] == 'prompts':
         command_prompts()
+    elif args[0] == 'groups':
+        command_groups()
     elif args[0] == 'check':
         command_check()
     elif args[0] == 'review':

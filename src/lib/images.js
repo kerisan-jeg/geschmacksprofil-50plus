@@ -2,13 +2,14 @@
 // Der Eintrag image steht im Katalog: { src, alt, source: 'ai-gemini' | 'stock' | 'own', license?, credit?, shows?, foods? }.
 //   credit       Bildnachweis in src/data/image-credits.json (Unsplash-Fotos)
 //   shows/foods  was im Bild zu sehen ist (Karten-IDs und Lebensmittelwörter), für den Ausschluss-Filter
-// Gruppen (Stufe 1) zeigen kein Bild, sondern auf allen Karten dasselbe neutrale Symbol (Teamentscheid 20.10.2026).
+// Gruppen (Stufe 1) zeigen seit dem 21.10.2026 wieder ein Bild aus drei Beispielfotos (GROUP_IMAGES in config.js);
+// mit GROUP_IMAGES = false auf allen Karten dasselbe neutrale Symbol (Teamentscheid 20.10.2026, Verbesserung 4).
 // Fehlt ein Bild, zeigt es Ausgeschlossenes oder lädt es nicht, zeigt Artwork.jsx den neutralen Platzhalter
 // (Kartenfarbe und Kartenname), nie ein kaputtes Bild. Bilder für die Karten bereitet scripts/prepare-card-images.py vor.
 
 import { createContext } from 'react';
 import credits from '../data/image-credits.json';
-import { IMAGE_STYLE } from '../config.js';
+import { GROUP_IMAGES, IMAGE_STYLE } from '../config.js';
 import { annotateCard, displayCardTitle, foodMatches, isVisible } from '../logic/filter.js';
 
 // Bildstil der Karten ('photo' oder 'illustration', siehe IMAGE_STYLE in config.js).
@@ -57,31 +58,51 @@ export function illustrationForCard(card, filter) {
 }
 
 // Was die Karte oben zeigt (A15). source steht für das Protokoll (imageSource):
-//   neutral       Gruppen: neutrales Symbol (eigene Grafik, source 'own')
+//   neutral       Gruppen ohne Gruppenbild (GROUP_IMAGES = false): neutrales Symbol (eigene Grafik, source 'own')
 //   illustration  Bildstil 'illustration' (Pilotvergleich, Annahme 5): eigene Illustration (source 'own')
 //   image         Bild der Karte (source aus dem Katalog)
+//   collage       Gruppenbild, von dem Teile Ausgeschlossenes zeigen: nur die erlaubten Teilbilder (image.parts)
 //   placeholder   kein Bild (source null) oder Bild mit Ausgeschlossenem (source des nicht gezeigten Bildes)
-export function cardVisual(card, { style = IMAGE_STYLE, filter = null } = {}) {
-  if (card.stage === 1) return { kind: 'neutral', source: 'own' };
+export function cardVisual(card, { style = IMAGE_STYLE, filter = null, groupImages = GROUP_IMAGES } = {}) {
+  if (card.stage === 1 && (!groupImages || !card.image)) return { kind: 'neutral', source: 'own' };
   if (style === 'illustration') {
     const illustration = illustrationForCard(card, filter);
     return illustration ? { kind: 'illustration', src: assetUrl(`illustrations/${illustration}`), source: 'own' } : { kind: 'placeholder', source: null };
   }
   const image = card.image;
   if (!image?.src) return { kind: 'placeholder', source: null };
-  if (!isImageAllowed(image, filter)) return { kind: 'placeholder', source: image.source ?? null };
+  if (!isImageAllowed(image, filter)) {
+    // Gruppenbild: aus den erlaubten Teilen zusammensetzen (z. B. ohne Schweinefleisch nur Poulet und Rind)
+    const parts = (image.parts ?? []).filter((part) => isImageAllowed(part, filter));
+    if (parts.length > 0) {
+      return {
+        kind: 'collage',
+        parts: parts.map((part) => ({ src: assetUrl(part.src), alt: part.alt ?? '' })),
+        alt: parts.map((part) => part.alt).join(', '),
+        source: image.source ?? null,
+      };
+    }
+    return { kind: 'placeholder', source: image.source ?? null };
+  }
   return { kind: 'image', src: assetUrl(image.src), alt: image.alt ?? '', source: image.source ?? null };
 }
 
 // Bilder, die vorgeladen werden sollen (die nächsten Karten), ohne Doppelte.
 export function imageUrls(cards, options) {
-  return [...new Set(cards.map((card) => cardVisual(card, options)).filter((visual) => visual.kind === 'image').map((visual) => visual.src))];
+  const urls = cards.map((card) => cardVisual(card, options)).flatMap((visual) => {
+    if (visual.kind === 'image') return [visual.src];
+    if (visual.kind === 'collage') return visual.parts.map((part) => part.src);
+    return [];
+  });
+  return [...new Set(urls)];
 }
 
 // Unsplash-Fotos mit den Karten, auf denen sie erscheinen (für die Bildnachweise). Nur Fotos, die eine Karte zeigt.
+// Gruppenbilder nennen ihre drei Fotos als Liste (credit: [Schlüssel]).
 export function allPhotos(cards = []) {
+  const credits = (card) => [].concat(card.image?.credit ?? []);
   return PHOTOS.map((photo) => ({
     ...photo,
-    usedBy: cards.filter((card) => card.image?.credit === photo.key).map((card) => card.id),
+    usedBy: cards.filter((card) => credits(card).includes(photo.key)).map((card) => card.id),
   })).filter((photo) => photo.usedBy.length > 0);
 }

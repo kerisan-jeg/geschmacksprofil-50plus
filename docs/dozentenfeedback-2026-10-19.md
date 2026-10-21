@@ -262,6 +262,8 @@ Folge: Mit `CUISINE_MIN_RATED = 3` entsteht in einer Sitzung meist nur für die 
 
 ## Noch offen (Entscheid oder Pilot)
 
+- **Gruppenbilder in Runde 1 (Änderung vom 21.10.2026):** Auf Wunsch des Teams zeigen die Gruppen wieder Fotos (je drei Beispiele) statt des neutralen Tellers. Das weicht von Verbesserung 4 ab (Tibor: in Runde 1 keine Beispiele, auch nicht im Bild). Der Teller bleibt mit `GROUP_IMAGES = false` (src/config.js) verfügbar; `imageSource` im Protokoll unterscheidet beide (stock = Foto, own = Teller). Mit Tibor besprechen oder im Pilot vergleichen.
+
 - **Wirkt Runde 1 ohne Bilder monoton?** Alle 13 Gruppen zeigen dasselbe Symbol. Im Pilot prüfen (Rückmeldungen, Antwortzeiten, Abbrüche in Runde 1) und Tibor zeigen.
 - „Gegartes Gemüse“ und „Salat und Rohkost“ sind als Gruppen sehr breit (Kürbis-Beispiel). Nicht umgebaut.
 - „Kenne ich nicht“ in Runde 1: wenig sinnvoll bei Eier, Milchprodukte, Brot, Pasta, Kartoffeln, Obst, Salat und Rohkost, Gegartes Gemüse; eher sinnvoll bei Hülsenfrüchte, Nüsse und Samen, Reis und andere Getreide, Fisch und Meeresfrüchte. Regelvorschlag: Knopf überall gleich lassen, im Pilot den Anteil je Karte messen.

@@ -99,13 +99,21 @@ export function validateCatalog(cards) {
       if (index.get(id)?.parentId !== card.id) errors.push(`${card.id}: Kontrast ${id} ist kein Kind`);
     }
     if (card.variantOf && !index.get(card.variantOf)) errors.push(`${card.id}: variantOf ${card.variantOf} unbekannt`);
-    // Bilder (Addendum A15): eigene Datei je Karte, deutscher alt-Text, bekannte Quelle; Gruppen zeigen das neutrale Symbol
+    // Bilder (Addendum A15): eigene Datei je Karte, deutscher alt-Text, bekannte Quelle. Gruppenbilder (21.10.2026)
+    // bestehen aus drei Fotos und nennen deren Nachweise als Liste.
     if (card.image) {
-      if (card.stage === 1) errors.push(`${card.id}: Gruppen zeigen das neutrale Symbol, kein Bild`);
+      if (card.stage === 1 && card.image.source === 'stock' && (!Array.isArray(card.image.credit) || card.image.credit.length === 0)) {
+        errors.push(`${card.id}: Gruppenbild ohne Nachweise der Fotos`);
+      }
       if (card.image.src !== `cards/${card.id}.webp`) errors.push(`${card.id}: Bild muss cards/${card.id}.webp sein`);
       if (!card.image.alt?.trim()) errors.push(`${card.id}: Bild ohne alt-Text`);
       if (!IMAGE_SOURCES.includes(card.image.source)) errors.push(`${card.id}: Bildquelle ${card.image.source} unbekannt`);
       for (const id of card.image.shows ?? []) if (!index.get(id)) errors.push(`${card.id}: Bild zeigt unbekannte Karte ${id}`);
+      for (const [number, part] of (card.image.parts ?? []).entries()) {
+        if (part.src !== `cards/parts/${card.id}-${number + 1}.webp`) errors.push(`${card.id}: Teilbild ${number + 1} mit falschem Pfad`);
+        if (!part.alt?.trim()) errors.push(`${card.id}: Teilbild ${number + 1} ohne alt-Text`);
+        for (const id of part.shows ?? []) if (!index.get(id)) errors.push(`${card.id}: Teilbild zeigt unbekannte Karte ${id}`);
+      }
     }
     if (card.stage > 1 && card.stage < 4) {
       const parent = index.get(card.parentId);

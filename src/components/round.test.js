@@ -143,8 +143,9 @@ test('Runde 1: eigene Begriffe und Rundenanzeige mit Zusatz, Einleitung nicht au
   // Der ausführliche Satz steht auf der Zusammenfassung (kein Scrollen in der Runde)
   assert.ok(!container.textContent.includes(ROUND.round1Intro));
   assert.equal(container.querySelector('.card-examples'), null, 'keine Beispiele in Runde 1');
-  assert.ok(container.querySelector('.artwork-neutral'), 'neutrales Symbol');
-  assert.equal(container.querySelector('.artwork-photo'), null, 'kein Foto');
+  // Seit dem 21.10.2026 mit Gruppenbild (GROUP_IMAGES), vorher das neutrale Symbol
+  assert.ok(container.querySelector('.swipe-card .artwork-photo').getAttribute('src').endsWith('cards/F01.webp'), 'Gruppenbild');
+  assert.equal(container.querySelector('.swipe-card .artwork-neutral'), null);
   await unmount();
   // Die Rundenanzeige bleibt auf jeder Karte gleich
   const later = await render(h(RoundScreen, { round: roundAfter(['F01']), config, canUndo: true, onAnswer: spy(), onUndo: spy(), onEndRound: spy() }));
@@ -183,6 +184,8 @@ test('Rundenübersicht während des Wischens: eigenes Navigationsereignis, Antwo
     const round = roundAfter([]);
     const rounds = roundOverview({ index, onboarding, diets, events: [], config });
     const { container, unmount } = await render(h(RoundScreen, { round, config, canUndo: false, onAnswer, onUndo: spy(), onEndRound: spy(), rounds, onNavigate }));
+    // Gruppenbild geladen: Ab jetzt läuft die Antwortzeit (A15)
+    await act(async () => container.querySelector('.swipe-card .artwork-photo').dispatchEvent(new window.Event('load')));
     clock = 3000;
     await click(container.querySelector('.round-title-button'));
     assert.ok(document.body.textContent.includes(ROUNDS.title));

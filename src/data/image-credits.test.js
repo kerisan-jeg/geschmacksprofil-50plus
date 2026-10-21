@@ -45,7 +45,7 @@ test('Kartenbilder aus Unsplash (A15): Nachweis vorhanden, Bild zeigt genau dies
   const { allPhotos } = await import('../lib/images.js');
   const byId = new Map(cards.map((card) => [card.id, card]));
   const byKey = new Map(credits.photos.map((photo) => [photo.key, photo]));
-  const stock = cards.filter((card) => card.image?.source === 'stock');
+  const stock = cards.filter((card) => card.stage > 1 && card.image?.source === 'stock');
   assert.equal(stock.length, cards.filter((card) => card.stage > 1).length - (credits.withoutPhoto?.length ?? 0), 'alle ausser „ohne passendes Bild“');
   for (const card of stock) {
     const photo = byKey.get(card.image.credit);
@@ -56,14 +56,25 @@ test('Kartenbilder aus Unsplash (A15): Nachweis vorhanden, Bild zeigt genau dies
     // Das Foto zeigt die Karte, eines ihrer Kinder, ihre Untergruppe oder eine Geschwisterkarte
     // (sonst würde es bei Ausschlüssen falsch gefiltert)
     const related = (id) => id === card.id || id === card.parentId || byId.get(id)?.parentId === card.id || byId.get(id)?.parentId === card.parentId;
-    assert.ok(photo.shows.some(related), `${card.id}: ${photo.shows}`);
+    // Ersatzbilder (21.10.2026, z. B. rote Linsen für Linsenpasta) zeigen bewusst etwas anderes und sagen es im todo
+    assert.ok(photo.todo?.startsWith('Ersatzbild') || photo.shows.some(related), `${card.id}: ${photo.shows}`);
   }
-  assert.ok(!cards.some((card) => card.stage === 1 && card.image), 'Gruppen: neutrales Symbol, kein Bild');
+  // Gruppenbilder: drei vorhandene Fotos; shows deckt jede Karte ab, die eines der Fotos zeigt
+  for (const family of cards.filter((card) => card.stage === 1)) {
+    const used = family.image.credit.map((key) => byKey.get(key));
+    assert.ok(used.every(Boolean), `${family.id}: Nachweise`);
+    for (const photo of used) {
+      for (const id of photo.shows) {
+        const covered = family.image.shows.some((shown) => shown === id || id.startsWith(`${shown}.`) || shown.startsWith(`${id}.`));
+        assert.ok(covered, `${family.id}: ${photo.key} zeigt ${id}, fehlt in shows`);
+      }
+    }
+  }
   // Bildnachweise nennen nur Fotos, die eine Karte zeigt, mit allen Karten
   const index = indexCatalog(cards);
   const salmon = allPhotos(index.cards).find((photo) => photo.key === 'F02.1');
-  assert.deepEqual(salmon.usedBy, ['F02.1', 'F02.1.1'], 'Fisch und Lachs');
-  assert.ok(!allPhotos(index.cards).some((photo) => photo.key === 'F03-a'), 'nur noch im Raster der Gruppe: nicht mehr gezeigt');
+  assert.deepEqual(salmon.usedBy, ['F02', 'F02.1', 'F02.1.1'], 'Gruppenbild, Fisch und Lachs');
+  assert.deepEqual(allPhotos(index.cards).find((photo) => photo.key === 'F03-a').usedBy, ['F03'], 'nur im Gruppenbild Eier');
   // Gerichte behalten die eigene Illustration für den Bildstil „illustration“
   for (const dish of cards.filter((card) => card.stage === 4)) {
     assert.equal(dish.illustration, 'dish.svg', dish.id);
@@ -116,11 +127,11 @@ test('Bildstil umschaltbar: mit „illustration“ zeigen die Karten die eigenen
   const index = indexCatalog(cards);
   assert.equal(IMAGE_STYLE, 'photo', 'Standard: Bilder der Karten');
   const kind = (id, style) => cardVisual(index.get(id), { style });
-  assert.deepEqual(kind('F01', 'photo'), { kind: 'neutral', source: 'own' }, 'Gruppe: neutrales Symbol');
+  assert.deepEqual(kind('F01', 'photo'), { kind: 'image', src: '/cards/F01.webp', alt: index.get('F01').image.alt, source: 'stock' }, 'Gruppenbild');
   assert.deepEqual(kind('F01.2', 'photo'), { kind: 'image', src: '/cards/F01.2.webp', alt: index.get('F01.2').image.alt, source: 'stock' });
-  assert.deepEqual(kind('F07.2', 'photo'), { kind: 'placeholder', source: null }, 'ohne Bild: Platzhalter');
+  assert.deepEqual(cardVisual({ ...index.get('F07.2'), image: undefined }, { style: 'photo' }), { kind: 'placeholder', source: null }, 'ohne Bild: Platzhalter');
   assert.deepEqual(kind('F01.2', 'illustration'), { kind: 'illustration', src: '/illustrations/F01.svg', source: 'own' });
-  assert.equal(kind('F01', 'illustration').kind, 'neutral', 'Gruppen auch dann mit Symbol');
+  assert.deepEqual(kind('F01', 'illustration'), { kind: 'illustration', src: '/illustrations/F01.svg', source: 'own' });
   // Jede Karte hat eine Illustration als Ersatz und eine Kartenfarbe; Untergruppen erben sie von ihrer Gruppe.
   for (const card of index.cards) {
     assert.ok(card.illustration, `${card.id}: Illustration`);
@@ -128,7 +139,7 @@ test('Bildstil umschaltbar: mit „illustration“ zeigen die Karten die eigenen
   }
   assert.equal(index.get('F01.2').illustration, index.get('F01').illustration);
   const chicken = allPhotos(index.cards).find((photo) => photo.key === 'F01.1');
-  assert.deepEqual(chicken.usedBy, ['F01.1', 'F01.1.1'], 'Geflügel, Poulet');
+  assert.deepEqual(chicken.usedBy, ['F01', 'F01.1', 'F01.1.1'], 'Gruppenbild, Geflügel, Poulet');
 });
 
 test('Jedes Foto nennt, was es zeigt (Karten und sichtbare Lebensmittel)', () => {

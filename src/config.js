@@ -82,6 +82,13 @@ export const TUTORIAL_ENABLED = false;
 // im Pilot vergleichen. Der Wert steht in jeder Sitzung (config.imageStyle) und im CSV-Export.
 export const IMAGE_STYLE = 'photo';
 
+// Gruppenbilder (Wunsch des Teams vom 21.10.2026: Bilder auf allen Karten). Die 13 Gruppen der Runde 1 zeigen je drei
+// Beispielfotos als ein Bild (groupImages in src/data/image-credits.json). Das ändert Verbesserung 4 aus dem
+// Dozentenfeedback vom 19.10.2026 (Tibor: in Runde 1 keine Beispiele, auch nicht im Bild; dafür das neutrale Symbol).
+// false: Gruppen zeigen wieder auf allen Karten den neutralen Teller. Im Protokoll unterscheidbar über imageSource
+// (stock = Foto, own = Teller). Im Pilot vergleichen und mit Tibor besprechen (docs/dozentenfeedback-2026-10-19.md).
+export const GROUP_IMAGES = true;
+
 // Lädt ein Kartenbild länger, zeigt die Karte den neutralen Platzhalter (A15), und die Antwortzeit beginnt.
 // Annahme [V]: 3 Sekunden; die nächsten zwei Karten werden vorgeladen, damit das selten nötig ist. Im Pilot prüfen.
 export const IMAGE_LOAD_TIMEOUT_MS = 3000;

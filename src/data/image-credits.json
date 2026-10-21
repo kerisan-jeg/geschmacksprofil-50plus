@@ -3135,6 +3135,805 @@
       "downloaded": "2026-10-21",
       "apa": "mirhashemian, a. (2019). [Ratatouille als Türmchen mit Sauce auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/cooked-food-R02KgL5Ti3Y",
       "todo": "Sauce unbekannt"
+    },
+    {
+      "key": "F01.1.2",
+      "cardId": "F01.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1732576232480-860a36c36d1d?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5184,
+      "height": 3456,
+      "shows": [
+        "F01.1.2"
+      ],
+      "foods": [
+        "Truthahn",
+        "Trute"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Ganzer gebratener Truthahn auf einem Bratrost]",
+      "photographer": "Elizabeth Summers",
+      "photographerUrl": "https://unsplash.com/@easummers",
+      "url": "https://unsplash.com/photos/a-turkey-sitting-on-a-rack-in-a-kitchen-olffQ6TpC8g",
+      "photoId": "olffQ6TpC8g",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2024-11-25",
+      "downloaded": "2026-10-21",
+      "apa": "Summers, E. (2024). [Ganzer gebratener Truthahn auf einem Bratrost] [Foto]. Unsplash. https://unsplash.com/photos/a-turkey-sitting-on-a-rack-in-a-kitchen-olffQ6TpC8g",
+      "todo": "Ganzer Truthahn statt Trutenbrust"
+    },
+    {
+      "key": "F01.2.2",
+      "cardId": "F01.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1625425753502-f5cae7bb45dd?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5760,
+      "height": 3840,
+      "shows": [
+        "F01.2.2"
+      ],
+      "foods": [
+        "Hackfleisch"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Rohe Hackfleisch-Burger mit Salz und Pfeffer auf einem Holzbrett]",
+      "photographer": "Paras Kapoor",
+      "photographerUrl": "https://unsplash.com/@kapoorparas28",
+      "url": "https://unsplash.com/photos/brown-bread-with-red-sauce-on-brown-wooden-tray-ABUkdB5aP8c",
+      "photoId": "ABUkdB5aP8c",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-07-04",
+      "downloaded": "2026-10-21",
+      "apa": "Kapoor, P. (2021). [Rohe Hackfleisch-Burger mit Salz und Pfeffer auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/brown-bread-with-red-sauce-on-brown-wooden-tray-ABUkdB5aP8c",
+      "todo": "Fleischart im Bild nicht sicher erkennbar (vermutlich Rind)"
+    },
+    {
+      "key": "F01.2.3",
+      "cardId": "F01.2.3",
+      "imageUrl": "https://images.unsplash.com/photo-1584932894085-f095355f4c40?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5948,
+      "height": 2955,
+      "shows": [
+        "F01.2.3",
+        "F10.2.3"
+      ],
+      "foods": [
+        "Fleisch",
+        "Plätzli",
+        "Peperoni",
+        "Chili"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Rohe, marinierte Plätzli auf einem Holzbrett, daneben kleine Peperoni und Chili]",
+      "photographer": "yerling villalobos",
+      "photographerUrl": "https://unsplash.com/@yerling",
+      "url": "https://unsplash.com/photos/raw-meat-with-green-vegetable-on-brown-wooden-chopping-board-mAJBkRd-wek",
+      "photoId": "mAJBkRd-wek",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-03-23",
+      "downloaded": "2026-10-21",
+      "apa": "villalobos, y. (2020). [Rohe, marinierte Plätzli auf einem Holzbrett, daneben kleine Peperoni und Chili] [Foto]. Unsplash. https://unsplash.com/photos/raw-meat-with-green-vegetable-on-brown-wooden-chopping-board-mAJBkRd-wek",
+      "todo": "Fleischart im Bild nicht erkennbar (Kalb, Schwein oder Pute); Peperoni und Chili als Dekoration"
+    },
+    {
+      "key": "F01.3.2",
+      "cardId": "F01.3.2",
+      "imageUrl": "https://images.unsplash.com/photo-1785735011447-9942c0ba0b13?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5472,
+      "height": 3648,
+      "shows": [
+        "F01.3.2"
+      ],
+      "foods": [
+        "Schweinefleisch",
+        "Schweinsbraten"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Knusprig gebratene Schweinebauchscheiben auf einem weissen Teller]",
+      "photographer": "Zion C",
+      "photographerUrl": "https://unsplash.com/@jcs_chen",
+      "url": "https://unsplash.com/photos/slices-of-crispy-roasted-pork-belly-on-a-white-plate-ypLK2aLvF1Q",
+      "photoId": "ypLK2aLvF1Q",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-08-03",
+      "downloaded": "2026-10-21",
+      "apa": "C, Z. (2026). [Knusprig gebratene Schweinebauchscheiben auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/slices-of-crispy-roasted-pork-belly-on-a-white-plate-ypLK2aLvF1Q",
+      "todo": "Schweinebauch statt klassischem Schweinsbraten"
+    },
+    {
+      "key": "F02.1.2",
+      "cardId": "F02.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1773739685848-a46fb41ae4f0?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "F02.1.2"
+      ],
+      "foods": [
+        "Fisch",
+        "Kabeljau"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Rohe weisse Fischfilets auf Eis]",
+      "photographer": "Geoffrey Moffett",
+      "photographerUrl": "https://unsplash.com/@geoffreymoffett",
+      "url": "https://unsplash.com/photos/raw-fish-fillets-on-ice-at-a-market-stall-GIpcS2IXsdc",
+      "photoId": "GIpcS2IXsdc",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-03-17",
+      "downloaded": "2026-10-21",
+      "apa": "Moffett, G. (2026). [Rohe weisse Fischfilets auf Eis] [Foto]. Unsplash. https://unsplash.com/photos/raw-fish-fillets-on-ice-at-a-market-stall-GIpcS2IXsdc",
+      "todo": "Fischart im Bild nicht sicher erkennbar (weisser Fisch, vermutlich Kabeljau)"
+    },
+    {
+      "key": "F02.1.3",
+      "cardId": "F02.1.3",
+      "imageUrl": "https://images.unsplash.com/photo-1625416657473-afd80517ea87?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "F02.1.3",
+        "F04"
+      ],
+      "foods": [
+        "Fisch",
+        "Rahm",
+        "Kräuter"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Zwei rohe Fischfilets auf einem dunklen Brett, daneben Schälchen mit Rahm, Kräutern und Salz]",
+      "photographer": "Merve Sehirli Nasir",
+      "photographerUrl": "https://unsplash.com/@32steps",
+      "url": "https://unsplash.com/photos/raw-meat-on-white-chopping-board-8H9QUkWWPXI",
+      "photoId": "8H9QUkWWPXI",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-07-04",
+      "downloaded": "2026-10-21",
+      "apa": "Nasir, M. S. (2021). [Zwei rohe Fischfilets auf einem dunklen Brett, daneben Schälchen mit Rahm, Kräutern und Salz] [Foto]. Unsplash. https://unsplash.com/photos/raw-meat-on-white-chopping-board-8H9QUkWWPXI",
+      "todo": "Fischart nicht erkennbar (eher Plattfisch als Egli); Schälchen links vermutlich Rahm"
+    },
+    {
+      "key": "F02.1.4",
+      "cardId": "F02.1.4",
+      "imageUrl": "https://images.unsplash.com/photo-1682457569891-53e4f6ef9271?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3648,
+      "height": 5472,
+      "shows": [
+        "F02.1.4"
+      ],
+      "foods": [
+        "Thunfisch",
+        "Thon",
+        "Fisch"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Ein rohes Stück Thunfisch auf einem Holzbrett]",
+      "photographer": "Samee Anderson",
+      "photographerUrl": "https://unsplash.com/@photographybysamee",
+      "url": "https://unsplash.com/photos/a-piece-of-raw-tuna-sitting-on-top-of-a-wooden-cutting-board-v13H4K-ZUf8",
+      "photoId": "v13H4K-ZUf8",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-04-25",
+      "downloaded": "2026-10-21",
+      "apa": "Anderson, S. (2023). [Ein rohes Stück Thunfisch auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/a-piece-of-raw-tuna-sitting-on-top-of-a-wooden-cutting-board-v13H4K-ZUf8",
+      "todo": "Roher Thunfisch statt Thon aus der Dose"
+    },
+    {
+      "key": "F04.1.2",
+      "cardId": "F04.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1571212515416-fef01fc43637?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3318,
+      "height": 5041,
+      "shows": [
+        "F04.1.2"
+      ],
+      "foods": [
+        "Skyr",
+        "Joghurt",
+        "Minze"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Dicker weisser Joghurt mit Minze in einer Schale]",
+      "photographer": "micheile henderson",
+      "photographerUrl": "https://unsplash.com/@micheile",
+      "url": "https://unsplash.com/photos/a-bowl-of-yogurt-with-a-spoon-in-it-NFHeBysjCTI",
+      "photoId": "NFHeBysjCTI",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-10-16",
+      "downloaded": "2026-10-21",
+      "apa": "henderson, m. (2019). [Dicker weisser Joghurt mit Minze in einer Schale] [Foto]. Unsplash. https://unsplash.com/photos/a-bowl-of-yogurt-with-a-spoon-in-it-NFHeBysjCTI",
+      "todo": "Skyr im Bild nicht von griechischem Joghurt zu unterscheiden"
+    },
+    {
+      "key": "F04.1.4",
+      "cardId": "F04.1.4",
+      "imageUrl": "https://images.unsplash.com/photo-1611110465287-197f03185ce1?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4000,
+      "height": 6000,
+      "shows": [
+        "F04.1.4",
+        "F12.1.3"
+      ],
+      "foods": [
+        "Joghurt",
+        "Fruchtjoghurt",
+        "Himbeeren"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Himbeerjoghurt mit frischen Himbeeren in einer Schale]",
+      "photographer": "Mariah Hewines",
+      "photographerUrl": "https://unsplash.com/@mariahhewines",
+      "url": "https://unsplash.com/photos/white-and-red-heart-shaped-cake-SBMolIkJZnM",
+      "photoId": "SBMolIkJZnM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-01-20",
+      "downloaded": "2026-10-21",
+      "apa": "Hewines, M. (2021). [Himbeerjoghurt mit frischen Himbeeren in einer Schale] [Foto]. Unsplash. https://unsplash.com/photos/white-and-red-heart-shaped-cake-SBMolIkJZnM"
+    },
+    {
+      "key": "F04.2.2",
+      "cardId": "F04.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1610037275499-00c6b17c8ddd?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "F04.2.2"
+      ],
+      "foods": [
+        "Weichkäse",
+        "Käse",
+        "Brie",
+        "Camembert"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Ein Stück Weichkäse mit weisser Rinde auf einem Holzbrett]",
+      "photographer": "Charlie Solorzano",
+      "photographerUrl": "https://unsplash.com/@csolorzanoe",
+      "url": "https://unsplash.com/photos/sliced-cheese-on-brown-wooden-chopping-board-c0O9Y-jrAFk",
+      "photoId": "c0O9Y-jrAFk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-01-07",
+      "downloaded": "2026-10-21",
+      "apa": "Solorzano, C. (2021). [Ein Stück Weichkäse mit weisser Rinde auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/sliced-cheese-on-brown-wooden-chopping-board-c0O9Y-jrAFk",
+      "todo": "Im Hintergrund unscharf weitere Käse, Trauben und Trockenfrüchte"
+    },
+    {
+      "key": "F06.2.2",
+      "cardId": "F06.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1626423641508-c473b1853008?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "F06.2.2"
+      ],
+      "foods": [
+        "Vollkorntoast",
+        "Vollkornbrot",
+        "Brot"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Vier Scheiben Vollkorntoast mit Körnern auf einem Holzbrett]",
+      "photographer": "Young Shih",
+      "photographerUrl": "https://unsplash.com/@yangchihshih",
+      "url": "https://unsplash.com/photos/brown-bread-on-white-plate-lF3WC6-l-mY",
+      "photoId": "lF3WC6-l-mY",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-07-16",
+      "downloaded": "2026-10-21",
+      "apa": "Shih, Y. (2021). [Vier Scheiben Vollkorntoast mit Körnern auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/brown-bread-on-white-plate-lF3WC6-l-mY",
+      "todo": "Körner auf der Rinde, Sorte unbekannt (Sesam möglich)"
+    },
+    {
+      "key": "F06.3.2",
+      "cardId": "F06.3.2",
+      "imageUrl": "https://images.unsplash.com/photo-1589310209417-a496eea2eac0?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3746,
+      "height": 5244,
+      "shows": [
+        "F06.3.2",
+        "F04"
+      ],
+      "foods": [
+        "Knäckebrot",
+        "Saaten",
+        "Butter"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Mehrkorn-Knäckebrot mit Saaten auf einem Holzbrett, ein Stück mit Aufstrich]",
+      "photographer": "Annika Palmari",
+      "photographerUrl": "https://unsplash.com/@palmariannika",
+      "url": "https://unsplash.com/photos/brown-and-black-chocolate-cake-on-brown-wooden-chopping-board-HFf3_8SyX74",
+      "photoId": "HFf3_8SyX74",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-05-12",
+      "downloaded": "2026-10-21",
+      "apa": "Palmari, A. (2020). [Mehrkorn-Knäckebrot mit Saaten auf einem Holzbrett, ein Stück mit Aufstrich] [Foto]. Unsplash. https://unsplash.com/photos/brown-and-black-chocolate-cake-on-brown-wooden-chopping-board-HFf3_8SyX74",
+      "todo": "Aufstrich auf einem Stück (Butter oder Frischkäse?); Saaten unbekannt"
+    },
+    {
+      "key": "F07.2",
+      "cardId": "F07.2",
+      "imageUrl": "https://images.unsplash.com/photo-1612171371994-64b72aa6b5e7?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "F07.2",
+        "F11.3.2"
+      ],
+      "foods": [
+        "Vollkornpasta",
+        "Penne",
+        "Teigwaren",
+        "Peperoni",
+        "Oliven"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Vollkornpenne mit Peperoni und Oliven in einer weissen Schale]",
+      "photographer": "Amr Taha™",
+      "photographerUrl": "https://unsplash.com/@amr_taha",
+      "url": "https://unsplash.com/photos/potato-fries-on-white-ceramic-bowl-KWrHqvfJSfw",
+      "photoId": "KWrHqvfJSfw",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-02-01",
+      "downloaded": "2026-10-21",
+      "apa": "Taha™, A. (2021). [Vollkornpenne mit Peperoni und Oliven in einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/potato-fries-on-white-ceramic-bowl-KWrHqvfJSfw",
+      "todo": "Gericht mit Peperoni, Oliven und Sauce; Sorte nicht sicher (dunkle Penne)"
+    },
+    {
+      "key": "F07.2.1",
+      "cardId": "F07.2.1",
+      "imageUrl": "https://images.unsplash.com/photo-1705872612486-8dd2db8e653a?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5472,
+      "height": 3648,
+      "shows": [
+        "F07.2.1"
+      ],
+      "foods": [
+        "Spaghetti",
+        "Vollkornspaghetti",
+        "Teigwaren"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Trockene dunkle Spaghetti, Nahaufnahme]",
+      "photographer": "Jason Leung",
+      "photographerUrl": "https://unsplash.com/@ninjason",
+      "url": "https://unsplash.com/photos/a-close-up-of-a-bunch-of-brown-straws-08B4hmNVr_s",
+      "photoId": "08B4hmNVr_s",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2024-01-21",
+      "downloaded": "2026-10-21",
+      "apa": "Leung, J. (2024). [Trockene dunkle Spaghetti, Nahaufnahme] [Foto]. Unsplash. https://unsplash.com/photos/a-close-up-of-a-bunch-of-brown-straws-08B4hmNVr_s",
+      "todo": "Sorte nicht sicher (dunkle Spaghetti, vermutlich Vollkorn)"
+    },
+    {
+      "key": "F07.2.2",
+      "cardId": "F07.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1559942144-92147a3adb0f?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4032,
+      "height": 3024,
+      "shows": [
+        "F07.2.2"
+      ],
+      "foods": [
+        "Nudeln",
+        "Teigwaren"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Helle Nudelnester zum Trocknen]",
+      "photographer": "Juliana Malta",
+      "photographerUrl": "https://unsplash.com/@julianamalta",
+      "url": "https://unsplash.com/photos/pasta-lot-5RzbK5Avpz8",
+      "photoId": "5RzbK5Avpz8",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-06-07",
+      "downloaded": "2026-10-21",
+      "apa": "Malta, J. (2019). [Helle Nudelnester zum Trocknen] [Foto]. Unsplash. https://unsplash.com/photos/pasta-lot-5RzbK5Avpz8",
+      "todo": "Ersatzbild: Sorte nicht erkennbar (Dinkel nicht sichtbar)"
+    },
+    {
+      "key": "F07.3",
+      "cardId": "F07.3",
+      "imageUrl": "https://images.unsplash.com/photo-1547063334-bf2f542cf52c?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4000,
+      "height": 6000,
+      "shows": [
+        "F07.3",
+        "F05.2.2"
+      ],
+      "foods": [
+        "Teigwaren",
+        "Farfalle",
+        "Bohnen",
+        "Knoblauch",
+        "Zwiebel",
+        "Rüebli"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Trockene Farfalle mit weissen Bohnen, Knoblauch, Zwiebel und Rüebli]",
+      "photographer": "Tina Dawson",
+      "photographerUrl": "https://unsplash.com/@leyameera",
+      "url": "https://unsplash.com/photos/beige-pasta-with-spices-uZTAsq5-fMY",
+      "photoId": "uZTAsq5-fMY",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-01-09",
+      "downloaded": "2026-10-21",
+      "apa": "Dawson, T. (2019). [Trockene Farfalle mit weissen Bohnen, Knoblauch, Zwiebel und Rüebli] [Foto]. Unsplash. https://unsplash.com/photos/beige-pasta-with-spices-uZTAsq5-fMY",
+      "todo": "Ersatzbild: normale Farfalle mit weissen Bohnen daneben, keine Pasta aus Hülsenfrüchten"
+    },
+    {
+      "key": "F07.3.1",
+      "cardId": "F07.3.1",
+      "imageUrl": "https://images.unsplash.com/photo-1672660589379-891ab59588a8?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4353,
+      "height": 5804,
+      "shows": [
+        "F05.1.1"
+      ],
+      "foods": [
+        "Linsen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Rote Linsen, formatfüllend]",
+      "photographer": "engin akyurt",
+      "photographerUrl": "https://unsplash.com/@enginakyurt",
+      "url": "https://unsplash.com/photos/a-pile-of-red-lentils-sitting-on-top-of-a-table-szIFVLRH-4s",
+      "photoId": "szIFVLRH-4s",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-01-02",
+      "downloaded": "2026-10-21",
+      "apa": "akyurt, e. (2023). [Rote Linsen, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/a-pile-of-red-lentils-sitting-on-top-of-a-table-szIFVLRH-4s",
+      "todo": "Ersatzbild: rote Linsen, keine Linsenpasta"
+    },
+    {
+      "key": "F07.3.2",
+      "cardId": "F07.3.2",
+      "imageUrl": "https://images.unsplash.com/photo-1763844668895-6931b4e09458?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4000,
+      "height": 6000,
+      "shows": [
+        "F07.3.2",
+        "F05.3.1",
+        "F10.1"
+      ],
+      "foods": [
+        "Teigwaren",
+        "Kichererbsen",
+        "Salat"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Pasta mit Kichererbsen und Salat auf einem Teller]",
+      "photographer": "Angel Balashev",
+      "photographerUrl": "https://unsplash.com/@angelbalashev",
+      "url": "https://unsplash.com/photos/plate-of-pasta-with-chickpeas-and-salad-Q6O59U9Cheo",
+      "photoId": "Q6O59U9Cheo",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-11-22",
+      "downloaded": "2026-10-21",
+      "apa": "Balashev, A. (2025). [Pasta mit Kichererbsen und Salat auf einem Teller] [Foto]. Unsplash. https://unsplash.com/photos/plate-of-pasta-with-chickpeas-and-salad-Q6O59U9Cheo",
+      "todo": "Ersatzbild: Pasta mit Kichererbsen daneben, Kichererbsenpasta nicht erkennbar"
+    },
+    {
+      "key": "F10.1.2",
+      "cardId": "F10.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1645712429486-9ace28487d1c?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3000,
+      "height": 3000,
+      "shows": [
+        "F10.1.2"
+      ],
+      "foods": [
+        "Nüsslisalat",
+        "Salat"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Ein Bund Nüsslisalat in einer weissen Schale]",
+      "photographer": "this life's illusions",
+      "photographerUrl": "https://unsplash.com/@lifes_illusions",
+      "url": "https://unsplash.com/photos/a-square-white-bowl-filled-with-green-leaves-6_SGrUywWOQ",
+      "photoId": "6_SGrUywWOQ",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2022-02-24",
+      "downloaded": "2026-10-21",
+      "apa": "illusions, t. l. (2022). [Ein Bund Nüsslisalat in einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/a-square-white-bowl-filled-with-green-leaves-6_SGrUywWOQ",
+      "todo": "Sorte nicht sicher (Nüsslisalat oder Kopfsalat)"
+    },
+    {
+      "key": "F10.1.3",
+      "cardId": "F10.1.3",
+      "imageUrl": "https://images.unsplash.com/photo-1586683728245-4680613c11b0?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5747,
+      "height": 3831,
+      "shows": [
+        "F10.1.3"
+      ],
+      "foods": [
+        "Rucola"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Frische Rucolablätter]",
+      "photographer": "Mitchell Luo",
+      "photographerUrl": "https://unsplash.com/@mitchel3uo",
+      "url": "https://unsplash.com/photos/green-plant-in-close-up-photography-hT9QZjlmWBY",
+      "photoId": "hT9QZjlmWBY",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-04-12",
+      "downloaded": "2026-10-21",
+      "apa": "Luo, M. (2020). [Frische Rucolablätter] [Foto]. Unsplash. https://unsplash.com/photos/green-plant-in-close-up-photography-hT9QZjlmWBY"
+    },
+    {
+      "key": "F13.1.7",
+      "cardId": "F13.1.7",
+      "imageUrl": "https://images.unsplash.com/photo-1614807618553-35332e4de00d?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6200,
+      "height": 7493,
+      "shows": [
+        "F13.1.7",
+        "F13.1.2",
+        "F13.1.3",
+        "F13.1.1",
+        "F13.1.6"
+      ],
+      "foods": [
+        "Paranüsse",
+        "Baumnüsse",
+        "Walnüsse",
+        "Mandeln",
+        "Haselnüsse",
+        "Pekannüsse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gemischte Nüsse mit Paranüssen, Baumnüssen, Mandeln, Haselnüssen und Pekannüssen]",
+      "photographer": "Randy Fath",
+      "photographerUrl": "https://unsplash.com/@randyfath",
+      "url": "https://unsplash.com/photos/brown-and-black-nuts-on-clear-plastic-container-reMHRyt0Hsg",
+      "photoId": "reMHRyt0Hsg",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-03-03",
+      "downloaded": "2026-10-21",
+      "apa": "Fath, R. (2021). [Gemischte Nüsse mit Paranüssen, Baumnüssen, Mandeln, Haselnüssen und Pekannüssen] [Foto]. Unsplash. https://unsplash.com/photos/brown-and-black-nuts-on-clear-plastic-container-reMHRyt0Hsg",
+      "todo": "Ersatzbild: gemischte Nüsse statt nur Paranüsse"
+    },
+    {
+      "key": "D04",
+      "cardId": "D04",
+      "imageUrl": "https://images.unsplash.com/photo-1667499989723-c4ab9549d63c?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3805,
+      "height": 5085,
+      "shows": [
+        "D04",
+        "F04.2"
+      ],
+      "foods": [
+        "Teigwaren",
+        "Käse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Muschelnudeln mit Käsesauce in einem Topf]",
+      "photographer": "Leanna Myers",
+      "photographerUrl": "https://unsplash.com/@myerslk88",
+      "url": "https://unsplash.com/photos/a-bowl-of-macaroni-and-cheese-Vkx_ZpQwQgE",
+      "photoId": "Vkx_ZpQwQgE",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2022-11-03",
+      "downloaded": "2026-10-21",
+      "apa": "Myers, L. (2022). [Muschelnudeln mit Käsesauce in einem Topf] [Foto]. Unsplash. https://unsplash.com/photos/a-bowl-of-macaroni-and-cheese-Vkx_ZpQwQgE",
+      "todo": "Ersatzbild: Teigwaren mit Käse; Kartoffeln, Röstzwiebeln und Apfelmus fehlen"
+    },
+    {
+      "key": "D05",
+      "cardId": "D05",
+      "imageUrl": "https://images.unsplash.com/photo-1570064779867-007af0dad277?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4592,
+      "height": 2584,
+      "shows": [
+        "D05",
+        "F09"
+      ],
+      "foods": [
+        "Rösti",
+        "Kartoffeln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gestapelte Rösti auf einem weissen Teller]",
+      "photographer": "Adi Nugroho",
+      "photographerUrl": "https://unsplash.com/@adisini",
+      "url": "https://unsplash.com/photos/cooked-food-on-white-ceramic-plate-UCQ2tY33fVk",
+      "photoId": "UCQ2tY33fVk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-10-03",
+      "downloaded": "2026-10-21",
+      "apa": "Nugroho, A. (2019). [Gestapelte Rösti auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/cooked-food-on-white-ceramic-plate-UCQ2tY33fVk",
+      "todo": "Spiegelei fehlt"
+    },
+    {
+      "key": "D06",
+      "cardId": "D06",
+      "imageUrl": "https://images.unsplash.com/photo-1594610352455-e4d10d2f2cf0?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4096,
+      "height": 2726,
+      "shows": [
+        "D06",
+        "F07.1.3",
+        "F04"
+      ],
+      "foods": [
+        "Fleisch",
+        "Pilze",
+        "Rahmsauce",
+        "Bandnudeln",
+        "Sauerrahm",
+        "Petersilie"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Fleischstreifen in Rahm-Pilzsauce mit Bandnudeln und Sauerrahm]",
+      "photographer": "Tom Dillon",
+      "photographerUrl": "https://unsplash.com/@heyitst0m",
+      "url": "https://unsplash.com/photos/cooked-food-on-white-ceramic-plate-Y5Vqh1BXN_s",
+      "photoId": "Y5Vqh1BXN_s",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-07-13",
+      "downloaded": "2026-10-21",
+      "apa": "Dillon, T. (2020). [Fleischstreifen in Rahm-Pilzsauce mit Bandnudeln und Sauerrahm] [Foto]. Unsplash. https://unsplash.com/photos/cooked-food-on-white-ceramic-plate-Y5Vqh1BXN_s",
+      "todo": "Mit Bandnudeln statt Rösti, Sauerrahm obendrauf; Fleischart nicht erkennbar"
+    },
+    {
+      "key": "D08",
+      "cardId": "D08",
+      "imageUrl": "https://images.unsplash.com/photo-1723473623397-05a40f0329b3?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3888,
+      "height": 2592,
+      "shows": [
+        "D08",
+        "F09",
+        "F04.2"
+      ],
+      "foods": [
+        "Kartoffel",
+        "Käse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Überbackene Kartoffel mit geschmolzenem Käse]",
+      "photographer": "Emma Miller",
+      "photographerUrl": "https://unsplash.com/@littlegemstudio",
+      "url": "https://unsplash.com/photos/a-piece-of-food-sitting-on-top-of-a-wooden-table-fcy0hdH71VE",
+      "photoId": "fcy0hdH71VE",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2024-08-12",
+      "downloaded": "2026-10-21",
+      "apa": "Miller, E. (2024). [Überbackene Kartoffel mit geschmolzenem Käse] [Foto]. Unsplash. https://unsplash.com/photos/a-piece-of-food-sitting-on-top-of-a-wooden-table-fcy0hdH71VE",
+      "todo": "Ersatzbild: überbackene Kartoffel; Raclette-Käse, Gschwellti und Essiggurken nicht erkennbar"
+    },
+    {
+      "key": "D13",
+      "cardId": "D13",
+      "imageUrl": "https://images.unsplash.com/photo-1593604185466-41d3c2e0f234?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "D13",
+        "F02.1"
+      ],
+      "foods": [
+        "Fisch",
+        "Fischfilet"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Zwei gebratene Fischfilets in der Pfanne]",
+      "photographer": "Jasper Koster",
+      "photographerUrl": "https://unsplash.com/@jappie01",
+      "url": "https://unsplash.com/photos/brown-and-white-bread-on-black-plate-qDKjOKYaEwI",
+      "photoId": "qDKjOKYaEwI",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-07-01",
+      "downloaded": "2026-10-21",
+      "apa": "Koster, J. (2020). [Zwei gebratene Fischfilets in der Pfanne] [Foto]. Unsplash. https://unsplash.com/photos/brown-and-white-bread-on-black-plate-qDKjOKYaEwI",
+      "todo": "Fischart nicht erkennbar (ein weisses, ein lachsfarbenes Filet); Kartoffeln fehlen; Bratfett unbekannt (Butter?)"
+    },
+    {
+      "key": "D17",
+      "cardId": "D17",
+      "imageUrl": "https://images.unsplash.com/photo-1559329607-43c470fd9aac?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3239,
+      "height": 4858,
+      "shows": [
+        "D17",
+        "F12.2"
+      ],
+      "foods": [
+        "Haferflocken",
+        "Apfel",
+        "Zimt"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Haferbrei mit Apfelstücken und Gewürz in einer weissen Schale]",
+      "photographer": "K8",
+      "photographerUrl": "https://unsplash.com/@_k8_",
+      "url": "https://unsplash.com/photos/bowl-of-oatmeal-topped-with-chopped-green-apples-4zG050fMarw",
+      "photoId": "4zG050fMarw",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-05-31",
+      "downloaded": "2026-10-21",
+      "apa": "K8 (2019). [Haferbrei mit Apfelstücken und Gewürz in einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/bowl-of-oatmeal-topped-with-chopped-green-apples-4zG050fMarw",
+      "todo": "Haferbrei statt eingeweichtem Birchermüesli; Joghurt und Nüsse nicht sichtbar; Gewürz obendrauf (Zimt?)"
     }
   ],
   "collages": {
@@ -3232,244 +4031,664 @@
     "F13.1.3": "F13-a",
     "F13.1.2": "F13-b"
   },
-  "withoutPhoto": [
-    {
-      "cardId": "F01.1.2",
-      "title": "Truthahn",
-      "reason": "Trute im Bild nicht von Poulet zu unterscheiden; übrige Fotos mit Festdekor, Händen oder Beilagen",
-      "searched": [
-        "turkey-breast",
-        "sliced-turkey-breast"
+  "withoutPhoto": [],
+  "groupImages": {
+    "note": "Gruppenbilder (Wunsch des Teams vom 21.10.2026: Bilder auf allen Karten, GROUP_IMAGES in config.js). Je drei vorhandene Fotos, zusammengesetzt wie das frühere Bildraster (erstes gross links). parts: shows und foods je Foto; zeigt ein Teil Ausgeschlossenes, setzt die App das Bild aus den erlaubten Teilen zusammen. Erzeugen mit: python scripts/prepare-card-images.py groups",
+    "F01": {
+      "photos": [
+        "F01.1",
+        "F01.2",
+        "F01.3.3"
+      ],
+      "alt": "Pouletbrust mit Tomaten, Rindssteak und gebratener Speck",
+      "shows": [
+        "F01.1",
+        "F10.2.1",
+        "F01.2",
+        "F01.3.3"
+      ],
+      "foods": [
+        "Poulet",
+        "Tomaten",
+        "Rindfleisch",
+        "Speck"
+      ],
+      "parts": [
+        {
+          "photo": "F01.1",
+          "shows": [
+            "F01.1",
+            "F10.2.1"
+          ],
+          "foods": [
+            "Poulet",
+            "Tomaten"
+          ]
+        },
+        {
+          "photo": "F01.2",
+          "shows": [
+            "F01.2"
+          ],
+          "foods": [
+            "Rindfleisch"
+          ]
+        },
+        {
+          "photo": "F01.3.3",
+          "shows": [
+            "F01.3.3"
+          ],
+          "foods": [
+            "Speck"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F01.2.2",
-      "title": "Rindsgehacktes",
-      "reason": "Nur Burger-Patties, Steaks oder gebratenes Hackfleisch mit anderen Zutaten",
-      "searched": [
-        "minced-beef",
-        "ground-beef"
+    "F02": {
+      "photos": [
+        "F02.1",
+        "F02.2",
+        "F02.3"
+      ],
+      "alt": "Lachsfilets mit Spargel, Garnelen und Miesmuscheln",
+      "shows": [
+        "F02.1",
+        "F02.2",
+        "F02.3"
+      ],
+      "foods": [
+        "Lachs",
+        "Spargel",
+        "Garnelen",
+        "Basilikum",
+        "Muscheln",
+        "Zitrone"
+      ],
+      "parts": [
+        {
+          "photo": "F02.1",
+          "shows": [
+            "F02.1"
+          ],
+          "foods": [
+            "Lachs",
+            "Spargel"
+          ]
+        },
+        {
+          "photo": "F02.2",
+          "shows": [
+            "F02.2"
+          ],
+          "foods": [
+            "Garnelen",
+            "Basilikum"
+          ]
+        },
+        {
+          "photo": "F02.3",
+          "shows": [
+            "F02.3"
+          ],
+          "foods": [
+            "Muscheln",
+            "Zitrone"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F01.2.3",
-      "title": "Kalbfleisch",
-      "reason": "Kalb im Bild nicht erkennbar (nur Tiere, Steaks oder Text)",
-      "searched": [
-        "veal"
+    "F03": {
+      "photos": [
+        "F03-a",
+        "F03-b",
+        "F03-c"
+      ],
+      "alt": "Eier, Rührei und Omelett",
+      "shows": [
+        "F03"
+      ],
+      "foods": [
+        "Ei",
+        "Rührei",
+        "Omelett",
+        "Peperoni"
+      ],
+      "parts": [
+        {
+          "photo": "F03-a",
+          "shows": [
+            "F03"
+          ],
+          "foods": [
+            "Ei"
+          ]
+        },
+        {
+          "photo": "F03-b",
+          "shows": [
+            "F03"
+          ],
+          "foods": [
+            "Rührei"
+          ]
+        },
+        {
+          "photo": "F03-c",
+          "shows": [
+            "F03"
+          ],
+          "foods": [
+            "Omelett",
+            "Peperoni"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F01.3.2",
-      "title": "Schweinsbraten",
-      "reason": "Nur Braten mit Schrift auf dem Brett, Roastbeef oder Pulled Pork",
-      "searched": [
-        "roast-pork"
+    "F04": {
+      "photos": [
+        "F04.1.1",
+        "F04-b",
+        "F04.2"
+      ],
+      "alt": "Naturjoghurt, Kräuterquark und Käsestücke",
+      "shows": [
+        "F04.1.1",
+        "F04.1.3",
+        "F04.2.1"
+      ],
+      "foods": [
+        "Joghurt",
+        "Quark",
+        "Käse",
+        "Basilikum"
+      ],
+      "parts": [
+        {
+          "photo": "F04.1.1",
+          "shows": [
+            "F04.1.1"
+          ],
+          "foods": [
+            "Joghurt"
+          ]
+        },
+        {
+          "photo": "F04-b",
+          "shows": [
+            "F04.1.3"
+          ],
+          "foods": [
+            "Quark"
+          ]
+        },
+        {
+          "photo": "F04.2",
+          "shows": [
+            "F04.2.1"
+          ],
+          "foods": [
+            "Käse",
+            "Basilikum"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F02.1.2",
-      "title": "Kabeljau",
-      "reason": "Nur Zeichnungen, lebende Fische, Forellen oder ein Verpackungsetikett",
-      "searched": [
-        "cod-fillet",
-        "cod"
+    "F05": {
+      "photos": [
+        "F05.1",
+        "F05.2",
+        "F05.3"
+      ],
+      "alt": "Linsen, Bohnen und Kichererbsen",
+      "shows": [
+        "F05.1",
+        "F05.2",
+        "F05.3"
+      ],
+      "foods": [
+        "Linsen",
+        "Bohnen",
+        "Kichererbsen"
+      ],
+      "parts": [
+        {
+          "photo": "F05.1",
+          "shows": [
+            "F05.1"
+          ],
+          "foods": [
+            "Linsen"
+          ]
+        },
+        {
+          "photo": "F05.2",
+          "shows": [
+            "F05.2"
+          ],
+          "foods": [
+            "Bohnen"
+          ]
+        },
+        {
+          "photo": "F05.3",
+          "shows": [
+            "F05.3"
+          ],
+          "foods": [
+            "Kichererbsen"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F02.1.3",
-      "title": "Egli",
-      "reason": "Nur ganze Fische anderer Arten, Fische mit Händen oder Gemälde",
-      "searched": [
-        "perch-fish"
+    "F06": {
+      "photos": [
+        "F06.1",
+        "F06.2",
+        "F06.3"
+      ],
+      "alt": "Baguettes, Vollkornbrot und Knäckebrot",
+      "shows": [
+        "F06.1",
+        "F06.2",
+        "F06.3"
+      ],
+      "foods": [
+        "Weissbrot",
+        "Baguette",
+        "Vollkornbrot",
+        "Knäckebrot"
+      ],
+      "parts": [
+        {
+          "photo": "F06.1",
+          "shows": [
+            "F06.1"
+          ],
+          "foods": [
+            "Weissbrot",
+            "Baguette"
+          ]
+        },
+        {
+          "photo": "F06.2",
+          "shows": [
+            "F06.2"
+          ],
+          "foods": [
+            "Vollkornbrot"
+          ]
+        },
+        {
+          "photo": "F06.3",
+          "shows": [
+            "F06.3"
+          ],
+          "foods": [
+            "Knäckebrot"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F02.1.4",
-      "title": "Thunfisch",
-      "reason": "Nur Dosen mit Markenlogos oder Thon-Salat auf Brot",
-      "searched": [
-        "canned-tuna"
+    "F07": {
+      "photos": [
+        "F07.1",
+        "F07.1.2",
+        "F07-c"
+      ],
+      "alt": "Linguine, Hörnli und Bandnudeln",
+      "shows": [
+        "F07.1.1",
+        "F07.1.2",
+        "F07.1.3"
+      ],
+      "foods": [
+        "Spaghetti",
+        "Linguine",
+        "Hörnli",
+        "Bandnudeln"
+      ],
+      "parts": [
+        {
+          "photo": "F07.1",
+          "shows": [
+            "F07.1.1"
+          ],
+          "foods": [
+            "Spaghetti",
+            "Linguine"
+          ]
+        },
+        {
+          "photo": "F07.1.2",
+          "shows": [
+            "F07.1.2"
+          ],
+          "foods": [
+            "Hörnli"
+          ]
+        },
+        {
+          "photo": "F07-c",
+          "shows": [
+            "F07.1.3"
+          ],
+          "foods": [
+            "Bandnudeln"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F04.1.2",
-      "title": "Skyr",
-      "reason": "Keine Fotos (die Suche liefert Island-Landschaften)",
-      "searched": [
-        "skyr",
-        "icelandic-yogurt"
+    "F08": {
+      "photos": [
+        "F08.1",
+        "F08.2.2",
+        "F08.3"
+      ],
+      "alt": "Reis, Bulgur und Quinoa-Salat",
+      "shows": [
+        "F08.1",
+        "F08.2.2",
+        "F08.3",
+        "F10.2.1"
+      ],
+      "foods": [
+        "Reis",
+        "Bulgur",
+        "Quinoa",
+        "Tomaten"
+      ],
+      "parts": [
+        {
+          "photo": "F08.1",
+          "shows": [
+            "F08.1"
+          ],
+          "foods": [
+            "Reis"
+          ]
+        },
+        {
+          "photo": "F08.2.2",
+          "shows": [
+            "F08.2.2"
+          ],
+          "foods": [
+            "Bulgur"
+          ]
+        },
+        {
+          "photo": "F08.3",
+          "shows": [
+            "F08.3",
+            "F10.2.1"
+          ],
+          "foods": [
+            "Quinoa",
+            "Tomaten"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F04.1.4",
-      "title": "Fruchtjoghurt",
-      "reason": "Nur Erdbeeren mit Rahm, Milch oder Granola; Fruchtjoghurt nicht erkennbar",
-      "searched": [
-        "strawberry-yogurt"
+    "F09": {
+      "photos": [
+        "F09-a",
+        "F09-b",
+        "F09-c"
+      ],
+      "alt": "Salzkartoffeln, Kartoffelpüree und Ofenkartoffeln",
+      "shows": [
+        "F09",
+        "F04"
+      ],
+      "foods": [
+        "Salzkartoffeln",
+        "Dill",
+        "Kartoffelpüree",
+        "Schnittlauch",
+        "Ofenkartoffeln"
+      ],
+      "parts": [
+        {
+          "photo": "F09-a",
+          "shows": [
+            "F09"
+          ],
+          "foods": [
+            "Salzkartoffeln",
+            "Dill"
+          ]
+        },
+        {
+          "photo": "F09-b",
+          "shows": [
+            "F09",
+            "F04"
+          ],
+          "foods": [
+            "Kartoffelpüree",
+            "Schnittlauch"
+          ]
+        },
+        {
+          "photo": "F09-c",
+          "shows": [
+            "F09"
+          ],
+          "foods": [
+            "Ofenkartoffeln"
+          ]
+        }
+      ],
+      "todo": "Kartoffelpüree kann Milch und Butter enthalten"
+    },
+    "F10": {
+      "photos": [
+        "F10.1",
+        "F10-b",
+        "F10.3"
+      ],
+      "alt": "Kopfsalat, Gurken und rohe Karotten",
+      "shows": [
+        "F10.1",
+        "F10.2.2",
+        "F10.3"
+      ],
+      "foods": [
+        "Kopfsalat",
+        "Gurke",
+        "Karotte",
+        "Federkohl"
+      ],
+      "parts": [
+        {
+          "photo": "F10.1",
+          "shows": [
+            "F10.1"
+          ],
+          "foods": [
+            "Kopfsalat"
+          ]
+        },
+        {
+          "photo": "F10-b",
+          "shows": [
+            "F10.2.2"
+          ],
+          "foods": [
+            "Gurke"
+          ]
+        },
+        {
+          "photo": "F10.3",
+          "shows": [
+            "F10.3"
+          ],
+          "foods": [
+            "Karotte",
+            "Federkohl"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F04.2.2",
-      "title": "Weichkäse",
-      "reason": "Nur Käseplatten mit anderen Sorten, Honig oder Preisschildern",
-      "searched": [
-        "camembert"
+    "F11": {
+      "photos": [
+        "F11.1",
+        "F11.3",
+        "F11.2"
+      ],
+      "alt": "Broccoli, grilliertes Gemüse und Ofengemüse",
+      "shows": [
+        "F11.1",
+        "F11.3",
+        "F11.2"
+      ],
+      "foods": [
+        "Broccoli",
+        "Zucchetti",
+        "Aubergine",
+        "Tomate",
+        "Peperoni",
+        "Karotte",
+        "Randen"
+      ],
+      "parts": [
+        {
+          "photo": "F11.1",
+          "shows": [
+            "F11.1"
+          ],
+          "foods": [
+            "Broccoli"
+          ]
+        },
+        {
+          "photo": "F11.3",
+          "shows": [
+            "F11.3"
+          ],
+          "foods": [
+            "Zucchetti",
+            "Aubergine",
+            "Tomate",
+            "Peperoni"
+          ]
+        },
+        {
+          "photo": "F11.2",
+          "shows": [
+            "F11.2"
+          ],
+          "foods": [
+            "Karotte",
+            "Randen"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F06.2.2",
-      "title": "Vollkorntoast",
-      "reason": "Nur Vollkornbrot, kein Toast erkennbar",
-      "searched": [
-        "whole-wheat-bread"
+    "F12": {
+      "photos": [
+        "F12.2",
+        "F12.1",
+        "F12.4"
+      ],
+      "alt": "Äpfel, Erdbeeren und halbierte Zitrusfrüchte",
+      "shows": [
+        "F12.2",
+        "F12.1",
+        "F12.4"
+      ],
+      "foods": [
+        "Apfel",
+        "Erdbeere",
+        "Orange",
+        "Grapefruit",
+        "Zitrone",
+        "Limette"
+      ],
+      "parts": [
+        {
+          "photo": "F12.2",
+          "shows": [
+            "F12.2"
+          ],
+          "foods": [
+            "Apfel"
+          ]
+        },
+        {
+          "photo": "F12.1",
+          "shows": [
+            "F12.1"
+          ],
+          "foods": [
+            "Erdbeere"
+          ]
+        },
+        {
+          "photo": "F12.4",
+          "shows": [
+            "F12.4"
+          ],
+          "foods": [
+            "Orange",
+            "Grapefruit",
+            "Zitrone",
+            "Limette"
+          ]
+        }
       ]
     },
-    {
-      "cardId": "F06.3.2",
-      "title": "Mehrkornknäcke",
-      "reason": "Fast nur Fotos eines Markenkontos mit Verpackung, sonst Pita",
-      "searched": [
-        "crispbread",
-        "knackebrod"
-      ]
-    },
-    {
-      "cardId": "F07.2",
-      "title": "Vollkornpasta",
-      "reason": "Sorte im Bild nicht erkennbar (normale Pasta)",
-      "searched": [
-        "whole-wheat-pasta",
-        "whole-grain-pasta"
-      ]
-    },
-    {
-      "cardId": "F07.2.1",
-      "title": "Vollkornspaghetti",
-      "reason": "Sorte im Bild nicht erkennbar (Spaghettigerichte ohne Hinweis auf Vollkorn)",
-      "searched": [
-        "whole-wheat-spaghetti",
-        "wholemeal-spaghetti"
-      ]
-    },
-    {
-      "cardId": "F07.2.2",
-      "title": "Dinkelpasta",
-      "reason": "Sorte im Bild nicht erkennbar (normale Pasta, Brot oder Getreide)",
-      "searched": [
-        "spelt-pasta",
-        "spelt"
-      ]
-    },
-    {
-      "cardId": "F07.3",
-      "title": "Pasta aus Hülsenfrüchten",
-      "reason": "Sorte im Bild nicht erkennbar (Pastagerichte ohne Hinweis auf Hülsenfrüchte)",
-      "searched": [
-        "lentil-pasta",
-        "legume-pasta"
-      ]
-    },
-    {
-      "cardId": "F07.3.1",
-      "title": "Linsenpasta",
-      "reason": "Sorte im Bild nicht erkennbar (Pastagerichte oder rote Linsen ohne Pasta)",
-      "searched": [
-        "red-lentil-pasta",
-        "red-lentil-penne"
-      ]
-    },
-    {
-      "cardId": "F07.3.2",
-      "title": "Kichererbsenpasta",
-      "reason": "Sorte im Bild nicht erkennbar (Pastagerichte mit Kichererbsen daneben)",
-      "searched": [
-        "chickpea-pasta",
-        "chickpea-penne"
-      ]
-    },
-    {
-      "cardId": "F10.1.2",
-      "title": "Nüsslisalat",
-      "reason": "Die Suche liefert Kopfsalat, Maissalat oder Autos (Ford Mach-E)",
-      "searched": [
-        "lambs-lettuce",
-        "corn-salad",
-        "mache"
-      ]
-    },
-    {
-      "cardId": "F10.1.3",
-      "title": "Rucola",
-      "reason": "Nur Rucola mit Spiegelei und Käse, auf Pizza oder als Pflanze",
-      "searched": [
-        "arugula",
-        "rocket-salad"
-      ]
-    },
-    {
-      "cardId": "F13.1.7",
-      "title": "Paranüsse",
-      "reason": "Nur gemischte Nüsse; sonst Landschaften in Brasilien",
-      "searched": [
-        "brazil-nuts",
-        "brazil-nut"
-      ]
-    },
-    {
-      "cardId": "D04",
-      "title": "Älplermagronen",
-      "reason": "Nur Mac and Cheese ohne Kartoffeln, Röstzwiebeln und Apfelmus",
-      "searched": [
-        "alplermagronen",
-        "swiss-macaroni"
-      ]
-    },
-    {
-      "cardId": "D05",
-      "title": "Rösti mit Spiegelei",
-      "reason": "Nur Frühstücksteller mit Speck, Waffeln oder Toast; Rösti mit Preisschild",
-      "searched": [
-        "rosti",
-        "hash-browns-egg"
-      ]
-    },
-    {
-      "cardId": "D06",
-      "title": "Zürcher Geschnetzeltes mit Rösti",
-      "reason": "Nur Rahmsaucen mit Pasta oder Poulet, nie mit Rösti",
-      "searched": [
-        "geschnetzeltes",
-        "veal-cream-sauce"
-      ]
-    },
-    {
-      "cardId": "D08",
-      "title": "Raclette mit Gschwellti",
-      "reason": "Nur Ofenkäse mit Händen oder Kartoffelgerichte ohne Raclette",
-      "searched": [
-        "raclette",
-        "raclette-potatoes"
-      ]
-    },
-    {
-      "cardId": "D13",
-      "title": "Eglifilets mit Salzkartoffeln",
-      "reason": "Nur ganze Fische anderer Arten oder rohe Filets; Eglifilets mit Kartoffeln nicht gefunden",
-      "searched": [
-        "perch-fillet",
-        "fish-fillet-potatoes"
-      ]
-    },
-    {
-      "cardId": "D17",
-      "title": "Birchermüesli",
-      "reason": "Nur Haferbrei, Granola-Gläser oder Overnight Oats mit anderen Früchten; Birchermüesli nicht erkennbar",
-      "searched": [
-        "bircher-muesli",
-        "overnight-oats",
-        "muesli-bowl"
+    "F13": {
+      "photos": [
+        "F13-a",
+        "F13-b",
+        "F13.2"
+      ],
+      "alt": "Mandeln, Baumnüsse und Kürbiskerne",
+      "shows": [
+        "F13.1.3",
+        "F13.1.2",
+        "F13.2.1"
+      ],
+      "foods": [
+        "Mandeln",
+        "Baumnüsse",
+        "Walnüsse",
+        "Kürbiskerne"
+      ],
+      "parts": [
+        {
+          "photo": "F13-a",
+          "shows": [
+            "F13.1.3"
+          ],
+          "foods": [
+            "Mandeln"
+          ]
+        },
+        {
+          "photo": "F13-b",
+          "shows": [
+            "F13.1.2"
+          ],
+          "foods": [
+            "Baumnüsse",
+            "Walnüsse"
+          ]
+        },
+        {
+          "photo": "F13.2",
+          "shows": [
+            "F13.2.1",
+            "F13.1.3"
+          ],
+          "foods": [
+            "Kürbiskerne",
+            "Mandeln"
+          ]
+        }
       ]
     }
-  ]
+  }
 }

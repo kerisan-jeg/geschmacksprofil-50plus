@@ -88,8 +88,52 @@ Die gleiche Liste steht maschinenlesbar in `src/data/image-credits.json` (`witho
 
 `docs/bilder-review.html` zeigt alle 167 Karten als Raster mit Bild, Karten-ID, Name, alt-Text, shows, foods, Quelle (mit Link zum Foto) und TODOs, dazu die Prüfliste und die Liste ohne Bild; Filter „Nur TODO“ und „Nur ohne Bild“. Nur lokal für das Team, in der App nicht verlinkt (sie liegt in `docs/`, nicht in `public/`). Lokal im Browser öffnen; neu erzeugen mit `python scripts/prepare-card-images.py review`.
 
+## Nachtrag 21.10.2026: Bilder auf allen Karten
+
+Wunsch des Teams nach A16: „überall Bilder“. Seither zeigt **jede der 167 Karten ein Foto**.
+
+**Gruppen (Runde 1):** Die 13 Gruppen zeigen wieder Fotos statt des neutralen Tellers: je drei vorhandene Fotos, zusammengesetzt wie das frühere Bildraster (erstes gross links). Das ändert Verbesserung 4 aus dem Dozentenfeedback (Tibor: in Runde 1 keine Beispiele, auch nicht im Bild). Der Teller bleibt als Option: `GROUP_IMAGES = false` in src/config.js. Mit Tibor besprechen (siehe docs/dozentenfeedback-2026-10-19.md, „Noch offen“).
+
+**Ausschlüsse:** Jedes der drei Fotos ist zusätzlich als Teilbild gespeichert (`public/cards/parts/{Gruppe}-{n}.webp`, je mit eigenen shows und foods). Zeigt ein Teil Ausgeschlossenes, setzt die App das Gruppenbild aus den erlaubten Teilen zusammen. Beispiel: Ohne Schweinefleisch zeigt „Fleisch und Geflügel“ nur Poulet und Rind. Nur wenn kein Teil erlaubt ist, erscheint der Platzhalter. Die Antwortzeit beginnt, wenn alle Teile geladen sind.
+
+**Die 27 Karten ohne passendes Foto** haben nach einer zweiten Suche (49 weitere Begriffe) ein Foto. Wo es nicht genau die Karte zeigt, beschreibt der alt-Text ehrlich den Bildinhalt, und ein TODO nennt die Abweichung. „Ersatzbild“ heisst: Das Foto zeigt etwas Verwandtes, nicht die Karte selbst.
+
+| Karte | Name | Bild | TODO |
+|---|---|---|---|
+| F01.1.2 | Truthahn | Ganzer gebratener Truthahn auf einem Bratrost | Ganzer Truthahn statt Trutenbrust |
+| F01.2.2 | Rindsgehacktes | Rohe Hackfleisch-Burger mit Salz und Pfeffer auf einem Holzbrett | Fleischart im Bild nicht sicher erkennbar (vermutlich Rind) |
+| F01.2.3 | Kalbfleisch | Rohe, marinierte Plätzli auf einem Holzbrett, daneben kleine Peperoni und Chili | Fleischart im Bild nicht erkennbar (Kalb, Schwein oder Pute); Peperoni und Chili als Dekoration |
+| F01.3.2 | Schweinsbraten | Knusprig gebratene Schweinebauchscheiben auf einem weissen Teller | Schweinebauch statt klassischem Schweinsbraten |
+| F02.1.2 | Kabeljau | Rohe weisse Fischfilets auf Eis | Fischart im Bild nicht sicher erkennbar (weisser Fisch, vermutlich Kabeljau) |
+| F02.1.3 | Egli | Zwei rohe Fischfilets auf einem dunklen Brett, daneben Schälchen mit Rahm, Kräutern und Salz | Fischart nicht erkennbar (eher Plattfisch als Egli); Schälchen links vermutlich Rahm |
+| F02.1.4 | Thunfisch | Ein rohes Stück Thunfisch auf einem Holzbrett | Roher Thunfisch statt Thon aus der Dose |
+| F04.1.2 | Skyr | Dicker weisser Joghurt mit Minze in einer Schale | Skyr im Bild nicht von griechischem Joghurt zu unterscheiden |
+| F04.1.4 | Fruchtjoghurt | Himbeerjoghurt mit frischen Himbeeren in einer Schale | – |
+| F04.2.2 | Weichkäse | Ein Stück Weichkäse mit weisser Rinde auf einem Holzbrett | Im Hintergrund unscharf weitere Käse, Trauben und Trockenfrüchte |
+| F06.2.2 | Vollkorntoast | Vier Scheiben Vollkorntoast mit Körnern auf einem Holzbrett | Körner auf der Rinde, Sorte unbekannt (Sesam möglich) |
+| F06.3.2 | Mehrkornknäcke | Mehrkorn-Knäckebrot mit Saaten auf einem Holzbrett, ein Stück mit Aufstrich | Aufstrich auf einem Stück (Butter oder Frischkäse?); Saaten unbekannt |
+| F07.2 | Vollkornpasta | Vollkornpenne mit Peperoni und Oliven in einer weissen Schale | Gericht mit Peperoni, Oliven und Sauce; Sorte nicht sicher (dunkle Penne) |
+| F07.2.1 | Vollkornspaghetti | Trockene dunkle Spaghetti, Nahaufnahme | Sorte nicht sicher (dunkle Spaghetti, vermutlich Vollkorn) |
+| F07.2.2 | Dinkelpasta | Helle Nudelnester zum Trocknen | Ersatzbild: Sorte nicht erkennbar (Dinkel nicht sichtbar) |
+| F07.3 | Pasta aus Hülsenfrüchten | Trockene Farfalle mit weissen Bohnen, Knoblauch, Zwiebel und Rüebli | Ersatzbild: normale Farfalle mit weissen Bohnen daneben |
+| F07.3.1 | Linsenpasta | Rote Linsen, formatfüllend | Ersatzbild: rote Linsen, keine Linsenpasta |
+| F07.3.2 | Kichererbsenpasta | Pasta mit Kichererbsen und Salat auf einem Teller | Ersatzbild: Pasta mit Kichererbsen daneben |
+| F10.1.2 | Nüsslisalat | Ein Bund Nüsslisalat in einer weissen Schale | Sorte nicht sicher (Nüsslisalat oder Kopfsalat) |
+| F10.1.3 | Rucola | Frische Rucolablätter | – |
+| F13.1.7 | Paranüsse | Gemischte Nüsse mit Paranüssen, Baumnüssen, Mandeln, Haselnüssen und Pekannüssen | Ersatzbild: gemischte Nüsse statt nur Paranüsse |
+| D04 | Älplermagronen | Muschelnudeln mit Käsesauce in einem Topf | Ersatzbild: Kartoffeln, Röstzwiebeln und Apfelmus fehlen |
+| D05 | Rösti mit Spiegelei | Gestapelte Rösti auf einem weissen Teller | Spiegelei fehlt |
+| D06 | Zürcher Geschnetzeltes mit Rösti | Fleischstreifen in Rahm-Pilzsauce mit Bandnudeln und Sauerrahm | Mit Bandnudeln statt Rösti; Fleischart nicht erkennbar |
+| D08 | Raclette mit Gschwellti | Überbackene Kartoffel mit geschmolzenem Käse | Ersatzbild: Raclette-Käse, Gschwellti und Essiggurken nicht erkennbar |
+| D13 | Eglifilets mit Salzkartoffeln | Zwei gebratene Fischfilets in der Pfanne | Fischart nicht erkennbar; Kartoffeln fehlen |
+| D17 | Birchermüesli | Haferbrei mit Apfelstücken und Gewürz in einer weissen Schale | Haferbrei statt Birchermüesli; Joghurt und Nüsse nicht sichtbar |
+
+Damit gibt es 42 Bilder mit TODO (16 aus A16, 25 aus der Nachsuche, dazu das Gruppenbild Kartoffeln: Püree kann Milch enthalten). Milchprodukte im Bild (Rahm, Butter, Sauerrahm) stehen als `F04` in shows: Ist alles Milchige ausgeschlossen, fällt das Bild weg. Sichtbare Zutaten anderer Karten (z. B. Peperoni, Bohnen, Bandnudeln mit Ei) stehen ebenso in shows.
+
+Die Liste „ohne passendes Bild“ (`withoutPhoto`) ist leer.
+
 ## Offen
 
-- **27 Karten ohne Foto:** eigene Fotos, Pexels (Schlüssel) oder eine gezielte Suche von Hand. Besonders Schweizer Gerichte (Älplermagronen, Rösti, Zürcher Geschnetzeltes, Raclette, Eglifilets, Birchermüesli) finden sich auf Unsplash kaum in passender Form.
-- **Prüfliste:** die 16 TODOs ansehen; wo nötig `shows` oder `foods` in `image-credits.json` ergänzen und `prepare-card-images.py stock` erneut ausführen.
+- **Ersatzbilder ersetzen:** Für die 27 Karten aus der Nachsuche (v. a. Schweizer Gerichte und Spezialpasta) wären eigene Fotos oder Pexels (Schlüssel) besser.
+- **Prüfliste:** die 42 TODOs ansehen; wo nötig `shows` oder `foods` in `image-credits.json` ergänzen und `prepare-card-images.py stock` erneut ausführen.
 - **Einheitlicher Stil:** Die Fotos stammen von vielen Fotografinnen und Fotografen, einige mit dunklem Hintergrund. Ob das die Bewertung beeinflusst (Annahme 5), im Pilot mit `imageSource` und `imageShown` beobachten.

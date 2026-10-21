@@ -35,34 +35,47 @@ test('Jede Katalogkarte mit Bild hat einen deutschen alt-Text, eine eigene Datei
     if (image.source === 'stock') assert.ok(image.license && image.credit, `${card.id}: Lizenz und Nachweis`);
     assert.ok(image.shows?.length > 0 && image.foods?.length > 0, `${card.id}: was das Bild zeigt (Ausschluss-Filter)`);
   }
-  assert.deepEqual(cards.filter((card) => card.stage === 1 && card.image), [], 'Gruppen zeigen das neutrale Symbol');
-});
-
-test('Bilddateien: WebP, 4:3, höchstens 1200 px breit, höchstens 150 KB', () => {
-  for (const card of cards.filter((entry) => entry.image)) {
-    const path = publicPath(card.image.src);
-    assert.ok(existsSync(path), `${card.image.src} fehlt`);
-    const size = webpSize(readFileSync(path));
-    assert.ok(size, `${card.image.src}: WebP`);
-    assert.ok(size.width <= 1200, `${card.image.src}: ${size.width} px breit`);
-    assert.equal(size.width * 3, size.height * 4, `${card.image.src}: 4:3`);
-    assert.ok(statSync(path).size <= 150 * 1024, `${card.image.src}: ${Math.round(statSync(path).size / 1024)} KB`);
+  // Gruppenbilder (21.10.2026): drei Fotos mit Nachweis
+  for (const family of cards.filter((card) => card.stage === 1)) {
+    assert.ok(Array.isArray(family.image?.credit) && family.image.credit.length === 3, `${family.id}: Gruppenbild aus drei Fotos`);
   }
 });
 
-test('Katalogprüfung: Bild ohne alt-Text, mit falschem Pfad oder auf einer Gruppe ist ein Fehler', () => {
+test('Bilddateien und Teilbilder der Gruppen: WebP, 4:3, höchstens 1200 px breit, höchstens 150 KB', () => {
+  const files = cards.filter((entry) => entry.image).flatMap((card) => [card.image.src, ...(card.image.parts ?? []).map((part) => part.src)]);
+  assert.equal(files.length, cards.length + 13 * 3, 'jede Karte ein Bild, jede Gruppe drei Teilbilder');
+  for (const src of files) {
+    const path = publicPath(src);
+    assert.ok(existsSync(path), `${src} fehlt`);
+    const size = webpSize(readFileSync(path));
+    assert.ok(size, `${src}: WebP`);
+    assert.ok(size.width <= 1200, `${src}: ${size.width} px breit`);
+    assert.equal(size.width * 3, size.height * 4, `${src}: 4:3`);
+    assert.ok(statSync(path).size <= 150 * 1024, `${src}: ${Math.round(statSync(path).size / 1024)} KB`);
+  }
+});
+
+test('Teilbilder der Gruppen: shows des Gruppenbilds ist die Vereinigung der Teile', () => {
+  for (const family of cards.filter((card) => card.stage === 1)) {
+    const union = [...new Set(family.image.parts.flatMap((part) => part.shows))];
+    assert.deepEqual([...family.image.shows].sort(), union.sort(), family.id);
+    assert.ok(family.image.parts.every((part) => part.alt?.trim().length >= 5), `${family.id}: alt-Texte der Teile`);
+  }
+});
+
+test('Katalogprüfung: Bild ohne alt-Text, mit falschem Pfad oder Gruppenbild ohne Nachweise ist ein Fehler', () => {
   assert.deepEqual(validateCatalog(cards), []);
   const broken = cards.map((card) => {
     if (card.id === 'F01.1') return { ...card, image: { ...card.image, alt: ' ' } };
     if (card.id === 'F01.2') return { ...card, image: { ...card.image, src: 'images/F01.2.jpg', source: 'web' } };
-    if (card.id === 'F01') return { ...card, image: { src: 'cards/F01.webp', alt: 'Fleisch', source: 'ai-gemini' } };
+    if (card.id === 'F01') return { ...card, image: { ...card.image, credit: undefined } };
     return card;
   });
   const errors = validateCatalog(broken);
   assert.ok(errors.includes('F01.1: Bild ohne alt-Text'));
   assert.ok(errors.includes('F01.2: Bild muss cards/F01.2.webp sein'));
   assert.ok(errors.includes('F01.2: Bildquelle web unbekannt'));
-  assert.ok(errors.includes('F01: Gruppen zeigen das neutrale Symbol, kein Bild'));
+  assert.ok(errors.includes('F01: Gruppenbild ohne Nachweise der Fotos'));
 });
 
 test('Gemini-Prompts (seit A16 nicht mehr benötigt) bleiben als gültige Unterlage erhalten', () => {

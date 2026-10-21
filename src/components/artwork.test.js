@@ -46,9 +46,8 @@ async function withClock(run) {
 const fire = (node, type, init = {}) => act(async () => node.dispatchEvent(new window.MouseEvent(type, { bubbles: true, cancelable: true, ...init })));
 
 test('Karte ohne Bild: neutraler Platzhalter mit Kartenname, die Karte bleibt wischbar', async () => {
-  // Skyr steht auf der Liste „ohne passendes Bild“ (A16)
-  const skyr = index.get('F04.1.2');
-  assert.equal(skyr.image, undefined);
+  // Seit dem 21.10.2026 haben alle Karten ein Bild; hier eine Karte ohne Bildeintrag
+  const skyr = { ...index.get('F04.1.2'), image: undefined };
   const onCommitted = spy();
   const { container, unmount } = await render(h(SwipeCard, { card: skyr, onCommitted, onIntent() {} }));
   assert.equal(container.querySelector('.artwork').dataset.state, 'missing');
@@ -127,19 +126,68 @@ test('Antwortzeit beginnt erst, wenn das Bild geladen ist; Antwort davor: keine 
   });
 });
 
-test('Platzhalter gilt als sichtbar: Karte ohne Bild misst ab dem Erscheinen; „Runde beenden“ meldet das Bild', async () => {
+test('Gruppenbild mit Ausgeschlossenem: nur die erlaubten Teilbilder; Antwortzeit erst, wenn alle geladen sind', async () => {
+  const { ImageFilterContext } = await import('../lib/images.js');
   await withClock(async (clock) => {
-    const round = deriveRoundState({ index, onboarding, diets, events: [], round: 1 });
+    // Kein Schweinefleisch: „Fleisch und Geflügel“ zeigt nur Poulet und Rind (der Speck fällt weg)
+    const rules = { ...onboarding, exclusions: [{ type: 'animalOrigin', value: 'pork' }] };
+    const round = deriveRoundState({ index, onboarding: rules, diets, events: [], round: 1 });
     const onAnswer = spy();
     const onEndRound = spy();
-    const { container, unmount } = await render(h(RoundScreen, { round, config, canUndo: false, onAnswer, onUndo() {}, onEndRound }));
-    clock.now = 2500;
+    const view = h(ImageFilterContext.Provider, { value: { index, exclusions: round.exclusions } },
+      h(RoundScreen, { round, config, canUndo: false, onAnswer, onUndo() {}, onEndRound }));
+    const { container, unmount } = await render(view);
+    const front = () => container.querySelector('.swipe-card .artwork');
+    assert.equal(container.querySelector('.swipe-card .card-title').textContent, 'Fleisch und Geflügel');
+    assert.equal(front().dataset.kind, 'collage');
+    const parts = () => [...front().querySelectorAll('.artwork-photo')];
+    assert.deepEqual(parts().map((image) => image.getAttribute('src').split('/').pop()), ['F01-1.webp', 'F01-2.webp']);
+    clock.now = 2000;
+    await act(async () => parts()[0].dispatchEvent(new window.Event('load')));
+    assert.equal(front().dataset.state, 'loading', 'erst wenn alle Teile geladen sind');
+    clock.now = 3000;
+    await act(async () => parts()[1].dispatchEvent(new window.Event('load')));
+    assert.equal(front().dataset.state, 'loaded');
+    clock.now = 4500;
     await click(buttonByText(container, ROUND.endRound));
-    assert.deepEqual(onEndRound.calls[0][0], { imageShown: true, imageSource: 'own' }, 'Gruppe: neutrales Symbol');
+    assert.deepEqual(onEndRound.calls[0][0], { imageShown: true, imageSource: 'stock' });
     await click(buttonByText(container, 'Eher gern'));
-    assert.equal(onAnswer.calls[0][3], 1500);
+    assert.equal(onAnswer.calls[0][3], 1500, 'ab dem Laden des letzten Teilbilds');
     await unmount();
   });
+});
+
+test('Gruppenbild: ein erlaubtes Teil genügt; sind alle Teile ausgeschlossen, erscheint der Platzhalter', async () => {
+  const { cardVisual } = await import('../lib/images.js');
+  const { buildExclusions } = await import('../logic/filter.js');
+  const visual = (entries) => cardVisual(index.get('F01'), { style: 'photo', filter: { index, exclusions: buildExclusions(entries, { index }) } });
+  const noPorkBeef = [{ type: 'animalOrigin', value: 'pork' }, { type: 'animalOrigin', value: 'beef' }];
+  assert.deepEqual(visual(noPorkBeef).parts.map((part) => part.src.split('/').pop()), ['F01-1.webp'], 'nur noch Poulet');
+  // Das Poulet-Foto zeigt auch Tomaten: mit eingetippter „Tomate“ bleibt kein Teil übrig
+  assert.deepEqual(visual([...noPorkBeef, { type: 'food', value: 'Tomate', freeText: true }]), { kind: 'placeholder', source: 'stock' });
+  assert.equal(visual([]).kind, 'image', 'ohne Ausschlüsse das fertige Gruppenbild');
+});
+
+test('Placeholder misst ab dem Erscheinen: Karte ohne Bild in Runde 2', async () => {
+  await withClock(async (clock) => {
+    const bare = indexCatalog(read('../data/catalog.json').cards.map(({ image, ...card }) => card));
+    const round = deriveRoundState({ index: bare, onboarding, diets, events: families, round: 2 });
+    const onAnswer = spy();
+    const { container, unmount } = await render(h(RoundScreen, { round, config, canUndo: false, onAnswer, onUndo() {}, onEndRound() {} }));
+    assert.equal(container.querySelector('.swipe-card .artwork').dataset.state, 'missing');
+    clock.now = 2500;
+    await click(buttonByText(container, ANSWER_LABELS.LIKE));
+    assert.equal(onAnswer.calls[0][3], 1500);
+    assert.deepEqual(onAnswer.calls[0][7], { imageShown: false, imageSource: null });
+    await unmount();
+  });
+});
+
+test('Ohne Gruppenbilder (GROUP_IMAGES = false) zeigen Gruppen das neutrale Symbol', async () => {
+  const { cardVisual } = await import('../lib/images.js');
+  assert.deepEqual(cardVisual(index.get('F01'), { style: 'photo', groupImages: false }), { kind: 'neutral', source: 'own' });
+  assert.equal(cardVisual(index.get('F01'), { style: 'photo', groupImages: true }).kind, 'image');
+  assert.equal(cardVisual(index.get('F01.1'), { style: 'photo', groupImages: false }).kind, 'image', 'andere Karten unverändert');
 });
 
 test('Die nächsten zwei Karten werden vorgeladen', async () => {
