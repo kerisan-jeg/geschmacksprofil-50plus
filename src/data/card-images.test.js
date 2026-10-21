@@ -65,21 +65,33 @@ test('Katalogprüfung: Bild ohne alt-Text, mit falschem Pfad oder auf einer Grup
   assert.ok(errors.includes('F01: Gruppen zeigen das neutrale Symbol, kein Bild'));
 });
 
-test('Für jede Karte ohne Bild gibt es einen Gemini-Prompt mit alt-Text (ausser Gruppen)', () => {
+test('Gemini-Prompts (seit A16 nicht mehr benötigt) bleiben als gültige Unterlage erhalten', () => {
+  assert.match(manifest.status, /^Nicht mehr benötigt/);
   const ids = new Set(cards.map((card) => card.id));
-  const prompts = new Map(manifest.prompts.map((entry) => [entry.cardId, entry]));
-  for (const card of cards.filter((entry) => entry.stage > 1 && !entry.image)) {
-    assert.ok(prompts.has(card.id), `${card.id} (${card.title}): Prompt fehlt`);
-  }
   for (const entry of manifest.prompts) {
     assert.ok(ids.has(entry.cardId), `${entry.cardId}: Karte unbekannt`);
     assert.notEqual(cards.find((card) => card.id === entry.cardId).stage, 1, `${entry.cardId}: keine Gruppen`);
     assert.ok(entry.alt?.trim().length >= 8, `${entry.cardId}: alt-Text`);
     assert.ok(entry.shows.every((id) => ids.has(id)) && entry.foods.length > 0, `${entry.cardId}: shows und foods`);
     assert.match(entry.prompt, /4:3$/, `${entry.cardId}: Seitenverhältnis`);
-    assert.match(entry.prompt, /no text/, `${entry.cardId}: kein Text im Bild`);
   }
-  // Team-Prompts aus A15: verwendet, wo eine Karte passt, die übrigen sind begründet aufgeführt
-  assert.deepEqual(manifest.prompts.filter((entry) => entry.origin.startsWith('A15')).map((entry) => entry.cardId), ['D02', 'D04', 'D06', 'D15', 'D17']);
   assert.ok(manifest.unused.dishes.includes('lachs_ofengemuese') && manifest.unused.families.includes('suesses'));
+});
+
+test('A16: Bildinhalt ehrlich beschrieben; unsichere Inhalte als TODO; Karten ohne passendes Bild stehen auf der Liste', () => {
+  const credits = read('./image-credits.json');
+  const listed = new Map((credits.withoutPhoto ?? []).map((entry) => [entry.cardId, entry]));
+  for (const card of cards.filter((entry) => entry.stage > 1)) {
+    if (card.image) {
+      assert.ok(!listed.has(card.id), `${card.id}: Bild und zugleich „ohne passendes Bild“`);
+      if (card.image.todo !== undefined) assert.ok(card.image.todo.trim().length > 10, `${card.id}: TODO mit Begründung`);
+    } else {
+      assert.ok(listed.has(card.id), `${card.id} (${card.title}): ohne Bild, aber nicht auf der Liste`);
+    }
+  }
+  // Käse im Bild: Die Käse-Karte steht in shows, damit das Bild bei ausgeschlossenem Käse nicht erscheint
+  for (const id of ['D01', 'D02', 'D03', 'D11', 'D21']) {
+    const shows = cards.find((card) => card.id === id).image?.shows ?? [];
+    assert.ok(shows.some((cardId) => cardId.startsWith('F04.2')), `${id}: Käse in shows`);
+  }
 });

@@ -8,8 +8,6 @@ const credits = read('./image-credits.json');
 const cards = read('./catalog.json').cards;
 const families = cards.filter((card) => card.stage === 1);
 const subgroups = cards.filter((card) => card.stage === 2);
-// Für diese Untergruppen gibt es kein passendes freies Foto: Sie bekommen ein Bild über Gemini (A15), bis dahin den Platzhalter.
-const WITHOUT_PHOTO = ['F07.2', 'F07.3'];
 const imagePath = (file) => fileURLToPath(new URL(`../../public/images/${file}`, import.meta.url));
 const { indexCatalog } = await import('../logic/catalog.js');
 
@@ -25,15 +23,21 @@ function jpegSize(buffer) {
   return null;
 }
 
-test('Unsplash-Fotos: jede Untergruppe (ausser zwei) hat ein eigenes Foto, jedes Foto einen Nachweis', () => {
-  // Die Rasterfotos der Gruppen (collages) bleiben als Nachweis erhalten; gezeigt werden sie seit dem
-  // Teamentscheid vom 20.10.2026 nicht mehr (neutrales Symbol), einige zeigen aber ein konkretes Lebensmittel.
+test('Unsplash-Fotos (A16): jede Karte ausser den Gruppen hat ein Foto mit Nachweis oder steht mit Grund auf der Liste', () => {
   const keys = new Set(credits.photos.map((photo) => photo.key));
   for (const [cardId, collage] of Object.entries(credits.collages)) {
     for (const key of collage) assert.ok(keys.has(key), `${cardId}: ${key} fehlt`);
   }
-  const withPhoto = credits.photos.filter((photo) => photo.cardId).map((photo) => photo.cardId).sort();
-  assert.deepEqual(withPhoto, subgroups.map((card) => card.id).filter((id) => !WITHOUT_PHOTO.includes(id)).sort());
+  const withPhoto = credits.photos.filter((photo) => photo.cardId).map((photo) => photo.cardId);
+  assert.equal(new Set(withPhoto).size, withPhoto.length, 'je Karte höchstens ein eigenes Foto');
+  const listed = new Set((credits.withoutPhoto ?? []).map((entry) => entry.cardId));
+  for (const card of cards.filter((entry) => entry.stage > 1)) {
+    const hasPhoto = withPhoto.includes(card.id) || card.id in credits.cardPhotos;
+    assert.ok(hasPhoto !== listed.has(card.id), `${card.id}: entweder ein Foto oder auf der Liste „ohne passendes Bild“`);
+  }
+  for (const entry of credits.withoutPhoto ?? []) {
+    assert.ok(entry.reason?.trim() && entry.searched?.length > 0, `${entry.cardId}: Grund und gesuchte Begriffe`);
+  }
   assert.equal(new Set(credits.photos.map((photo) => photo.photoId)).size, credits.photos.length, 'kein Foto doppelt');
 });
 
@@ -42,12 +46,13 @@ test('Kartenbilder aus Unsplash (A15): Nachweis vorhanden, Bild zeigt genau dies
   const byId = new Map(cards.map((card) => [card.id, card]));
   const byKey = new Map(credits.photos.map((photo) => [photo.key, photo]));
   const stock = cards.filter((card) => card.image?.source === 'stock');
-  assert.equal(stock.length, 60, '34 Untergruppen und 26 Lebensmittel');
+  assert.equal(stock.length, cards.filter((card) => card.stage > 1).length - (credits.withoutPhoto?.length ?? 0), 'alle ausser „ohne passendes Bild“');
   for (const card of stock) {
     const photo = byKey.get(card.image.credit);
     assert.ok(photo, `${card.id}: Nachweis ${card.image.credit}`);
     assert.equal(card.image.license, photo.license, card.id);
     assert.deepEqual([card.image.shows, card.image.foods], [photo.shows, photo.foods], `${card.id}: zeigt dasselbe wie im Nachweis`);
+    assert.equal(card.image.todo, photo.todo, `${card.id}: offene Prüfpunkte wie im Nachweis`);
     // Das Foto zeigt die Karte, eines ihrer Kinder, ihre Untergruppe oder eine Geschwisterkarte
     // (sonst würde es bei Ausschlüssen falsch gefiltert)
     const related = (id) => id === card.id || id === card.parentId || byId.get(id)?.parentId === card.id || byId.get(id)?.parentId === card.parentId;
@@ -83,8 +88,15 @@ test('Nachweise sind vollständig: Quelle, Fotograf, Lizenz, Link und APA 7', ()
   }
 });
 
-test('Dateien liegen lokal im Repo, im gleichen Seitenverhältnis 4:3 und nicht zu gross', () => {
+test('Originale: bis A15 lokal in public/images (4:3, unter 400 KB), seit A16 als freie Unsplash-URL', () => {
   for (const photo of credits.photos) {
+    if (!photo.file) {
+      // A16: kein Unsplash+-Bild; die Karte nutzt die WebP-Fassung in public/cards. Ältere Fotos liegen im CDN
+      // teils unter /flagged/photo-… (z. B. Kidneybohnen), die Fotoseite nennt sie trotzdem „Free Photo on Unsplash“.
+      assert.match(photo.imageUrl, /^https:\/\/images\.unsplash\.com\/(flagged\/)?photo-/, `${photo.key}: freies Unsplash-Foto`);
+      assert.ok(!/premium|plus\.unsplash/.test(photo.imageUrl), `${photo.key}: kein Unsplash+`);
+      continue;
+    }
     for (const [file, width] of [[photo.file, photo.width], [photo.thumb, photo.thumbWidth]]) {
       const path = imagePath(file);
       assert.ok(existsSync(path), `${file} fehlt`);

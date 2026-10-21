@@ -1,5 +1,5 @@
 {
-  "note": "Fotos der Karten. Untergruppen (Stufe 2) haben je ein Foto (cardId); die Gruppen (Stufe 1) zeigen ihre drei Beispiele als Bildraster (collages: Schlüssel der Fotos in der Reihenfolge der Beispiele). Nur Bilder unter der Unsplash License (keine Unsplash+-Bilder). Pro Bild Quelle, Fotograf und Lizenz; apa enthält den Nachweis nach APA 7 für den Bericht (Namen und Titel vor der Abgabe prüfen). Dateien liegen in public/images (gross und als Vorschaubild).",
+  "note": "Fotos der Karten (Unsplash License, keine Unsplash+-Bilder). Seit A15/A16 zeigt jede Karte ausser den Gruppen ein Foto aus public/cards; cardId nennt die Karte, file das lokale Original in public/images (bis A15) oder imageUrl das Original auf images.unsplash.com (A16). shows und foods beschreiben den tatsächlichen Bildinhalt (Ausschluss-Filter), todo markiert unsichere Inhalte zur Prüfung. collages und cardPhotos stammen aus der Zeit vor A15 (Gruppen zeigen seither das neutrale Symbol). withoutPhoto: Karten ohne passendes Foto (Platzhalter). apa enthält den Nachweis nach APA 7 für den Bericht.",
   "photos": [
     {
       "key": "F01.1",
@@ -1306,6 +1306,1835 @@
       "published": "2017-10-15",
       "downloaded": "2026-10-14",
       "apa": "CHUTTERSNAP (2017). [Kürbiskerne mit einer Mandel] [Foto]. Unsplash. https://unsplash.com/photos/almond-seed-on-top-of-green-seeds-J8_U_vokuKk"
+    },
+    {
+      "key": "F01.3.3",
+      "cardId": "F01.3.3",
+      "imageUrl": "https://images.unsplash.com/photo-1694983361411-73e7b65d58fd?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5464,
+      "height": 8192,
+      "shows": [
+        "F01.3.3"
+      ],
+      "foods": [
+        "Speck"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Knusprig gebratene Speckstreifen auf einem weissen Teller]",
+      "photographer": "James Trenda",
+      "photographerUrl": "https://unsplash.com/@trendagraphy",
+      "url": "https://unsplash.com/photos/a-white-plate-topped-with-bacon-strips-on-top-of-a-table-JnfaOH0Yqug",
+      "photoId": "JnfaOH0Yqug",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-09-17",
+      "downloaded": "2026-10-21",
+      "apa": "Trenda, J. (2023). [Knusprig gebratene Speckstreifen auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/a-white-plate-topped-with-bacon-strips-on-top-of-a-table-JnfaOH0Yqug"
+    },
+    {
+      "key": "F02.2.2",
+      "cardId": "F02.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1511543865714-5a5a5ce51a94?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3276,
+      "height": 4096,
+      "shows": [
+        "F02.2.2"
+      ],
+      "foods": [
+        "Krabben"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gekochte Krabbenstücke mit Scheren in einer dunklen Schale]",
+      "photographer": "Frankie Latour",
+      "photographerUrl": "https://unsplash.com/@mariefrancelatour",
+      "url": "https://unsplash.com/photos/cooked-crabs-v9_9mjOXxls",
+      "photoId": "v9_9mjOXxls",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2017-11-24",
+      "downloaded": "2026-10-21",
+      "apa": "Latour, F. (2017). [Gekochte Krabbenstücke mit Scheren in einer dunklen Schale] [Foto]. Unsplash. https://unsplash.com/photos/cooked-crabs-v9_9mjOXxls"
+    },
+    {
+      "key": "F02.3.2",
+      "cardId": "F02.3.2",
+      "imageUrl": "https://images.unsplash.com/photo-1758872044232-449046a48b26?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4896,
+      "height": 3263,
+      "shows": [
+        "F02.3.2"
+      ],
+      "foods": [
+        "Jakobsmuscheln",
+        "Muscheln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Jakobsmuscheln in der Schale auf einem Grill]",
+      "photographer": "Tadahiro Higuchi",
+      "photographerUrl": "https://unsplash.com/@tad_higuchi",
+      "url": "https://unsplash.com/photos/scallops-being-grilled-on-a-metal-grate-3aCrEVOW5Fk",
+      "photoId": "3aCrEVOW5Fk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-09-26",
+      "downloaded": "2026-10-21",
+      "apa": "Higuchi, T. (2025). [Jakobsmuscheln in der Schale auf einem Grill] [Foto]. Unsplash. https://unsplash.com/photos/scallops-being-grilled-on-a-metal-grate-3aCrEVOW5Fk",
+      "todo": "Glänzende Sauce in den Schalen, möglicherweise Butter"
+    },
+    {
+      "key": "F04.1.1",
+      "cardId": "F04.1.1",
+      "imageUrl": "https://images.unsplash.com/photo-1633893215271-f7e1fca081ad?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6048,
+      "height": 4024,
+      "shows": [
+        "F04.1.1"
+      ],
+      "foods": [
+        "Joghurt"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Naturjoghurt in einer Glasschale]",
+      "photographer": "Jana Ohajdova",
+      "photographerUrl": "https://unsplash.com/@jankao",
+      "url": "https://unsplash.com/photos/a-glass-bowl-filled-with-cream-on-top-of-a-table-UC2x8EktH3U",
+      "photoId": "UC2x8EktH3U",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-10-10",
+      "downloaded": "2026-10-21",
+      "apa": "Ohajdova, J. (2021). [Naturjoghurt in einer Glasschale] [Foto]. Unsplash. https://unsplash.com/photos/a-glass-bowl-filled-with-cream-on-top-of-a-table-UC2x8EktH3U"
+    },
+    {
+      "key": "F04.2.3",
+      "cardId": "F04.2.3",
+      "imageUrl": "https://images.unsplash.com/photo-1777301401075-739121f0315f?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3719,
+      "height": 2623,
+      "shows": [
+        "F04.2.3"
+      ],
+      "foods": [
+        "Hüttenkäse",
+        "Frischkäse",
+        "Zucker",
+        "Kaffee"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Hüttenkäse mit braunem Zucker in einer Glasschale, daneben eine Tasse Kaffee]",
+      "photographer": "Gennady Zakharin",
+      "photographerUrl": "https://unsplash.com/@gennady107",
+      "url": "https://unsplash.com/photos/a-cup-of-coffee-and-a-bowl-of-cottage-cheese-KmUj3vChQQc",
+      "photoId": "KmUj3vChQQc",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-04-27",
+      "downloaded": "2026-10-21",
+      "apa": "Zakharin, G. (2026). [Hüttenkäse mit braunem Zucker in einer Glasschale, daneben eine Tasse Kaffee] [Foto]. Unsplash. https://unsplash.com/photos/a-cup-of-coffee-and-a-bowl-of-cottage-cheese-KmUj3vChQQc",
+      "todo": "Dunkler Hintergrund; Kaffee und Zucker als Nebensache im Bild"
+    },
+    {
+      "key": "F05.1.1",
+      "cardId": "F05.1.1",
+      "imageUrl": "https://images.unsplash.com/photo-1764573464925-da17a9f796d4?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "F05.1.1"
+      ],
+      "foods": [
+        "Linsen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Rote Linsen auf zwei Holzlöffeln]",
+      "photographer": "Kamakshi subramani",
+      "photographerUrl": "https://unsplash.com/@prasi898",
+      "url": "https://unsplash.com/photos/two-wooden-spoons-filled-with-red-lentils-oTq9L2WCmR8",
+      "photoId": "oTq9L2WCmR8",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-12-01",
+      "downloaded": "2026-10-21",
+      "apa": "subramani, K. (2025). [Rote Linsen auf zwei Holzlöffeln] [Foto]. Unsplash. https://unsplash.com/photos/two-wooden-spoons-filled-with-red-lentils-oTq9L2WCmR8"
+    },
+    {
+      "key": "F05.1.2",
+      "cardId": "F05.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1770617475579-db217d1c6059?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4791,
+      "height": 3056,
+      "shows": [
+        "F05.1.2"
+      ],
+      "foods": [
+        "Linsen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Grüne Linsen, formatfüllend]",
+      "photographer": "Mustafa akın",
+      "photographerUrl": "https://unsplash.com/@msaimakin",
+      "url": "https://unsplash.com/photos/a-pile-of-small-green-lentils-NqwkyZ_cTCg",
+      "photoId": "NqwkyZ_cTCg",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-02-09",
+      "downloaded": "2026-10-21",
+      "apa": "akın, M. (2026). [Grüne Linsen, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/a-pile-of-small-green-lentils-NqwkyZ_cTCg"
+    },
+    {
+      "key": "F05.2.1",
+      "cardId": "F05.2.1",
+      "imageUrl": "https://images.unsplash.com/flagged/photo-1577226259316-c566059cd6fc?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5472,
+      "height": 3078,
+      "shows": [
+        "F05.2.1"
+      ],
+      "foods": [
+        "Kidneybohnen",
+        "Bohnen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Getrocknete rote Kidneybohnen]",
+      "photographer": "Volodymyr Hryshchenko",
+      "photographerUrl": "https://unsplash.com/@lunarts",
+      "url": "https://unsplash.com/photos/purple-bean-lot-LzHdxEBw1Xk",
+      "photoId": "LzHdxEBw1Xk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-12-24",
+      "downloaded": "2026-10-21",
+      "apa": "Hryshchenko, V. (2019). [Getrocknete rote Kidneybohnen] [Foto]. Unsplash. https://unsplash.com/photos/purple-bean-lot-LzHdxEBw1Xk"
+    },
+    {
+      "key": "F05.2.2",
+      "cardId": "F05.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1613728913084-090a0d106c3a?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 2860,
+      "height": 4291,
+      "shows": [
+        "F05.2.2"
+      ],
+      "foods": [
+        "Bohnen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Getrocknete weisse Bohnen]",
+      "photographer": "Łukasz Rawa",
+      "photographerUrl": "https://unsplash.com/@lukasz_rawa",
+      "url": "https://unsplash.com/photos/white-beans-on-white-background-b6h5nTVD1Hw",
+      "photoId": "b6h5nTVD1Hw",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-02-19",
+      "downloaded": "2026-10-21",
+      "apa": "Rawa, Ł. (2021). [Getrocknete weisse Bohnen] [Foto]. Unsplash. https://unsplash.com/photos/white-beans-on-white-background-b6h5nTVD1Hw"
+    },
+    {
+      "key": "F05.3.1",
+      "cardId": "F05.3.1",
+      "imageUrl": "https://images.unsplash.com/photo-1644432757699-bb5a01e8fb0e?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4608,
+      "height": 3456,
+      "shows": [
+        "F05.3.1"
+      ],
+      "foods": [
+        "Kichererbsen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Kichererbsen in einer dunklen Schale]",
+      "photographer": "Karyna Panchenko",
+      "photographerUrl": "https://unsplash.com/@karyna_panchenko",
+      "url": "https://unsplash.com/photos/a-bowl-filled-with-chickpeas-sitting-on-top-of-a-table-5352eOUYay4",
+      "photoId": "5352eOUYay4",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2022-02-09",
+      "downloaded": "2026-10-21",
+      "apa": "Panchenko, K. (2022). [Kichererbsen in einer dunklen Schale] [Foto]. Unsplash. https://unsplash.com/photos/a-bowl-filled-with-chickpeas-sitting-on-top-of-a-table-5352eOUYay4"
+    },
+    {
+      "key": "F05.3.2",
+      "cardId": "F05.3.2",
+      "imageUrl": "https://images.unsplash.com/photo-1637949385162-e416fb15b2ce?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6110,
+      "height": 4160,
+      "shows": [
+        "F05.3.2"
+      ],
+      "foods": [
+        "Hummus",
+        "Kichererbsen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Hummus mit Olivenöl, ganzen Kichererbsen und Paprikapulver]",
+      "photographer": "Ludovic Avice",
+      "photographerUrl": "https://unsplash.com/@loudmotion",
+      "url": "https://unsplash.com/photos/a-bowl-of-hummus-with-a-garnish-on-top-yr-sW_x9aHk",
+      "photoId": "yr-sW_x9aHk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-11-26",
+      "downloaded": "2026-10-21",
+      "apa": "Avice, L. (2021). [Hummus mit Olivenöl, ganzen Kichererbsen und Paprikapulver] [Foto]. Unsplash. https://unsplash.com/photos/a-bowl-of-hummus-with-a-garnish-on-top-yr-sW_x9aHk"
+    },
+    {
+      "key": "F05.3.3",
+      "cardId": "F05.3.3",
+      "imageUrl": "https://images.unsplash.com/photo-1593001872095-7d5b3868fb1d?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5959,
+      "height": 3973,
+      "shows": [
+        "F05.3.3"
+      ],
+      "foods": [
+        "Falafel",
+        "Kichererbsen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Falafel in einer weissen Schale, zwei aufgebrochen]",
+      "photographer": "Anton",
+      "photographerUrl": "https://unsplash.com/@uniqueton",
+      "url": "https://unsplash.com/photos/fried-food-on-white-ceramic-bowl-pQnsKWk5ljQ",
+      "photoId": "pQnsKWk5ljQ",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-06-24",
+      "downloaded": "2026-10-21",
+      "apa": "Anton (2020). [Falafel in einer weissen Schale, zwei aufgebrochen] [Foto]. Unsplash. https://unsplash.com/photos/fried-food-on-white-ceramic-bowl-pQnsKWk5ljQ"
+    },
+    {
+      "key": "F05.4.2",
+      "cardId": "F05.4.2",
+      "imageUrl": "https://images.unsplash.com/photo-1776178393323-60eef87af347?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5304,
+      "height": 7952,
+      "shows": [
+        "F05.4.2"
+      ],
+      "foods": [
+        "Tempeh",
+        "Soja",
+        "Sojabohnen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Rohe Tempehscheiben auf einer runden Platte, daneben Sojabohnen]",
+      "photographer": "dion armadi",
+      "photographerUrl": "https://unsplash.com/@dionarmadi",
+      "url": "https://unsplash.com/photos/thinly-sliced-tempeh-arranged-on-a-round-platter-with-spices-pbgzARiiHxM",
+      "photoId": "pbgzARiiHxM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-04-14",
+      "downloaded": "2026-10-21",
+      "apa": "armadi, d. (2026). [Rohe Tempehscheiben auf einer runden Platte, daneben Sojabohnen] [Foto]. Unsplash. https://unsplash.com/photos/thinly-sliced-tempeh-arranged-on-a-round-platter-with-spices-pbgzARiiHxM"
+    },
+    {
+      "key": "F06.1.1",
+      "cardId": "F06.1.1",
+      "imageUrl": "https://images.unsplash.com/photo-1655234091402-7823cd6978e3?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4682,
+      "height": 3161,
+      "shows": [
+        "F06.1.1"
+      ],
+      "foods": [
+        "Zopf",
+        "Brot"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Geflochtener Zopf auf einem Gitter]",
+      "photographer": "melanie boers",
+      "photographerUrl": "https://unsplash.com/@melanieboers",
+      "url": "https://unsplash.com/photos/a-loaf-of-bread-on-a-cooling-rack-l8L9EppV320",
+      "photoId": "l8L9EppV320",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2022-06-14",
+      "downloaded": "2026-10-21",
+      "apa": "boers, m. (2022). [Geflochtener Zopf auf einem Gitter] [Foto]. Unsplash. https://unsplash.com/photos/a-loaf-of-bread-on-a-cooling-rack-l8L9EppV320",
+      "todo": "Hagelzucker oder Salzkörner obendrauf (beim Butterzopf unüblich)"
+    },
+    {
+      "key": "F06.1.2",
+      "cardId": "F06.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1598373182308-3270495d2f58?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6720,
+      "height": 4480,
+      "shows": [
+        "F06.1.2"
+      ],
+      "foods": [
+        "Toastbrot",
+        "Brot"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Angeschnittenes weisses Toastbrot auf einem Holzbrett]",
+      "photographer": "Charles Chen",
+      "photographerUrl": "https://unsplash.com/@color0911",
+      "url": "https://unsplash.com/photos/brown-bread-on-white-ceramic-plate-e83dQJ-BMog",
+      "photoId": "e83dQJ-BMog",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-08-25",
+      "downloaded": "2026-10-21",
+      "apa": "Chen, C. (2020). [Angeschnittenes weisses Toastbrot auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/brown-bread-on-white-ceramic-plate-e83dQJ-BMog"
+    },
+    {
+      "key": "F07.1.2",
+      "cardId": "F07.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1590060846796-0418842f3908?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3456,
+      "height": 4608,
+      "shows": [
+        "F07.1.2"
+      ],
+      "foods": [
+        "Hörnli",
+        "Teigwaren"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Trockene Hörnli, formatfüllend]",
+      "photographer": "Ayush Sharma",
+      "photographerUrl": "https://unsplash.com/@_clicksbyayush_",
+      "url": "https://unsplash.com/photos/yellow-rubber-balloons-in-close-up-photography-b1dxNswO_C4",
+      "photoId": "b1dxNswO_C4",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-05-21",
+      "downloaded": "2026-10-21",
+      "apa": "Sharma, A. (2020). [Trockene Hörnli, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/yellow-rubber-balloons-in-close-up-photography-b1dxNswO_C4"
+    },
+    {
+      "key": "F08.1.2",
+      "cardId": "F08.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1680137248876-6ad53db8caef?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4416,
+      "height": 2944,
+      "shows": [
+        "F08.1.2"
+      ],
+      "foods": [
+        "Reis"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Schale mit gekochtem Naturreis]",
+      "photographer": "Seiya Maeda",
+      "photographerUrl": "https://unsplash.com/@seiya_maeda",
+      "url": "https://unsplash.com/photos/a-white-bowl-filled-with-rice-on-top-of-a-wooden-table-qM8PlclZGg4",
+      "photoId": "qM8PlclZGg4",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-03-30",
+      "downloaded": "2026-10-21",
+      "apa": "Maeda, S. (2023). [Schale mit gekochtem Naturreis] [Foto]. Unsplash. https://unsplash.com/photos/a-white-bowl-filled-with-rice-on-top-of-a-wooden-table-qM8PlclZGg4"
+    },
+    {
+      "key": "F08.2.2",
+      "cardId": "F08.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1776669236271-5cfe72d74755?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5125,
+      "height": 3417,
+      "shows": [
+        "F08.2.2"
+      ],
+      "foods": [
+        "Bulgur"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Trockener Bulgur, formatfüllend]",
+      "photographer": "Mustafa akın",
+      "photographerUrl": "https://unsplash.com/@msaimakin",
+      "url": "https://unsplash.com/photos/a-close-up-texture-of-small-light-brown-granules-pTrQDKQzJ7U",
+      "photoId": "pTrQDKQzJ7U",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-04-20",
+      "downloaded": "2026-10-21",
+      "apa": "akın, M. (2026). [Trockener Bulgur, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/a-close-up-texture-of-small-light-brown-granules-pTrQDKQzJ7U"
+    },
+    {
+      "key": "F10.1.4",
+      "cardId": "F10.1.4",
+      "imageUrl": "https://images.unsplash.com/photo-1770153792355-e44dca5eccaf?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3888,
+      "height": 5184,
+      "shows": [
+        "F10.1.4"
+      ],
+      "foods": [
+        "Eisbergsalat",
+        "Salat"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Nahaufnahme eines Eisbergsalats]",
+      "photographer": "Sebastian Schuster",
+      "photographerUrl": "https://unsplash.com/@sschusterphotoart",
+      "url": "https://unsplash.com/photos/close-up-of-a-fresh-crisp-iceberg-lettuce-head-7TkK0bhs_Wc",
+      "photoId": "7TkK0bhs_Wc",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-02-03",
+      "downloaded": "2026-10-21",
+      "apa": "Schuster, S. (2026). [Nahaufnahme eines Eisbergsalats] [Foto]. Unsplash. https://unsplash.com/photos/close-up-of-a-fresh-crisp-iceberg-lettuce-head-7TkK0bhs_Wc"
+    },
+    {
+      "key": "F10.2.1",
+      "cardId": "F10.2.1",
+      "imageUrl": "https://images.unsplash.com/photo-1546094096-0df4bcaaa337?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6016,
+      "height": 4000,
+      "shows": [
+        "F10.2.1"
+      ],
+      "foods": [
+        "Tomaten",
+        "Tomate"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Drei Rispentomaten vor hellem Hintergrund]",
+      "photographer": "Alex Ghizila",
+      "photographerUrl": "https://unsplash.com/@galex",
+      "url": "https://unsplash.com/photos/three-cherry-tomatoes-UD_j10SKj5g",
+      "photoId": "UD_j10SKj5g",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2018-12-29",
+      "downloaded": "2026-10-21",
+      "apa": "Ghizila, A. (2018). [Drei Rispentomaten vor hellem Hintergrund] [Foto]. Unsplash. https://unsplash.com/photos/three-cherry-tomatoes-UD_j10SKj5g"
+    },
+    {
+      "key": "F10.2.3",
+      "cardId": "F10.2.3",
+      "imageUrl": "https://images.unsplash.com/photo-1737099982164-daf32c285e0f?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3744,
+      "height": 5616,
+      "shows": [
+        "F10.2.3"
+      ],
+      "foods": [
+        "Peperoni"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Rote Peperoniringe auf einem Holztisch]",
+      "photographer": "Maria Kovalets",
+      "photographerUrl": "https://unsplash.com/@marylooo",
+      "url": "https://unsplash.com/photos/a-pile-of-sliced-red-peppers-sitting-on-top-of-a-wooden-table-bVmM-VvKPQ4",
+      "photoId": "bVmM-VvKPQ4",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-01-17",
+      "downloaded": "2026-10-21",
+      "apa": "Kovalets, M. (2025). [Rote Peperoniringe auf einem Holztisch] [Foto]. Unsplash. https://unsplash.com/photos/a-pile-of-sliced-red-peppers-sitting-on-top-of-a-wooden-table-bVmM-VvKPQ4"
+    },
+    {
+      "key": "F10.3.2",
+      "cardId": "F10.3.2",
+      "imageUrl": "https://images.unsplash.com/photo-1593026122758-19bebc625104?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6960,
+      "height": 4640,
+      "shows": [
+        "F10.3.2"
+      ],
+      "foods": [
+        "Radieschen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Bund Radieschen, eines halbiert, auf weissem Grund]",
+      "photographer": "Jo Lanta",
+      "photographerUrl": "https://unsplash.com/@jo_lanta",
+      "url": "https://unsplash.com/photos/red-tomato-on-white-surface-3vCaADeY8aM",
+      "photoId": "3vCaADeY8aM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-06-24",
+      "downloaded": "2026-10-21",
+      "apa": "Lanta, J. (2020). [Bund Radieschen, eines halbiert, auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/red-tomato-on-white-surface-3vCaADeY8aM"
+    },
+    {
+      "key": "F11.1.2",
+      "cardId": "F11.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1584615467033-75627d04dffe?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5184,
+      "height": 3456,
+      "shows": [
+        "F11.1.2"
+      ],
+      "foods": [
+        "Blumenkohl"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Blumenkohl auf einem Holzbrett]",
+      "photographer": "Louis Hansel",
+      "photographerUrl": "https://unsplash.com/@louishansel",
+      "url": "https://unsplash.com/photos/white-cauliflower-on-brown-wooden-chopping-board-PT-GXFtQj-s",
+      "photoId": "PT-GXFtQj-s",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-03-19",
+      "downloaded": "2026-10-21",
+      "apa": "Hansel, L. (2020). [Blumenkohl auf einem Holzbrett] [Foto]. Unsplash. https://unsplash.com/photos/white-cauliflower-on-brown-wooden-chopping-board-PT-GXFtQj-s"
+    },
+    {
+      "key": "F11.1.3",
+      "cardId": "F11.1.3",
+      "imageUrl": "https://images.unsplash.com/photo-1614087434853-25e6e8357217?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3755,
+      "height": 5632,
+      "shows": [
+        "F11.1.3"
+      ],
+      "foods": [
+        "Rosenkohl"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Frischer Rosenkohl in einer hellen Schale]",
+      "photographer": "Franzi Meyer",
+      "photographerUrl": "https://unsplash.com/@francescamyer",
+      "url": "https://unsplash.com/photos/green-vegetable-on-white-ceramic-bowl-0wIy6cxMSJs",
+      "photoId": "0wIy6cxMSJs",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-02-23",
+      "downloaded": "2026-10-21",
+      "apa": "Meyer, F. (2021). [Frischer Rosenkohl in einer hellen Schale] [Foto]. Unsplash. https://unsplash.com/photos/green-vegetable-on-white-ceramic-bowl-0wIy6cxMSJs"
+    },
+    {
+      "key": "F11.1.4",
+      "cardId": "F11.1.4",
+      "imageUrl": "https://images.unsplash.com/photo-1579584705540-46ebde56da8d?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3024,
+      "height": 4032,
+      "shows": [
+        "F11.1.4"
+      ],
+      "foods": [
+        "Wirz",
+        "Kohl"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Wirzkopf mit gekrausten Blättern]",
+      "photographer": "David Holifield",
+      "photographerUrl": "https://unsplash.com/@davidholifield",
+      "url": "https://unsplash.com/photos/green-leaf-plant-in-close-up-photography-HE5AQ1dlvi0",
+      "photoId": "HE5AQ1dlvi0",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-01-21",
+      "downloaded": "2026-10-21",
+      "apa": "Holifield, D. (2020). [Wirzkopf mit gekrausten Blättern] [Foto]. Unsplash. https://unsplash.com/photos/green-leaf-plant-in-close-up-photography-HE5AQ1dlvi0"
+    },
+    {
+      "key": "F11.2.1",
+      "cardId": "F11.2.1",
+      "imageUrl": "https://images.unsplash.com/photo-1639428133613-1dd396bc8f3e?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3336,
+      "height": 5008,
+      "shows": [
+        "F11.2.1"
+      ],
+      "foods": [
+        "Rüebli",
+        "Karotten"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Im Ofen gegarte Rüebli mit etwas Rosmarin]",
+      "photographer": "Maja Vujic",
+      "photographerUrl": "https://unsplash.com/@majavujic87",
+      "url": "https://unsplash.com/photos/a-bunch-of-carrots-sitting-on-top-of-a-tray-4CujyAHvmNk",
+      "photoId": "4CujyAHvmNk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-12-13",
+      "downloaded": "2026-10-21",
+      "apa": "Vujic, M. (2021). [Im Ofen gegarte Rüebli mit etwas Rosmarin] [Foto]. Unsplash. https://unsplash.com/photos/a-bunch-of-carrots-sitting-on-top-of-a-tray-4CujyAHvmNk"
+    },
+    {
+      "key": "F11.2.2",
+      "cardId": "F11.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "F11.2.2"
+      ],
+      "foods": [
+        "Randen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Frische Randen mit Blättern auf dunklem Grund]",
+      "photographer": "Emma-Jane Hobden",
+      "photographerUrl": "https://unsplash.com/@emmalejane",
+      "url": "https://unsplash.com/photos/green-and-red-chili-peppers-lFxgx7Snyfw",
+      "photoId": "lFxgx7Snyfw",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-06-25",
+      "downloaded": "2026-10-21",
+      "apa": "Hobden, E. (2020). [Frische Randen mit Blättern auf dunklem Grund] [Foto]. Unsplash. https://unsplash.com/photos/green-and-red-chili-peppers-lFxgx7Snyfw"
+    },
+    {
+      "key": "F11.2.3",
+      "cardId": "F11.2.3",
+      "imageUrl": "https://images.unsplash.com/photo-1759421278046-77fc1f6244ac?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3175,
+      "height": 3969,
+      "shows": [
+        "F11.2.3"
+      ],
+      "foods": [
+        "Sellerie"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Eine ganze Sellerieknolle auf Holz]",
+      "photographer": "feey",
+      "photographerUrl": "https://unsplash.com/@feeypflanzen",
+      "url": "https://unsplash.com/photos/a-single-gnarled-root-vegetable-on-a-wooden-surface-Tao8Y9v6eRI",
+      "photoId": "Tao8Y9v6eRI",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-10-02",
+      "downloaded": "2026-10-21",
+      "apa": "feey (2025). [Eine ganze Sellerieknolle auf Holz] [Foto]. Unsplash. https://unsplash.com/photos/a-single-gnarled-root-vegetable-on-a-wooden-surface-Tao8Y9v6eRI"
+    },
+    {
+      "key": "F11.3.1",
+      "cardId": "F11.3.1",
+      "imageUrl": "https://images.unsplash.com/photo-1742044609850-ed68d84c39ab?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 7728,
+      "height": 5152,
+      "shows": [
+        "F11.3.1"
+      ],
+      "foods": [
+        "Zucchetti"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Grillierte Zucchettischeiben in einer Grillpfanne]",
+      "photographer": "okeykat",
+      "photographerUrl": "https://unsplash.com/@okeykat",
+      "url": "https://unsplash.com/photos/grilled-zucchini-slices-in-a-pan-s_EJXaJzIys",
+      "photoId": "s_EJXaJzIys",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-03-15",
+      "downloaded": "2026-10-21",
+      "apa": "okeykat (2025). [Grillierte Zucchettischeiben in einer Grillpfanne] [Foto]. Unsplash. https://unsplash.com/photos/grilled-zucchini-slices-in-a-pan-s_EJXaJzIys"
+    },
+    {
+      "key": "F11.3.2",
+      "cardId": "F11.3.2",
+      "imageUrl": "https://images.unsplash.com/photo-1682603921889-0d1ac8834153?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3781,
+      "height": 5671,
+      "shows": [
+        "F11.3.2"
+      ],
+      "foods": [
+        "Peperoni"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Im Ofen gegarte rote Peperoni auf einer weissen Platte]",
+      "photographer": "Angela Khebou",
+      "photographerUrl": "https://unsplash.com/@angelakhebou",
+      "url": "https://unsplash.com/photos/a-white-plate-topped-with-red-peppers-next-to-other-plates-of-food-rgB9ZCw3XiU",
+      "photoId": "rgB9ZCw3XiU",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-04-27",
+      "downloaded": "2026-10-21",
+      "apa": "Khebou, A. (2023). [Im Ofen gegarte rote Peperoni auf einer weissen Platte] [Foto]. Unsplash. https://unsplash.com/photos/a-white-plate-topped-with-red-peppers-next-to-other-plates-of-food-rgB9ZCw3XiU"
+    },
+    {
+      "key": "F11.3.3",
+      "cardId": "F11.3.3",
+      "imageUrl": "https://images.unsplash.com/photo-1591813144634-eebdeab865e1?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4032,
+      "height": 3024,
+      "shows": [
+        "F11.3.3"
+      ],
+      "foods": [
+        "Aubergine"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Im Ofen gegarte Auberginenscheiben auf einem Blech]",
+      "photographer": "Lucian Alexe",
+      "photographerUrl": "https://unsplash.com/@lucian_alexe",
+      "url": "https://unsplash.com/photos/sliced-of-pizza-on-black-pan-KnE3Dzy36ww",
+      "photoId": "KnE3Dzy36ww",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-06-10",
+      "downloaded": "2026-10-21",
+      "apa": "Alexe, L. (2020). [Im Ofen gegarte Auberginenscheiben auf einem Blech] [Foto]. Unsplash. https://unsplash.com/photos/sliced-of-pizza-on-black-pan-KnE3Dzy36ww"
+    },
+    {
+      "key": "F11.4.1",
+      "cardId": "F11.4.1",
+      "imageUrl": "https://images.unsplash.com/photo-1574316071802-0d684efa7bf5?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3024,
+      "height": 4032,
+      "shows": [
+        "F11.4.1"
+      ],
+      "foods": [
+        "Spinat"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Frische Spinatblätter]",
+      "photographer": "Shutter Sphere Collective",
+      "photographerUrl": "https://unsplash.com/@shutterspherecollective",
+      "url": "https://unsplash.com/photos/fresh-green-spinach-leaves-6AAptb2kBak",
+      "photoId": "6AAptb2kBak",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-11-21",
+      "downloaded": "2026-10-21",
+      "apa": "Shutter Sphere Collective (2019). [Frische Spinatblätter] [Foto]. Unsplash. https://unsplash.com/photos/fresh-green-spinach-leaves-6AAptb2kBak"
+    },
+    {
+      "key": "F12.1.2",
+      "cardId": "F12.1.2",
+      "imageUrl": "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6016,
+      "height": 4016,
+      "shows": [
+        "F12.1.2"
+      ],
+      "foods": [
+        "Heidelbeeren"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Heidelbeeren in und vor einer weissen Schale]",
+      "photographer": "Joanna Kosinska",
+      "photographerUrl": "https://unsplash.com/@joannakosinska",
+      "url": "https://unsplash.com/photos/blueberries-on-white-ceramic-container-4qujjbj3srs",
+      "photoId": "4qujjbj3srs",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2017-06-27",
+      "downloaded": "2026-10-21",
+      "apa": "Kosinska, J. (2017). [Heidelbeeren in und vor einer weissen Schale] [Foto]. Unsplash. https://unsplash.com/photos/blueberries-on-white-ceramic-container-4qujjbj3srs"
+    },
+    {
+      "key": "F12.1.3",
+      "cardId": "F12.1.3",
+      "imageUrl": "https://images.unsplash.com/photo-1774710025339-52bddb2fbc41?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 2406,
+      "height": 3008,
+      "shows": [
+        "F12.1.3"
+      ],
+      "foods": [
+        "Himbeeren"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Frische Himbeeren, formatfüllend]",
+      "photographer": "Valentin",
+      "photographerUrl": "https://unsplash.com/@omikron",
+      "url": "https://unsplash.com/photos/a-close-up-view-of-fresh-ripe-raspberries-h5fGNEQY3zA",
+      "photoId": "h5fGNEQY3zA",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-03-28",
+      "downloaded": "2026-10-21",
+      "apa": "Valentin (2026). [Frische Himbeeren, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/a-close-up-view-of-fresh-ripe-raspberries-h5fGNEQY3zA"
+    },
+    {
+      "key": "F12.2.2",
+      "cardId": "F12.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1615484477778-ca3b77940c25?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3789,
+      "height": 5053,
+      "shows": [
+        "F12.2.2"
+      ],
+      "foods": [
+        "Birnen",
+        "Birne"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Eine rotgelbe Birne auf weissem Grund]",
+      "photographer": "Mockup Graphics",
+      "photographerUrl": "https://unsplash.com/@mockupgraphics",
+      "url": "https://unsplash.com/photos/pear-with-yellow-and-red-skin-haSJEJYzl5A",
+      "photoId": "haSJEJYzl5A",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-03-11",
+      "downloaded": "2026-10-21",
+      "apa": "Mockup Graphics (2021). [Eine rotgelbe Birne auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/pear-with-yellow-and-red-skin-haSJEJYzl5A"
+    },
+    {
+      "key": "F12.3.2",
+      "cardId": "F12.3.2",
+      "imageUrl": "https://images.unsplash.com/photo-1627931754115-478ed65b4fef?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4896,
+      "height": 3264,
+      "shows": [
+        "F12.3.2"
+      ],
+      "foods": [
+        "Aprikosen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Aprikosen, eine halbiert, auf hellem Holz]",
+      "photographer": "Ilona Frey",
+      "photographerUrl": "https://unsplash.com/@couleuroriginal",
+      "url": "https://unsplash.com/photos/yellow-round-fruits-on-white-table-dHK4BiGA9v8",
+      "photoId": "dHK4BiGA9v8",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-08-02",
+      "downloaded": "2026-10-21",
+      "apa": "Frey, I. (2021). [Aprikosen, eine halbiert, auf hellem Holz] [Foto]. Unsplash. https://unsplash.com/photos/yellow-round-fruits-on-white-table-dHK4BiGA9v8"
+    },
+    {
+      "key": "F12.3.3",
+      "cardId": "F12.3.3",
+      "imageUrl": "https://images.unsplash.com/photo-1763256931625-ce439f5c2470?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4340,
+      "height": 7715,
+      "shows": [
+        "F12.3.3"
+      ],
+      "foods": [
+        "Zwetschgen",
+        "Pflaumen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Blaue Zwetschgen, formatfüllend]",
+      "photographer": "Ali Sarvari",
+      "photographerUrl": "https://unsplash.com/@aliisarvari",
+      "url": "https://unsplash.com/photos/a-pile-of-ripe-blue-plums-DMyal4QoYqo",
+      "photoId": "DMyal4QoYqo",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-11-16",
+      "downloaded": "2026-10-21",
+      "apa": "Sarvari, A. (2025). [Blaue Zwetschgen, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/a-pile-of-ripe-blue-plums-DMyal4QoYqo"
+    },
+    {
+      "key": "F12.4.1",
+      "cardId": "F12.4.1",
+      "imageUrl": "https://images.unsplash.com/photo-1592187270271-9a4b84faa228?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4000,
+      "height": 6000,
+      "shows": [
+        "F12.4.1"
+      ],
+      "foods": [
+        "Orangen",
+        "Orange"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Zwei Orangenhälften auf türkisem Grund]",
+      "photographer": "Lucas George Wendt",
+      "photographerUrl": "https://unsplash.com/@lucasgwendt",
+      "url": "https://unsplash.com/photos/sliced-orange-fruit-on-blue-surface-8ZGgg6rhzxs",
+      "photoId": "8ZGgg6rhzxs",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-06-15",
+      "downloaded": "2026-10-21",
+      "apa": "Wendt, L. G. (2020). [Zwei Orangenhälften auf türkisem Grund] [Foto]. Unsplash. https://unsplash.com/photos/sliced-orange-fruit-on-blue-surface-8ZGgg6rhzxs"
+    },
+    {
+      "key": "F12.4.2",
+      "cardId": "F12.4.2",
+      "imageUrl": "https://images.unsplash.com/photo-1611329646571-689ddf8bfee9?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "F12.4.2"
+      ],
+      "foods": [
+        "Mandarinen"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Mandarinen, ganz und geschält, auf weissem Grund]",
+      "photographer": "Karolina Kołodziejczak",
+      "photographerUrl": "https://unsplash.com/@rabbit_in_blue",
+      "url": "https://unsplash.com/photos/sliced-orange-fruits-on-white-ceramic-plate-hA9o-T5Agqc",
+      "photoId": "hA9o-T5Agqc",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-01-22",
+      "downloaded": "2026-10-21",
+      "apa": "Kołodziejczak, K. (2021). [Mandarinen, ganz und geschält, auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/sliced-orange-fruits-on-white-ceramic-plate-hA9o-T5Agqc"
+    },
+    {
+      "key": "F12.4.3",
+      "cardId": "F12.4.3",
+      "imageUrl": "https://images.unsplash.com/photo-1787551742228-8af769f282d3?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5202,
+      "height": 3468,
+      "shows": [
+        "F12.4.3"
+      ],
+      "foods": [
+        "Grapefruit"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Eine halbierte rosa Grapefruit auf Holz]",
+      "photographer": "Mustafa akın",
+      "photographerUrl": "https://unsplash.com/@msaimakin",
+      "url": "https://unsplash.com/photos/halved-grapefruit-on-wooden-surface-byVXTfiyB1M",
+      "photoId": "byVXTfiyB1M",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-08-24",
+      "downloaded": "2026-10-21",
+      "apa": "akın, M. (2026). [Eine halbierte rosa Grapefruit auf Holz] [Foto]. Unsplash. https://unsplash.com/photos/halved-grapefruit-on-wooden-surface-byVXTfiyB1M"
+    },
+    {
+      "key": "F12.5.1",
+      "cardId": "F12.5.1",
+      "imageUrl": "https://images.unsplash.com/photo-1640958900081-7b069dd23e9c?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5390,
+      "height": 3593,
+      "shows": [
+        "F12.5.1"
+      ],
+      "foods": [
+        "Bananen",
+        "Banane"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Ein Bund Bananen auf weissem Grund]",
+      "photographer": "Gabriel Mihalcea",
+      "photographerUrl": "https://unsplash.com/@lovelyscape",
+      "url": "https://unsplash.com/photos/a-bunch-of-bananas-sitting-on-top-of-a-white-table-1jyRHJPkpz8",
+      "photoId": "1jyRHJPkpz8",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-12-31",
+      "downloaded": "2026-10-21",
+      "apa": "Mihalcea, G. (2021). [Ein Bund Bananen auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/a-bunch-of-bananas-sitting-on-top-of-a-white-table-1jyRHJPkpz8"
+    },
+    {
+      "key": "F12.5.2",
+      "cardId": "F12.5.2",
+      "imageUrl": "https://images.unsplash.com/photo-1553279768-865429fa0078?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4032,
+      "height": 3024,
+      "shows": [
+        "F12.5.2"
+      ],
+      "foods": [
+        "Mango"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Eine ganze gelbe Mango vor hellem Hintergrund]",
+      "photographer": "Becky Mattson",
+      "photographerUrl": "https://unsplash.com/@bombaybecky2019",
+      "url": "https://unsplash.com/photos/yellow-mango-7iLlgS5o09c",
+      "photoId": "7iLlgS5o09c",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-03-22",
+      "downloaded": "2026-10-21",
+      "apa": "Mattson, B. (2019). [Eine ganze gelbe Mango vor hellem Hintergrund] [Foto]. Unsplash. https://unsplash.com/photos/yellow-mango-7iLlgS5o09c"
+    },
+    {
+      "key": "F12.5.3",
+      "cardId": "F12.5.3",
+      "imageUrl": "https://images.unsplash.com/photo-1490885578174-acda8905c2c6?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 2500,
+      "height": 1669,
+      "shows": [
+        "F12.5.3"
+      ],
+      "foods": [
+        "Ananas"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Eine ganze Ananas vor hellem Hintergrund]",
+      "photographer": "Julien Pianetti",
+      "photographerUrl": "https://unsplash.com/@julienpian",
+      "url": "https://unsplash.com/photos/pineapple-on-white-surface-Cr9hZrpC1Oc",
+      "photoId": "Cr9hZrpC1Oc",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2017-03-30",
+      "downloaded": "2026-10-21",
+      "apa": "Pianetti, J. (2017). [Eine ganze Ananas vor hellem Hintergrund] [Foto]. Unsplash. https://unsplash.com/photos/pineapple-on-white-surface-Cr9hZrpC1Oc"
+    },
+    {
+      "key": "F13.1.1",
+      "cardId": "F13.1.1",
+      "imageUrl": "https://images.unsplash.com/photo-1615485925822-77040a19d84b?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4815,
+      "height": 3611,
+      "shows": [
+        "F13.1.1"
+      ],
+      "foods": [
+        "Haselnüsse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Ganze Haselnüsse auf weissem Grund]",
+      "photographer": "Mockup Graphics",
+      "photographerUrl": "https://unsplash.com/@mockupgraphics",
+      "url": "https://unsplash.com/photos/brown-almond-nuts-on-white-surface-nuaxGRQ9elM",
+      "photoId": "nuaxGRQ9elM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-03-11",
+      "downloaded": "2026-10-21",
+      "apa": "Mockup Graphics (2021). [Ganze Haselnüsse auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/brown-almond-nuts-on-white-surface-nuaxGRQ9elM"
+    },
+    {
+      "key": "F13.1.4",
+      "cardId": "F13.1.4",
+      "imageUrl": "https://images.unsplash.com/photo-1615485925873-7ecbbe90a866?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4275,
+      "height": 4275,
+      "shows": [
+        "F13.1.4"
+      ],
+      "foods": [
+        "Cashewkerne"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Cashewkerne in einer Holzschale auf weissem Grund]",
+      "photographer": "Mockup Graphics",
+      "photographerUrl": "https://unsplash.com/@mockupgraphics",
+      "url": "https://unsplash.com/photos/brown-wooden-round-bowl-with-white-background-xWRwCmhcWDM",
+      "photoId": "xWRwCmhcWDM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-03-11",
+      "downloaded": "2026-10-21",
+      "apa": "Mockup Graphics (2021). [Cashewkerne in einer Holzschale auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/brown-wooden-round-bowl-with-white-background-xWRwCmhcWDM"
+    },
+    {
+      "key": "F13.1.5",
+      "cardId": "F13.1.5",
+      "imageUrl": "https://images.unsplash.com/photo-1772986754479-adf55e99d3c8?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5472,
+      "height": 3648,
+      "shows": [
+        "F13.1.5"
+      ],
+      "foods": [
+        "Pistazien"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Pistazien in der Schale, formatfüllend]",
+      "photographer": "Tamanna Rumee",
+      "photographerUrl": "https://unsplash.com/@tamanna_rumee",
+      "url": "https://unsplash.com/photos/a-pile-of-unshelled-pistachios-on-a-white-background-t1D9yHqj4BQ",
+      "photoId": "t1D9yHqj4BQ",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-03-08",
+      "downloaded": "2026-10-21",
+      "apa": "Rumee, T. (2026). [Pistazien in der Schale, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/a-pile-of-unshelled-pistachios-on-a-white-background-t1D9yHqj4BQ"
+    },
+    {
+      "key": "F13.1.6",
+      "cardId": "F13.1.6",
+      "imageUrl": "https://images.unsplash.com/photo-1582173649515-0f9582d58e60?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3181,
+      "height": 3393,
+      "shows": [
+        "F13.1.6"
+      ],
+      "foods": [
+        "Pekannüsse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Pekannüsse, formatfüllend]",
+      "photographer": "Sara Cervera",
+      "photographerUrl": "https://unsplash.com/@saracervera",
+      "url": "https://unsplash.com/photos/brown-coffee-beans-in-close-up-photography-XoCLqOlTBJs",
+      "photoId": "XoCLqOlTBJs",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-02-20",
+      "downloaded": "2026-10-21",
+      "apa": "Cervera, S. (2020). [Pekannüsse, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/brown-coffee-beans-in-close-up-photography-XoCLqOlTBJs"
+    },
+    {
+      "key": "F13.1.8",
+      "cardId": "F13.1.8",
+      "imageUrl": "https://images.unsplash.com/photo-1615485021362-5db597fbab1d?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4332,
+      "height": 4332,
+      "shows": [
+        "F13.1.8"
+      ],
+      "foods": [
+        "Macadamianüsse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Eine geknackte Macadamianuss auf weissem Grund]",
+      "photographer": "Mockup Graphics",
+      "photographerUrl": "https://unsplash.com/@mockupgraphics",
+      "url": "https://unsplash.com/photos/two-brown-bread-on-white-surface-QOpX1O-Mcew",
+      "photoId": "QOpX1O-Mcew",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-03-11",
+      "downloaded": "2026-10-21",
+      "apa": "Mockup Graphics (2021). [Eine geknackte Macadamianuss auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/two-brown-bread-on-white-surface-QOpX1O-Mcew"
+    },
+    {
+      "key": "F13.2.1",
+      "cardId": "F13.2.1",
+      "imageUrl": "https://images.unsplash.com/photo-1791329072249-174568edab59?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 8160,
+      "height": 6033,
+      "shows": [
+        "F13.2.1"
+      ],
+      "foods": [
+        "Kürbiskerne"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Rohe grüne Kürbiskerne, formatfüllend]",
+      "photographer": "Zoshua Colah",
+      "photographerUrl": "https://unsplash.com/@zoshuacolah",
+      "url": "https://unsplash.com/photos/raw-green-pumpkin-seeds-43CLrvapt1g",
+      "photoId": "43CLrvapt1g",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-10-06",
+      "downloaded": "2026-10-21",
+      "apa": "Colah, Z. (2026). [Rohe grüne Kürbiskerne, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/raw-green-pumpkin-seeds-43CLrvapt1g"
+    },
+    {
+      "key": "F13.2.2",
+      "cardId": "F13.2.2",
+      "imageUrl": "https://images.unsplash.com/photo-1600841784377-45b805f54d34?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6720,
+      "height": 4480,
+      "shows": [
+        "F13.2.2"
+      ],
+      "foods": [
+        "Sonnenblumenkerne"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Sonnenblumenkerne in der Schale auf weissem Grund]",
+      "photographer": "engin akyurt",
+      "photographerUrl": "https://unsplash.com/@enginakyurt",
+      "url": "https://unsplash.com/photos/brown-and-black-coffee-beans-H7I5LCBWOjQ",
+      "photoId": "H7I5LCBWOjQ",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2020-09-23",
+      "downloaded": "2026-10-21",
+      "apa": "akyurt, e. (2020). [Sonnenblumenkerne in der Schale auf weissem Grund] [Foto]. Unsplash. https://unsplash.com/photos/brown-and-black-coffee-beans-H7I5LCBWOjQ"
+    },
+    {
+      "key": "F13.2.3",
+      "cardId": "F13.2.3",
+      "imageUrl": "https://images.unsplash.com/photo-1778048840964-d221d23b86ee?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3024,
+      "height": 4032,
+      "shows": [
+        "F13.2.3"
+      ],
+      "foods": [
+        "Sesam"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Geröstete Sesamsamen, formatfüllend]",
+      "photographer": "Manoj Poosam",
+      "photographerUrl": "https://unsplash.com/@manoj_poosam",
+      "url": "https://unsplash.com/photos/a-close-up-view-of-many-toasted-sesame-seeds-n_nV3xvU4JU",
+      "photoId": "n_nV3xvU4JU",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-05-06",
+      "downloaded": "2026-10-21",
+      "apa": "Poosam, M. (2026). [Geröstete Sesamsamen, formatfüllend] [Foto]. Unsplash. https://unsplash.com/photos/a-close-up-view-of-many-toasted-sesame-seeds-n_nV3xvU4JU",
+      "todo": "Sorte im Bild nicht eindeutig (laut Fotograf geröstete Sesamsamen); prüfen, ob als Sesam erkennbar"
+    },
+    {
+      "key": "D01",
+      "cardId": "D01",
+      "imageUrl": "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6016,
+      "height": 4016,
+      "shows": [
+        "D01",
+        "F04.2.3"
+      ],
+      "foods": [
+        "Pizza",
+        "Tomate",
+        "Mozzarella",
+        "Basilikum"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Pizza Margherita mit Tomatensauce, Mozzarella und Basilikum]",
+      "photographer": "Aurélien Lemasson-Théobald",
+      "photographerUrl": "https://unsplash.com/@aurel__lens",
+      "url": "https://unsplash.com/photos/round-cooked-pizza-x00CzBt4Dfk",
+      "photoId": "x00CzBt4Dfk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-11-18",
+      "downloaded": "2026-10-21",
+      "apa": "Lemasson-Théobald, A. (2019). [Pizza Margherita mit Tomatensauce, Mozzarella und Basilikum] [Foto]. Unsplash. https://unsplash.com/photos/round-cooked-pizza-x00CzBt4Dfk"
+    },
+    {
+      "key": "D02",
+      "cardId": "D02",
+      "imageUrl": "https://images.unsplash.com/photo-1622973536968-3ead9e780960?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "D02",
+        "F04.2.1"
+      ],
+      "foods": [
+        "Spaghetti",
+        "Hackfleisch",
+        "Tomate",
+        "Käse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Spaghetti Bolognese mit Reibkäse und Basilikum auf einem weissen Teller]",
+      "photographer": "Homescreenify",
+      "photographerUrl": "https://unsplash.com/@homescreenify",
+      "url": "https://unsplash.com/photos/spaghetti-on-white-ceramic-plate-sA3wymYqyaI",
+      "photoId": "sA3wymYqyaI",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-06-06",
+      "downloaded": "2026-10-21",
+      "apa": "Homescreenify (2021). [Spaghetti Bolognese mit Reibkäse und Basilikum auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/spaghetti-on-white-ceramic-plate-sA3wymYqyaI",
+      "todo": "Hackfleisch: Fleischart im Bild nicht erkennbar (Rezept: Rind und Schwein)"
+    },
+    {
+      "key": "D03",
+      "cardId": "D03",
+      "imageUrl": "https://images.unsplash.com/photo-1770908811367-e1232962e81b?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 2187,
+      "height": 2916,
+      "shows": [
+        "D03",
+        "F04.2"
+      ],
+      "foods": [
+        "Lasagne",
+        "Hackfleisch",
+        "Tomate",
+        "Käse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Lasagne in der Form und ein Stück auf einem Teller]",
+      "photographer": "sheri silver",
+      "photographerUrl": "https://unsplash.com/@sheri_silver",
+      "url": "https://unsplash.com/photos/a-slice-of-lasagna-is-served-from-a-baking-dish-ofpQwWR4dfs",
+      "photoId": "ofpQwWR4dfs",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-02-12",
+      "downloaded": "2026-10-21",
+      "apa": "silver, s. (2026). [Lasagne in der Form und ein Stück auf einem Teller] [Foto]. Unsplash. https://unsplash.com/photos/a-slice-of-lasagna-is-served-from-a-baking-dish-ofpQwWR4dfs",
+      "todo": "Füllung im Bild nicht erkennbar (Rezept: Hackfleisch, Béchamel)"
+    },
+    {
+      "key": "D07",
+      "cardId": "D07",
+      "imageUrl": "https://images.unsplash.com/photo-1787941796469-c6b0935841f1?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4697,
+      "height": 7045,
+      "shows": [
+        "D07"
+      ],
+      "foods": [
+        "Käse",
+        "Brot"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Käsefondue im Caquelon, ein Brotwürfel an der Gabel]",
+      "photographer": "Karsten Winegeart",
+      "photographerUrl": "https://unsplash.com/@_karsten",
+      "url": "https://unsplash.com/photos/bread-dipped-in-cheese-fondue-FvYTP31NiSw",
+      "photoId": "FvYTP31NiSw",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-08-28",
+      "downloaded": "2026-10-21",
+      "apa": "Winegeart, K. (2026). [Käsefondue im Caquelon, ein Brotwürfel an der Gabel] [Foto]. Unsplash. https://unsplash.com/photos/bread-dipped-in-cheese-fondue-FvYTP31NiSw"
+    },
+    {
+      "key": "D09",
+      "cardId": "D09",
+      "imageUrl": "https://images.unsplash.com/photo-1627054886476-0cdee47fde3d?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 6000,
+      "shows": [
+        "D09"
+      ],
+      "foods": [
+        "Gerste",
+        "Fleisch",
+        "Sellerie",
+        "Rüebli",
+        "Kartoffeln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gerstensuppe mit Fleisch, Sellerie, Rüebli und Kartoffeln]",
+      "photographer": "David Thielen",
+      "photographerUrl": "https://unsplash.com/@david_thielen",
+      "url": "https://unsplash.com/photos/white-ceramic-bowl-with-sliced-fruits-6KHcuE4UuXs",
+      "photoId": "6KHcuE4UuXs",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-07-23",
+      "downloaded": "2026-10-21",
+      "apa": "Thielen, D. (2021). [Gerstensuppe mit Fleisch, Sellerie, Rüebli und Kartoffeln] [Foto]. Unsplash. https://unsplash.com/photos/white-ceramic-bowl-with-sliced-fruits-6KHcuE4UuXs",
+      "todo": "Fleischart im Bild nicht erkennbar (Rezept: Bündnerfleisch und Speck); Rahm nicht sichtbar"
+    },
+    {
+      "key": "D10",
+      "cardId": "D10",
+      "imageUrl": "https://images.unsplash.com/photo-1680420574628-225def8eea0a?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5304,
+      "height": 7952,
+      "shows": [
+        "D10"
+      ],
+      "foods": [
+        "Reis",
+        "Pilze",
+        "Petersilie"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Pilzrisotto mit Champignons und Petersilie in einer dunklen Schale]",
+      "photographer": "Corryn Burtenshaw",
+      "photographerUrl": "https://unsplash.com/@indigo365",
+      "url": "https://unsplash.com/photos/a-bowl-of-rice-with-mushrooms-and-parsley-MT_aSIwT-wU",
+      "photoId": "MT_aSIwT-wU",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-04-02",
+      "downloaded": "2026-10-21",
+      "apa": "Burtenshaw, C. (2023). [Pilzrisotto mit Champignons und Petersilie in einer dunklen Schale] [Foto]. Unsplash. https://unsplash.com/photos/a-bowl-of-rice-with-mushrooms-and-parsley-MT_aSIwT-wU"
+    },
+    {
+      "key": "D11",
+      "cardId": "D11",
+      "imageUrl": "https://images.unsplash.com/photo-1790701909034-6c7b45c7b58a?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 2668,
+      "height": 4000,
+      "shows": [
+        "D11",
+        "F04.2"
+      ],
+      "foods": [
+        "Chili",
+        "Hackfleisch",
+        "Kidneybohnen",
+        "Bohnen",
+        "Käse",
+        "Sauerrahm",
+        "Frühlingszwiebeln"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Chili con Carne mit Kidneybohnen, Käse, Sauerrahm und Frühlingszwiebeln]",
+      "photographer": "Chad Montano",
+      "photographerUrl": "https://unsplash.com/@briewilly",
+      "url": "https://unsplash.com/photos/chili-bowl-with-cheese-and-cream-HNVi6m5KCr8",
+      "photoId": "HNVi6m5KCr8",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-09-29",
+      "downloaded": "2026-10-21",
+      "apa": "Montano, C. (2026). [Chili con Carne mit Kidneybohnen, Käse, Sauerrahm und Frühlingszwiebeln] [Foto]. Unsplash. https://unsplash.com/photos/chili-bowl-with-cheese-and-cream-HNVi6m5KCr8",
+      "todo": "Käse und Sauerrahm obendrauf, im Rezept nicht vorgesehen (darum Käse in shows); Fleischart im Bild nicht erkennbar"
+    },
+    {
+      "key": "D12",
+      "cardId": "D12",
+      "imageUrl": "https://images.unsplash.com/photo-1665056511905-1ca20935db27?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5472,
+      "height": 3648,
+      "shows": [
+        "D12"
+      ],
+      "foods": [
+        "Schnitzel",
+        "Pommes frites",
+        "Zitrone"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Panierte Schnitzel mit Pommes frites und Zitrone]",
+      "photographer": "tommao wang",
+      "photographerUrl": "https://unsplash.com/@tommaomaoer",
+      "url": "https://unsplash.com/photos/a-plate-of-food-q4D17QbFH28",
+      "photoId": "q4D17QbFH28",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2022-10-06",
+      "downloaded": "2026-10-21",
+      "apa": "wang, t. (2022). [Panierte Schnitzel mit Pommes frites und Zitrone] [Foto]. Unsplash. https://unsplash.com/photos/a-plate-of-food-q4D17QbFH28",
+      "todo": "Fleischart im Bild nicht erkennbar (Rezept: Kalbfleisch; ähnlich sieht Schweins- oder Pouletschnitzel aus)"
+    },
+    {
+      "key": "D14",
+      "cardId": "D14",
+      "imageUrl": "https://images.unsplash.com/photo-1456014673271-90b7fddf2eea?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6016,
+      "height": 4016,
+      "shows": [
+        "D14"
+      ],
+      "foods": [
+        "Wähe",
+        "Gemüse"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Angeschnittene Gemüsewähe mit hohem Rand]",
+      "photographer": "Timothy Muza",
+      "photographerUrl": "https://unsplash.com/@timothymuza",
+      "url": "https://unsplash.com/photos/sliced-caked-on-plate-Jw4rKiZFiSM",
+      "photoId": "Jw4rKiZFiSM",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2016-02-21",
+      "downloaded": "2026-10-21",
+      "apa": "Muza, T. (2016). [Angeschnittene Gemüsewähe mit hohem Rand] [Foto]. Unsplash. https://unsplash.com/photos/sliced-caked-on-plate-Jw4rKiZFiSM",
+      "todo": "Füllung grün, Gemüsesorte nicht erkennbar (Rezept: Lauch, Ei-Rahm-Guss)"
+    },
+    {
+      "key": "D15",
+      "cardId": "D15",
+      "imageUrl": "https://images.unsplash.com/photo-1720949579179-b4d04403f548?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3708,
+      "height": 2986,
+      "shows": [
+        "D15"
+      ],
+      "foods": [
+        "Gemüse",
+        "Curry",
+        "Reis",
+        "Peperoni"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gemüsecurry mit Reis in einem weissen Teller]",
+      "photographer": "Zoshua Colah",
+      "photographerUrl": "https://unsplash.com/@zoshuacolah",
+      "url": "https://unsplash.com/photos/a-plate-of-food-on-a-wooden-table-4ZyLEI4y3-0",
+      "photoId": "4ZyLEI4y3-0",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2024-07-14",
+      "downloaded": "2026-10-21",
+      "apa": "Colah, Z. (2024). [Gemüsecurry mit Reis in einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/a-plate-of-food-on-a-wooden-table-4ZyLEI4y3-0",
+      "todo": "Sauce könnte Kokosmilch oder Rahm enthalten"
+    },
+    {
+      "key": "D16",
+      "cardId": "D16",
+      "imageUrl": "https://images.unsplash.com/photo-1788462613018-40916ff6415c?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4672,
+      "height": 5840,
+      "shows": [
+        "D16"
+      ],
+      "foods": [
+        "Poulet",
+        "Curry",
+        "Reis"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Poulet-Curry mit weissem Reis auf einem schwarzen Teller]",
+      "photographer": "gabbiistudios",
+      "photographerUrl": "https://unsplash.com/@gabrielonodegba",
+      "url": "https://unsplash.com/photos/chicken-tikka-masala-dinner-plate-7ZGOtqVZtAk",
+      "photoId": "7ZGOtqVZtAk",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2026-09-03",
+      "downloaded": "2026-10-21",
+      "apa": "gabbiistudios (2026). [Poulet-Curry mit weissem Reis auf einem schwarzen Teller] [Foto]. Unsplash. https://unsplash.com/photos/chicken-tikka-masala-dinner-plate-7ZGOtqVZtAk",
+      "todo": "Sauce kann Rahm oder Joghurt enthalten"
+    },
+    {
+      "key": "D18",
+      "cardId": "D18",
+      "imageUrl": "https://images.unsplash.com/photo-1744094127448-90d2a828ed08?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3999,
+      "height": 2666,
+      "shows": [
+        "D18"
+      ],
+      "foods": [
+        "Gemüse",
+        "Teigwaren",
+        "Rüebli",
+        "Sellerie",
+        "Dill"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Gemüsesuppe mit Teigwaren, Rüebli, Sellerie und Dill]",
+      "photographer": "Markus Winkler",
+      "photographerUrl": "https://unsplash.com/@markuswinkler",
+      "url": "https://unsplash.com/photos/a-bowl-of-hearty-soup-with-vegetables-g4f3kfF5uv8",
+      "photoId": "g4f3kfF5uv8",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2025-04-08",
+      "downloaded": "2026-10-21",
+      "apa": "Winkler, M. (2025). [Gemüsesuppe mit Teigwaren, Rüebli, Sellerie und Dill] [Foto]. Unsplash. https://unsplash.com/photos/a-bowl-of-hearty-soup-with-vegetables-g4f3kfF5uv8",
+      "todo": "Bohnen im Bild nicht sichtbar; Bouillon unbekannt (Fleisch- oder Gemüsebouillon)"
+    },
+    {
+      "key": "D19",
+      "cardId": "D19",
+      "imageUrl": "https://images.unsplash.com/photo-1637806930600-37fa8892069d?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 3264,
+      "height": 4928,
+      "shows": [
+        "D19"
+      ],
+      "foods": [
+        "Reisnudeln",
+        "Erdnüsse",
+        "Sojasprossen",
+        "Frühlingszwiebeln",
+        "Zitrone"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Pad Thai mit Reisnudeln, Sojasprossen, gehackten Erdnüssen, Frühlingszwiebeln und Zitrone]",
+      "photographer": "John Aledia",
+      "photographerUrl": "https://unsplash.com/@johnaledja",
+      "url": "https://unsplash.com/photos/a-plate-of-food-on-a-wooden-table-_wBJ0cvKhIE",
+      "photoId": "_wBJ0cvKhIE",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2021-11-25",
+      "downloaded": "2026-10-21",
+      "apa": "Aledia, J. (2021). [Pad Thai mit Reisnudeln, Sojasprossen, gehackten Erdnüssen, Frühlingszwiebeln und Zitrone] [Foto]. Unsplash. https://unsplash.com/photos/a-plate-of-food-on-a-wooden-table-_wBJ0cvKhIE",
+      "todo": "Crevetten im Ausschnitt kaum erkennbar; Ei und Fischsauce möglich"
+    },
+    {
+      "key": "D20",
+      "cardId": "D20",
+      "imageUrl": "https://images.unsplash.com/photo-1695712641569-05eee7b37b6d?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 5184,
+      "height": 3456,
+      "shows": [
+        "D20"
+      ],
+      "foods": [
+        "Frühlingsrollen",
+        "Gemüse",
+        "Rüebli",
+        "Chili"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Frühlingsrollen mit Gemüsefüllung auf einem Bananenblatt]",
+      "photographer": "Budi Puspa Wijaya",
+      "photographerUrl": "https://unsplash.com/@budi_puspa_wijaya",
+      "url": "https://unsplash.com/photos/a-plate-that-has-some-food-on-it-1ugpo9WYPXs",
+      "photoId": "1ugpo9WYPXs",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2023-09-26",
+      "downloaded": "2026-10-21",
+      "apa": "Wijaya, B. P. (2023). [Frühlingsrollen mit Gemüsefüllung auf einem Bananenblatt] [Foto]. Unsplash. https://unsplash.com/photos/a-plate-that-has-some-food-on-it-1ugpo9WYPXs"
+    },
+    {
+      "key": "D21",
+      "cardId": "D21",
+      "imageUrl": "https://images.unsplash.com/photo-1646678259179-b0c6d5b421a5?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 6000,
+      "height": 4000,
+      "shows": [
+        "D21",
+        "F04.2"
+      ],
+      "foods": [
+        "Enchiladas",
+        "Tortillas",
+        "Käse",
+        "Tortillachips"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Enchiladas mit dunkler Sauce, Käse und Tortillachips]",
+      "photographer": "Nahima Aparicio",
+      "photographerUrl": "https://unsplash.com/@nahimaaparicio",
+      "url": "https://unsplash.com/photos/a-plate-of-food-on-a-wooden-table-A-kdwDxmxTE",
+      "photoId": "A-kdwDxmxTE",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2022-03-07",
+      "downloaded": "2026-10-21",
+      "apa": "Aparicio, N. (2022). [Enchiladas mit dunkler Sauce, Käse und Tortillachips] [Foto]. Unsplash. https://unsplash.com/photos/a-plate-of-food-on-a-wooden-table-A-kdwDxmxTE",
+      "todo": "Füllung nicht erkennbar; dunkle Sauce (Mole?) kann Nüsse, Sesam oder Schokolade enthalten"
+    },
+    {
+      "key": "D22",
+      "cardId": "D22",
+      "imageUrl": "https://images.unsplash.com/photo-1572453800999-e8d2d1589b7c?ixid=NHwxMjA3fDA&ixlib=rb-4.1.0",
+      "width": 4455,
+      "height": 3357,
+      "shows": [
+        "D22"
+      ],
+      "foods": [
+        "Aubergine",
+        "Zucchetti",
+        "Tomaten"
+      ],
+      "focusX": 0.5,
+      "focusY": 0.5,
+      "title": "[Ratatouille als Türmchen mit Sauce auf einem weissen Teller]",
+      "photographer": "amirali mirhashemian",
+      "photographerUrl": "https://unsplash.com/@amir_v_ali",
+      "url": "https://unsplash.com/photos/cooked-food-R02KgL5Ti3Y",
+      "photoId": "R02KgL5Ti3Y",
+      "source": "Unsplash",
+      "license": "Unsplash License",
+      "licenseUrl": "https://unsplash.com/license",
+      "published": "2019-10-30",
+      "downloaded": "2026-10-21",
+      "apa": "mirhashemian, a. (2019). [Ratatouille als Türmchen mit Sauce auf einem weissen Teller] [Foto]. Unsplash. https://unsplash.com/photos/cooked-food-R02KgL5Ti3Y",
+      "todo": "Sauce unbekannt"
     }
   ],
   "collages": {
@@ -1402,5 +3231,245 @@
     "F12.3.1": "F12.3",
     "F13.1.3": "F13-a",
     "F13.1.2": "F13-b"
-  }
+  },
+  "withoutPhoto": [
+    {
+      "cardId": "F01.1.2",
+      "title": "Truthahn",
+      "reason": "Trute im Bild nicht von Poulet zu unterscheiden; übrige Fotos mit Festdekor, Händen oder Beilagen",
+      "searched": [
+        "turkey-breast",
+        "sliced-turkey-breast"
+      ]
+    },
+    {
+      "cardId": "F01.2.2",
+      "title": "Rindsgehacktes",
+      "reason": "Nur Burger-Patties, Steaks oder gebratenes Hackfleisch mit anderen Zutaten",
+      "searched": [
+        "minced-beef",
+        "ground-beef"
+      ]
+    },
+    {
+      "cardId": "F01.2.3",
+      "title": "Kalbfleisch",
+      "reason": "Kalb im Bild nicht erkennbar (nur Tiere, Steaks oder Text)",
+      "searched": [
+        "veal"
+      ]
+    },
+    {
+      "cardId": "F01.3.2",
+      "title": "Schweinsbraten",
+      "reason": "Nur Braten mit Schrift auf dem Brett, Roastbeef oder Pulled Pork",
+      "searched": [
+        "roast-pork"
+      ]
+    },
+    {
+      "cardId": "F02.1.2",
+      "title": "Kabeljau",
+      "reason": "Nur Zeichnungen, lebende Fische, Forellen oder ein Verpackungsetikett",
+      "searched": [
+        "cod-fillet",
+        "cod"
+      ]
+    },
+    {
+      "cardId": "F02.1.3",
+      "title": "Egli",
+      "reason": "Nur ganze Fische anderer Arten, Fische mit Händen oder Gemälde",
+      "searched": [
+        "perch-fish"
+      ]
+    },
+    {
+      "cardId": "F02.1.4",
+      "title": "Thunfisch",
+      "reason": "Nur Dosen mit Markenlogos oder Thon-Salat auf Brot",
+      "searched": [
+        "canned-tuna"
+      ]
+    },
+    {
+      "cardId": "F04.1.2",
+      "title": "Skyr",
+      "reason": "Keine Fotos (die Suche liefert Island-Landschaften)",
+      "searched": [
+        "skyr",
+        "icelandic-yogurt"
+      ]
+    },
+    {
+      "cardId": "F04.1.4",
+      "title": "Fruchtjoghurt",
+      "reason": "Nur Erdbeeren mit Rahm, Milch oder Granola; Fruchtjoghurt nicht erkennbar",
+      "searched": [
+        "strawberry-yogurt"
+      ]
+    },
+    {
+      "cardId": "F04.2.2",
+      "title": "Weichkäse",
+      "reason": "Nur Käseplatten mit anderen Sorten, Honig oder Preisschildern",
+      "searched": [
+        "camembert"
+      ]
+    },
+    {
+      "cardId": "F06.2.2",
+      "title": "Vollkorntoast",
+      "reason": "Nur Vollkornbrot, kein Toast erkennbar",
+      "searched": [
+        "whole-wheat-bread"
+      ]
+    },
+    {
+      "cardId": "F06.3.2",
+      "title": "Mehrkornknäcke",
+      "reason": "Fast nur Fotos eines Markenkontos mit Verpackung, sonst Pita",
+      "searched": [
+        "crispbread",
+        "knackebrod"
+      ]
+    },
+    {
+      "cardId": "F07.2",
+      "title": "Vollkornpasta",
+      "reason": "Sorte im Bild nicht erkennbar (normale Pasta)",
+      "searched": [
+        "whole-wheat-pasta",
+        "whole-grain-pasta"
+      ]
+    },
+    {
+      "cardId": "F07.2.1",
+      "title": "Vollkornspaghetti",
+      "reason": "Sorte im Bild nicht erkennbar (Spaghettigerichte ohne Hinweis auf Vollkorn)",
+      "searched": [
+        "whole-wheat-spaghetti",
+        "wholemeal-spaghetti"
+      ]
+    },
+    {
+      "cardId": "F07.2.2",
+      "title": "Dinkelpasta",
+      "reason": "Sorte im Bild nicht erkennbar (normale Pasta, Brot oder Getreide)",
+      "searched": [
+        "spelt-pasta",
+        "spelt"
+      ]
+    },
+    {
+      "cardId": "F07.3",
+      "title": "Pasta aus Hülsenfrüchten",
+      "reason": "Sorte im Bild nicht erkennbar (Pastagerichte ohne Hinweis auf Hülsenfrüchte)",
+      "searched": [
+        "lentil-pasta",
+        "legume-pasta"
+      ]
+    },
+    {
+      "cardId": "F07.3.1",
+      "title": "Linsenpasta",
+      "reason": "Sorte im Bild nicht erkennbar (Pastagerichte oder rote Linsen ohne Pasta)",
+      "searched": [
+        "red-lentil-pasta",
+        "red-lentil-penne"
+      ]
+    },
+    {
+      "cardId": "F07.3.2",
+      "title": "Kichererbsenpasta",
+      "reason": "Sorte im Bild nicht erkennbar (Pastagerichte mit Kichererbsen daneben)",
+      "searched": [
+        "chickpea-pasta",
+        "chickpea-penne"
+      ]
+    },
+    {
+      "cardId": "F10.1.2",
+      "title": "Nüsslisalat",
+      "reason": "Die Suche liefert Kopfsalat, Maissalat oder Autos (Ford Mach-E)",
+      "searched": [
+        "lambs-lettuce",
+        "corn-salad",
+        "mache"
+      ]
+    },
+    {
+      "cardId": "F10.1.3",
+      "title": "Rucola",
+      "reason": "Nur Rucola mit Spiegelei und Käse, auf Pizza oder als Pflanze",
+      "searched": [
+        "arugula",
+        "rocket-salad"
+      ]
+    },
+    {
+      "cardId": "F13.1.7",
+      "title": "Paranüsse",
+      "reason": "Nur gemischte Nüsse; sonst Landschaften in Brasilien",
+      "searched": [
+        "brazil-nuts",
+        "brazil-nut"
+      ]
+    },
+    {
+      "cardId": "D04",
+      "title": "Älplermagronen",
+      "reason": "Nur Mac and Cheese ohne Kartoffeln, Röstzwiebeln und Apfelmus",
+      "searched": [
+        "alplermagronen",
+        "swiss-macaroni"
+      ]
+    },
+    {
+      "cardId": "D05",
+      "title": "Rösti mit Spiegelei",
+      "reason": "Nur Frühstücksteller mit Speck, Waffeln oder Toast; Rösti mit Preisschild",
+      "searched": [
+        "rosti",
+        "hash-browns-egg"
+      ]
+    },
+    {
+      "cardId": "D06",
+      "title": "Zürcher Geschnetzeltes mit Rösti",
+      "reason": "Nur Rahmsaucen mit Pasta oder Poulet, nie mit Rösti",
+      "searched": [
+        "geschnetzeltes",
+        "veal-cream-sauce"
+      ]
+    },
+    {
+      "cardId": "D08",
+      "title": "Raclette mit Gschwellti",
+      "reason": "Nur Ofenkäse mit Händen oder Kartoffelgerichte ohne Raclette",
+      "searched": [
+        "raclette",
+        "raclette-potatoes"
+      ]
+    },
+    {
+      "cardId": "D13",
+      "title": "Eglifilets mit Salzkartoffeln",
+      "reason": "Nur ganze Fische anderer Arten oder rohe Filets; Eglifilets mit Kartoffeln nicht gefunden",
+      "searched": [
+        "perch-fillet",
+        "fish-fillet-potatoes"
+      ]
+    },
+    {
+      "cardId": "D17",
+      "title": "Birchermüesli",
+      "reason": "Nur Haferbrei, Granola-Gläser oder Overnight Oats mit anderen Früchten; Birchermüesli nicht erkennbar",
+      "searched": [
+        "bircher-muesli",
+        "overnight-oats",
+        "muesli-bowl"
+      ]
+    }
+  ]
 }

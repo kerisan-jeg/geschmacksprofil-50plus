@@ -38,9 +38,13 @@ Dateien: public/cards/{cardId}.webp, 4:3, höchstens 1200 px breit, höchstens 1
 | Lebensmittel, deren Foto genau sie zeigt | 26 | `stock` (Kopie des Fotos, z. B. Lachs) |
 | Untergruppen, Lebensmittel und Gerichte ohne Bild | 94 | neutraler Platzhalter, bis die Gemini-Bilder da sind |
 
+> **Stand seit A16:** 67 dieser 94 Karten haben inzwischen ein Unsplash-Foto, 27 stehen auf der Liste „ohne passendes Bild“. Siehe [bilder-a16.md](bilder-a16.md).
+
 Die Original-JPGs in public/images bleiben als Quelle der WebP-Dateien und für die Bildnachweise. Die App lädt nur noch public/cards.
 
-## Gemini-Bilder erzeugen und übernehmen
+## Gemini-Bilder erzeugen und übernehmen (nicht mehr benötigt)
+
+> **Nicht mehr benötigt seit Addendum A16 (21.10.2026):** Die fehlenden Bilder stammen aus öffentlichen Quellen (Unsplash), siehe [bilder-a16.md](bilder-a16.md). Die Anleitung bleibt stehen, falls doch KI-Bilder kommen.
 
 1. Prompts: src/data/card-image-prompts.json (94 Einträge), oder ausgeben mit `python scripts/prepare-card-images.py prompts`.
 2. Bilder mit Gemini erzeugen und als `{cardId}.png` (oder .jpg, .webp) in einem Ordner speichern, z. B. `F12.5.1.png` für Bananen.
@@ -89,7 +93,7 @@ Jeder Prompt zeigt nur das Lebensmittel der Karte („only this food, no other f
 
 ## Offen
 
-- **94 Bilder mit Gemini erzeugen** (Prompts liegen bereit). Bis dahin zeigen diese Karten den Platzhalter; `imageShown` macht sie in der Auswertung erkennbar.
-- **Nutzungsbedingungen für Gemini-Bilder** klären und als `license` eintragen (keine rechtliche Beurteilung in dieser Doku).
+- ~~94 Bilder mit Gemini erzeugen~~ Nicht mehr nötig: Seit A16 kommen die Bilder aus Unsplash; 27 Karten ohne passendes Foto zeigen den Platzhalter ([bilder-a16.md](bilder-a16.md)).
+- ~~Nutzungsbedingungen für Gemini-Bilder klären~~ Entfällt mit A16 (keine KI-Bilder).
 - **Gemischte Bildquellen** (Unsplash und KI): Uneinheitliche Bilder können die Bewertung beeinflussen (Annahme 5). `imageSource` je Antwort erlaubt, das im Pilot auszuwerten; falls nötig, später alle Bilder mit Gemini erzeugen.
 - Die Original-JPGs in public/images könnten entfallen, sobald niemand sie mehr als Quelle braucht (sie werden mit veröffentlicht, aber nicht geladen).

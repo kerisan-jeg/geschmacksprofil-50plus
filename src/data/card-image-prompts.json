@@ -1,4 +1,5 @@
 {
+  "status": "Nicht mehr benötigt (Addendum A16, 21.10.2026): Alle Kartenbilder stammen aus öffentlichen Quellen (Unsplash). Die Prompts bleiben nur als Unterlage, falls doch KI-Bilder kommen.",
   "note": "Gemini-Prompts für alle Karten ohne Bild (Addendum A15, 21.10.2026). Stil wie die Team-Prompts: 4:3, Tageslicht, heller Hintergrund, nur das Lebensmittel der Karte (kein Beispiel für etwas anderes). alt: deutscher Alternativtext, shows/foods: was im Bild zu sehen ist (für den Ausschluss-Filter). Gruppen (Stufe 1) bekommen kein Bild (neutrales Symbol, Teamentscheid 20.10.2026). Übernehmen mit: python scripts/prepare-card-images.py gemini <ordner>",
   "unused": {
     "note": "Team-Prompts aus A15 ohne passende Katalogkarte bzw. für Gruppen (Teamentscheid 21.10.2026: Katalog bleibt, Teller bleibt)",

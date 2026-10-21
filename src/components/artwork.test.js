@@ -46,14 +46,15 @@ async function withClock(run) {
 const fire = (node, type, init = {}) => act(async () => node.dispatchEvent(new window.MouseEvent(type, { bubbles: true, cancelable: true, ...init })));
 
 test('Karte ohne Bild: neutraler Platzhalter mit Kartenname, die Karte bleibt wischbar', async () => {
-  const banana = index.get('F12.5.1');
-  assert.equal(banana.image, undefined);
+  // Skyr steht auf der Liste „ohne passendes Bild“ (A16)
+  const skyr = index.get('F04.1.2');
+  assert.equal(skyr.image, undefined);
   const onCommitted = spy();
-  const { container, unmount } = await render(h(SwipeCard, { card: banana, onCommitted, onIntent() {} }));
+  const { container, unmount } = await render(h(SwipeCard, { card: skyr, onCommitted, onIntent() {} }));
   assert.equal(container.querySelector('.artwork').dataset.state, 'missing');
-  assert.equal(container.querySelector('.artwork-name').textContent, 'Bananen');
+  assert.equal(container.querySelector('.artwork-name').textContent, 'Skyr');
   assert.equal(container.querySelector('.artwork-photo'), null);
-  assert.equal(container.querySelector('.card-title').textContent, 'Bananen', 'Kartenname als echter Text unter dem Bild');
+  assert.equal(container.querySelector('.card-title').textContent, 'Skyr', 'Kartenname als echter Text unter dem Bild');
   const card = container.querySelector('.swipe-card');
   await fire(card, 'pointerdown', { clientX: 100, clientY: 200, button: 0 });
   await fire(card, 'pointermove', { clientX: 400, clientY: 205 });

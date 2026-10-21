@@ -1,4 +1,4 @@
-"""Bilder für die Karten vorbereiten (Addendum A15, 21.10.2026).
+"""Bilder für die Karten vorbereiten (Addendum A15 und A16, 21.10.2026).
 
 Jede Karte zeigt ein Bild aus public/cards/{cardId}.webp: Seitenverhältnis 4:3, höchstens 1200 px breit,
 höchstens 150 KB. Der Eintrag image steht im Katalog (src/data/catalog.json):
@@ -7,18 +7,29 @@ credit verweist auf den Bildnachweis in src/data/image-credits.json (Unsplash), 
 ist (damit ein Bild nie Ausgeschlossenes zeigt). Gruppen (Stufe 1) bekommen kein Bild: Sie zeigen nach dem
 Teamentscheid vom 20.10.2026 das neutrale Symbol.
 
+Seit A16 stammen alle Kartenbilder aus öffentlichen Quellen (Unsplash, Unsplash License). Jedes Foto hat einen
+Nachweis in image-credits.json (Fotograf, Link, APA 7) und nennt nach dem tatsächlichen Bildinhalt, was zu sehen ist
+(shows, foods); unsichere Inhalte stehen als todo dort und auf der Prüfseite. Fotos ohne lokales Original
+(public/images) lädt der Befehl stock über imageUrl von images.unsplash.com.
+
 Voraussetzung: pip install pillow
 
+  python scripts/prepare-card-images.py stock             Unsplash-Fotos ins A15-Format bringen (lokal oder über imageUrl)
+  python scripts/prepare-card-images.py check             alle Bilder prüfen (Datei, 4:3, Breite, Grösse, alt-Text)
+  python scripts/prepare-card-images.py review            Prüfseite docs/bilder-review.html neu erzeugen (nur lokal)
+Nicht mehr benötigt seit A16 (bleibt für den Fall, dass doch KI-Bilder kommen):
   python scripts/prepare-card-images.py prompts           Prompts für alle Karten ohne Bild (aus card-image-prompts.json)
   python scripts/prepare-card-images.py gemini <ordner>   Gemini-Bilder übernehmen; Dateinamen {cardId}.png, .jpg oder .webp
                 [--license "Hinweis"]                     optional: Nutzungshinweis, der im Eintrag gespeichert wird
-  python scripts/prepare-card-images.py stock             Unsplash-Fotos aus public/images übernehmen (einmalig gemacht)
-  python scripts/prepare-card-images.py check             alle Bilder prüfen (Datei, 4:3, Breite, Grösse, alt-Text)
 """
 
+import html
 import io
 import json
 import sys
+import tempfile
+import time
+import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -26,6 +37,8 @@ CATALOG = ROOT / 'src' / 'data' / 'catalog.json'
 CREDITS = ROOT / 'src' / 'data' / 'image-credits.json'
 PROMPTS = ROOT / 'src' / 'data' / 'card-image-prompts.json'
 CARDS_DIR = ROOT / 'public' / 'cards'
+REVIEW = ROOT / 'docs' / 'bilder-review.html'
+CACHE = Path(tempfile.gettempdir()) / 'geschmacksprofil-card-images'
 MAX_WIDTH = 1200
 MAX_BYTES = 150 * 1024
 RATIO = (4, 3)
@@ -74,18 +87,38 @@ def to_webp(source, target, focus=(0.5, 0.5)):
         new_height = round(width * RATIO[1] / RATIO[0])
         top = min(max(0, round(height * focus[1] - new_height / 2)), height - new_height)
         image = image.crop((0, top, width, top + new_height))
-    if image.width > MAX_WIDTH:
-        image = image.resize((MAX_WIDTH, round(MAX_WIDTH * RATIO[1] / RATIO[0])), Image.LANCZOS)
-    for quality in range(86, 29, -4):
-        buffer = io.BytesIO()
-        image.save(buffer, 'WEBP', quality=quality, method=6)
+    # Höchstens 1200 px breit. Sehr feine Motive (z. B. Bulgur) werden zuerst mit tieferer Qualität, dann schmaler gespeichert.
+    for width in (MAX_WIDTH, 1080, 960, 840, 720):
+        scaled = image.resize((width, round(width * RATIO[1] / RATIO[0])), Image.LANCZOS) if image.width > width else image
+        for quality in range(86, 49, -4):
+            buffer = io.BytesIO()
+            scaled.save(buffer, 'WEBP', quality=quality, method=6)
+            if buffer.tell() <= MAX_BYTES:
+                break
         if buffer.tell() <= MAX_BYTES:
+            image = scaled
             break
     else:
-        sys.exit(f'{source}: auch mit tiefer Qualität grösser als 150 KB')
+        sys.exit(f'{source}: auch kleiner und mit tiefer Qualität grösser als 150 KB')
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(buffer.getvalue())
     return image.width, image.height, buffer.tell(), quality
+
+
+def original(photo):
+    """Lokales Original (public/images) oder heruntergeladen über imageUrl (A16), zwischengespeichert im Temp-Ordner."""
+    if photo.get('file'):
+        return ROOT / 'public' / 'images' / photo['file']
+    CACHE.mkdir(parents=True, exist_ok=True)
+    target = CACHE / f"{photo['photoId']}.jpg"
+    if not target.exists():
+        url = photo['imageUrl']
+        url += ('&' if '?' in url else '?') + 'w=1600&q=85&fm=jpg'
+        request = urllib.request.Request(url, headers={'User-Agent': 'geschmacksprofil-50plus prepare-card-images'})
+        with urllib.request.urlopen(request, timeout=60) as response:
+            target.write_bytes(response.read())
+        time.sleep(0.5)
+    return target
 
 
 def entry(card_id, **fields):
@@ -105,8 +138,9 @@ def command_stock():
         photo = targets.get(card['id'])
         if not photo:
             continue
-        size = to_webp(ROOT / 'public' / 'images' / photo['file'], CARDS_DIR / f"{card['id']}.webp", (photo.get('focusX', 0.5), photo.get('focusY', 0.5)))
-        card['image'] = entry(card['id'], alt=photo['title'].strip('[]'), source='stock', license=photo['license'], credit=photo['key'], shows=photo['shows'], foods=photo['foods'])
+        size = to_webp(original(photo), CARDS_DIR / f"{card['id']}.webp", (photo.get('focusX', 0.5), photo.get('focusY', 0.5)))
+        card['image'] = entry(card['id'], alt=photo['title'].strip('[]'), source='stock', license=photo['license'], credit=photo['key'],
+                              shows=photo['shows'], foods=photo['foods'], todo=photo.get('todo'))
         print(f"{card['id']}: {size[0]}×{size[1]}, {size[2] // 1024} KB (Qualität {size[3]})")
     save_catalog(data)
 
@@ -173,6 +207,94 @@ def command_check():
     sys.exit(1 if problems else 0)
 
 
+# ---------- Prüfseite (A16, nur lokal, nicht in der App verlinkt) ----------
+
+PLATE = ('<svg viewBox="0 0 240 150" class="plate"><circle cx="120" cy="75" r="50"/><circle cx="120" cy="75" r="34" opacity="0.55"/>'
+         '<path d="M44 32v30a8 8 0 0 0 8 8h0a8 8 0 0 0 8-8V32 M52 32v26 M52 70v50"/><path d="M196 120V32c-10 6-14 18-14 30v14a6 6 0 0 0 6 6h8"/></svg>')
+
+
+def command_review():
+    data = load_catalog()
+    credits = json.loads(CREDITS.read_text(encoding='utf-8'))
+    photos = {photo['key']: photo for photo in credits['photos']}
+    missing = {entry_['cardId']: entry_ for entry_ in credits.get('withoutPhoto', [])}
+    titles = {card['id']: card['title'] for card in data['cards']}
+    stages = {1: 'Gruppe', 2: 'Untergruppe', 3: 'Lebensmittel', 4: 'Gericht'}
+    esc = html.escape
+    tiles, todos = [], []
+    for card in data['cards']:
+        image = card.get('image')
+        photo = photos.get((image or {}).get('credit'))
+        if card['stage'] == 1:
+            art, kind = PLATE, 'plate'
+        elif image:
+            art, kind = f'<img src="../public/{esc(image["src"])}" alt="{esc(image["alt"])}" loading="lazy">', 'image'
+        else:
+            reason = missing.get(card['id'], {}).get('reason', 'ohne passendes Bild')
+            art, kind = f'<div class="missing"><strong>{esc(card["title"])}</strong><span>ohne passendes Bild</span><small>{esc(reason)}</small></div>', 'none'
+        rows = [f'<dt>ID</dt><dd>{esc(card["id"])} · {stages[card["stage"]]}</dd>']
+        if image:
+            rows.append(f'<dt>alt</dt><dd>{esc(image["alt"])}</dd>')
+            rows.append('<dt>shows</dt><dd>' + ', '.join(f'{esc(i)} {esc(titles.get(i, "?"))}' for i in image.get('shows', [])) + '</dd>')
+            rows.append(f'<dt>foods</dt><dd>{esc(", ".join(image.get("foods", [])))}</dd>')
+            source = f'{esc(image["source"])}, {esc(image.get("license", ""))}'
+            if photo:
+                source += f' · <a href="{esc(photo["url"])}">{esc(photo["photographer"])}</a>'
+            rows.append(f'<dt>Quelle</dt><dd>{source}</dd>')
+        todo = (image or {}).get('todo')
+        if todo:
+            rows.append(f'<dt>TODO</dt><dd class="todo">{esc(todo)}</dd>')
+            todos.append(f'<li><a href="#{esc(card["id"])}">{esc(card["id"])} {esc(card["title"])}</a>: {esc(todo)}</li>')
+        tiles.append(f'<article id="{esc(card["id"])}" class="tile kind-{kind}{" has-todo" if todo else ""}"><div class="art">{art}</div>'
+                     f'<h2>{esc(card["title"])}</h2><dl>{"".join(rows)}</dl></article>')
+    counts = {
+        'gesamt': len(data['cards']),
+        'mit Bild': sum(1 for card in data['cards'] if card.get('image')),
+        'Teller (Gruppen)': sum(1 for card in data['cards'] if card['stage'] == 1),
+        'ohne passendes Bild': sum(1 for card in data['cards'] if card['stage'] > 1 and not card.get('image')),
+    }
+    none_list = ''.join(f'<li><a href="#{esc(card_id)}">{esc(card_id)} {esc(titles.get(card_id, ""))}</a>: {esc(entry_.get("reason", ""))}</li>'
+                        for card_id, entry_ in missing.items())
+    page = f"""<!doctype html>
+<html lang="de-CH"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bilder-Prüfung</title>
+<style>
+body {{ margin: 0; padding: 24px 16px 48px; background: #f6f2ea; color: #1c2620; font: 16px/1.4 system-ui, sans-serif; }}
+h1 {{ margin: 0 0 4px; font-size: 28px; }} .lead {{ margin: 0 0 16px; max-width: 70ch; }}
+.counts {{ display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; }}
+.counts li {{ padding: 6px 12px; border-radius: 99px; background: #fff; font-weight: 600; }}
+.lists {{ display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-bottom: 24px; }}
+.lists section {{ background: #fff; border-radius: 12px; padding: 12px 16px; }} .lists h2 {{ font-size: 18px; margin: 0 0 8px; }}
+.filter {{ display: flex; gap: 8px; margin: 0 0 16px; }} .filter button {{ font: inherit; padding: 6px 12px; border-radius: 8px; border: 1px solid #b8b0a2; background: #fff; cursor: pointer; }}
+.grid {{ display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }}
+.tile {{ background: #fff; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.08); }}
+.tile.has-todo {{ outline: 3px solid #c2410c; }} .tile:target {{ outline: 3px solid #1f4d3a; }}
+.art {{ aspect-ratio: 4 / 3; background: #ece6da; display: grid; place-items: center; }}
+.art img {{ width: 100%; height: 100%; object-fit: cover; display: block; }}
+.plate {{ width: 60%; fill: none; stroke: #545e58; stroke-width: 5; stroke-linecap: round; }}
+.missing {{ display: grid; gap: 4px; text-align: center; padding: 12px; }} .missing span {{ color: #c2410c; font-weight: 700; }}
+.tile h2 {{ margin: 10px 12px 4px; font-size: 18px; }} dl {{ margin: 0 12px 12px; display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; font-size: 14px; }}
+dt {{ color: #545e58; }} dd {{ margin: 0; }} .todo {{ color: #c2410c; font-weight: 700; }}
+body.only-todo .tile:not(.has-todo), body.only-none .tile:not(.kind-none) {{ display: none; }}
+</style></head><body>
+<h1>Bilder-Prüfung</h1>
+<p class="lead">Alle Karten mit Bild, Karten-ID, Name, shows, foods, Quelle und TODOs (Addendum A16). Nur lokal für das Team,
+nicht in der App verlinkt. Neu erzeugen mit <code>python scripts/prepare-card-images.py review</code>.</p>
+<ul class="counts">{''.join(f'<li>{esc(label)}: {value}</li>' for label, value in counts.items())}</ul>
+<div class="lists">
+<section><h2>Prüfliste (TODO zu shows/foods)</h2><ul>{''.join(todos) or '<li>keine</li>'}</ul></section>
+<section><h2>Ohne passendes Bild</h2><ul>{none_list or '<li>keine</li>'}</ul></section>
+</div>
+<div class="filter"><button type="button" onclick="document.body.className=''">Alle</button>
+<button type="button" onclick="document.body.className='only-todo'">Nur TODO</button>
+<button type="button" onclick="document.body.className='only-none'">Nur ohne Bild</button></div>
+<main class="grid">{''.join(tiles)}</main>
+</body></html>
+"""
+    REVIEW.write_text(page, encoding='utf-8', newline='\n')
+    print(f'{REVIEW} geschrieben: ' + ', '.join(f'{label} {value}' for label, value in counts.items()))
+
+
 if __name__ == '__main__':
     args = sys.argv[1:]
     if not args:
@@ -186,5 +308,7 @@ if __name__ == '__main__':
         command_prompts()
     elif args[0] == 'check':
         command_check()
+    elif args[0] == 'review':
+        command_review()
     else:
         sys.exit(__doc__)
