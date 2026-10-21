@@ -31,6 +31,8 @@ export const CSV_COLUMNS = [
   'labelShown',
   'scaleVariant',
   'cuisines',
+  'imageShown',
+  'imageSource',
   'kind',
   'alternatives',
   'excludedCardIds',

@@ -1,23 +1,18 @@
-import { useContext, useState } from 'react';
-import { Utensils } from 'lucide-react';
-import { allowedPhotos, assetUrl, illustrationForCard, ImageFilterContext, ImageStyleContext, photosForCard, photoSources } from '../lib/images.js';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { IMAGE_LOAD_TIMEOUT_MS } from '../config.js';
+import { cardVisual, ImageFilterContext, ImageStyleContext } from '../lib/images.js';
 
-// Bild einer Karte. Zustände (data-state):
-//   loading – Fotos laden, der Platzhalter pulsiert ruhig
-//   loaded  – Fotos sichtbar
-//   missing – kein Foto hinterlegt oder Bildstil 'illustration': eigene Illustration auf der Kartenfarbe
-//   error   – ein Foto lädt nicht: derselbe Platzhalter, nie ein kaputtes Bild
-// Gruppen zeigen ihre drei Beispiele als Bildraster: das erste gross links, die anderen rechts.
-// Fotos von Ausgeschlossenem fallen weg: dann zwei Felder, ein Foto oder ein sicherer Platzhalter.
-// Die Bilder ergänzen Titel und Beispiele, die als Text danebenstehen: alt bleibt leer.
-const SIZES = {
-  card: '(max-width: 30rem) 100vw, 30rem',
-  thumb: '8rem',
-};
-const COLLAGE_SIZES = {
-  card: '(max-width: 30rem) 55vw, 17rem',
-  thumb: '4rem',
-};
+// Bild einer Karte (Addendum A15). Zustände (data-state):
+//   loading – das Bild lädt, die Kartenfarbe pulsiert ruhig
+//   loaded  – Bild sichtbar
+//   symbol  – Gruppe: neutrales Symbol, oder Bildstil 'illustration': eigene Illustration
+//   missing – kein Bild (oder eines mit Ausgeschlossenem): neutraler Platzhalter
+//   error   – Bild lädt nicht: derselbe Platzhalter, nie ein kaputtes Bild
+//   timeout – Bild lädt zu lange (IMAGE_LOAD_TIMEOUT_MS): Platzhalter, auch wenn es später noch käme
+// Platzhalter: Kartenfarbe und Kartenname, damit die Karte voll bedienbar bleibt. Der Name steht zusätzlich als
+// echter Text unter dem Bild (CardFace), im Platzhalter ist er für Screenreader verborgen.
+// onStatus meldet einmal je Karte, sobald Bild oder Platzhalter sichtbar ist: { cardId, imageShown, imageSource }.
+// RoundScreen misst die Antwortzeit erst ab diesem Moment (A9: Karte vollständig sichtbar).
 
 // Gruppen (Stufe 1) zeigen kein Foto und keine Illustration, sondern auf allen Karten dasselbe neutrale Symbol:
 // einen leeren Teller mit Besteck (Dozentenfeedback 19.10.2026, Verbesserung 4, Variante A). Ein Bild mit Tomaten
@@ -33,65 +28,63 @@ function NeutralPlate() {
   );
 }
 
-export default function Artwork({ card, size = 'card', className = '' }) {
+const FINAL = ['loaded', 'error', 'timeout'];
+
+// timeoutMs: nur für Tests kürzer als IMAGE_LOAD_TIMEOUT_MS.
+export default function Artwork({ card, size = 'card', className = '', onStatus, timeoutMs = IMAGE_LOAD_TIMEOUT_MS }) {
   const filter = useContext(ImageFilterContext);
   const style = useContext(ImageStyleContext);
-  const neutral = card.stage === 1;
-  const photos = neutral ? [] : allowedPhotos(photosForCard(card.id, style), filter);
-  const illustration = neutral ? null : illustrationForCard(card, filter);
-  const collage = photos.length > 1;
-  // Ladezustand je Bildquelle, damit neue Fotos nie den Zustand der alten erben.
-  const [status, setStatus] = useState({});
-  const sources = photos.map((photo) => ({ ...photoSources(photo), photo }));
-  const states = sources.map((source) => status[source.src]);
-  let state = 'missing';
-  if (sources.length > 0) {
-    if (states.includes('error')) state = 'error';
-    else state = states.every((value) => value === 'loaded') ? 'loaded' : 'loading';
+  const visual = cardVisual(card, { style, filter });
+  // Ladezustand je Bildquelle: Ein neues Bild erbt nie den Zustand des alten. Der erste Endzustand gilt.
+  const [load, setLoad] = useState({ src: null, value: 'loading' });
+  let state = 'symbol';
+  if (visual.kind === 'placeholder') state = 'missing';
+  if (visual.kind === 'image') state = load.src === visual.src ? load.value : 'loading';
+  const placeholder = state === 'missing' || state === 'error' || state === 'timeout';
+  const statusRef = useRef(onStatus);
+  statusRef.current = onStatus;
+
+  function mark(value) {
+    setLoad((current) => (current.src === visual.src && FINAL.includes(current.value) ? current : { src: visual.src, value }));
   }
 
-  function mark(src, value) {
-    setStatus((current) => (current[src] === value ? current : { ...current, [src]: value }));
-  }
+  // Lädt das Bild zu lange, gilt der Platzhalter (auch auf langsamen Verbindungen bleibt die Karte bedienbar).
+  // Der Zeitgeber läuft je Bild einmal (nicht bei jedem neuen Zeichnen, z. B. während des Ziehens).
+  useEffect(() => {
+    if (state !== 'loading') return undefined;
+    const timer = setTimeout(() => mark('timeout'), timeoutMs);
+    return () => clearTimeout(timer);
+  }, [state, visual.src, timeoutMs]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const ready = state !== 'loading';
+  const imageShown = state === 'loaded' || state === 'symbol';
+  useEffect(() => {
+    if (ready) statusRef.current?.({ cardId: card.id, imageShown, imageSource: visual.source ?? null });
+  }, [ready, card.id, imageShown, visual.source]);
 
   return (
-    <div
-      className={`artwork${collage ? ' is-collage' : ''} ${className}`.trim()}
-      data-state={state}
-      data-count={collage ? photos.length : undefined}
-      style={{ '--tint': card.tint }}
-    >
+    <div className={`artwork ${className}`.trim()} data-state={state} data-kind={visual.kind} style={{ '--tint': card.tint }}>
       <div className="artwork-placeholder" aria-hidden="true">
-        {neutral && <NeutralPlate />}
-        {!neutral && illustration && <img className="artwork-illustration" src={assetUrl(`illustrations/${illustration}`)} alt="" draggable={false} />}
-        {!neutral && !illustration && <Utensils className="artwork-fallback-icon" />}
+        {visual.kind === 'neutral' && <NeutralPlate />}
+        {visual.kind === 'illustration' && <img className="artwork-illustration" src={visual.src} alt="" draggable={false} />}
+        {placeholder && size !== 'thumb' && <span className="artwork-name">{card.title}</span>}
       </div>
-      {sources.length > 0 && state !== 'error' && (
-        <div className="artwork-photos">
-          {sources.map(({ src, srcSet, photo }) => (
-            <img
-              key={src}
-              className="artwork-photo"
-              src={src}
-              srcSet={srcSet}
-              sizes={(collage ? COLLAGE_SIZES : SIZES)[size]}
-              alt=""
-              draggable={false}
-              decoding="async"
-              loading={size === 'thumb' ? 'lazy' : 'eager'}
-              style={{
-                '--focus-x': `${Math.round((photo.focusX ?? 0.5) * 100)}%`,
-                '--focus-y': `${Math.round((photo.focusY ?? 0.5) * 100)}%`,
-              }}
-              ref={(node) => {
-                // Bereits im Cache: load-Ereignis kann vor React kommen.
-                if (node?.complete && node.naturalWidth > 0 && status[src] !== 'loaded') mark(src, 'loaded');
-              }}
-              onLoad={() => mark(src, 'loaded')}
-              onError={() => mark(src, 'error')}
-            />
-          ))}
-        </div>
+      {visual.kind === 'image' && !placeholder && (
+        <img
+          key={visual.src}
+          className="artwork-photo"
+          src={visual.src}
+          alt={visual.alt}
+          draggable={false}
+          decoding="async"
+          loading={size === 'thumb' ? 'lazy' : 'eager'}
+          ref={(node) => {
+            // Bereits im Cache (z. B. vorgeladen): load-Ereignis kann vor React kommen.
+            if (node?.complete && node.naturalWidth > 0 && state === 'loading') mark('loaded');
+          }}
+          onLoad={() => mark('loaded')}
+          onError={() => mark('error')}
+        />
       )}
     </div>
   );

@@ -7,14 +7,14 @@ import { ROUND } from '../labels.js';
 // die Art der Karte: „Lebensmittelgruppe“, bei Untergruppen und konkreten Lebensmitteln die Karte darüber
 // (z. B. „Fleisch und Geflügel“, „Rind“), bei Gerichten (Stufe 4) „Gericht“.
 // Gruppen (Stufe 1): keine Beispiele, höchstens eine kurze neutrale Umschreibung (description, vorläufig).
-export default function CardFace({ card, compact = false, children }) {
+export default function CardFace({ card, compact = false, children, onImageStatus }) {
   const notes = compact ? [] : card.notes ?? [];
   const group = card.stage === 1;
 
   return (
     <div className={`card-face${compact ? ' is-compact' : ''}${group ? ' is-group' : ''}`}>
       <div className="card-art">
-        <Artwork card={card} size={compact ? 'thumb' : 'card'} />
+        <Artwork card={card} size={compact ? 'thumb' : 'card'} onStatus={onImageStatus} />
         {!compact && notes.length === 0 && <span className="card-kind">{card.dish ? ROUND.dishKind : card.group ?? ROUND.cardKind}</span>}
         {notes.length > 0 && (
           <ul className="card-notes">

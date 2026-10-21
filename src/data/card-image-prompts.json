@@ -1,0 +1,1338 @@
+{
+  "note": "Gemini-Prompts für alle Karten ohne Bild (Addendum A15, 21.10.2026). Stil wie die Team-Prompts: 4:3, Tageslicht, heller Hintergrund, nur das Lebensmittel der Karte (kein Beispiel für etwas anderes). alt: deutscher Alternativtext, shows/foods: was im Bild zu sehen ist (für den Ausschluss-Filter). Gruppen (Stufe 1) bekommen kein Bild (neutrales Symbol, Teamentscheid 20.10.2026). Übernehmen mit: python scripts/prepare-card-images.py gemini <ordner>",
+  "unused": {
+    "note": "Team-Prompts aus A15 ohne passende Katalogkarte bzw. für Gruppen (Teamentscheid 21.10.2026: Katalog bleibt, Teller bleibt)",
+    "families": [
+      "fleisch",
+      "fisch_meeresfruechte",
+      "milchprodukte",
+      "eier",
+      "gemuese",
+      "obst",
+      "getreide_brot",
+      "huelsenfruechte",
+      "nuesse",
+      "suesses"
+    ],
+    "dishes": [
+      "lachs_ofengemuese",
+      "linsensalat",
+      "gemuesesuppe",
+      "omelette",
+      "fischknusperli"
+    ]
+  },
+  "prompts": [
+    {
+      "cardId": "F01.1.2",
+      "title": "Truthahn",
+      "prompt": "a raw turkey breast fillet, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Rohes Trutenbrustfilet",
+      "shows": [
+        "F01.1.2"
+      ],
+      "foods": [
+        "Truthahn",
+        "Trute"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F01.2.2",
+      "title": "Rindsgehacktes",
+      "prompt": "a small heap of fresh raw minced beef, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Frisches Rindshackfleisch",
+      "shows": [
+        "F01.2.2"
+      ],
+      "foods": [
+        "Hackfleisch",
+        "Rindfleisch"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F01.2.3",
+      "title": "Kalbfleisch",
+      "prompt": "three thin raw veal escalopes, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Rohe Kalbsplätzli",
+      "shows": [
+        "F01.2.3"
+      ],
+      "foods": [
+        "Kalbfleisch"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F01.3.2",
+      "title": "Schweinsbraten",
+      "prompt": "a roast pork joint with a light crust, partly sliced, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Aufgeschnittener Schweinsbraten",
+      "shows": [
+        "F01.3.2"
+      ],
+      "foods": [
+        "Schweinsbraten",
+        "Schweinefleisch"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F01.3.3",
+      "title": "Speck",
+      "prompt": "a few slices of smoked bacon and some bacon cubes, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Speck in Scheiben und Würfeln",
+      "shows": [
+        "F01.3.3"
+      ],
+      "foods": [
+        "Speck"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F02.1.2",
+      "title": "Kabeljau",
+      "prompt": "a raw cod fillet, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Rohes Kabeljaufilet",
+      "shows": [
+        "F02.1.2"
+      ],
+      "foods": [
+        "Kabeljau",
+        "Fisch"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F02.1.3",
+      "title": "Egli",
+      "prompt": "a few small raw perch fillets, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Rohe Eglifilets",
+      "shows": [
+        "F02.1.3"
+      ],
+      "foods": [
+        "Egli",
+        "Fisch"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F02.1.4",
+      "title": "Thunfisch",
+      "prompt": "canned tuna in a small open tin, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Thon in einer offenen Dose",
+      "shows": [
+        "F02.1.4"
+      ],
+      "foods": [
+        "Thunfisch",
+        "Thon",
+        "Fisch"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F02.2.2",
+      "title": "Krabben",
+      "prompt": "cooked crab meat in a small bowl, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Krabbenfleisch in einer kleinen Schale",
+      "shows": [
+        "F02.2.2"
+      ],
+      "foods": [
+        "Krabben"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F02.3.2",
+      "title": "Jakobsmuscheln",
+      "prompt": "three seared scallops, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Drei angebratene Jakobsmuscheln",
+      "shows": [
+        "F02.3.2"
+      ],
+      "foods": [
+        "Jakobsmuscheln",
+        "Muscheln"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F04.1.1",
+      "title": "Naturjoghurt",
+      "prompt": "a small bowl of plain white yogurt, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Naturjoghurt",
+      "shows": [
+        "F04.1.1"
+      ],
+      "foods": [
+        "Joghurt"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F04.1.2",
+      "title": "Skyr",
+      "prompt": "a small bowl of thick plain skyr, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Skyr nature",
+      "shows": [
+        "F04.1.2"
+      ],
+      "foods": [
+        "Skyr"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F04.1.4",
+      "title": "Fruchtjoghurt",
+      "prompt": "a glass of strawberry yogurt, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Glas mit Erdbeerjoghurt",
+      "shows": [
+        "F04.1.4"
+      ],
+      "foods": [
+        "Joghurt",
+        "Erdbeeren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F04.2.2",
+      "title": "Weichkäse",
+      "prompt": "a wedge of Camembert with white rind, cut open, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Angeschnittener Camembert",
+      "shows": [
+        "F04.2.2"
+      ],
+      "foods": [
+        "Camembert",
+        "Käse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F04.2.3",
+      "title": "Frischkäse",
+      "prompt": "a small bowl of cottage cheese and a ball of mozzarella, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Hüttenkäse und eine Mozzarella",
+      "shows": [
+        "F04.2.3"
+      ],
+      "foods": [
+        "Hüttenkäse",
+        "Mozzarella",
+        "Käse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F05.1.1",
+      "title": "Rote Linsen",
+      "prompt": "a small bowl of dry red lentils, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit roten Linsen",
+      "shows": [
+        "F05.1.1"
+      ],
+      "foods": [
+        "Linsen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F05.1.2",
+      "title": "Grüne Linsen",
+      "prompt": "a small bowl of cooked green lentils, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit gekochten grünen Linsen",
+      "shows": [
+        "F05.1.2"
+      ],
+      "foods": [
+        "Linsen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F05.2.1",
+      "title": "Kidneybohnen",
+      "prompt": "a small bowl of cooked red kidney beans, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit gekochten Kidneybohnen",
+      "shows": [
+        "F05.2.1"
+      ],
+      "foods": [
+        "Kidneybohnen",
+        "Bohnen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F05.2.2",
+      "title": "Weisse Bohnen",
+      "prompt": "a small bowl of cooked white cannellini beans, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit gekochten weissen Bohnen",
+      "shows": [
+        "F05.2.2"
+      ],
+      "foods": [
+        "Bohnen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F05.3.1",
+      "title": "Gekochte Kichererbsen",
+      "prompt": "a small bowl of cooked chickpeas, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit gekochten Kichererbsen",
+      "shows": [
+        "F05.3.1"
+      ],
+      "foods": [
+        "Kichererbsen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F05.3.2",
+      "title": "Hummus",
+      "prompt": "a small bowl of hummus with a swirl of olive oil, no bread, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Hummus und etwas Olivenöl",
+      "shows": [
+        "F05.3.2"
+      ],
+      "foods": [
+        "Hummus",
+        "Kichererbsen",
+        "Sesam"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F05.3.3",
+      "title": "Falafel",
+      "prompt": "four falafel balls, one cut open, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Vier Falafel, eine aufgeschnitten",
+      "shows": [
+        "F05.3.3"
+      ],
+      "foods": [
+        "Falafel",
+        "Kichererbsen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F05.4.2",
+      "title": "Tempeh",
+      "prompt": "slices of pan-fried tempeh, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Gebratene Tempeh-Scheiben",
+      "shows": [
+        "F05.4.2"
+      ],
+      "foods": [
+        "Tempeh",
+        "Soja"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F06.1.1",
+      "title": "Zopf",
+      "prompt": "a Swiss braided butter bread (Zopf), one slice cut, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Butterzopf, eine Scheibe angeschnitten",
+      "shows": [
+        "F06.1.1"
+      ],
+      "foods": [
+        "Zopf",
+        "Brot"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F06.1.2",
+      "title": "Toastbrot",
+      "prompt": "a few slices of white toast bread, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Scheiben Toastbrot",
+      "shows": [
+        "F06.1.2"
+      ],
+      "foods": [
+        "Toastbrot",
+        "Brot"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F06.2.2",
+      "title": "Vollkorntoast",
+      "prompt": "a few slices of whole-grain toast bread, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Scheiben Vollkorntoast",
+      "shows": [
+        "F06.2.2"
+      ],
+      "foods": [
+        "Vollkorntoast",
+        "Brot"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F06.3.2",
+      "title": "Mehrkornknäcke",
+      "prompt": "a few multigrain crispbread slices with seeds, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Mehrkorn-Knäckebrot mit Saaten",
+      "shows": [
+        "F06.3.2"
+      ],
+      "foods": [
+        "Knäckebrot"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F07.1.2",
+      "title": "Hörnli",
+      "prompt": "a small bowl of plain cooked elbow macaroni, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit gekochten Hörnli",
+      "shows": [
+        "F07.1.2"
+      ],
+      "foods": [
+        "Hörnli",
+        "Teigwaren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F07.2",
+      "title": "Vollkornpasta",
+      "prompt": "dry whole-wheat spaghetti and whole-wheat penne side by side, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Trockene Vollkornspaghetti und Vollkornpenne",
+      "shows": [
+        "F07.2"
+      ],
+      "foods": [
+        "Vollkornpasta",
+        "Teigwaren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F07.2.1",
+      "title": "Vollkornspaghetti",
+      "prompt": "a small nest of plain cooked whole-wheat spaghetti, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Gekochte Vollkornspaghetti",
+      "shows": [
+        "F07.2.1"
+      ],
+      "foods": [
+        "Spaghetti",
+        "Teigwaren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F07.2.2",
+      "title": "Dinkelpasta",
+      "prompt": "dry short spelt pasta, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Trockene Dinkelteigwaren",
+      "shows": [
+        "F07.2.2"
+      ],
+      "foods": [
+        "Dinkel",
+        "Teigwaren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F07.3",
+      "title": "Pasta aus Hülsenfrüchten",
+      "prompt": "dry red lentil pasta and dry chickpea pasta side by side, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Trockene Linsen- und Kichererbsenpasta",
+      "shows": [
+        "F07.3"
+      ],
+      "foods": [
+        "Linsenpasta",
+        "Kichererbsenpasta",
+        "Teigwaren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F07.3.1",
+      "title": "Linsenpasta",
+      "prompt": "dry red lentil fusilli, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Trockene Fusilli aus roten Linsen",
+      "shows": [
+        "F07.3.1"
+      ],
+      "foods": [
+        "Linsenpasta",
+        "Linsen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F07.3.2",
+      "title": "Kichererbsenpasta",
+      "prompt": "dry chickpea penne, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Trockene Penne aus Kichererbsen",
+      "shows": [
+        "F07.3.2"
+      ],
+      "foods": [
+        "Kichererbsenpasta",
+        "Kichererbsen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F08.1.2",
+      "title": "Naturreis",
+      "prompt": "a small bowl of cooked brown rice, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit gekochtem Naturreis",
+      "shows": [
+        "F08.1.2"
+      ],
+      "foods": [
+        "Reis"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F08.2.2",
+      "title": "Bulgur",
+      "prompt": "a small bowl of cooked bulgur, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit gekochtem Bulgur",
+      "shows": [
+        "F08.2.2"
+      ],
+      "foods": [
+        "Bulgur"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F10.1.2",
+      "title": "Nüsslisalat",
+      "prompt": "a small bowl of fresh lamb's lettuce, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit frischem Nüsslisalat",
+      "shows": [
+        "F10.1.2"
+      ],
+      "foods": [
+        "Nüsslisalat",
+        "Salat"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F10.1.3",
+      "title": "Rucola",
+      "prompt": "a small bowl of fresh rocket leaves, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit frischem Rucola",
+      "shows": [
+        "F10.1.3"
+      ],
+      "foods": [
+        "Rucola"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F10.1.4",
+      "title": "Eisbergsalat",
+      "prompt": "a head of iceberg lettuce, cut in half, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Halbierter Eisbergsalat",
+      "shows": [
+        "F10.1.4"
+      ],
+      "foods": [
+        "Eisbergsalat",
+        "Salat"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F10.2.1",
+      "title": "Rohe Tomaten",
+      "prompt": "a few fresh raw tomatoes, whole and halved, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Frische Tomaten, ganz und halbiert",
+      "shows": [
+        "F10.2.1"
+      ],
+      "foods": [
+        "Tomaten",
+        "Tomate"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F10.2.3",
+      "title": "Rohe Peperoni",
+      "prompt": "raw bell pepper strips in red, yellow and green, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Rohe Peperonistreifen",
+      "shows": [
+        "F10.2.3"
+      ],
+      "foods": [
+        "Peperoni"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F10.3.2",
+      "title": "Radieschen",
+      "prompt": "a small bunch of fresh radishes, a few halved, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Frische Radieschen, einige halbiert",
+      "shows": [
+        "F10.3.2"
+      ],
+      "foods": [
+        "Radieschen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.1.2",
+      "title": "Blumenkohl",
+      "prompt": "steamed cauliflower florets in a small bowl, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Gedämpfte Blumenkohlröschen",
+      "shows": [
+        "F11.1.2"
+      ],
+      "foods": [
+        "Blumenkohl"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.1.3",
+      "title": "Rosenkohl",
+      "prompt": "steamed Brussels sprouts in a small bowl, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Gedämpfter Rosenkohl",
+      "shows": [
+        "F11.1.3"
+      ],
+      "foods": [
+        "Rosenkohl"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.1.4",
+      "title": "Wirz",
+      "prompt": "cooked savoy cabbage leaves in a small bowl, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Gekochter Wirz",
+      "shows": [
+        "F11.1.4"
+      ],
+      "foods": [
+        "Wirz",
+        "Kohl"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.2.1",
+      "title": "Gekochte Rüebli",
+      "prompt": "steamed carrot slices in a small bowl, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Gedämpfte Rüebli in Scheiben",
+      "shows": [
+        "F11.2.1"
+      ],
+      "foods": [
+        "Rüebli",
+        "Karotten"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.2.2",
+      "title": "Randen",
+      "prompt": "cooked beetroot, sliced, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Gekochte Randen in Scheiben",
+      "shows": [
+        "F11.2.2"
+      ],
+      "foods": [
+        "Randen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.2.3",
+      "title": "Knollensellerie",
+      "prompt": "cooked celeriac cubes in a small bowl, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Gekochter Knollensellerie in Würfeln",
+      "shows": [
+        "F11.2.3"
+      ],
+      "foods": [
+        "Sellerie"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.3.1",
+      "title": "Zucchetti",
+      "prompt": "grilled zucchini slices, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Grillierte Zucchettischeiben",
+      "shows": [
+        "F11.3.1"
+      ],
+      "foods": [
+        "Zucchetti"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.3.2",
+      "title": "Gegarte Peperoni",
+      "prompt": "oven-roasted bell pepper pieces, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Peperoni aus dem Ofen",
+      "shows": [
+        "F11.3.2"
+      ],
+      "foods": [
+        "Peperoni"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.3.3",
+      "title": "Aubergine",
+      "prompt": "grilled eggplant slices, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Grillierte Auberginenscheiben",
+      "shows": [
+        "F11.3.3"
+      ],
+      "foods": [
+        "Aubergine"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F11.4.1",
+      "title": "Spinat",
+      "prompt": "a small bowl of cooked leaf spinach, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit gekochtem Blattspinat",
+      "shows": [
+        "F11.4.1"
+      ],
+      "foods": [
+        "Spinat"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.1.2",
+      "title": "Heidelbeeren",
+      "prompt": "a small bowl of fresh blueberries, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit frischen Heidelbeeren",
+      "shows": [
+        "F12.1.2"
+      ],
+      "foods": [
+        "Heidelbeeren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.1.3",
+      "title": "Himbeeren",
+      "prompt": "a small bowl of fresh raspberries, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit frischen Himbeeren",
+      "shows": [
+        "F12.1.3"
+      ],
+      "foods": [
+        "Himbeeren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.2.2",
+      "title": "Birnen",
+      "prompt": "two ripe pears, one cut in half, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Zwei reife Birnen, eine halbiert",
+      "shows": [
+        "F12.2.2"
+      ],
+      "foods": [
+        "Birnen",
+        "Birne"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.3.2",
+      "title": "Aprikosen",
+      "prompt": "a few fresh apricots, one halved, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Frische Aprikosen, eine halbiert",
+      "shows": [
+        "F12.3.2"
+      ],
+      "foods": [
+        "Aprikosen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.3.3",
+      "title": "Zwetschgen",
+      "prompt": "a few fresh plums, one halved, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Frische Zwetschgen, eine halbiert",
+      "shows": [
+        "F12.3.3"
+      ],
+      "foods": [
+        "Zwetschgen",
+        "Pflaumen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.4.1",
+      "title": "Orangen",
+      "prompt": "an orange and a few orange segments, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Orange und Orangenschnitze",
+      "shows": [
+        "F12.4.1"
+      ],
+      "foods": [
+        "Orangen",
+        "Orange"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.4.2",
+      "title": "Mandarinen",
+      "prompt": "a few mandarins, one peeled, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Mandarinen, eine geschält",
+      "shows": [
+        "F12.4.2"
+      ],
+      "foods": [
+        "Mandarinen"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.4.3",
+      "title": "Grapefruit",
+      "prompt": "a grapefruit cut in half, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Halbierte Grapefruit",
+      "shows": [
+        "F12.4.3"
+      ],
+      "foods": [
+        "Grapefruit"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.5.1",
+      "title": "Bananen",
+      "prompt": "two ripe bananas, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Zwei reife Bananen",
+      "shows": [
+        "F12.5.1"
+      ],
+      "foods": [
+        "Bananen",
+        "Banane"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.5.2",
+      "title": "Mango",
+      "prompt": "a mango with the flesh cut into cubes, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Mango, Fruchtfleisch in Würfeln",
+      "shows": [
+        "F12.5.2"
+      ],
+      "foods": [
+        "Mango"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F12.5.3",
+      "title": "Ananas",
+      "prompt": "fresh pineapple chunks in a small bowl, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Frische Ananasstücke",
+      "shows": [
+        "F12.5.3"
+      ],
+      "foods": [
+        "Ananas"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.1.1",
+      "title": "Haselnüsse",
+      "prompt": "a small bowl of shelled hazelnuts, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Haselnüssen",
+      "shows": [
+        "F13.1.1"
+      ],
+      "foods": [
+        "Haselnüsse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.1.4",
+      "title": "Cashewkerne",
+      "prompt": "a small bowl of cashew nuts, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Cashewkernen",
+      "shows": [
+        "F13.1.4"
+      ],
+      "foods": [
+        "Cashewkerne"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.1.5",
+      "title": "Pistazien",
+      "prompt": "a small bowl of pistachios in the shell, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Pistazien",
+      "shows": [
+        "F13.1.5"
+      ],
+      "foods": [
+        "Pistazien"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.1.6",
+      "title": "Pekannüsse",
+      "prompt": "a small bowl of pecan nuts, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Pekannüssen",
+      "shows": [
+        "F13.1.6"
+      ],
+      "foods": [
+        "Pekannüsse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.1.7",
+      "title": "Paranüsse",
+      "prompt": "a small bowl of Brazil nuts, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Paranüssen",
+      "shows": [
+        "F13.1.7"
+      ],
+      "foods": [
+        "Paranüsse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.1.8",
+      "title": "Macadamianüsse",
+      "prompt": "a small bowl of macadamia nuts, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Macadamianüssen",
+      "shows": [
+        "F13.1.8"
+      ],
+      "foods": [
+        "Macadamianüsse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.2.1",
+      "title": "Kürbiskerne",
+      "prompt": "a small bowl of green pumpkin seeds, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Kürbiskernen",
+      "shows": [
+        "F13.2.1"
+      ],
+      "foods": [
+        "Kürbiskerne"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.2.2",
+      "title": "Sonnenblumenkerne",
+      "prompt": "a small bowl of sunflower seeds, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Sonnenblumenkernen",
+      "shows": [
+        "F13.2.2"
+      ],
+      "foods": [
+        "Sonnenblumenkerne"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "F13.2.3",
+      "title": "Sesam",
+      "prompt": "a small bowl of sesame seeds, overhead 45° food photography, soft natural daylight, plain warm light-grey background, centered, generous empty margin, realistic, appetizing but not glossy, only this food, no other foods, no garnish, no text, no hands, no people, 4:3",
+      "alt": "Schale mit Sesamsamen",
+      "shows": [
+        "F13.2.3"
+      ],
+      "foods": [
+        "Sesam"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D01",
+      "title": "Pizza Margherita",
+      "prompt": "a pizza Margherita with tomato sauce, mozzarella and fresh basil, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Pizza Margherita mit Tomatensauce, Mozzarella und Basilikum",
+      "shows": [
+        "D01"
+      ],
+      "foods": [
+        "Pizza",
+        "Tomate",
+        "Mozzarella",
+        "Basilikum"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D02",
+      "title": "Spaghetti Bolognese",
+      "prompt": "spaghetti bolognese, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Teller mit Spaghetti Bolognese",
+      "shows": [
+        "D02"
+      ],
+      "foods": [
+        "Spaghetti",
+        "Hackfleisch",
+        "Tomate"
+      ],
+      "origin": "A15, Team-Prompt"
+    },
+    {
+      "cardId": "D03",
+      "title": "Lasagne",
+      "prompt": "a portion of meat lasagne with béchamel and melted cheese, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Portion Lasagne mit Hackfleischsauce und Béchamel",
+      "shows": [
+        "D03"
+      ],
+      "foods": [
+        "Lasagne",
+        "Hackfleisch",
+        "Käse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D04",
+      "title": "Älplermagronen",
+      "prompt": "Swiss Älplermagronen (macaroni, potatoes, cheese, fried onions, apple sauce on the side), served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Teller mit Älplermagronen, Röstzwiebeln und Apfelmus",
+      "shows": [
+        "D04"
+      ],
+      "foods": [
+        "Teigwaren",
+        "Kartoffeln",
+        "Käse",
+        "Zwiebeln",
+        "Apfelmus"
+      ],
+      "origin": "A15, Team-Prompt"
+    },
+    {
+      "cardId": "D05",
+      "title": "Rösti mit Spiegelei",
+      "prompt": "a golden Swiss rösti topped with a fried egg, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Rösti mit Spiegelei",
+      "shows": [
+        "D05"
+      ],
+      "foods": [
+        "Rösti",
+        "Kartoffeln",
+        "Ei"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D06",
+      "title": "Zürcher Geschnetzeltes mit Rösti",
+      "prompt": "Zürcher Geschnetzeltes with a golden rösti, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Teller mit Zürcher Geschnetzeltem und Rösti",
+      "shows": [
+        "D06"
+      ],
+      "foods": [
+        "Kalbfleisch",
+        "Champignons",
+        "Rahmsauce",
+        "Rösti"
+      ],
+      "origin": "A15, Team-Prompt"
+    },
+    {
+      "cardId": "D07",
+      "title": "Käsefondue",
+      "prompt": "Swiss cheese fondue in a caquelon with cubes of bread beside it, on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Käsefondue im Caquelon mit Brotwürfeln",
+      "shows": [
+        "D07"
+      ],
+      "foods": [
+        "Käse",
+        "Brot"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D08",
+      "title": "Raclette mit Gschwellti",
+      "prompt": "Swiss raclette: melted raclette cheese over boiled potatoes in their skins, with pickled gherkins and silver onions, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Raclette mit Gschwellti, Essiggurken und Silberzwiebeln",
+      "shows": [
+        "D08"
+      ],
+      "foods": [
+        "Käse",
+        "Kartoffeln",
+        "Essiggurken"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D09",
+      "title": "Bündner Gerstensuppe",
+      "prompt": "Bündner barley soup with pearl barley, diced vegetables and small pieces of air-dried beef and bacon, served in a white bowl on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Schale Bündner Gerstensuppe mit Gemüse und Bündnerfleisch",
+      "shows": [
+        "D09"
+      ],
+      "foods": [
+        "Gerste",
+        "Gemüse",
+        "Bündnerfleisch",
+        "Speck"
+      ],
+      "origin": "neu, statt Team-Prompt „gemuesesuppe“ (zeigte kein Fleisch)"
+    },
+    {
+      "cardId": "D10",
+      "title": "Pilzrisotto",
+      "prompt": "a creamy mushroom risotto with grated parmesan, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Teller mit Pilzrisotto und Parmesan",
+      "shows": [
+        "D10"
+      ],
+      "foods": [
+        "Reis",
+        "Pilze",
+        "Parmesan"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D11",
+      "title": "Chili con Carne",
+      "prompt": "chili con carne with minced beef, kidney beans, tomatoes and corn, served in a white bowl on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Schale Chili con Carne mit Bohnen und Mais",
+      "shows": [
+        "D11"
+      ],
+      "foods": [
+        "Hackfleisch",
+        "Bohnen",
+        "Tomaten",
+        "Mais"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D12",
+      "title": "Wienerschnitzel mit Pommes frites",
+      "prompt": "a breaded Wiener Schnitzel with a lemon wedge and French fries, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Wienerschnitzel mit Zitrone und Pommes frites",
+      "shows": [
+        "D12"
+      ],
+      "foods": [
+        "Schnitzel",
+        "Kalbfleisch",
+        "Pommes frites"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D13",
+      "title": "Eglifilets mit Salzkartoffeln",
+      "prompt": "pan-fried perch fillets in butter with boiled potatoes and a lemon wedge, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Eglifilets mit Salzkartoffeln und Zitrone",
+      "shows": [
+        "D13"
+      ],
+      "foods": [
+        "Egli",
+        "Fisch",
+        "Kartoffeln"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D14",
+      "title": "Gemüsewähe",
+      "prompt": "a slice of Swiss vegetable tart with leek and carrots in an egg and cream filling, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Stück Gemüsewähe mit Lauch und Rüebli",
+      "shows": [
+        "D14"
+      ],
+      "foods": [
+        "Wähe",
+        "Gemüse",
+        "Lauch"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D15",
+      "title": "Gemüsecurry mit Reis",
+      "prompt": "vegetable curry with rice, served in a white bowl on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Schale Gemüsecurry mit Reis",
+      "shows": [
+        "D15"
+      ],
+      "foods": [
+        "Gemüse",
+        "Curry",
+        "Reis"
+      ],
+      "origin": "A15, Team-Prompt"
+    },
+    {
+      "cardId": "D16",
+      "title": "Poulet-Curry mit Reis",
+      "prompt": "chicken curry with rice, served in a white bowl on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Schale Poulet-Curry mit Reis",
+      "shows": [
+        "D16"
+      ],
+      "foods": [
+        "Poulet",
+        "Curry",
+        "Reis"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D17",
+      "title": "Birchermüesli",
+      "prompt": "a bowl of Bircher muesli with oat flakes, yogurt, grated apple and a few chopped hazelnuts, on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Schale Birchermüesli mit Apfel und Haselnüssen",
+      "shows": [
+        "D17"
+      ],
+      "foods": [
+        "Haferflocken",
+        "Joghurt",
+        "Apfel",
+        "Haselnüsse"
+      ],
+      "origin": "A15, Team-Prompt angepasst (Nüsse statt Beeren wie im Katalog)"
+    },
+    {
+      "cardId": "D18",
+      "title": "Minestrone",
+      "prompt": "Italian minestrone with vegetables, beans and small pasta, served in a white bowl on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Schale Minestrone mit Gemüse, Bohnen und Teigwaren",
+      "shows": [
+        "D18"
+      ],
+      "foods": [
+        "Gemüse",
+        "Bohnen",
+        "Teigwaren"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D19",
+      "title": "Pad Thai mit Crevetten",
+      "prompt": "Pad Thai with rice noodles, shrimps, egg, bean sprouts, crushed peanuts and a lime wedge, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Pad Thai mit Crevetten, Erdnüssen und Limette",
+      "shows": [
+        "D19"
+      ],
+      "foods": [
+        "Reisnudeln",
+        "Crevetten",
+        "Ei",
+        "Erdnüsse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D20",
+      "title": "Frühlingsrollen mit Gemüse",
+      "prompt": "three crispy vegetable spring rolls with a small bowl of sweet and sour sauce, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Drei Frühlingsrollen mit süss-saurer Sauce",
+      "shows": [
+        "D20"
+      ],
+      "foods": [
+        "Frühlingsrollen",
+        "Gemüse"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D21",
+      "title": "Enchiladas mit Poulet",
+      "prompt": "chicken enchiladas with tomato sauce and melted cheese, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Enchiladas mit Poulet, Tomatensauce und Käse",
+      "shows": [
+        "D21"
+      ],
+      "foods": [
+        "Tortillas",
+        "Poulet",
+        "Käse",
+        "Tomaten"
+      ],
+      "origin": "Vorschlag"
+    },
+    {
+      "cardId": "D22",
+      "title": "Ratatouille",
+      "prompt": "a portion of ratatouille with eggplant, zucchini, bell pepper and tomatoes, served on a simple white plate on a light wooden table, overhead 45° food photography, soft natural daylight, homestyle portion, realistic, no text, no hands, no people, 4:3",
+      "alt": "Teller Ratatouille mit Aubergine, Zucchetti, Peperoni und Tomaten",
+      "shows": [
+        "D22"
+      ],
+      "foods": [
+        "Aubergine",
+        "Zucchetti",
+        "Peperoni",
+        "Tomaten"
+      ],
+      "origin": "Vorschlag"
+    }
+  ]
+}

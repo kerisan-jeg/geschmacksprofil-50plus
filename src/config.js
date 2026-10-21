@@ -76,10 +76,15 @@ export const PROFILE_PROGRESS = { stage1: 35, stage2: 30, stage3: 35, stage3Targ
 // nicht einschalten.
 export const TUTORIAL_ENABLED = false;
 
-// Bilder auf den Karten: 'photo' (Fotos aus public/images) oder 'illustration' (eigene Illustrationen).
+// Bilder auf den Karten (Addendum A15): 'photo' (Bild der Karte aus public/cards, sonst neutraler Platzhalter) oder
+// 'illustration' (eigene Illustrationen).
 // Uneinheitliche Bilder können die Bewertung verzerren (Annahme 5); so lassen sich beide Varianten
 // im Pilot vergleichen. Der Wert steht in jeder Sitzung (config.imageStyle) und im CSV-Export.
 export const IMAGE_STYLE = 'photo';
+
+// Lädt ein Kartenbild länger, zeigt die Karte den neutralen Platzhalter (A15), und die Antwortzeit beginnt.
+// Annahme [V]: 3 Sekunden; die nächsten zwei Karten werden vorgeladen, damit das selten nötig ist. Im Pilot prüfen.
+export const IMAGE_LOAD_TIMEOUT_MS = 3000;
 
 // Registrierung mit Vorname, Handynummer und SMS-Code (echte SMS über Firebase oder Simulation, siehe unten).
 // false: Die App startet direkt beim Onboarding („Über dich“), der Vorname ist dort freiwillig.

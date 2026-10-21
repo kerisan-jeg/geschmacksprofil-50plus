@@ -579,6 +579,7 @@ export const PROFILE = {
   credits: 'Bildnachweise und Quellen',
   foodSource: (version) => `Lebensmittelliste: ${version}, Bundesamt für Lebensmittelsicherheit und Veterinärwesen (BLV), naehrwertdaten.ch`,
   creditLine: (photo) => `${photo.cardTitle}: Foto von ${photo.photographer}, ${photo.source} (${photo.license})`,
+  aiImages: (count) => `${count === 1 ? '1 Bild' : `${count} Bilder`} mit KI erzeugt (Google Gemini)`,
 };
 
 // Fehlerzustand für jeden Bildschirm (ErrorBoundary)

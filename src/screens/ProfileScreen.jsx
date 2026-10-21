@@ -200,7 +200,8 @@ export default function ProfileScreen({
   const dietLabel = diet ? (diet.id === 'none' ? PROFILE.noDiet : diet.label) : (dietOptions.diets[round.diet]?.rule ?? PROFILE.noDiet);
   const dietKeys = sections.diet.map((item) => item.key);
   const currentAllergens = round.entries.filter((entry) => sectionOf(entry) === 'allergies').map((entry) => entry.value);
-  const credits = allPhotos().map((photo) => ({ ...photo, cardTitle: photo.usedBy.map((id) => index.get(id)?.title ?? id).join(', ') }));
+  const credits = allPhotos(index.cards).map((photo) => ({ ...photo, cardTitle: photo.usedBy.map((id) => index.get(id)?.title ?? id).join(', ') }));
+  const aiImages = index.cards.filter((card) => card.image?.source === 'ai-gemini').length;
   const redundancy = redundancyFor(round.exclusions, index);
   // Für die Allergie-Kacheln: nur was Ernährungsweise und andere Abschnitte schon ausschliessen
   const allergyRedundancy = redundancyFor(
@@ -542,6 +543,7 @@ export default function ProfileScreen({
               {credits.map((photo) => (
                 <li key={photo.key}>{PROFILE.creditLine(photo)}</li>
               ))}
+              {aiImages > 0 && <li>{PROFILE.aiImages(aiImages)}</li>}
               <li>{PROFILE.foodSource(foodList.source.version)}</li>
             </ul>
           </details>

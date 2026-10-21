@@ -30,7 +30,8 @@ function vibrate() {
 // Die Gestenlogik (Schwelle, Rückfederung, Schnippen) steht rein und getestet in logic/swipe.js.
 // extra wird unverändert an onCommitted weitergegeben (z. B. excludedCardIds bei INTOLERANT).
 // variant: Begriffe je Runde (scale.js); ohne „Sehr gern“ gibt es kein Wischen nach oben.
-export default function SwipeCard({ card, onCommitted, onIntent, ref, variant = SCALE_VARIANTS.STANDARD }) {
+// onImageStatus: Bild oder Platzhalter sichtbar (Artwork), für den Beginn der Antwortzeit (A15).
+export default function SwipeCard({ card, onCommitted, onIntent, ref, variant = SCALE_VARIANTS.STANDARD, onImageStatus }) {
   const gesture = { allowUp: allowsPrefer(variant) };
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
@@ -109,7 +110,7 @@ export default function SwipeCard({ card, onCommitted, onIntent, ref, variant = 
       aria-label={ROUND.cardDescription(card)}
     >
       <div className="swipe-card-inner">
-        <CardFace card={card}>
+        <CardFace card={card} onImageStatus={onImageStatus}>
           {meta && opacity > 0 && (
             <div className={`feedback tone-${meta.tone}`} style={{ '--s': opacity }} aria-hidden="true" data-answer={intent.answer}>
               <span className="feedback-tint" />

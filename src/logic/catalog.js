@@ -64,6 +64,9 @@ export function isConcrete(card) {
   return Boolean(card) && !isFamily(card) && !isDish(card);
 }
 
+// Quellen eines Kartenbildes (Addendum A15): KI (Google Gemini), Bildagentur (Unsplash) oder eigene Grafik.
+export const IMAGE_SOURCES = ['ai-gemini', 'stock', 'own'];
+
 // Prüft die Konsistenz des Katalogs. Liefert eine Liste von Fehlern (leer = in Ordnung).
 export function validateCatalog(cards) {
   const errors = [];
@@ -96,6 +99,14 @@ export function validateCatalog(cards) {
       if (index.get(id)?.parentId !== card.id) errors.push(`${card.id}: Kontrast ${id} ist kein Kind`);
     }
     if (card.variantOf && !index.get(card.variantOf)) errors.push(`${card.id}: variantOf ${card.variantOf} unbekannt`);
+    // Bilder (Addendum A15): eigene Datei je Karte, deutscher alt-Text, bekannte Quelle; Gruppen zeigen das neutrale Symbol
+    if (card.image) {
+      if (card.stage === 1) errors.push(`${card.id}: Gruppen zeigen das neutrale Symbol, kein Bild`);
+      if (card.image.src !== `cards/${card.id}.webp`) errors.push(`${card.id}: Bild muss cards/${card.id}.webp sein`);
+      if (!card.image.alt?.trim()) errors.push(`${card.id}: Bild ohne alt-Text`);
+      if (!IMAGE_SOURCES.includes(card.image.source)) errors.push(`${card.id}: Bildquelle ${card.image.source} unbekannt`);
+      for (const id of card.image.shows ?? []) if (!index.get(id)) errors.push(`${card.id}: Bild zeigt unbekannte Karte ${id}`);
+    }
     if (card.stage > 1 && card.stage < 4) {
       const parent = index.get(card.parentId);
       if (!parent) errors.push(`${card.id}: parentId ${card.parentId} unbekannt`);

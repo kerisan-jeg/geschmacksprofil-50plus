@@ -241,7 +241,7 @@ test('Export: labelShown und scaleVariant je Ereignis, r1scale je Sitzung', () =
 
 test('Export: alle Pflichtfelder aus A9 und die neuen Felder (Abschnitt 11C)', () => {
   const header = sessionsToCsv([]).trim().split(',');
-  const required = [...EVENT_FIELDS, 'round', 'type', 'labelShown', 'scaleVariant', 'r1scale', 'diet', 'dietOriginal', 'dietaryRules', 'appVersion', 'cuisines', 'action'];
+  const required = [...EVENT_FIELDS, 'round', 'type', 'labelShown', 'scaleVariant', 'r1scale', 'diet', 'dietOriginal', 'dietaryRules', 'appVersion', 'cuisines', 'action', 'imageShown', 'imageSource'];
   for (const column of required) assert.ok(header.includes(column), column);
   // Abschnitt 11C nennt eventType und dietForm: type ist der Ereignistyp, diet die Ernährungsform (Teamentscheid AP1)
   assert.ok(!header.includes('eventType'));
@@ -263,4 +263,12 @@ test('Alte Sitzungen bleiben unverändert gespeichert; im Export sind ihre Bewer
   const [, ...freshRows] = sessionsToCsv([fresh]).trim().split('\r\n');
   assert.deepEqual(freshRows.map((row) => row.split(',')[at]), ['r1-3', '']);
   deleteAllSessions();
+});
+
+test('Export: imageShown und imageSource je Antwort (A15), fehlende Bilder sind auswertbar', () => {
+  const session = { sessionId: 'b', config: { roundCardLimit: 13, r1scale: 3 }, events: [{ ...event, imageShown: false, imageSource: 'ai-gemini' }, { ...event, cardId: 'F01.1', imageShown: true, imageSource: 'stock' }] };
+  const [header, ...rows] = sessionsToCsv([session]).trim().split('\r\n');
+  const columns = header.split(',');
+  const pick = (row, column) => row.split(',')[columns.indexOf(column)];
+  assert.deepEqual(rows.map((row) => [pick(row, 'imageShown'), pick(row, 'imageSource')]), [['false', 'ai-gemini'], ['true', 'stock']]);
 });

@@ -1,5 +1,7 @@
 # Fotos für die Karten
 
+> **Seit Addendum A15 (21.10.2026):** Die App zeigt die Bilder aus `public/cards/{cardId}.webp` (4:3, höchstens 1200 px, höchstens 150 KB), eingetragen als `image` im Katalog. Die JPGs hier sind die Originale der Unsplash-Fotos und die Quelle für `python scripts/prepare-card-images.py stock`. Gruppen zeigen das neutrale Symbol, kein Bildraster mehr. Details: [`docs/bilder-a15.md`](../../docs/bilder-a15.md). Der folgende Text beschreibt den Stand vor A15.
+
 Die Karten zeigen echte Food-Fotos: jede der 13 Gruppen (Stufe 1) ihre drei Beispiele als Bildraster (`collages` in `src/data/image-credits.json`, in der Reihenfolge der Beispiele), jede Untergruppe (Stufe 2) ein eigenes Foto. Fehlt ein Foto oder lädt es nicht, zeigt die Karte den gestalteten Platzhalter: die eigene Illustration aus `public/illustrations` auf der Kartenfarbe (Untergruppen übernehmen die ihrer Gruppe). Ein kaputtes Bild erscheint nie.
 
 Jedes Foto nennt, was darauf zu sehen ist: `shows` (die genauesten Karten, z. B. `F13.1.3` Mandeln) und `foods` (deutlich sichtbare Lebensmittel). Hat die Person davon etwas ausgeschlossen, wird das Foto nicht gezeigt. Beim Ersetzen eines Fotos beide Felder mitpflegen.

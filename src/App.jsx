@@ -263,10 +263,11 @@ function App() {
   }
 
   // „Runde beenden“: Die Karte, die gerade zu sehen war, als Abbruch protokollieren (nurec v0.2, Kap. 6).
-  function handleEndRound() {
+  function handleEndRound(image = null) {
     const card = nextCard(round, config);
     if (card) {
       log({
+        ...(image ? { imageShown: image.imageShown, imageSource: image.imageSource } : {}),
         type: QUESTION_ABORTED,
         cardId: card.id,
         stage: card.stage,
@@ -338,6 +339,8 @@ function App() {
       ...(extra.excludedCardIds ? { excludedCardIds: extra.excludedCardIds } : {}),
       // Esskultur als Metadatum der Gerichte (Verbesserung 6), für die Auswertung
       ...(card.cuisines ? { cuisines: card.cuisines } : {}),
+      // A15: Wurde ein Bild gezeigt (sonst Platzhalter), und welche Quelle hatte es?
+      ...(response !== UNDO && extra.image ? { imageShown: extra.image.imageShown, imageSource: extra.image.imageSource } : {}),
       // Verbesserung 3: gezeigter Begriff und Variante (die Antwortwerte bleiben DISLIKE, LIKE, PREFER …)
       ...(response !== UNDO ? scaleFields(card, response) : {}),
     };
@@ -349,8 +352,8 @@ function App() {
     return { scaleVariant: variant, labelShown: labelShown(variant, response) };
   }
 
-  function handleAnswer(card, response, inputMethod, responseTimeMs, positionInRound, excludedCardIds) {
-    record(card, response, { inputMethod, responseTimeMs, positionInRound, excludedCardIds });
+  function handleAnswer(card, response, inputMethod, responseTimeMs, positionInRound, excludedCardIds, variant, image) {
+    record(card, response, { inputMethod, responseTimeMs, positionInRound, excludedCardIds, image });
   }
 
   function handleUndo() {

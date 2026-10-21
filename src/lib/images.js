@@ -1,10 +1,10 @@
-// Fotos der Karten und ihre Nachweise (src/data/image-credits.json).
-// Untergruppen (Stufe 2) zeigen ein Foto. Gruppen (Stufe 1) zeigen ihre drei Beispiele als Bildraster
-// (collages), z. B. „Fleisch und Geflügel“ mit Poulet, Rind und Schwein, damit das Bild zur ganzen
-// Gruppe passt und nicht nur zu einem Beispiel. Konkrete Lebensmittel (Stufe 3) nutzen ein vorhandenes Foto,
-// wenn es genau dieses Lebensmittel zeigt (cardPhotos, z. B. „Lachs“); sonst die Illustration ihrer Gruppe.
-// Fehlt ein Foto oder lädt es nicht, zeigt Artwork.jsx den gestalteten Platzhalter
-// (eigene Illustration aus public/illustrations auf der Kartenfarbe), nie ein kaputtes Bild.
+// Bilder der Karten (Addendum A15, 21.10.2026): ein Bild je Karte aus public/cards/{cardId}.webp.
+// Der Eintrag image steht im Katalog: { src, alt, source: 'ai-gemini' | 'stock' | 'own', license?, credit?, shows?, foods? }.
+//   credit       Bildnachweis in src/data/image-credits.json (Unsplash-Fotos)
+//   shows/foods  was im Bild zu sehen ist (Karten-IDs und Lebensmittelwörter), für den Ausschluss-Filter
+// Gruppen (Stufe 1) zeigen kein Bild, sondern auf allen Karten dasselbe neutrale Symbol (Teamentscheid 20.10.2026).
+// Fehlt ein Bild, zeigt es Ausgeschlossenes oder lädt es nicht, zeigt Artwork.jsx den neutralen Platzhalter
+// (Kartenfarbe und Kartenname), nie ein kaputtes Bild. Bilder für die Karten bereitet scripts/prepare-card-images.py vor.
 
 import { createContext } from 'react';
 import credits from '../data/image-credits.json';
@@ -18,50 +18,31 @@ export const ImageStyleContext = createContext(IMAGE_STYLE);
 // Ausschlüsse der Person für die Bilder ({ index, exclusions }); App.jsx setzt sie, ohne Wert wird nichts gefiltert.
 export const ImageFilterContext = createContext(null);
 
+export { IMAGE_SOURCES } from '../logic/catalog.js';
+
 const PHOTOS = credits.photos ?? [];
-const COLLAGES = credits.collages ?? {};
-const BY_KEY = new Map(PHOTOS.map((photo) => [photo.key, photo]));
-const BY_CARD = new Map(PHOTOS.filter((photo) => photo.cardId).map((photo) => [photo.cardId, photo]));
-const CARD_PHOTOS = credits.cardPhotos ?? {};
 
 // Pfad relativ zur Basis des Builds (vite.config.js: base './'), in Tests '/'.
 export function assetUrl(path) {
   return `${import.meta.env?.BASE_URL ?? '/'}${path}`;
 }
 
-// Bilder einer Karte: ein Foto, das Bildraster einer Gruppe oder nichts (dann Illustration).
-// Bei 'illustration' gibt es keine Fotos.
-export function photosForCard(cardId, style = IMAGE_STYLE) {
-  if (style === 'illustration') return [];
-  if (COLLAGES[cardId]) return COLLAGES[cardId].map((key) => BY_KEY.get(key)).filter(Boolean);
-  const photo = BY_CARD.get(cardId) ?? BY_KEY.get(CARD_PHOTOS[cardId]);
-  return photo ? [photo] : [];
-}
-
-export function photoForCard(cardId, style = IMAGE_STYLE) {
-  return photosForCard(cardId, style)[0] ?? null;
-}
-
-// Nur Fotos ohne Ausgeschlossenes. Jedes Foto nennt die Karten, die es zeigt (shows, so genau wie
-// möglich, z. B. „Mandeln“), und die deutlich sichtbaren Lebensmittel (foods). Ist davon etwas
-// ausgeschlossen (Allergie, Ernährungsweise, „Vertrage ich nicht“, eingetippte „Tomate“), fällt das
-// Foto weg: Die Karte zeigt dann die übrigen Beispiele oder die Illustration, nie das Ausgeschlossene.
-export function allowedPhotos(photos, filter) {
-  if (!filter?.exclusions) return photos;
+// Darf das Bild gezeigt werden? Nein, wenn es eine ausgeschlossene Karte oder ein ausgeschlossenes Lebensmittel zeigt
+// (Allergie, Ernährungsform, „Vertrage ich nicht“, eingetippte „Tomate“). Ohne Filter (z. B. Vorschau) immer.
+export function isImageAllowed(image, filter) {
+  if (!filter?.exclusions) return true;
   const { index, exclusions } = filter;
   const foods = exclusions.foods ?? [];
-  return photos.filter(
-    (photo) =>
-      (photo.shows ?? []).every((id) => {
-        const card = index.get(id);
-        return !card || isVisible(card, index, exclusions);
-      }) && !(photo.foods ?? []).some((word) => foods.some((food) => foodMatches(word, food)))
+  return (
+    (image.shows ?? []).every((id) => {
+      const card = index.get(id);
+      return !card || isVisible(card, index, exclusions);
+    }) && !(image.foods ?? []).some((word) => foods.some((food) => foodMatches(word, food)))
   );
 }
 
 // Geerbte Illustrationen können ausgeschlossene Geschwister zeigen (F02.svg: Fisch und Garnele).
-// Bei Einschränkungen der dargestellten Gruppe ersetzt ein neutrales Symbol die Illustration,
-// auch während ein Foto lädt oder nach einem Ladefehler.
+// Bei Einschränkungen der dargestellten Gruppe gibt es keine Illustration (dann der Platzhalter).
 export function illustrationForCard(card, filter) {
   if (!card.illustration || !filter?.exclusions) return card.illustration ?? null;
   const { index, exclusions } = filter;
@@ -75,28 +56,32 @@ export function illustrationForCard(card, filter) {
   return isVisible(owner, index, exclusions) && unchanged && !(annotateCard(owner, index, exclusions).notes?.length) ? card.illustration : null;
 }
 
-// Zwei Grössen pro Foto: gross für die Karte, klein für Vorschaubilder und Bildraster.
-export function photoSources(photo) {
-  const large = assetUrl(`images/${photo.file}`);
-  if (!photo.thumb) return { src: large, srcSet: undefined };
-  return {
-    src: large,
-    srcSet: `${assetUrl(`images/${photo.thumb}`)} ${photo.thumbWidth}w, ${large} ${photo.width}w`,
-  };
+// Was die Karte oben zeigt (A15). source steht für das Protokoll (imageSource):
+//   neutral       Gruppen: neutrales Symbol (eigene Grafik, source 'own')
+//   illustration  Bildstil 'illustration' (Pilotvergleich, Annahme 5): eigene Illustration (source 'own')
+//   image         Bild der Karte (source aus dem Katalog)
+//   placeholder   kein Bild (source null) oder Bild mit Ausgeschlossenem (source des nicht gezeigten Bildes)
+export function cardVisual(card, { style = IMAGE_STYLE, filter = null } = {}) {
+  if (card.stage === 1) return { kind: 'neutral', source: 'own' };
+  if (style === 'illustration') {
+    const illustration = illustrationForCard(card, filter);
+    return illustration ? { kind: 'illustration', src: assetUrl(`illustrations/${illustration}`), source: 'own' } : { kind: 'placeholder', source: null };
+  }
+  const image = card.image;
+  if (!image?.src) return { kind: 'placeholder', source: null };
+  if (!isImageAllowed(image, filter)) return { kind: 'placeholder', source: image.source ?? null };
+  return { kind: 'image', src: assetUrl(image.src), alt: image.alt ?? '', source: image.source ?? null };
 }
 
-// Alle Fotos mit den Karten, auf denen sie erscheinen (für die Bildnachweise).
-export function allPhotos() {
+// Bilder, die vorgeladen werden sollen (die nächsten Karten), ohne Doppelte.
+export function imageUrls(cards, options) {
+  return [...new Set(cards.map((card) => cardVisual(card, options)).filter((visual) => visual.kind === 'image').map((visual) => visual.src))];
+}
+
+// Unsplash-Fotos mit den Karten, auf denen sie erscheinen (für die Bildnachweise). Nur Fotos, die eine Karte zeigt.
+export function allPhotos(cards = []) {
   return PHOTOS.map((photo) => ({
     ...photo,
-    usedBy: [
-      ...(photo.cardId ? [photo.cardId] : []),
-      ...Object.entries(COLLAGES)
-        .filter(([, keys]) => keys.includes(photo.key))
-        .map(([cardId]) => cardId),
-      ...Object.entries(CARD_PHOTOS)
-        .filter(([, key]) => key === photo.key)
-        .map(([cardId]) => cardId),
-    ],
-  }));
+    usedBy: cards.filter((card) => card.image?.credit === photo.key).map((card) => card.id),
+  })).filter((photo) => photo.usedBy.length > 0);
 }

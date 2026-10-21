@@ -8,9 +8,10 @@ const credits = read('./image-credits.json');
 const cards = read('./catalog.json').cards;
 const families = cards.filter((card) => card.stage === 1);
 const subgroups = cards.filter((card) => card.stage === 2);
-// Für diese Untergruppen gibt es noch kein passendes freies Foto (README, „Noch offen“): Sie zeigen die Illustration.
+// Für diese Untergruppen gibt es kein passendes freies Foto: Sie bekommen ein Bild über Gemini (A15), bis dahin den Platzhalter.
 const WITHOUT_PHOTO = ['F07.2', 'F07.3'];
 const imagePath = (file) => fileURLToPath(new URL(`../../public/images/${file}`, import.meta.url));
+const { indexCatalog } = await import('../logic/catalog.js');
 
 function jpegSize(buffer) {
   // Breite und Höhe aus dem SOF-Segment einer JPEG-Datei
@@ -24,37 +25,41 @@ function jpegSize(buffer) {
   return null;
 }
 
-test('Jede Gruppe zeigt ihre drei Beispiele als Bildraster, jede Untergruppe hat ein eigenes Foto', () => {
+test('Unsplash-Fotos: jede Untergruppe (ausser zwei) hat ein eigenes Foto, jedes Foto einen Nachweis', () => {
+  // Die Rasterfotos der Gruppen (collages) bleiben als Nachweis erhalten; gezeigt werden sie seit dem
+  // Teamentscheid vom 20.10.2026 nicht mehr (neutrales Symbol), einige zeigen aber ein konkretes Lebensmittel.
   const keys = new Set(credits.photos.map((photo) => photo.key));
-  assert.deepEqual(Object.keys(credits.collages).sort(), families.map((card) => card.id).sort());
   for (const [cardId, collage] of Object.entries(credits.collages)) {
-    assert.equal(collage.length, 3, `${cardId}: drei Beispiele`);
     for (const key of collage) assert.ok(keys.has(key), `${cardId}: ${key} fehlt`);
   }
   const withPhoto = credits.photos.filter((photo) => photo.cardId).map((photo) => photo.cardId).sort();
   assert.deepEqual(withPhoto, subgroups.map((card) => card.id).filter((id) => !WITHOUT_PHOTO.includes(id)).sort());
-  // Jedes Foto erscheint irgendwo, keines doppelt
-  const used = new Set([...withPhoto, ...Object.values(credits.collages).flat()]);
-  for (const photo of credits.photos) assert.ok(used.has(photo.cardId ?? photo.key), `${photo.key} wird nicht verwendet`);
   assert.equal(new Set(credits.photos.map((photo) => photo.photoId)).size, credits.photos.length, 'kein Foto doppelt');
 });
 
-test('Konkrete Lebensmittel (Stufe 3) nutzen nur Fotos, die genau dieses Lebensmittel zeigen', async () => {
-  const { photosForCard, allPhotos } = await import('../lib/images.js');
+test('Kartenbilder aus Unsplash (A15): Nachweis vorhanden, Bild zeigt genau diese Karte oder ihre Untergruppe', async () => {
+  const { allPhotos } = await import('../lib/images.js');
   const byId = new Map(cards.map((card) => [card.id, card]));
-  const keys = new Set(credits.photos.map((photo) => photo.key));
-  for (const [cardId, key] of Object.entries(credits.cardPhotos)) {
-    const card = byId.get(cardId);
-    assert.equal(card?.stage, 3, `${cardId}: konkretes Lebensmittel`);
-    assert.ok(keys.has(key), `${cardId}: Foto ${key}`);
-    const photo = credits.photos.find((entry) => entry.key === key);
-    // Das Foto zeigt die Untergruppe oder genau diese Karte (sonst würde es bei Ausschlüssen falsch gefiltert)
-    assert.ok(photo.shows.some((id) => id === cardId || id === card.parentId || byId.get(id)?.parentId === card.parentId), `${cardId}: ${photo.shows}`);
+  const byKey = new Map(credits.photos.map((photo) => [photo.key, photo]));
+  const stock = cards.filter((card) => card.image?.source === 'stock');
+  assert.equal(stock.length, 60, '34 Untergruppen und 26 Lebensmittel');
+  for (const card of stock) {
+    const photo = byKey.get(card.image.credit);
+    assert.ok(photo, `${card.id}: Nachweis ${card.image.credit}`);
+    assert.equal(card.image.license, photo.license, card.id);
+    assert.deepEqual([card.image.shows, card.image.foods], [photo.shows, photo.foods], `${card.id}: zeigt dasselbe wie im Nachweis`);
+    // Das Foto zeigt die Karte, eines ihrer Kinder, ihre Untergruppe oder eine Geschwisterkarte
+    // (sonst würde es bei Ausschlüssen falsch gefiltert)
+    const related = (id) => id === card.id || id === card.parentId || byId.get(id)?.parentId === card.id || byId.get(id)?.parentId === card.parentId;
+    assert.ok(photo.shows.some(related), `${card.id}: ${photo.shows}`);
   }
-  assert.deepEqual(photosForCard('F02.1.1', 'photo').map((photo) => photo.key), ['F02.1'], 'Lachs');
-  assert.deepEqual(photosForCard('F05.4.2', 'photo'), [], 'Tempeh: kein passendes Foto, Illustration');
-  assert.ok(allPhotos().find((photo) => photo.key === 'F02.1').usedBy.includes('F02.1.1'), 'Bildnachweis nennt auch Lachs');
-  // Gerichte zeigen die eigene Illustration
+  assert.ok(!cards.some((card) => card.stage === 1 && card.image), 'Gruppen: neutrales Symbol, kein Bild');
+  // Bildnachweise nennen nur Fotos, die eine Karte zeigt, mit allen Karten
+  const index = indexCatalog(cards);
+  const salmon = allPhotos(index.cards).find((photo) => photo.key === 'F02.1');
+  assert.deepEqual(salmon.usedBy, ['F02.1', 'F02.1.1'], 'Fisch und Lachs');
+  assert.ok(!allPhotos(index.cards).some((photo) => photo.key === 'F03-a'), 'nur noch im Raster der Gruppe: nicht mehr gezeigt');
+  // Gerichte behalten die eigene Illustration für den Bildstil „illustration“
   for (const dish of cards.filter((card) => card.stage === 4)) {
     assert.equal(dish.illustration, 'dish.svg', dish.id);
     assert.ok(existsSync(fileURLToPath(new URL(`../../public/illustrations/${dish.illustration}`, import.meta.url))), 'dish.svg');
@@ -94,25 +99,24 @@ test('Dateien liegen lokal im Repo, im gleichen Seitenverhältnis 4:3 und nicht 
 });
 
 test('Bildstil umschaltbar: mit „illustration“ zeigen die Karten die eigenen Illustrationen', async () => {
-  const { allPhotos, photosForCard } = await import('../lib/images.js');
+  const { allPhotos, cardVisual } = await import('../lib/images.js');
   const { IMAGE_STYLE } = await import('../config.js');
-  const { indexCatalog } = await import('../logic/catalog.js');
-  assert.equal(IMAGE_STYLE, 'photo', 'Standard: Fotos');
-  assert.deepEqual(photosForCard('F01', 'photo').map((photo) => photo.file), ['F01.1.jpg', 'F01.2.jpg', 'F01.3.jpg'], 'Poulet, Rind, Schwein');
-  assert.deepEqual(photosForCard('F01.2', 'photo').map((photo) => photo.file), ['F01.2.jpg']);
-  assert.deepEqual(photosForCard('F07.2', 'photo'), [], 'ohne passendes Foto: Illustration');
-  assert.deepEqual(photosForCard('F01', 'illustration'), []);
-  // Jede Karte hat eine Illustration als Ersatz und eine Kartenfarbe; Untergruppen erben sie von ihrer Gruppe.
   const index = indexCatalog(cards);
+  assert.equal(IMAGE_STYLE, 'photo', 'Standard: Bilder der Karten');
+  const kind = (id, style) => cardVisual(index.get(id), { style });
+  assert.deepEqual(kind('F01', 'photo'), { kind: 'neutral', source: 'own' }, 'Gruppe: neutrales Symbol');
+  assert.deepEqual(kind('F01.2', 'photo'), { kind: 'image', src: '/cards/F01.2.webp', alt: index.get('F01.2').image.alt, source: 'stock' });
+  assert.deepEqual(kind('F07.2', 'photo'), { kind: 'placeholder', source: null }, 'ohne Bild: Platzhalter');
+  assert.deepEqual(kind('F01.2', 'illustration'), { kind: 'illustration', src: '/illustrations/F01.svg', source: 'own' });
+  assert.equal(kind('F01', 'illustration').kind, 'neutral', 'Gruppen auch dann mit Symbol');
+  // Jede Karte hat eine Illustration als Ersatz und eine Kartenfarbe; Untergruppen erben sie von ihrer Gruppe.
   for (const card of index.cards) {
     assert.ok(card.illustration, `${card.id}: Illustration`);
     assert.ok(card.tint, `${card.id}: Kartenfarbe`);
   }
   assert.equal(index.get('F01.2').illustration, index.get('F01').illustration);
-  // Bildnachweise nennen die Karten, auf denen ein Foto erscheint
-  const chicken = allPhotos().find((photo) => photo.key === 'F01.1');
-  assert.deepEqual(chicken.usedBy, ['F01.1', 'F01', 'F01.1.1'], 'Geflügel, Bildraster Fleisch und Geflügel, Poulet');
-  assert.deepEqual(allPhotos().find((photo) => photo.key === 'F03-a').usedBy, ['F03']);
+  const chicken = allPhotos(index.cards).find((photo) => photo.key === 'F01.1');
+  assert.deepEqual(chicken.usedBy, ['F01.1', 'F01.1.1'], 'Geflügel, Poulet');
 });
 
 test('Jedes Foto nennt, was es zeigt (Karten und sichtbare Lebensmittel)', () => {
@@ -124,42 +128,44 @@ test('Jedes Foto nennt, was es zeigt (Karten und sichtbare Lebensmittel)', () =>
   }
 });
 
-test('Bilder zeigen nie Ausgeschlossenes: Raster ohne das Beispiel, sonst die Illustration', async () => {
-  const { allowedPhotos, photosForCard } = await import('../lib/images.js');
-  const { indexCatalog } = await import('../logic/catalog.js');
+test('Bilder zeigen nie Ausgeschlossenes: sonst der neutrale Platzhalter', async () => {
+  const { cardVisual, isImageAllowed } = await import('../lib/images.js');
+  const { indexCatalog: catalogIndex } = await import('../logic/catalog.js');
   const { buildExclusions } = await import('../logic/filter.js');
   const { diets } = read('./stage0.json');
-  const index = indexCatalog(cards);
-  const shown = (cardId, entries, diet = null) =>
-    allowedPhotos(photosForCard(cardId, 'photo'), { index, exclusions: buildExclusions(entries, { diet, diets, index }) }).map((photo) => photo.key);
+  const index = catalogIndex(cards);
+  const allowed = (cardId, entries, diet = null) => isImageAllowed(index.get(cardId).image, { index, exclusions: buildExclusions(entries, { diet, diets, index }) });
 
-  assert.deepEqual(shown('F01', []), ['F01.1', 'F01.2', 'F01.3'], 'ohne Ausschlüsse alle drei');
-  assert.deepEqual(shown('F01', [{ type: 'card', value: 'F01.3' }]), ['F01.1', 'F01.2'], 'kein Schweinefleisch im Bild');
-  assert.deepEqual(shown('F01', [], 'vegetarian'), [], 'vegetarisch: kein Fleischfoto');
+  assert.equal(allowed('F01.1', []), true, 'ohne Ausschlüsse');
+  assert.equal(allowed('F01.1', [], 'vegetarian'), false, 'vegetarisch: kein Fleischfoto');
   const almond = [{ type: 'allergen', value: 'almond' }];
-  assert.deepEqual(shown('F13', almond), ['F13-b'], 'Mandelallergie: keine Mandeln im Bild');
-  assert.deepEqual(shown('F13.1', almond), []);
+  assert.equal(allowed('F13.1', almond), false, 'Mandelallergie: keine Mandeln im Bild');
+  assert.equal(allowed('F13.2', almond), false, 'auch nicht neben Kürbiskernen');
   const tomato = [{ type: 'food', value: 'Tomate', freeText: true }];
-  assert.deepEqual(shown('F10.2', tomato), [], 'eingetippte „Tomate“');
-  assert.deepEqual(shown('F11', tomato), ['F11.1', 'F11.2']);
-  assert.deepEqual(shown('F07', [{ type: 'allergen', value: 'wheat' }]), [], 'ohne Weizen keine Weizenpasta im Bild');
+  assert.equal(allowed('F10.2', tomato), false, 'eingetippte „Tomate“');
+  assert.equal(allowed('F11.1', tomato), true);
+  assert.equal(allowed('F07.1', [{ type: 'allergen', value: 'wheat' }]), false, 'ohne Weizen keine Weizenpasta im Bild');
+  // Statt des Bildes der Platzhalter, mit der Quelle des nicht gezeigten Bildes für das Protokoll
+  const filter = { index, exclusions: buildExclusions(tomato, { index }) };
+  assert.deepEqual(cardVisual(index.get('F10.2'), { style: 'photo', filter }), { kind: 'placeholder', source: 'stock' });
   // Ohne Filter (z. B. Vorschau) bleibt alles
-  assert.equal(allowedPhotos(photosForCard('F01', 'photo'), null).length, 3);
+  assert.equal(isImageAllowed(index.get('F10.2').image, null), true);
 });
 
-test('Ohne Meeresfrüchte bleiben nur Fischfotos; die gemischte Ersatzillustration entfällt', async () => {
-  const { allowedPhotos, illustrationForCard, photosForCard } = await import('../lib/images.js');
-  const { indexCatalog } = await import('../logic/catalog.js');
+test('Ohne Meeresfrüchte bleiben Fischbilder; die gemischte Ersatzillustration entfällt', async () => {
+  const { illustrationForCard, isImageAllowed } = await import('../lib/images.js');
+  const { indexCatalog: catalogIndex } = await import('../logic/catalog.js');
   const { buildExclusions } = await import('../logic/filter.js');
-  const index = indexCatalog(cards);
+  const index = catalogIndex(cards);
   const filter = { index, exclusions: buildExclusions([{ type: 'animalOrigin', value: 'seafood' }], { index }) };
-  for (const id of ['F02', 'F02.1', 'F02.1.1']) {
-    assert.deepEqual(allowedPhotos(photosForCard(id, 'photo'), filter).map((photo) => photo.key), ['F02.1'], id);
+  for (const id of ['F02.1', 'F02.1.1']) {
+    assert.equal(isImageAllowed(index.get(id).image, filter), true, `${id}: Lachs bleibt`);
     assert.equal(illustrationForCard(index.get(id), filter), null, `${id}: kein Fisch-mit-Garnele-Platzhalter`);
     assert.equal(illustrationForCard(index.get(id), null), 'F02.svg', 'ohne Ausschlüsse ursprüngliche Illustration');
   }
+  assert.equal(isImageAllowed(index.get('F02.2').image, filter), false, 'Garnelen nicht');
   assert.equal(illustrationForCard(index.get('F12'), filter), 'F12.svg', 'unbetroffene Gruppe behält Illustration');
   const noFish = { index, exclusions: buildExclusions([{ type: 'allergen', value: 'fish' }], { index }) };
-  assert.deepEqual(allowedPhotos(photosForCard('F02', 'photo'), noFish).map((photo) => photo.key), ['F02.2', 'F02.3']);
+  assert.equal(isImageAllowed(index.get('F02.2').image, noFish), true);
   assert.equal(illustrationForCard(index.get('F02.2'), noFish), null, 'umgekehrt kein Fisch im Platzhalter für Krebstiere');
 });

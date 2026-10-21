@@ -124,14 +124,14 @@ test('Runde 2 zeigt Fisch ohne Meeresfrüchte im Etikett, auch im Stapel und nac
   assert.equal(front().querySelector('.card-title').textContent, 'Fisch');
   assert.ok(front().querySelector('.card-examples').textContent.includes('Lachs, Kabeljau'));
   assert.equal(front().querySelector('.artwork-illustration'), null, 'kein Platzhalter mit Garnele während des Ladens');
-  assert.ok(front().querySelector('.artwork-photo').getAttribute('src').endsWith('F02.1.jpg'));
+  assert.ok(front().querySelector('.artwork-photo').getAttribute('src').endsWith('cards/F02.1.webp'), 'Bild der Karte (A15)');
   await act(async () => front().querySelector('.artwork-photo').dispatchEvent(new window.Event('error')));
   assert.equal(front().querySelector('.artwork').getAttribute('data-state'), 'error');
-  assert.ok(front().querySelector('.artwork-fallback-icon'), 'neutraler Ersatz bei Bildfehler');
+  assert.equal(front().querySelector('.artwork-name').textContent, 'Fisch', 'neutraler Platzhalter mit Kartenname bei Bildfehler');
   assert.equal(front().querySelector('.artwork-illustration'), null);
   await rerender(viewFor(4, onboarding));
   assert.equal(front().querySelector('.card-kind').textContent, 'Fisch und Meeresfrüchte', 'nach Entfernen des Ausschlusses wieder die ganze Gruppe');
-  assert.ok(front().querySelector('.artwork-illustration'));
+  assert.equal(front().querySelector('.artwork').getAttribute('data-state'), 'error', 'ein fehlerhaftes Bild bleibt beim Platzhalter');
   await unmount();
 });
 
