@@ -646,7 +646,7 @@
   padding: 0 var(--space-2);
 }
 
-.answer-bar {
+.profile-answer-bar {
   grid-column: 2 / -1;
   display: block;
   height: var(--size-segment);
@@ -655,7 +655,7 @@
   overflow: hidden;
 }
 
-.answer-bar-fill {
+.profile-answer-fill {
   display: block;
   height: 100%;
   background: var(--tone);

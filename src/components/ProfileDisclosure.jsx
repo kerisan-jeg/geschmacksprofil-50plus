@@ -13,8 +13,8 @@ export default function ProfileDisclosure({ id, title, count, icon: Icon, tone, 
         {count != null && <span className="group-count num">{count}</span>}
         <ChevronDown className="disclosure-chevron" aria-hidden="true" />
         {fraction != null && (
-          <span className="answer-bar" aria-hidden="true">
-            <span className="answer-bar-fill" style={{ width: `${Math.max(0, Math.min(1, fraction)) * 100}%` }} />
+          <span className="profile-answer-bar" aria-hidden="true">
+            <span className="profile-answer-fill" style={{ width: `${Math.max(0, Math.min(1, fraction)) * 100}%` }} />
           </span>
         )}
       </summary>

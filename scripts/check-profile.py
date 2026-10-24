@@ -1,4 +1,4 @@
-"""Gezielte Browserprüfung der Allergieauswahl und des Profil-Dashboards.
+"""Browserprüfung von Allergieauswahl, Profil und unveränderter Kartenbedienung.
 
 Voraussetzungen wie check-mobile.py, parallel läuft npm run preview.
 Aufruf: python scripts/check-profile.py
@@ -37,10 +37,13 @@ with sync_playwright() as p:
         pg.on('pageerror', lambda e: errors.append(str(e)))
         events = [{'cardId': card, 'response': response, 'round': 4 if card.startswith('D') else 1} for card, response in [('F01', 'LIKE'), ('F03', 'PREFER'), ('F05', 'DISLIKE'), ('F09', 'UNFAMILIAR'), ('D01', 'UNFAMILIAR'), ('D05', 'PREFER')]]
         def seed(data):
-            pg.goto(BASE)
+            # Zustand setzen, bevor die App startet; laufende React-Effekte dürfen ihn nicht überschreiben.
+            seed_url = BASE + '__browser_seed__'
+            pg.route(seed_url, lambda route: route.fulfill(body='<!doctype html><html></html>', content_type='text/html'), times=1)
+            pg.goto(seed_url)
             pg.evaluate('(data) => { localStorage.clear(); localStorage.setItem("geschmacksprofil:app", JSON.stringify(data)); }', data)
-            pg.reload()
-            pg.get_by_role('button', name='Weiter', exact=True).click()
+            pg.goto(BASE)
+            pg.locator('.screen-welcome').get_by_role('button', name='Weiter', exact=True).click()
             pg.wait_for_timeout(300)
             if zoom != 1:
                 pg.add_style_tag(content=f'html {{ font-size: calc(118.75% * {zoom}) !important; }}')
@@ -54,6 +57,28 @@ with sync_playwright() as p:
             print(json.dumps({'width': width, 'zoom': zoom, 'screen': name, 'issues': bad}, ensure_ascii=False), flush=True)
             if bad:
                 failures.append((width, zoom, name, bad))
+        # Regression: Dashboard-Stile dürfen die Antwortleiste der Karten nie abschneiden.
+        round_data = saved()
+        round_data['state'].update(screen='round', tab='create', roundNumber=1)
+        round_data['state']['onboarding']['exclusions'] = [
+            {'type': 'animalOrigin', 'value': 'pork', 'source': 'onboarding', 'origin': 'diet'}
+        ]
+        for response in ['DISLIKE', 'PREFER', 'LIKE', 'UNFAMILIAR', 'INTOLERANT']:
+            seed(round_data)
+            pg.wait_for_selector('.screen-round')
+            if response == 'DISLIKE':
+                audit('round-controls')
+                pg.screenshot(path=str(shots / f'{width}-{zoom}-round.png'))
+            pg.locator(f'[data-answer="{response}"]').click(timeout=3000)
+            if response == 'INTOLERANT':
+                pg.locator('.sheet label.choice').first.click()
+                pg.get_by_role('button', name='Übernehmen', exact=True).click()
+            pg.wait_for_function(
+                '(response) => JSON.parse(localStorage.getItem("geschmacksprofil:app")).state.events.some(event => event.response === response)',
+                arg=response,
+            )
+            pg.locator('.screen-round .top-bar').get_by_role('button', name='Rückgängig', exact=True).click()
+            pg.wait_for_function('JSON.parse(localStorage.getItem("geschmacksprofil:app")).state.events.at(-1)?.response === "UNDO"')
         seed(saved(events))
         assert pg.locator('.answer-total strong').inner_text() == '6'
         assert pg.locator('.profile-disclosure[open]').count() == 0

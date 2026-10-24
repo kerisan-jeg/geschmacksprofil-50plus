@@ -160,7 +160,7 @@ test('Profil startet kompakt: alle Detailbereiche geschlossen, Zähler und Balke
   assert.equal(categories.length, 4);
   for (const details of categories) {
     assert.equal(details.querySelector('.group-count').textContent, '1');
-    assert.equal(details.querySelector('.answer-bar-fill').style.width, '25%');
+    assert.equal(details.querySelector('.profile-answer-fill').style.width, '25%');
   }
   await click(categories[0].querySelector('summary'));
   assert.equal(categories[0].open, true);
@@ -181,7 +181,7 @@ test('Ohne Antworten zeigen alle Kategorien null und einen verständlichen Leerz
   assert.ok(view.container.textContent.includes(PROFILE.tasteEmpty));
   for (const details of view.container.querySelectorAll('.answer-distribution details')) {
     assert.equal(details.querySelector('.group-count').textContent, '0');
-    assert.equal(details.querySelector('.answer-bar-fill').style.width, '0%');
+    assert.equal(details.querySelector('.profile-answer-fill').style.width, '0%');
     await click(details.querySelector('summary'));
     assert.ok(details.textContent.includes(PROFILE.answerEmpty));
   }
