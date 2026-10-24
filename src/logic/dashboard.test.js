@@ -126,3 +126,24 @@ test('Alltagsprofil: Profilstand und Dashboard hängen nicht davon ab (überspru
   assert.deepEqual(profileProgress(state(withPractical)), profileProgress(state(base)));
   assert.deepEqual(buildDashboard(state(withPractical)), buildDashboard(state(base)));
 });
+
+test('Antwortübersicht zählt nur eindeutige aktuelle Angaben und trennt starke Vorlieben, unbekannte Gerichte und Ausschlüsse', () => {
+  const board = buildDashboard(state([
+    answer('F01', LIKE), answer('F01', DISLIKE),
+    answer('F03', PREFER), answer('D01', UNFAMILIAR),
+    answer('F09', 'INTOLERANT'), answer('F12', LIKE),
+    { type: 'RATING_CHANGED', source: 'profile', cardId: 'F12', rating: null },
+    { type: 'RATING_CHANGED', source: 'profile', cardId: 'F05.4.1', rating: PREFER, fromPrediction: true },
+    { type: 'RATING_CHANGED', source: 'profile', cardId: 'F01', rating: LIKE },
+  ]));
+  assert.deepEqual(board.summary, { total: 4, groups: 1, foods: 2, dishes: 1 });
+  assert.deepEqual(board.responses.LIKE.map((entry) => entry.id), ['F01']);
+  assert.deepEqual(board.responses.PREFER.map((entry) => entry.id), ['F03', 'F05.4.1']);
+  assert.deepEqual(board.responses.DISLIKE, []);
+  assert.deepEqual(board.responses.UNFAMILIAR, [{ id: 'D01', rating: UNFAMILIAR, kind: 'dish' }]);
+});
+
+test('Antwortübersicht verarbeitet Rückgängig und leere Profile ohne Beispieldaten', () => {
+  assert.deepEqual(buildDashboard(state([])).summary, { total: 0, groups: 0, foods: 0, dishes: 0 });
+  assert.deepEqual(buildDashboard(state([answer('F01', LIKE), { response: 'UNDO' }])).summary, { total: 0, groups: 0, foods: 0, dishes: 0 });
+});

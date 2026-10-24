@@ -438,6 +438,11 @@
   background: var(--color-primary-soft);
 }
 
+.tile:disabled {
+  background: var(--color-surface-sunken);
+  cursor: default;
+}
+
 .tile-text {
   display: grid;
   gap: var(--space-1);

@@ -18,6 +18,7 @@ Aufruf (in einem zweiten Terminal läuft `npm run build && npm run preview`):
 Optional als zweites Argument ein Ordner für Screenshots, z. B. `python3 scripts/check-mobile.py 1 shots`.
 """
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -132,7 +133,7 @@ def answer_until_complete(pg, label='Mag ich'):
 
 
 def run(p, W, H):
-    b = p.chromium.launch()
+    b = p.chromium.launch(channel=os.environ.get('GP_BROWSER_CHANNEL') or None)
     ctx = b.new_context(viewport={'width': W, 'height': H}, has_touch=True, reduced_motion='reduce')
     pg = ctx.new_page()
     errors = []
@@ -166,17 +167,18 @@ def run(p, W, H):
     pg.get_by_text('Keine Gelatine', exact=True).scroll_into_view_if_needed(); check(pg, 'frage1_teile', results, W)
     pg.get_by_role('button', name='Weiter', exact=True).click()
     pg.get_by_text('Ja', exact=True).click()
-    pg.get_by_role('button', name='Weitere anzeigen').click()
+    assert pg.locator('.allergen-picker .tile').count() == 6
+    assert pg.locator('.allergen-picker .more-button').count() == 0
     pg.get_by_role('button', name='Soja').click()
     # Zusatzangaben (nurec 0.2 und 0.3): ärztlich festgestellt, Laktose „Kleine Mengen gehen“
     pg.get_by_role('button', name='Laktose').click()
     pg.get_by_text('Ärztlich oder fachlich festgestellt').click()
     pg.get_by_text('Kleine Mengen gehen').click()
     pg.get_by_text('Kleine Mengen gehen').scroll_into_view_if_needed(); check(pg, 'frage2_zusatz', results, W)
-    pg.get_by_label('Suchen').fill('rüebli')
+    pg.get_by_label('Weitere Allergien oder Lebensmittel suchen').fill('rüebli')
     pg.get_by_text('Ich bin mir nicht sicher').click()
     check(pg, 'frage2', results, W)
-    pg.get_by_label('Suchen').fill('')
+    pg.get_by_label('Weitere Allergien oder Lebensmittel suchen').fill('')
     pg.get_by_role('button', name='Nüsse inkl. Erdnüsse').click(); check(pg, 'frage2_sheet', results, W)
     pg.get_by_role('button', name='Abbrechen').click()
     pg.get_by_role('button', name='Weiter', exact=True).click()
@@ -242,9 +244,11 @@ def run(p, W, H):
         pg.get_by_role('button', name='Überspringen').click()
     pg.wait_for_selector('.screen-complete')
     pg.get_by_role('button', name='Mein Profil ansehen').click(); check(pg, 'profil', results, W)
+    pg.locator('.answer-distribution details').filter(has=pg.locator('.taste-row')).first.locator('summary').click()
     pg.locator('button.taste-row').first.click(); check(pg, 'profil_bewertung', results, W)
     pg.get_by_role('radio', name=re.compile('^(Mag ich|Eher gern)$')).click(); pg.wait_for_timeout(200)
     # Vermutungen der App: getrennt und gestrichelt; alle anzeigen und eine Vermutung direkt bewerten
+    pg.locator('[aria-labelledby="insights-title"] > summary').click()
     more = pg.locator('.is-derived .more-button')
     if more.count():
         more.first.click(); pg.wait_for_timeout(150)
@@ -252,6 +256,7 @@ def run(p, W, H):
     pg.locator('.is-derived button.taste-row').first.click(); check(pg, 'profil_vermutung_bewerten', results, W)
     pg.get_by_role('radio', name=re.compile('^(Mag ich sehr|Sehr gern)$')).click(); pg.wait_for_timeout(200)
     pg.mouse.wheel(0, -8000); pg.wait_for_timeout(150)
+    pg.locator('[aria-labelledby="exclusions-title"] > summary').click()
     pg.get_by_role('button', name='Ändern', exact=True).first.click(); check(pg, 'profil_allergien', results, W)
     pg.get_by_role('button', name='Abbrechen').click()
     pg.locator('.exclusion-section').nth(2).get_by_role('button', name='Hinzufügen').click()

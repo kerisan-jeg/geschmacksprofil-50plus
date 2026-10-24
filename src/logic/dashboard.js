@@ -16,7 +16,7 @@
 // Raum: Eine vegane Person muss keine Fleischkarten wischen, um einen hohen Stand zu erreichen.
 
 import { PROFILE_PROGRESS } from '../config.js';
-import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR, isTasteSignal } from './answers.js';
+import { ANSWER_ORDER, DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR, isTasteSignal } from './answers.js';
 import { isConcrete, isDish } from './catalog.js';
 import { isVisible } from './filter.js';
 import { branchCards, currentRating, isDone, isUsable, rankedCards, REASONS, SELECTION } from './selection.js';
@@ -89,6 +89,20 @@ export function buildDashboard(state, { cuisines: cuisineTable = [] } = {}) {
   const food = rated.filter((entry) => !isDish(entry.card));
   const byRating = (list, rating) => list.filter((entry) => entry.rating === rating).map((entry) => entry.card.id);
 
+  // Disjunkte Antwortkategorien: nur letzte direkte Angaben pro Karte, inklusive unbekannter Gerichte.
+  // INTOLERANT, entfernte Antworten und Vermutungen zählen hier nie als Geschmack oder Antwort.
+  const kindOf = (card) => isDish(card) ? 'dish' : isConcrete(card) ? 'food' : 'group';
+  const responses = Object.fromEntries(ANSWER_ORDER.map((rating) => [rating, rated
+    .filter((entry) => entry.rating === rating)
+    .map(({ card }) => ({ id: card.id, rating, kind: kindOf(card) }))]));
+  const answers = Object.values(responses).flat();
+  const summary = {
+    total: answers.length,
+    groups: answers.filter((entry) => entry.kind === 'group').length,
+    foods: answers.filter((entry) => entry.kind === 'food').length,
+    dishes: answers.filter((entry) => entry.kind === 'dish').length,
+  };
+
   const favorites = [...byRating(food.filter((entry) => isConcrete(entry.card)), PREFER), ...byRating(food.filter((entry) => isConcrete(entry.card)), LIKE)].map(
     (id) => ({ id, rating: currentRating(state, id) })
   );
@@ -123,5 +137,5 @@ export function buildDashboard(state, { cuisines: cuisineTable = [] } = {}) {
     .map(({ cooked, raw }) => ({ rawId: raw.id, cookedId: cooked.id, raw: currentRating(state, raw.id), cooked: currentRating(state, cooked.id) }));
 
   const dishes = rated.filter((entry) => isDish(entry.card) && isTasteSignal(entry.rating)).map((entry) => ({ id: entry.card.id, rating: entry.rating }));
-  return { favorites, groups, dislikes, unfamiliar, unasked, details, dishes, cuisines: cuisineTendencies(index, dishes, cuisineTable) };
+  return { responses, summary, favorites, groups, dislikes, unfamiliar, unasked, details, dishes, cuisines: cuisineTendencies(index, dishes, cuisineTable) };
 }

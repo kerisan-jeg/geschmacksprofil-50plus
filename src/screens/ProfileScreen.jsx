@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import foodList from '../data/foods.json';
 import { CUISINE_MIN_RATED } from '../config.js';
 import cuisineData from '../data/cuisines.json';
-import { Ban, ChevronRight, CircleHelp, Layers, LogOut, NotebookPen, Pencil, Plus, RotateCcw, Salad, ShieldAlert, Smartphone, Soup, Sparkles, Utensils, X } from 'lucide-react';
+import { Ban, ChevronRight, CircleHelp, Layers, LogOut, NotebookPen, Pencil, Plus, RotateCcw, Salad, ShieldAlert, Smartphone, Sparkles, Utensils, X } from 'lucide-react';
 import AllergenPicker from '../components/AllergenPicker.jsx';
 import Artwork from '../components/Artwork.jsx';
 import Avatar from '../components/Avatar.jsx';
@@ -13,16 +13,17 @@ import DerivedTaste from '../components/DerivedTaste.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import FoodSearch from '../components/FoodSearch.jsx';
 import ProfileStatus from '../components/ProfileStatus.jsx';
+import ProfileDisclosure from '../components/ProfileDisclosure.jsx';
 import RatingChip from '../components/RatingChip.jsx';
 import RatingSheet from '../components/RatingSheet.jsx';
 import Sheet from '../components/Sheet.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
 import { allPhotos } from '../lib/images.js';
 import { allergenLabel } from '../logic/allergens.js';
-import { computeProfile, derivedEntries, presentCard } from '../logic/engine.js';
+import { derivedEntries, presentCard } from '../logic/engine.js';
 import { buildDashboard, profileProgress } from '../logic/dashboard.js';
 import { practicalAnswered, summarizePractical } from '../logic/practical.js';
-import { DISLIKE, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
+import { ANSWER_ORDER, DISLIKE } from '../logic/answers.js';
 import { buildExclusions, displayCardTitle } from '../logic/filter.js';
 import { buildFoodIndex } from '../logic/foodSearch.js';
 import { groupExclusions, sectionOf } from '../logic/profile.js';
@@ -84,19 +85,10 @@ function ExclusionList({ items, onRemove }) {
 }
 
 // Eine Liste bewerteter Karten (Bild, Titel, Bewertung, optional eine Zeile darunter). Tippen öffnet die Bewertung.
-function TasteGroup({ id, title, icon: Icon, tone, entries, index, titleOf, note, onSelect }) {
-  if (entries.length === 0) return null;
+function TasteGroup({ id, title, icon, tone, entries, total, index, titleOf, note, onSelect }) {
   return (
-    <section className={`panel taste-group${tone ? ` tone-${tone}` : ''}`} aria-labelledby={`group-${id}`}>
-      <h3 id={`group-${id}`} className="taste-group-title">
-        {Icon && (
-          <span className="group-icon">
-            <Icon aria-hidden="true" />
-          </span>
-        )}
-        <span>{title}</span>
-        <span className="group-count num">{entries.length}</span>
-      </h3>
+    <ProfileDisclosure id={`group-${id}`} title={title} icon={icon} tone={tone} count={entries.length} fraction={total ? entries.length / total : 0} className="taste-group">
+      {entries.length === 0 && <p className="note">{PROFILE.answerEmpty}</p>}
       <ul className="taste-list">
         {entries.map((entry) => {
           const card = index.get(entry.id);
@@ -106,6 +98,7 @@ function TasteGroup({ id, title, icon: Icon, tone, entries, index, titleOf, note
                 <Artwork card={card} size="thumb" className="thumb" />
                 <span className="taste-text">
                   <span className="taste-title">{titleOf(entry.id)}</span>
+                  <span className="taste-reason">{PROFILE.answerKinds[entry.kind]}</span>
                   <RatingChip answer={entry.rating} card={card} />
                   {entry.sub && <span className="taste-reason">{entry.sub}</span>}
                 </span>
@@ -116,7 +109,7 @@ function TasteGroup({ id, title, icon: Icon, tone, entries, index, titleOf, note
         })}
       </ul>
       {note && <p className="note">{note}</p>}
-    </section>
+    </ProfileDisclosure>
   );
 }
 
@@ -136,7 +129,7 @@ export function exclusionsForHit(hit, { allergens, index, restrictions }) {
 
 // „Mein Profil“ als Ergebnis-Dashboard nach nurec v0.2, Anhang B:
 //   Profilstand („Profil aufgebaut“, Erfassungsgrad) mit nächstem sinnvollem Schritt,
-//   Favoriten (nur konkrete Lebensmittel mit eigener Bewertung, B3.1), Gruppen, „Isst du eher ungern“ mit Ausnahmen,
+//   direkte Antworten in vier disjunkten Kategorien mit Balken, Zählern und aufklappbaren Listen,
 //   getrennt davon die Vermutungen der App (mögliche Favoriten, B3.2), Offenes („Kenne ich nicht“ getrennt von
 //   „noch nicht gefragt“), Feinheiten (roh/gegart), Gerichte (Stufe 4), Ausschlüsse mit Herkunft und Status,
 //   Alltagsprofil (Kap. 2.3). Jede Änderung wird ein Ereignis im Event-Log (source "profile").
@@ -186,11 +179,10 @@ export default function ProfileScreen({
     );
   }
 
-  const profile = computeProfile(round);
   const derived = derivedEntries(round);
   const progress = profileProgress(round);
   const board = buildDashboard(round, { cuisines: cuisineData.cuisines });
-  const hasTaste = board.favorites.length + board.groups.length + board.dislikes.length + board.unfamiliar.length + board.dishes.length > 0;
+  const hasTaste = board.summary.total > 0;
   const practicalLines = practicalDefinition ? summarizePractical(practicalDefinition, practical, PRACTICAL) : [];
   const titleOf = (id) => index.get(id) ? displayCardTitle(index.get(id), index, round.exclusions) : id;
   const openRating = (cardId) => setSheet({ type: 'rating', cardId });
@@ -271,13 +263,10 @@ export default function ProfileScreen({
                 {account.phoneMasked}
               </p>
             )}
-            <p className="note num">{PROFILE.answered(profile.answered)}</p>
           </div>
         </div>
         <CreationSteps steps={steps} />
       </div>
-
-      <ProfileStatus progress={progress} next={next} onNext={onNext} />
 
       <section className="stack" aria-labelledby="taste-title">
         <div className="stack-tight">
@@ -285,6 +274,11 @@ export default function ProfileScreen({
             {PROFILE.tasteTitle}
           </h2>
           <p className="note">{PROFILE.tasteLead}</p>
+          <div className="answer-total">
+            <strong className="num">{board.summary.total}</strong>
+            <span>{PROFILE.overviewTotal}</span>
+          </div>
+          <p className="note num">{PROFILE.overviewTypes(board.summary.groups, board.summary.foods, board.summary.dishes)}</p>
         </div>
         {!hasTaste && (
           <EmptyState icon={CircleHelp} title={PROFILE.tasteEmpty}>
@@ -293,103 +287,73 @@ export default function ProfileScreen({
             </button>
           </EmptyState>
         )}
-        {hasTaste && (
-          <section className="stack-tight" aria-labelledby="favorites-title">
-            <h3 id="favorites-title" className="subsection-title">
-              {PROFILE.favoritesTitle}
-            </h3>
-            <p className="note">{board.favorites.length > 0 ? PROFILE.favoritesLead : PROFILE.favoritesEmpty}</p>
-          </section>
-        )}
-        {[PREFER, LIKE].map((rating) => (
-          <TasteGroup
-            key={rating}
-            id={`favorites-${rating}`}
-            title={PROFILE.favoriteGroups[rating]}
-            icon={ANSWER_META[rating].Icon}
-            tone={ANSWER_META[rating].tone}
-            entries={board.favorites.filter((entry) => entry.rating === rating)}
-            index={index}
-            titleOf={titleOf}
-            onSelect={openRating}
-          />
-        ))}
-        <TasteGroup id="groups" title={PROFILE.groupsTitle} icon={Layers} entries={board.groups} index={index} titleOf={titleOf} note={PROFILE.groupsLead} onSelect={openRating} />
-        <TasteGroup
-          id="dislikes"
-          title={PROFILE.dislikesTitle}
-          icon={ANSWER_META[DISLIKE].Icon}
-          tone={ANSWER_META[DISLIKE].tone}
-          entries={board.dislikes.map((entry) => ({
-            id: entry.id,
-            rating: DISLIKE,
-            sub: entry.exceptions.length > 0 ? PROFILE.exception(entry.exceptions.map((exception) => titleOf(exception.id)).join(', ')) : null,
-          }))}
-          index={index}
-          titleOf={titleOf}
-          note={PROFILE.dislikeNote}
-          onSelect={openRating}
-        />
+        <div className="answer-distribution">
+          {ANSWER_ORDER.map((rating) => (
+            <TasteGroup
+              key={rating}
+              id={`answers-${rating}`}
+              title={ANSWER_LABELS[rating]}
+              icon={ANSWER_META[rating].Icon}
+              tone={ANSWER_META[rating].tone}
+              entries={board.responses[rating].map((entry) => {
+                const exceptions = board.dislikes.find((dislike) => dislike.id === entry.id)?.exceptions ?? [];
+                return { ...entry, sub: exceptions.length > 0 ? PROFILE.exception(exceptions.map((exception) => titleOf(exception.id)).join(', ')) : null };
+              })}
+              total={board.summary.total}
+              index={index}
+              titleOf={titleOf}
+              note={rating === DISLIKE ? PROFILE.dislikeNote : null}
+              onSelect={openRating}
+            />
+          ))}
+        </div>
+        <p className="note">{PROFILE.overviewNote}</p>
       </section>
 
-      <DerivedTaste entries={derived} index={index} titleOf={titleOf} onSelect={(entry) => setSheet({ type: 'prediction', entry })} />
+      <ProfileStatus progress={progress} next={next} onNext={onNext} />
 
-      {(board.unfamiliar.length > 0 || board.unasked.length > 0) && (
-        <section className="stack" aria-labelledby="open-title">
-          <div className="stack-tight">
-            <h2 id="open-title" className="title-section">
-              {PROFILE.openTitle}
+      <ProfileDisclosure id="insights-title" title={PROFILE.insightsTitle} icon={Sparkles} description={PROFILE.insightsLead}>
+        <p className="note">{PROFILE.answerMeaning}</p>
+        <DerivedTaste entries={derived} index={index} titleOf={titleOf} onSelect={(entry) => setSheet({ type: 'prediction', entry })} />
+
+        {board.unasked.length > 0 && (
+          <section className="stack" aria-labelledby="open-title">
+            <div className="stack-tight">
+              <h2 id="open-title" className="title-section">
+                {PROFILE.openTitle}
+              </h2>
+              <p className="note">{PROFILE.openLead}</p>
+            </div>
+            {board.unasked.length > 0 && (
+              <section className="panel" aria-labelledby="unasked-title">
+                <h3 id="unasked-title" className="panel-title">
+                  {PROFILE.unaskedTitle}
+                </h3>
+                <ul className="tag-list">
+                  {board.unasked.map((id) => (
+                    <li key={id}>{titleOf(id)}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </section>
+        )}
+
+        {board.details.length > 0 && (
+          <section className="panel" aria-labelledby="details-title">
+            <h2 id="details-title" className="panel-title">
+              {PROFILE.detailsTitle}
             </h2>
-            <p className="note">{PROFILE.openLead}</p>
-          </div>
-          <TasteGroup
-            id="unfamiliar"
-            title={PROFILE.unfamiliarTitle}
-            icon={ANSWER_META[UNFAMILIAR].Icon}
-            tone={ANSWER_META[UNFAMILIAR].tone}
-            entries={board.unfamiliar.map((id) => ({ id, rating: UNFAMILIAR }))}
-            index={index}
-            titleOf={titleOf}
-            onSelect={openRating}
-          />
-          {board.unasked.length > 0 && (
-            <section className="panel" aria-labelledby="unasked-title">
-              <h3 id="unasked-title" className="panel-title">
-                {PROFILE.unaskedTitle}
-              </h3>
-              <ul className="tag-list">
-                {board.unasked.map((id) => (
-                  <li key={id}>{titleOf(id)}</li>
-                ))}
-              </ul>
-            </section>
-          )}
-        </section>
-      )}
+            <p className="note">{PROFILE.detailsLead}</p>
+            <ul className="detail-lines">
+              {board.details.map((entry) => (
+                <li key={entry.cookedId}>{PROFILE.detailLine(titleOf(entry.rawId), ANSWER_LABELS[entry.raw], titleOf(entry.cookedId), ANSWER_LABELS[entry.cooked])}</li>
+              ))}
+            </ul>
+          </section>
+        )}
 
-      {board.details.length > 0 && (
-        <section className="panel" aria-labelledby="details-title">
-          <h2 id="details-title" className="panel-title">
-            {PROFILE.detailsTitle}
-          </h2>
-          <p className="note">{PROFILE.detailsLead}</p>
-          <ul className="detail-lines">
-            {board.details.map((entry) => (
-              <li key={entry.cookedId}>{PROFILE.detailLine(titleOf(entry.rawId), ANSWER_LABELS[entry.raw], titleOf(entry.cookedId), ANSWER_LABELS[entry.cooked])}</li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {board.dishes.length > 0 && (
-        <section className="stack" aria-labelledby="dishes-title">
-          <div className="stack-tight">
-            <h2 id="dishes-title" className="title-section">
-              {PROFILE.dishesTitle}
-            </h2>
-            <p className="note">{board.dishes.length > 0 ? PROFILE.dishesLead : PROFILE.dishesEmpty}</p>
-          </div>
-          <TasteGroup id="dishes" title={PROFILE.dishesTitle} icon={Soup} entries={board.dishes} index={index} titleOf={titleOf} onSelect={openRating} />
+        {board.dishes.length > 0 && (
           <section className="stack-tight" aria-labelledby="cuisines-title">
             <h3 id="cuisines-title" className="subsection-title">
               {PROFILE.cuisinesTitle}
@@ -403,16 +367,16 @@ export default function ProfileScreen({
             )}
             <p className="note">{PROFILE.cuisinesNote(CUISINE_MIN_RATED)}</p>
           </section>
-        </section>
-      )}
+        )}
+      </ProfileDisclosure>
 
-      <section className="stack" aria-labelledby="exclusions-title">
-        <div className="stack-tight">
-          <h2 id="exclusions-title" className="title-section">
-            {PROFILE.exclusionsTitle}
-          </h2>
-          <p className="note">{PROFILE.exclusionsLead}</p>
-        </div>
+      <ProfileDisclosure
+        id="exclusions-title"
+        title={PROFILE.exclusionsTitle}
+        icon={ShieldAlert}
+        description={PROFILE.restrictionsSummary(dietLabel, new Set(round.entries.filter((entry) => !entry.freeText).map((entry) => `${entry.type}:${entry.value}`)).size, sections.notes.length)}
+      >
+        <p className="note">{PROFILE.exclusionsLead}</p>
         <div className="panel exclusion-panel">
           <section className="exclusion-section" aria-labelledby="ex-allergies">
             <SectionHead
@@ -472,7 +436,7 @@ export default function ProfileScreen({
               <p className="note">{PROFILE.sectionEmpty}</p>
             )}
             <ExclusionList items={sections.notes} onRemove={(item) => requestRemoval('notes', item)} />
-            {sections.notes.length > 0 && <p className="note">{ONBOARDING.entryEffect}</p>}
+            {sections.notes.length > 0 && <p className="note">{ONBOARDING.allergyNoteEffect}</p>}
             {(onboarding.avoidBrands.length > 0 || onboarding.avoidOrigins.length > 0) && (
               <>
                 <ul className="tag-list">
@@ -484,15 +448,11 @@ export default function ProfileScreen({
             )}
           </section>
         </div>
-      </section>
+      </ProfileDisclosure>
 
       {practicalDefinition && (
-        <section className="panel practical-panel" aria-labelledby="practical-title">
+        <ProfileDisclosure id="practical-title" title={PROFILE.practicalTitle} icon={Sparkles} className="practical-panel">
           <div className="exclusion-head">
-            <h2 id="practical-title" className="exclusion-title">
-              <Sparkles aria-hidden="true" />
-              {PROFILE.practicalTitle}
-            </h2>
             {onOpenPractical && (
               <button type="button" className="button-ghost is-strong" onClick={onOpenPractical}>
                 <Pencil aria-hidden="true" />
@@ -513,7 +473,7 @@ export default function ProfileScreen({
               ))}
             </dl>
           )}
-        </section>
+        </ProfileDisclosure>
       )}
 
       <section className="profile-footer">

@@ -212,10 +212,8 @@ export const DIET = {
 
 // Onboarding (Stufe 0): Allergien und „Nie vorschlagen“
 export const ONBOARDING = {
-  showMore: (count) => `Weitere anzeigen (${count})`,
-  showLess: 'Weniger anzeigen',
-  searchAllergensLabel: 'Suchen',
-  searchAllergensPlaceholder: 'z. B. Sellerie oder Tomate',
+  searchAllergensLabel: 'Weitere Allergien oder Lebensmittel suchen',
+  searchAllergensPlaceholder: 'z. B. Fisch oder Sellerie',
   selectedTitle: 'Deine Auswahl',
   removeChip: (text) => `${text} entfernen`,
   tileChooseDetail: 'Auswählen',
@@ -235,6 +233,7 @@ export const ONBOARDING = {
   add: 'Hinzufügen',
   // Wirkung eines eingetippten Eintrags ohne eigene Karte (z. B. „Tomate“), ehrlich formuliert
   entryEffect: 'Eingetippte Einträge zeigen wir nirgends mehr als Beispiel. Eine ganze Gruppe fällt dadurch nicht weg.',
+  allergyNoteEffect: 'Nicht eindeutig zugeordnet – bitte prüfen. Die Notiz ersetzt keinen verlässlich geprüften Ausschluss. Wir können nur passende Namen und bekannte Zutaten berücksichtigen.',
   // Frage 3
   quickPicksTitle: 'Häufige Beispiele',
   searchNeverLabel: 'Anderes Lebensmittel suchen',
@@ -457,7 +456,16 @@ export const PROFILE = {
   greeting: (name) => (name ? `Hallo ${name}` : 'Hallo'),
   answered: (count) => `${plural(count, 'Karte', 'Karten')} beantwortet`,
   tasteTitle: 'Dein Geschmack',
-  tasteLead: 'Direkt aus deinen Antworten, ohne Berechnung.',
+  tasteLead: 'Deine aktuellen Antworten. Tippe auf eine Kategorie für alle Details.',
+  overviewTotal: 'Karten mit Antwort',
+  overviewTypes: (groups, foods, dishes) => `${plural(groups, 'Gruppe', 'Gruppen')} · ${plural(foods, 'Lebensmittel', 'Lebensmittel')} · ${plural(dishes, 'Gericht', 'Gerichte')}`,
+  overviewNote: 'Anteil deiner aktuellen Antworten, ohne Vermutungen und Ausschlüsse. Mit weiteren Karten wächst die Momentaufnahme.',
+  answerEmpty: 'Noch keine Antwort in dieser Kategorie.',
+  answerKinds: { group: 'Lebensmittelgruppe', food: 'Lebensmittel', dish: 'Gericht' },
+  answerMeaning: '„Mag ich sehr“ bedeutet besonders gern. „Kenne ich nicht“ ist keine Geschmacksbewertung. Gruppen bewerten keine einzelnen Lebensmittel; Gerichte bewerten keine Zutaten.',
+  insightsTitle: 'Weitere Einblicke',
+  insightsLead: 'Vermutungen, offene Gruppen und Unterschiede bei der Zubereitung.',
+  restrictionsSummary: (diet, count, notes) => `${diet} · ${plural(count, 'Ausschluss', 'Ausschlüsse')}${notes ? ` · ${plural(notes, 'Notiz zu prüfen', 'Notizen zu prüfen')}` : ''}`,
   // Dashboard nach nurec v0.2, Anhang B1 und B3
   favoritesTitle: 'Deine Favoriten',
   favoritesLead: 'Konkrete Lebensmittel, die du selbst bewertet hast.',
@@ -489,7 +497,7 @@ export const PROFILE = {
   practicalAdd: 'Ergänzen',
   practicalEdit: 'Ändern',
   statusCheck: 'prüfen',
-  statusCheckHint: 'Nicht eindeutig zugeordnet. Bitte bei Gelegenheit prüfen.',
+  statusCheckHint: 'Nicht eindeutig zugeordnet. Kein verlässlich geprüfter Ausschluss.',
   medical: 'ärztlich vorgegeben',
   scopeLimited: 'kleine Mengen gehen',
   groups: {
@@ -521,9 +529,9 @@ export const PROFILE = {
     showLess: 'Weniger anzeigen',
   },
   exclusionsTitle: 'Ausschlüsse',
-  exclusionsLead: 'Das schlagen wir dir nie vor. Diese Regeln stehen immer über dem Geschmack.',
+  exclusionsLead: 'Hinterlegte Ausschlüsse stehen über dem Geschmack. Notizen sind noch zu prüfen und bieten keinen vollständig geprüften Ausschluss.',
   sections: {
-    allergies: 'Allergien',
+    allergies: 'Allergien und Unverträglichkeiten',
     diet: 'Ernährungsweise',
     intolerances: 'Vertrage ich nicht',
     never: 'Möchte ich nicht essen',

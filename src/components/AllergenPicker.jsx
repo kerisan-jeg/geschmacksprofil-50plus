@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, CircleHelp } from 'lucide-react';
+import { Check, ChevronRight, CircleHelp } from 'lucide-react';
 import ChoiceList from './ChoiceList.jsx';
 import DetailPicker from './DetailPicker.jsx';
 import FoodSearch from './FoodSearch.jsx';
@@ -12,15 +12,13 @@ import { ONBOARDING } from '../labels.js';
 const NEVER_REDUNDANT = { category: () => false, allergenIds: () => false, hit: () => false };
 
 // Allergene und Unverträglichkeiten, im Onboarding (Frage 2) und in „Mein Profil“ dieselbe Komponente:
-// - die häufigen als grosse Kacheln, der Rest über „Weitere anzeigen“ und die Suche (A5)
+// - genau sechs Vorschläge als Kacheln; alle weiteren Einträge ausschliesslich über die Suche
 // - Nüsse (inkl. Erdnüsse) und Gluten öffnen eine Detailauswahl (ganze Familie oder einzelne Einträge)
 // - die Suche (FoodSearch) findet auch alle Lebensmittel aus dem Katalog; ohne Treffer wird eine Notiz
 //   eingetragen (A7). Im Profil (allowFoods = false) sucht sie nur Allergene.
-// - was durch die Ernährungsweise schon ausgeschlossen ist, wird nicht nochmals angeboten
-//   (ausser es ist bereits ausgewählt)
+// - schon durch die Ernährungsweise abgedeckte Vorschläge bleiben erkennbar, aber sind deaktiviert
 // - „Ich bin mir nicht sicher, ob es weitere gibt“ setzt nur ein Flag, keinen Ausschluss
 export default function AllergenPicker({ data, catalogIndex, foods = [], answer, redundancy = NEVER_REDUNDANT, onChange, allowFoods = true, allowUnsure = true }) {
-  const [showAll, setShowAll] = useState(false);
   const [openCategory, setOpenCategory] = useState(null);
   const { selected } = answer;
   const items = answer.items ?? [];
@@ -30,12 +28,7 @@ export default function AllergenPicker({ data, catalogIndex, foods = [], answer,
     [data, catalogIndex, foods, allowFoods]
   );
 
-  const relevant = (category) => categoryState(category, selected).some || !redundancy.category(category);
-  const common = data.categories.filter((category) => category.common && relevant(category));
-  const more = data.categories.filter((category) => !category.common && relevant(category));
-  // Bereits gewählte „weitere“ Kategorien bleiben sichtbar, auch wenn die Liste zugeklappt ist.
-  const visible = showAll ? [...common, ...more] : [...common, ...more.filter((category) => categoryState(category, selected).some)];
-  const hiddenMore = more.filter((category) => !visible.includes(category)).length;
+  const visible = data.categories.filter((category) => category.common);
 
   function update(changes) {
     onChange({ ...answer, ...changes });
@@ -73,6 +66,7 @@ export default function AllergenPicker({ data, catalogIndex, foods = [], answer,
         {visible.map((category) => {
           const state = categoryState(category, selected);
           const grouped = Boolean(category.items);
+          const covered = !state.some && redundancy.category(category);
           return (
             <button
               key={category.id}
@@ -80,11 +74,12 @@ export default function AllergenPicker({ data, catalogIndex, foods = [], answer,
               className={`tile${state.some ? ' is-checked' : ''}`}
               aria-pressed={grouped ? undefined : state.all}
               aria-haspopup={grouped ? 'dialog' : undefined}
+              disabled={covered}
               onClick={() => handleTile(category)}
             >
               <span className="tile-text">
                 <span className="tile-label">{category.tileLabel}</span>
-                {grouped ? (
+                {covered ? <span className="tile-detail">{ONBOARDING.alreadyCovered}</span> : grouped ? (
                   <span className="tile-detail">
                     {state.some ? ONBOARDING.tileCount(state.count, state.total) : category.tileDetail ?? ONBOARDING.tileChooseDetail}
                   </span>
@@ -100,13 +95,6 @@ export default function AllergenPicker({ data, catalogIndex, foods = [], answer,
         })}
       </div>
 
-      {more.length > 0 && (hiddenMore > 0 || showAll) && (
-        <button type="button" className="button-ghost is-strong more-button" aria-expanded={showAll} onClick={() => setShowAll(!showAll)}>
-          <ChevronDown aria-hidden="true" className={showAll ? 'is-flipped' : undefined} />
-          {showAll ? ONBOARDING.showLess : ONBOARDING.showMore(hiddenMore)}
-        </button>
-      )}
-
       <FoodSearch
         label={ONBOARDING.searchAllergensLabel}
         placeholder={ONBOARDING.searchAllergensPlaceholder}
@@ -115,10 +103,11 @@ export default function AllergenPicker({ data, catalogIndex, foods = [], answer,
         isOffered={(hit) => !redundancy.hit(hit)}
         onPick={handlePick}
         onAddNote={allowFoods ? addNote : null}
+        noteHint={ONBOARDING.allergyNoteEffect}
       />
 
       <SelectionChips chips={chips} onRemove={removeChip} />
-      {notes.length > 0 && <p className="note">{ONBOARDING.entryEffect}</p>}
+      {notes.length > 0 && <p className="note">{ONBOARDING.allergyNoteEffect}</p>}
 
       {allowUnsure && (
         <>

@@ -57,6 +57,7 @@ test('„Mein Profil“ zeigt die Vermutungen getrennt, mit Begründung und ohne
 
 test('Tippen auf eine Vermutung öffnet die Bewertung; die Antwort ersetzt die Vermutung', async () => {
   const view = await setup();
+  await click(view.container.querySelector('[aria-labelledby="insights-title"] > summary'));
   const berries = [...view.container.querySelectorAll('.is-derived .taste-row')].find((row) => row.textContent.includes('Beeren'));
   await click(berries);
   const sheet = document.querySelector('[role="dialog"]') ?? view.container;
@@ -71,7 +72,8 @@ test('Tippen auf eine Vermutung öffnet die Bewertung; die Antwort ersetzt die V
 test('Ohne Meeresfrüchte nennt auch das Profil die bewertete Gruppe, Vermutungen und Bewertung nur Fisch', async () => {
   const rules = { ...onboarding, exclusions: [{ type: 'animalOrigin', value: 'seafood', source: 'onboarding', origin: 'never' }] };
   const view = await setup({ rules, sessionEvents: [{ cardId: 'F02', response: 'LIKE', round: 1 }] });
-  const group = view.container.querySelector('[aria-labelledby="group-groups"] .taste-row');
+  await click(view.container.querySelector('[aria-labelledby="group-answers-LIKE"] > summary'));
+  const group = view.container.querySelector('[aria-labelledby="group-answers-LIKE"] .taste-row');
   assert.equal(group.querySelector('.taste-title').textContent, 'Fisch');
   assert.ok(!group.getAttribute('aria-label').includes('Meeresfrüchte'));
   const reasons = [...view.container.querySelectorAll('.is-derived .taste-reason')].map((node) => node.textContent);
@@ -82,16 +84,17 @@ test('Ohne Meeresfrüchte nennt auch das Profil die bewertete Gruppe, Vermutunge
   await view.unmount();
 });
 
-test('Bewertete Gerichte stehen im Profil getrennt und führen nach Runde 4 zu keiner zusätzlichen Runde', async () => {
+test('Bewertete Gerichte sind als Gericht gekennzeichnet; keine zusätzliche Runde nach Runde 4', async () => {
   const view = await setup({ sessionEvents: [{ cardId: 'F01', response: 'LIKE', round: 1 }, { cardId: 'D05', response: 'PREFER', round: 4 }] });
-  const dishes = view.container.querySelector('[aria-labelledby="group-dishes"]');
+  const dishes = view.container.querySelector('[aria-labelledby="group-answers-PREFER"]');
   assert.ok(dishes.textContent.includes('Rösti mit Spiegelei'));
-  assert.ok(!view.container.querySelector('[aria-labelledby="group-groups"]').textContent.includes('Rösti mit Spiegelei'));
+  assert.ok(dishes.querySelector('.taste-reason').textContent.includes(PROFILE.answerKinds.dish));
+  assert.ok(!view.container.querySelector('[aria-labelledby="group-answers-LIKE"]').textContent.includes('Rösti mit Spiegelei'));
   assert.ok([...view.container.querySelectorAll('button')].every((button) => !button.textContent.includes('Gerichte bewerten')));
   await view.unmount();
 });
 
-test('Dashboard nach nurec Anhang B: Profilstand, Favoriten, Gruppen, „eher ungern“ mit Ausnahme, Offenes, Alltag', async () => {
+test('Dashboard: Profilstand, Antwortkategorien, Gruppen, Ausnahmen, Offenes und Alltag bleiben zugänglich', async () => {
   const { PROGRESS } = await import('../labels.js');
   const practicalDefinition = read('../data/practical.json');
   const families = index.cards.filter((card) => card.stage === 1).map((card) => card.id);
@@ -129,15 +132,84 @@ test('Dashboard nach nurec Anhang B: Profilstand, Favoriten, Gruppen, „eher un
   assert.ok(text.includes(PROGRESS.title) && text.includes(PROGRESS.note), 'Erfassungsgrad, ehrlich beschriftet');
   assert.ok(view.container.querySelector('[role="progressbar"]').getAttribute('aria-valuenow') > 0);
   assert.ok(text.includes(PROGRESS.next.round(2, ['Obst'])));
-  assert.ok(text.includes(PROFILE.favoritesTitle) && text.includes('Naturtofu'), 'bestätigter Favorit');
-  assert.ok(text.includes(PROFILE.groupsTitle));
+  assert.ok(text.includes('Naturtofu'), 'bestätigter Favorit bleibt erreichbar');
+  assert.ok(text.includes(PROFILE.answerKinds.group));
   assert.ok(text.includes(PROFILE.exception('Sojaprodukte, Naturtofu')), 'Ausnahme bei Hülsenfrüchte');
-  assert.ok(text.includes(PROFILE.unfamiliarTitle) && text.includes(PROFILE.unaskedTitle), '„Kenne ich nicht“ getrennt von „nie gefragt“');
+  assert.ok(text.includes('Kenne ich nicht') && text.includes(PROFILE.unaskedTitle), '„Kenne ich nicht“ getrennt von „nie gefragt“');
   assert.ok(text.includes(PROFILE.practicalTitle) && text.includes(PROFILE.practicalEmpty));
   const nextButton = [...view.container.querySelectorAll('.profile-status button')][0];
   await click(nextButton);
+  await click(view.container.querySelector('.practical-panel > summary'));
   const practicalButton = [...view.container.querySelectorAll('.practical-panel button')][0];
   await click(practicalButton);
   assert.deepEqual(calls, ['round', 'practical']);
+  await view.unmount();
+});
+
+test('Profil startet kompakt: alle Detailbereiche geschlossen, Zähler und Balken stimmen, Kategorien öffnen unabhängig', async () => {
+  const view = await setup({ sessionEvents: [
+    { cardId: 'F01', response: 'LIKE' },
+    { cardId: 'F03', response: 'PREFER' },
+    { cardId: 'F05', response: 'DISLIKE' },
+    { cardId: 'D01', response: 'UNFAMILIAR', round: 4 },
+    { cardId: 'F09', response: 'INTOLERANT' },
+  ] });
+  assert.ok([...view.container.querySelectorAll('.profile-disclosure')].every((details) => !details.open));
+  assert.equal(view.container.querySelector('.answer-total strong').textContent, '4');
+  const categories = [...view.container.querySelectorAll('.answer-distribution details')];
+  assert.equal(categories.length, 4);
+  for (const details of categories) {
+    assert.equal(details.querySelector('.group-count').textContent, '1');
+    assert.equal(details.querySelector('.answer-bar-fill').style.width, '25%');
+  }
+  await click(categories[0].querySelector('summary'));
+  assert.equal(categories[0].open, true);
+  assert.equal(categories[1].open, false);
+  await click(categories[1].querySelector('summary'));
+  assert.equal(categories[0].open, true);
+  await click(categories[0].querySelector('summary'));
+  assert.equal(categories[0].open, false);
+  const unknown = categories.at(-1);
+  assert.ok(unknown.textContent.includes('Pizza Margherita'));
+  assert.ok(!categories[2].textContent.includes('Pizza Margherita'));
+  await view.unmount();
+});
+
+test('Ohne Antworten zeigen alle Kategorien null und einen verständlichen Leerzustand', async () => {
+  const view = await setup({ sessionEvents: [] });
+  assert.equal(view.container.querySelector('.answer-total strong').textContent, '0');
+  assert.ok(view.container.textContent.includes(PROFILE.tasteEmpty));
+  for (const details of view.container.querySelectorAll('.answer-distribution details')) {
+    assert.equal(details.querySelector('.group-count').textContent, '0');
+    assert.equal(details.querySelector('.answer-bar-fill').style.width, '0%');
+    await click(details.querySelector('summary'));
+    assert.ok(details.textContent.includes(PROFILE.answerEmpty));
+  }
+  await view.unmount();
+});
+
+test('Geänderte und entfernte Antworten aktualisieren Übersicht und Listen ohne erneutes Öffnen des Profils', async () => {
+  const { useState } = await import('react');
+  function Harness() {
+    const [sessionEvents, setEvents] = useState([{ cardId: 'F01', response: 'LIKE' }]);
+    const round = deriveRoundState({ index, onboarding, diets: stage0.diets, events: sessionEvents });
+    return h(ProfileScreen, {
+      round, onboarding, account: null, index, allergens, foods: [], dietOptions, steps: [],
+      onChange: { rating: (cardId, rating) => setEvents((current) => [...current, { type: 'RATING_CHANGED', source: 'profile', cardId, rating }]) },
+    });
+  }
+  const view = await render(h(Harness));
+  const category = (rating) => view.container.querySelector(`[aria-labelledby="group-answers-${rating}"]`);
+  await click(category('LIKE').querySelector('summary'));
+  await click(category('LIKE').querySelector('.taste-row'));
+  await click([...document.querySelectorAll('[role="radio"]')].at(-1));
+  assert.equal(category('LIKE').querySelector('.group-count').textContent, '0');
+  assert.equal(category('PREFER').querySelector('.group-count').textContent, '1');
+  assert.equal(category('LIKE').querySelector('.taste-row'), null);
+  await click(category('PREFER').querySelector('summary'));
+  await click(category('PREFER').querySelector('.taste-row'));
+  await click([...document.querySelectorAll('button')].find((button) => button.textContent === PROFILE.ratingRemove));
+  assert.equal(view.container.querySelector('.answer-total strong').textContent, '0');
+  assert.equal(category('PREFER').querySelector('.group-count').textContent, '0');
   await view.unmount();
 });
