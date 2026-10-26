@@ -235,6 +235,7 @@ src/
   test/simulate.js       simulierte Testpersonen für Tests (keine echten Daten)
 docs/
   messkonzept.md         Kontrollkarten, Kennzahlen, Vergleichswerte, Kriterium, Pilot
+  00_Index.md bis 10_    Technische Analyse vor der Nutzerstudie (26.10.2026): Kartenlogik, Filter, Profil, Flowcharts, Tests, Bewertung
 scripts/
   test-setup.mjs         lädt JSX, JSON und CSS in node --test wie Vite
   evaluate.mjs           npm run auswertung: liest JSON-Exporte, schreibt Lernkurve und Tabellen nach auswertung/
