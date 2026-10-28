@@ -26,7 +26,7 @@ Stand 26.10.2026. Grundlage: Dokumente 01 bis 08, Testläufe vom 26.10.2026, [me
 
 1. **B1 „Vertrage ich nicht“ beim Wischen:** Variante a (Tags der Karte mit ausschliessen, kleine Codeänderung mit Test, neue `RULE_VERSION`) oder Variante b (Text und Anweisung). Ohne Entscheid kann eine Testperson mit Ei-Unverträglichkeit, die Frage 2 übersprungen hat, in Runde 3 Zopf sehen.
 2. **B3 Budget Runde 2:** `holdout` und `limit` festlegen und begründen (Standard 6 und 13 lassen ist eine zulässige Entscheidung, muss aber im Bericht als Grenze stehen).
-3. **Konfiguration festlegen:** Auswahlverfahren nur `adaptive` (oder geplanter Vergleich mit `fixed`, dann Zuteilung dokumentieren), `r1scale` 3 oder 2, Registrierung an oder aus, SMS echt oder simuliert, `GROUP_IMAGES` (mit dem Dozenten klären), Tutorial aus.
+3. **Konfiguration festlegen:** Auswahlverfahren nur `adaptive` (oder geplanter Vergleich mit `fixed`, dann Zuteilung dokumentieren), `r1scale` 3 oder 2, Anmeldung mit Vornamen an oder aus (seit dem 28.10.2026 ohne SMS), `GROUP_IMAGES` (mit dem Dozenten klären), Tutorial aus.
 4. **Profilbearbeitung während der Studie:** erlauben, verbieten oder erst nach dem Kurzinterview. Jede Änderung ist protokolliert, verändert aber das Profil, das die Person beurteilt.
 
 **P2, vor dem ersten Studientermin:**
@@ -44,9 +44,9 @@ Stand 26.10.2026. Grundlage: Dokumente 01 bis 08, Testläufe vom 26.10.2026, [me
 
 | Ebene | Felder |
 |---|---|
-| Sitzung | `sessionId` (12 Hexzeichen, zufällig), `participantCode`, `startedAt`, `endedAt`, `appVersion`, `ruleVersion`, `config` (Limit, Auswahl, Kontrollkarten, Skala, Bilder, Auth, SMS, ignorierte Parameter), `onboarding` (Altersgruppe, Ernährungsform, Ausschlüsse mit Typ, Wert, Herkunft, `medical`, `scope`, `status`; Unsicherheits-Flag; Notizen; Marken; Herkunft), `profile` (Abschnitt 8 in [04](04_Profilberechnung.md)), `trace` (Bildschirmwechsel mit Zeit, `about`, `stage0_edit`, `stage0_confirm` mit zulässigen Gruppen, `round_start`, `round_end`, `practical_open`, `tab`, `sign_out`, `restart`) |
+| Sitzung | `sessionId` (12 Hexzeichen, zufällig), `participantCode`, `startedAt`, `endedAt`, `appVersion`, `ruleVersion`, `participantName` (Vorname aus der Anmeldung, seit dem 28.10.2026, abschaltbar mit `PRIVACY.logParticipantName`), `config` (Limit, Auswahl, Kontrollkarten, Skala, Bilder, Auth, ignorierte Parameter), `onboarding` (Altersgruppe, Ernährungsform, Ausschlüsse mit Typ, Wert, Herkunft, `status`; Notizen), `profile` (Abschnitt 8 in [04](04_Profilberechnung.md)), `trace` (Bildschirmwechsel mit Zeit, `about`, `stage0_edit`, `stage0_confirm` mit zulässigen Gruppen, `round_start`, `round_end`, `tab`, `sign_out`, `restart`) |
 | Antwort | `cardId`, `stage`, `kind`, `parentId`, `round`, `positionInRound`, `phase`, `response`, `timestamp`, `responseTimeMs`, `inputMethod`, `selectionReason`, `ruleVersion`, `alternatives`, `labelShown`, `scaleVariant`, `imageShown`, `imageSource`, `cuisines`, `excludedCardIds` |
-| Weitere Ereignisse | `HOLDOUT_DRAWN` (Kontrollkarten, Methode, Anzahl zulässiger), `QUESTION_ABORTED`, `RATING_CHANGED` (mit `fromPrediction`, `predictedScore`), `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED`, `PRACTICAL_SAVED`, `NAVIGATION`, `AUTH_STARTED`, `AUTH_COMPLETED` |
+| Weitere Ereignisse | `HOLDOUT_DRAWN` (Kontrollkarten, Methode, Anzahl zulässiger), `QUESTION_ABORTED`, `RATING_CHANGED` (mit `fromPrediction`, `predictedScore`), `EXCLUSION_ADDED`, `EXCLUSION_REMOVED`, `DIET_CHANGED`, `NAVIGATION`, `AUTH_STARTED`, `AUTH_COMPLETED` (`PRACTICAL_SAVED` nur noch in Sitzungen vor dem 28.10.2026) |
 
 Nicht protokolliert: Vorname, Telefonnummer (nur gekürzt im Konto auf dem Gerät, nie im Export, Test `privacy.test.js`), Speisevorschriften (`PRIVACY.logDietaryRules = false`), Gerätetyp und Browser, Zeit je Frage in Stufe 0 (nur Bildschirmwechsel im `trace`).
 
@@ -58,8 +58,8 @@ Fehlend oder nur ausserhalb der App: die subjektive Einschätzung der Person zum
 
 ### Datensparsamkeit und Pseudonymisierung
 
-- Pseudonym ist die Teilnehmer-Nr. der Testleitung; `sessionId` ist zufällig. Die Zuordnungsliste Name zu Nummer existiert nur bei der Testleitung, falls überhaupt.
-- Ausschlüsse (Allergien) und bestätigte Vorschläge bei halal oder koscher sind Gesundheits- bzw. potenziell weltanschauliche Daten. Mit `PRIVACY.logExclusionValues = false` bleiben nur Typ und Herkunft; dann ist der Vorfilter nicht mehr auswertbar, aber die Lernkurve bleibt. **Offen:** Einwilligungstext (Frage F4) muss Gesundheitsdaten, lokale Speicherung, Export und, falls aktiv, den SMS-Versand an Google nennen.
+- Pseudonym ist die Teilnehmer-Nr. der Testleitung; `sessionId` ist zufällig. Seit dem 28.10.2026 steht zusätzlich der Vorname (`participantName`) in der Sitzung und im Export, damit die Testleitung die Antworten zuordnen kann (Teamentscheid); mit `PRIVACY.logParticipantName = false` bleibt er nur im Konto auf dem Gerät.
+- Ausschlüsse (Allergien) und bestätigte Vorschläge bei halal oder koscher sind Gesundheits- bzw. potenziell weltanschauliche Daten. Mit `PRIVACY.logExclusionValues = false` bleiben nur Typ und Herkunft; dann ist der Vorfilter nicht mehr auswertbar, aber die Lernkurve bleibt. **Offen:** Einwilligungstext (Frage F4) muss Gesundheitsdaten, lokale Speicherung, Export und den Vornamen im Export (`participantName`, seit dem 28.10.2026) nennen; einen SMS-Versand an Google gibt es nicht mehr.
 - Die Altersgruppe ist die einzige demografische Angabe; mit kleiner Stichprobe und Teilnehmer-Nr. ist Re-Identifikation durch die Testleitung möglich, durch Dritte nicht ohne die Liste.
 - Exporte nie ins Repository (`auswertung/` steht in `.gitignore`), Geräte nach der Studie mit „Alle Daten löschen“ bereinigen.
 
@@ -69,7 +69,7 @@ Fehlend oder nur ausserhalb der App: die subjektive Einschätzung der Person zum
 |---|---|
 | Version | ein Git-Tag, eine veröffentlichte Adresse (GitHub Pages), keine Deployments während der Studie |
 | Adresse | ohne URL-Parameter; Ausnahme nur bei geplantem Vergleich, dann je Gruppe ein fester Link |
-| Konfiguration | Limit 13, adaptiv, 6 Kontrollkarten, `r1scale` 3, Fotos, `GROUP_IMAGES` nach Entscheid, Tutorial aus, SMS simuliert oder Registrierung aus |
+| Konfiguration | Limit 13 (Runde 1 bis 3; Runde 4 ohne Limit), adaptiv, 6 Kontrollkarten, `r1scale` 3, Fotos, `GROUP_IMAGES` nach Entscheid, Tutorial aus, Anmeldung mit Vornamen an |
 | Gerät | gleiche Geräteklasse und Browser für alle, Schrift 100 %, WLAN für Bilder |
 | Ablauf | Einführung in einem Satz, Wischrichtungen nicht erklären, laut denken, bis zum Abschluss der letzten Runde, Kurzinterview, Export am Ende des Tages ([messkonzept.md](messkonzept.md), Abschnitt 8) |
 | Testleitung | vor jeder Person „Neue Testperson starten“, Teilnehmer-Nr. eintragen, nach der Studie „Alle Daten löschen“ |

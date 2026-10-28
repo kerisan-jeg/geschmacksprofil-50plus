@@ -62,7 +62,6 @@
   --color-error-soft: #fbe8e7;
   --color-info: #46597a;
   --color-info-soft: #e6ebf2;
-  --color-banner: #1c2620; /* simulierte SMS-Mitteilung (dunkel wie eine Systemmitteilung) */
   --color-on-banner: #ffffff;
   --color-on-banner-secondary: #c9d1cc;
   --color-on-dark-hover: rgb(255 255 255 / 0.14);
@@ -90,7 +89,6 @@
   --line-height-body: 1.5;
   --letter-spacing-title: -0.02em;
   --letter-spacing-caps: 0.06em;
-  --letter-spacing-code: 0.3em; /* SMS-Code: Ziffern gut unterscheidbar */
   --underline-offset: 0.22em;
   --underline-thickness: 0.09em;
 
@@ -136,7 +134,6 @@
   --duration-swipe-exit: 280ms; /* Karte fliegt weg */
   --duration-card-enter: 320ms; /* nächste Karte rückt nach */
   --duration-card-fade: 0ms; /* Überblenden statt Nachrücken, nur bei reduzierter Bewegung */
-  --duration-banner: 360ms; /* SMS-Mitteilung fährt ein */
   --duration-demo: 9s; /* Tutorial: Schleife der Wisch-Demo */
   --duration-spin: 900ms; /* Ladeanzeige */
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);

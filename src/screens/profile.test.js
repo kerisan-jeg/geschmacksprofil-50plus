@@ -15,7 +15,7 @@ const read = (file) => JSON.parse(readFileSync(new URL(file, import.meta.url), '
 const index = indexCatalog(read('../data/catalog.json').cards);
 const stage0 = read('../data/stage0.json');
 const allergens = read('../data/allergens.json');
-const onboarding = { diet: null, exclusions: [], cardLabels: {}, uncertain: false, avoidBrands: [], avoidOrigins: [], freeTextNotes: [] };
+const onboarding = { diet: null, exclusions: [], cardLabels: {}, freeTextNotes: [] };
 const dietOptions = { options: stage0.questions.find((question) => question.id === 'diet').options, diets: stage0.diets, tagLabels: {} };
 
 const events = [
@@ -94,9 +94,8 @@ test('Bewertete Gerichte sind als Gericht gekennzeichnet; keine zusätzliche Run
   await view.unmount();
 });
 
-test('Dashboard: Profilstand, Antwortkategorien, Gruppen, Ausnahmen, Offenes und Alltag bleiben zugänglich', async () => {
+test('Dashboard: Profilstand, Antwortkategorien, Gruppen, Ausnahmen und Offenes bleiben zugänglich; kein Alltagsprofil mehr', async () => {
   const { PROGRESS } = await import('../labels.js');
-  const practicalDefinition = read('../data/practical.json');
   const families = index.cards.filter((card) => card.stage === 1).map((card) => card.id);
   const answers = [
     ...families.slice(0, 11).map((cardId) => ({ cardId, response: { F05: 'DISLIKE', F09: 'UNFAMILIAR' }[cardId] ?? 'LIKE', round: 1 })),
@@ -116,13 +115,9 @@ test('Dashboard: Profilstand, Antwortkategorien, Gruppen, Ausnahmen, Offenes und
       dietOptions,
       steps: [],
       next: { type: 'round', number: 2, titles: ['Obst'] },
-      practical: null,
-      practicalDefinition,
-      dishes: { available: false },
       canSignOut: false,
       onCreate() {},
       onNext: (next) => calls.push(next.type),
-      onOpenPractical: () => calls.push('practical'),
       onRestart() {},
       onSignOut() {},
       onChange: {},
@@ -136,13 +131,11 @@ test('Dashboard: Profilstand, Antwortkategorien, Gruppen, Ausnahmen, Offenes und
   assert.ok(text.includes(PROFILE.answerKinds.group));
   assert.ok(text.includes(PROFILE.exception('Sojaprodukte, Naturtofu')), 'Ausnahme bei Hülsenfrüchte');
   assert.ok(text.includes('Kenne ich nicht') && text.includes(PROFILE.unaskedTitle), '„Kenne ich nicht“ getrennt von „nie gefragt“');
-  assert.ok(text.includes(PROFILE.practicalTitle) && text.includes(PROFILE.practicalEmpty));
+  assert.ok(!text.includes('Alltag'), 'kein Alltagsprofil mehr (28.10.2026)');
+  assert.equal(view.container.querySelector('.practical-panel'), null);
   const nextButton = [...view.container.querySelectorAll('.profile-status button')][0];
   await click(nextButton);
-  await click(view.container.querySelector('.practical-panel > summary'));
-  const practicalButton = [...view.container.querySelectorAll('.practical-panel button')][0];
-  await click(practicalButton);
-  assert.deepEqual(calls, ['round', 'practical']);
+  assert.deepEqual(calls, ['round']);
   await view.unmount();
 });
 

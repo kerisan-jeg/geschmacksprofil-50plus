@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { MAX_ROUNDS, NEGATIVE_GROUP_QUOTA_STAGE3 } from '../config.js';
 import { indexCatalog } from './catalog.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
-import { buildProfile, computeProfile, deriveRoundState, derivedEntries, hasMoreCards, nextCard, nextRoundCards, openHoldout, selectionReason, selectNextCards, tasteSignals } from './engine.js';
+import { buildProfile, computeProfile, deriveRoundState, derivedEntries, dishAffinity, hasMoreCards, nextCard, nextRoundCards, openHoldout, selectionReason, selectNextCards, tasteSignals } from './engine.js';
 import { HOLDOUT_DRAWN, PHASE_HOLDOUT, RATING_CHANGED } from './events.js';
 import { rankedCards, rankedStageCards, REASONS, SELECTION } from './selection.js';
 import { NO_ONBOARDING, simulateSession, tasteByFamily } from '../test/simulate.js';
@@ -187,7 +187,7 @@ const holdoutEvent = { type: HOLDOUT_DRAWN, cardIds: HOLDOUT, method: 'test', el
 test('Kontrollkarten schliessen Runde 2 ab; Runde 4 enthält ausschliesslich Gerichte', () => {
   const session = simulateSession({ index, diets, config: { ...config, roundCardLimit: 13, holdout: 6 }, respond: () => LIKE, sessionId: 'budget' });
   const answers = session.events.filter((event) => event.type === 'ANSWER');
-  assert.equal(answers.length, MAX_ROUNDS * 13, 'vier volle Runden');
+  assert.equal(answers.length, (MAX_ROUNDS - 1) * 13 + 22, 'drei volle Runden und alle 22 Gerichte (Runde 4 ohne Limit)');
   const checks = answers.filter((event) => event.phase === PHASE_HOLDOUT);
   assert.equal(checks.length, 6);
   assert.deepEqual(answers.filter((event) => event.round === 2).slice(-6), checks, 'die letzten sechs Karten von Runde 2');
@@ -195,7 +195,7 @@ test('Kontrollkarten schliessen Runde 2 ab; Runde 4 enthält ausschliesslich Ger
   assert.ok(answers.filter((event) => event.round === 4).every((event) => event.stage === 4 && event.phase === 'dish'));
   const holdout = session.events[0].cardIds;
   assert.deepEqual(checks.map((event) => event.cardId), holdout, 'in der gezogenen Reihenfolge');
-  for (let round = 1; round <= 4; round += 1) assert.ok(answers.filter((event) => event.round === round).length <= 13);
+  for (let round = 1; round <= 3; round += 1) assert.ok(answers.filter((event) => event.round === round).length <= 13);
 });
 
 test('Bei durchgängiger Ablehnung werden keine langen Lebensmittel-Nachfragen angehängt', () => {
@@ -212,7 +212,13 @@ test('Bei durchgängiger Ablehnung werden keine langen Lebensmittel-Nachfragen a
   const perParent = Object.groupBy(details, (event) => event.parentId);
   assert.ok(Object.values(perParent).every((list) => list.length <= NEGATIVE_GROUP_QUOTA_STAGE3), 'vorläufige Quote je Untergruppe');
   assert.deepEqual(answers.filter((event) => event.round === 2).slice(-6).map((event) => event.phase), Array(6).fill(PHASE_HOLDOUT));
-  assert.ok(answers.some((event) => event.round === 4 && event.stage === 4));
+  // Runde 4 (28.10.2026): nur Gerichte, die zum Profil passen. Mit 10 Karten je Runde bleiben drei Gruppen unbewertet;
+  // nur Gerichte, deren Zutaten ausschliesslich aus solchen Gruppen stammen (Zuneigung 0), kommen noch, keines mit Abneigung
+  const dishes = answers.filter((event) => event.round === 4);
+  const final = state(session.events, 4);
+  assert.ok(dishes.length > 0 && dishes.length < 22, `${dishes.length} Gerichte`);
+  assert.ok(dishes.every((event) => dishAffinity(final, index.get(event.cardId)) >= 0), 'kein Gericht mit überwiegend abgelehnten Zutaten');
+  assert.deepEqual(selectNextCards(final, config), [], 'danach bleibt kein passendes Gericht');
   const last = deriveRoundState({ index, onboarding: NO_ONBOARDING, diets, events: session.events, round: answers.at(-1).round });
   assert.equal(hasMoreCards(last, config), false);
   assert.deepEqual(openHoldout(last), []);
@@ -277,7 +283,7 @@ test('Eine Vermutung im Profil bestätigen: Sie wird zur direkten Bewertung und 
   assert.deepEqual([undone.profileRated, 'F01' in undone.ratings], [[], false]);
 });
 
-test('Simulierte Sitzungen: jede Runde höchstens 10 Karten, nie eine Karte doppelt', () => {
+test('Simulierte Sitzungen: Runden 1 bis 3 höchstens 10 Karten, Runde 4 alle passenden Gerichte, nie eine Karte doppelt', () => {
   const tastes = [
     () => LIKE,
     tasteByFamily(index, { F01: PREFER, F02: DISLIKE, F03: UNFAMILIAR, F04: LIKE, F05: DISLIKE, F06: LIKE, F07: PREFER, F08: LIKE, F09: LIKE, F10: DISLIKE, F11: LIKE, F12: PREFER, F13: UNFAMILIAR }),
@@ -287,7 +293,8 @@ test('Simulierte Sitzungen: jede Runde höchstens 10 Karten, nie eine Karte dopp
     const session = simulateSession({ index, diets, config: { ...config, holdout: 6 }, respond, sessionId: `p${i}` });
     const answers = session.events.filter((event) => event.type === 'ANSWER');
     assert.equal(new Set(answers.map((event) => event.cardId)).size, answers.length, `p${i}`);
-    assert.ok(answers.length <= 40);
+    for (let round = 1; round <= 3; round += 1) assert.ok(answers.filter((event) => event.round === round).length <= 10, `p${i}, Runde ${round}`);
+    assert.ok(answers.filter((event) => event.round === 4).length <= 22, `p${i}, Runde 4`);
     assert.equal(answers.filter((event) => event.phase === PHASE_HOLDOUT).length, 6, `p${i}: alle Kontrollkarten gezeigt`);
   }
 });

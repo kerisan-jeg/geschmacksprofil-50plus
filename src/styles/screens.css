@@ -173,34 +173,6 @@
   transform: rotate(180deg);
 }
 
-.brands-block {
-  display: grid;
-  gap: var(--space-4);
-  padding-top: var(--space-4);
-  border-top: var(--border-hairline) solid var(--color-line);
-}
-
-.brands-title {
-  font-size: var(--font-size-title-s);
-  font-weight: var(--font-weight-bold);
-}
-
-.text-list {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.text-list-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-2);
-}
-
-.text-list-add {
-  width: auto;
-  padding: 0 var(--space-4);
-}
-
 /* ---------- Tutorial ---------- */
 
 .intro-step {
@@ -429,6 +401,20 @@
   display: grid;
   min-height: var(--size-touch);
   align-content: center;
+}
+
+/* Runde 4 (Gerichte): „Runde beenden“ unter den Antwortknöpfen, sobald genug Gerichte gesehen sind
+   (Teamentscheid 28.10.2026). Schmal und mittig, damit die Karte möglichst viel Höhe behält. */
+.round-exit {
+  display: grid;
+  justify-items: center;
+}
+
+.round-exit .button-secondary {
+  width: auto;
+  min-height: var(--size-touch);
+  padding-right: var(--space-5);
+  padding-left: var(--space-5);
 }
 
 /* ---------- Rundenübersicht (Verbesserung 7) ---------- */
@@ -951,39 +937,8 @@
   color: var(--color-ink);
 }
 
-.detail-lines,
-.practical-lines {
+.detail-lines {
   display: grid;
   gap: var(--space-2);
   padding-bottom: var(--space-3);
-}
-
-.practical-panel {
-  display: grid;
-  gap: var(--space-2);
-  padding-bottom: var(--space-3);
-}
-
-.practical-line {
-  display: grid;
-  gap: var(--space-1);
-  padding-top: var(--space-2);
-  border-top: var(--border-hairline) solid var(--color-line);
-}
-
-.practical-line dt {
-  color: var(--color-ink-secondary);
-  font-size: var(--font-size-caption);
-  font-weight: var(--font-weight-bold);
-}
-
-.practical-line dd {
-  overflow-wrap: anywhere;
-}
-
-
-/* Alltagsprofil: „Überspringen“ als ruhige Nebenaktion mittig unter „Weiter“ */
-.screen-practical .action-bar .button-ghost {
-  justify-self: center;
-  margin: 0;
 }

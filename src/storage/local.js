@@ -1,10 +1,10 @@
 // Lokaler Speicher für die Person auf diesem Gerät. Alles bleibt im Browser (localStorage).
 //
 // Getrennt von den Sitzungen für die Auswertung (logging/logger.js, Präfix „geschmacksprofil:session:“):
-//   geschmacksprofil:account  Vorname und gekürzte Handynummer („+41 79 *** ** 67“). Nie die volle Nummer.
+//   geschmacksprofil:account  Vorname (seit dem 28.10.2026 ohne Handynummer).
 //   geschmacksprofil:app      Stand der App (Fragebogen, Event-Log, Bildschirm), damit nach einem
 //                             Neuladen oder beim nächsten Öffnen dort weitergeht, wo die Person war.
-// Weder Vorname noch Telefonnummer gelangen in Sitzungen oder Exporte (JSON, CSV).
+// Der Vorname steht zusätzlich als participantName in der Sitzung (PRIVACY.logParticipantName), sonst nirgends.
 
 export const ACCOUNT_KEY = 'geschmacksprofil:account';
 export const APP_STATE_KEY = 'geschmacksprofil:app';
@@ -44,12 +44,9 @@ function remove(key) {
   }
 }
 
-// Konto: { firstName, phoneMasked, verifiedAt }. Die volle Nummer wird abgelehnt.
-export function saveAccount({ firstName = '', phoneMasked = null, verifiedAt = null }) {
-  if (phoneMasked && /\d{5,}/.test(phoneMasked.replace(/\s/g, '').replace(/^\+\d{2,3}/, ''))) {
-    throw new Error('Nur die gekürzte Telefonnummer darf gespeichert werden');
-  }
-  return writeJson(ACCOUNT_KEY, { firstName: String(firstName).slice(0, 30), phoneMasked, verifiedAt });
+// Konto: { firstName }. Mehr wird nicht gespeichert (keine Handynummer).
+export function saveAccount({ firstName = '' }) {
+  return writeJson(ACCOUNT_KEY, { firstName: String(firstName).slice(0, 30) });
 }
 
 export function loadAccount() {
@@ -61,9 +58,8 @@ export function clearAccount() {
   remove(ACCOUNT_KEY);
 }
 
-// Stand der App. Nur Felder, die zum Weitermachen nötig sind; flüchtige Teile (z. B. eine laufende
-// SMS-Anfrage mit der vollen Nummer) werden nie gespeichert.
-const PERSISTED = ['screen', 'tab', 'config', 'person', 'answers', 'step', 'editing', 'onboarding', 'events', 'roundNumber', 'roundMode', 'dishRound', 'practicalFrom', 'endedEarly'];
+// Stand der App. Nur Felder, die zum Weitermachen nötig sind; die laufende Eingabe des Vornamens nicht.
+const PERSISTED = ['screen', 'tab', 'config', 'person', 'answers', 'step', 'editing', 'onboarding', 'events', 'roundNumber', 'roundMode', 'dishRound', 'endedEarly'];
 
 export function saveAppState(state, sessionId) {
   const snapshot = Object.fromEntries(PERSISTED.map((key) => [key, state[key]]));

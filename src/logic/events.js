@@ -9,11 +9,13 @@
 // DIET_CHANGED      Ernährungsweise im Profil geändert: { diet, previousDiet }
 //                   Bestätigt jemand eine Vermutung der App im Profil, steht dabei fromPrediction: true und
 //                   predictedScore (die Vermutung vorher); die Karte gilt danach als direkt bewertet.
-// AUTH_STARTED      Registrierung begonnen (Vorname eingeben), AUTH_COMPLETED: SMS-Code bestätigt.
-//                   Damit lässt sich die Dauer der Registrierung getrennt von der Swipe-Dauer auswerten.
+// AUTH_STARTED      Anmeldung begonnen (Vorname eingeben), AUTH_COMPLETED: Vorname bestätigt ({ method: 'name' };
+//                   bis Version 0.9 'sms' oder 'sms-simulated' nach dem SMS-Code). Damit lässt sich die Dauer der
+//                   Anmeldung getrennt von der Swipe-Dauer auswerten.
 // QUESTION_ABORTED  „Runde beenden“, während eine Karte zu sehen war (nurec v0.2, Kap. 6: Abbruch protokollieren):
 //                   { cardId, stage, round, positionInRound, selectionReason, ruleVersion }
-// PRACTICAL_SAVED   Alltagsprofil gespeichert (Kap. 2.3, freiwillig): { practical }. Es gilt das letzte Ereignis.
+// PRACTICAL_SAVED   Alltagsprofil gespeichert (bis Version 0.9). Seit dem 28.10.2026 gibt es kein Alltagsprofil mehr;
+//                   alte Protokolle können das Ereignis enthalten, Replay und Profil ignorieren es.
 // HOLDOUT_DRAWN     Kontrollkarten gezogen (nach „Stimmt so“): { cardIds, method, eligible }. Diese Karten
 //                   kommen erst am Ende von Runde 2, der Untergruppenebene (Messkonzept).
 //                   Es gilt das letzte Ereignis dieses Typs.

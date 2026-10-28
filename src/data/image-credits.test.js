@@ -163,7 +163,11 @@ test('Bilder zeigen nie Ausgeschlossenes: sonst der neutrale Platzhalter', async
   assert.equal(allowed('F01.1', [], 'vegetarian'), false, 'vegetarisch: kein Fleischfoto');
   const almond = [{ type: 'allergen', value: 'almond' }];
   assert.equal(allowed('F13.1', almond), false, 'Mandelallergie: keine Mandeln im Bild');
-  assert.equal(allowed('F13.2', almond), false, 'auch nicht neben Kürbiskernen');
+  assert.equal(allowed('F13.2', almond), true, 'Kerne und Samen: seit dem 28.10.2026 ein Foto ohne Mandel');
+  // Fotos, die bis zum 27.10.2026 bei Laktose, Milcheiweiss oder vegan den Platzhalter ergaben (Rahm, Käse, Butter im Bild)
+  const lactose = [{ type: 'allergen', value: 'lactose' }];
+  for (const id of ['F02.1.3', 'D11', 'F06.3.2']) assert.equal(allowed(id, lactose), true, `${id}: ohne Milchprodukt im Bild`);
+  assert.equal(allowed('F06.3.2', [], 'vegan'), true, 'Mehrkornknäcke zeigt das Knäckebrot-Foto ohne Butter');
   const tomato = [{ type: 'food', value: 'Tomate', freeText: true }];
   assert.equal(allowed('F10.2', tomato), false, 'eingetippte „Tomate“');
   assert.equal(allowed('F11.1', tomato), true);

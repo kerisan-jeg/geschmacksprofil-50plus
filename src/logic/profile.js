@@ -32,16 +32,10 @@ function entryLabel(entry, index) {
   return entry.value;
 }
 
-// Zusätze nach nurec v0.2, Kap. 2.2 (Quelle, Geltungsbereich, Prüfstatus):
-//   'check'   eingetippt ohne eindeutige Zuordnung (Notiz): Status „prüfen“
-//   'medical' ärztlich oder fachlich festgestellt (Frage 2)
-//   'limited' Geltungsbereich „kleine Mengen gehen“ (wird trotzdem nicht vorgeschlagen)
+// Prüfstatus nach nurec v0.2, Kap. 2.2: 'check' = eingetippt ohne eindeutige Zuordnung (Notiz), Status „prüfen“.
+// (Quelle „ärztlich festgestellt“ und Geltungsbereich „kleine Mengen gehen“ gibt es seit dem 28.10.2026 nicht mehr.)
 export function entryFlags(entries) {
-  const flags = [];
-  if (entries.some((entry) => entry.freeText)) flags.push('check');
-  if (entries.some((entry) => entry.medical)) flags.push('medical');
-  if (entries.some((entry) => entry.scope === 'limited')) flags.push('limited');
-  return flags;
+  return entries.some((entry) => entry.freeText) ? ['check'] : [];
 }
 
 // Einträge je Abschnitt, ohne Doppelte. Jedes Element:
@@ -92,8 +86,7 @@ export function groupExclusions(entries, { allergens, index }) {
 // Ein Abschnitt je Frage, damit „Ändern“ direkt zur passenden Frage führt. Grundlage ist der aktuelle
 // Stand (state aus deriveRoundState, inkl. Änderungen in „Mein Profil“): Es steht nur da, was der Filter
 // wirklich ausschliesst. Eingetippte Einträge (Notizen) stehen bei der Frage, in der sie eingetragen wurden.
-// Jeder Abschnitt: { id, items: [{ key, label }], notes: [label], open, brands, origins }
-//   open: Unsicherheits-Flag aus Frage 2. Die Frage bleibt offen, daraus folgt keine Freigabe.
+// Jeder Abschnitt: { id, items: [{ key, label, flags }], notes: [label] }; der Abschnitt diet zusätzlich dietaryRules.
 export const SUMMARY_SECTIONS = ['diet', 'intolerances', 'never'];
 
 export function summarySections(state, { onboarding, diets, allergens, index, dietRules = [] }) {
@@ -112,9 +105,6 @@ export function summarySections(state, { onboarding, diets, allergens, index, di
       id: 'diet',
       items: [...(dietRule ? [{ key: `diet:${state.diet}`, label: dietRule, flags: [] }] : []), ...plain(grouped.diet)],
       notes: [],
-      open: false,
-      brands: [],
-      origins: [],
       // Speisevorschriften (Teil C): als Angabe gezeigt, ohne eigene Wirkung
       dietaryRules: (onboarding?.dietaryRules ?? []).map((id) => dietRules.find((rule) => rule.id === id)?.label ?? id),
     },
@@ -122,22 +112,16 @@ export function summarySections(state, { onboarding, diets, allergens, index, di
       id: 'intolerances',
       items: plain([...grouped.allergies, ...grouped.intolerances]),
       notes: notesOf('intolerances'),
-      open: Boolean(onboarding?.uncertain),
-      brands: [],
-      origins: [],
     },
     {
       id: 'never',
       items: plain(grouped.never),
       notes: notesOf('never'),
-      open: false,
-      brands: [...(onboarding?.avoidBrands ?? [])],
-      origins: [...(onboarding?.avoidOrigins ?? [])],
     },
   ];
 }
 
-// Gibt es überhaupt etwas zu bestätigen (Regel, Notiz, Marke oder Herkunft)?
+// Gibt es überhaupt etwas zu bestätigen (Regel oder Notiz)?
 export function hasSummaryRules(sections) {
-  return sections.some((section) => section.items.length + section.notes.length + section.brands.length + section.origins.length > 0);
+  return sections.some((section) => section.items.length + section.notes.length > 0);
 }

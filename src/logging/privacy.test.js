@@ -1,9 +1,10 @@
+// Datenschutz seit dem 28.10.2026: keine Handynummer mehr. Der Vorname aus der Anmeldung steht als participantName in
+// der Sitzung und im Export (Teamentscheid, für die Testleitung), abschaltbar mit PRIVACY.logParticipantName.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { DEFAULT_CONFIG } from '../config.js';
+import { DEFAULT_CONFIG, PRIVACY } from '../config.js';
 import { createAppModel } from '../app/model.js';
-import { maskPhone } from '../auth/phone.js';
 import { indexCatalog } from '../logic/catalog.js';
 import { buildProfile } from '../logic/engine.js';
 import { AUTH_COMPLETED, AUTH_STARTED, EXCLUSION_ADDED, RATING_CHANGED } from '../logic/events.js';
@@ -31,73 +32,68 @@ const stage0 = read('../data/stage0.json');
 const model = createAppModel({ index: indexCatalog(read('../data/catalog.json').cards), stage0, allergens: read('../data/allergens.json') });
 
 const FIRST_NAME = 'Annelies';
-const PHONE = '+41795551234';
-// Alle Schreibweisen, unter denen die Nummer auftauchen könnte
-const PHONE_FORMS = ['795551234', '079 555 12 34', '79 555 12 34', '0795551234', '555 12 34', '5551234'];
 
-test('Vorname und Telefonnummer sind in keiner exportierbaren Datenstruktur enthalten', () => {
+// Anmeldung, Fragebogen, Runde und Profiländerung wie in App.jsx
+function runSession(logParticipantName) {
   const storage = fakeStorage();
   globalThis.localStorage = storage;
-  const logger = createLogger(DEFAULT_CONFIG);
-  const log = (state, event) => model.reducer(state, { type: 'log', event: logger.recordEvent({ timestamp: new Date().toISOString(), ...event }) });
+  const previous = PRIVACY.logParticipantName;
+  PRIVACY.logParticipantName = logParticipantName;
+  try {
+    const logger = createLogger(DEFAULT_CONFIG);
+    const log = (state, event) => model.reducer(state, { type: 'log', event: logger.recordEvent({ timestamp: new Date().toISOString(), ...event }) });
+    let state = model.initialState(DEFAULT_CONFIG);
+    state = log(state, { type: AUTH_STARTED });
+    state = model.reducer(state, { type: 'registration', changes: { firstName: FIRST_NAME } });
+    saveAccount({ firstName: FIRST_NAME });
+    logger.setParticipantName(FIRST_NAME);
+    state = log(state, { type: AUTH_COMPLETED, method: 'name' });
+    state = model.reducer(state, { type: 'register', firstName: FIRST_NAME });
+    logger.start({ participantCode: 'T09', ageGroup: '70-79' });
+    state = model.reducer(state, { type: 'about', person: { ageGroup: '70-79', participantCode: 'T09', consent: true } });
+    state = model.reducer(state, { type: 'setAnswer', questionId: 'diet', value: 'none' });
+    state = model.reducer(state, { type: 'step', to: stage0.questions.length });
+    logger.setOnboarding(state.onboarding);
+    state = model.reducer(state, { type: 'event', event: logger.recordEvent({ type: 'ANSWER', cardId: 'F01', response: LIKE, timestamp: new Date().toISOString() }) });
+    state = log(state, { type: RATING_CHANGED, source: 'profile', cardId: 'F01', rating: PREFER, previousRating: LIKE });
+    state = log(state, { type: EXCLUSION_ADDED, source: 'profile', section: 'never', exclusions: [{ type: 'card', value: 'F01.3', label: 'Schwein' }] });
+    logger.finish(buildProfile(model.roundOf(state)));
+    saveAppState(state, logger.session.sessionId);
+    return { storage, logger, state };
+  } finally {
+    PRIVACY.logParticipantName = previous;
+  }
+}
 
-  // Registrierung wie in App.jsx
-  let state = model.initialState(DEFAULT_CONFIG);
-  state = log(state, { type: AUTH_STARTED });
-  state = model.reducer(state, { type: 'registration', changes: { firstName: FIRST_NAME, phoneInput: '079 555 12 34' } });
-  state = model.reducer(state, { type: 'codeSent', request: { requestId: 'sim-1', sentAt: 0, resendAvailableAt: 30_000, e164: PHONE } });
-  const account = { firstName: FIRST_NAME, phoneMasked: maskPhone(PHONE), verifiedAt: new Date().toISOString() };
-  saveAccount(account);
-  state = log(state, { type: AUTH_COMPLETED, method: 'sms-simulated' });
-  state = model.reducer(state, { type: 'verified', account });
-  logger.start({ participantCode: 'T09', ageGroup: '70-79' });
-  state = model.reducer(state, { type: 'about', person: { ageGroup: '70-79', participantCode: 'T09', consent: true } });
+test('Anmeldung ohne Handynummer: Konto enthält nur den Vornamen, nirgends eine Nummer', () => {
+  const { storage, state } = runSession(true);
+  const stored = JSON.parse(storage.getItem(ACCOUNT_KEY));
+  assert.deepEqual(Object.keys(stored), ['firstName']);
+  assert.equal(loadAccount().firstName, FIRST_NAME);
+  assert.deepEqual(state.account, { firstName: FIRST_NAME });
+  assert.deepEqual(state.registration, { firstName: '' }, 'die Eingabe bleibt nicht im Zustand');
+  for (const [key, value] of storage.dump()) assert.ok(!/\+41|phone|sms/i.test(value), `${key} ohne Nummer`);
+});
 
-  // Fragebogen, Runde und Profiländerungen
-  state = model.reducer(state, { type: 'setAnswer', questionId: 'diet', value: 'none' });
-  state = model.reducer(state, { type: 'step', to: stage0.questions.length });
-  logger.setOnboarding(state.onboarding);
-  state = model.reducer(state, { type: 'event', event: logger.recordEvent({ type: 'ANSWER', cardId: 'F01', response: LIKE, timestamp: new Date().toISOString() }) });
-  state = log(state, { type: RATING_CHANGED, source: 'profile', cardId: 'F01', rating: PREFER, previousRating: LIKE });
-  state = log(state, { type: EXCLUSION_ADDED, source: 'profile', section: 'never', exclusions: [{ type: 'card', value: 'F01.3', label: 'Schwein' }] });
-  logger.finish(buildProfile(model.roundOf(state)));
-  saveAppState(state, logger.session.sessionId);
-
-  // Exporte (JSON und CSV) und gespeicherte Sitzungen
+test('Vorname steht in Sitzung und Export (participantName), aber nicht im gespeicherten App-Stand', () => {
+  const { storage, logger } = runSession(true);
   const sessions = listSessions();
   assert.equal(sessions.length, 1);
-  const exports = [sessionsToJson(sessions), sessionsToCsv(sessions), JSON.stringify(sessions), JSON.stringify(logger.session)];
-  for (const text of exports) {
-    assert.ok(!text.includes(FIRST_NAME), 'kein Vorname im Export');
-    assert.ok(!text.includes(PHONE), 'keine Telefonnummer im Export');
-    for (const form of PHONE_FORMS) assert.ok(!text.includes(form), `keine Telefonnummer (${form})`);
-    assert.ok(!text.includes(maskPhone(PHONE)), 'auch nicht gekürzt');
-  }
-  // Exporte enthalten nur sessionId und die Teilnehmer-Nr.
-  assert.ok(exports[1].includes(logger.session.sessionId));
-  assert.ok(exports[1].includes('T09'));
-
-  // Gespeicherter Stand der App: ohne Namen und ohne Nummer (die stehen nur im Konto)
+  assert.equal(sessions[0].participantName, FIRST_NAME);
+  const csv = sessionsToCsv(sessions);
+  assert.ok(csv.includes(logger.session.sessionId) && csv.includes('T09') && csv.includes(FIRST_NAME));
+  assert.ok(sessionsToJson(sessions).includes(`"participantName": "${FIRST_NAME}"`));
   const appState = storage.getItem(APP_STATE_KEY);
-  assert.ok(appState && !appState.includes(FIRST_NAME));
-  for (const form of [PHONE, ...PHONE_FORMS]) assert.ok(!appState.includes(form), `Stand ohne ${form}`);
+  assert.ok(appState && !appState.includes(FIRST_NAME), 'der Stand der App trägt den Vornamen nicht (er steht im Konto)');
+});
 
-  // Konto: nur lokal, nur der Vorname und die gekürzte Nummer
-  const stored = JSON.parse(storage.getItem(ACCOUNT_KEY));
-  assert.deepEqual(Object.keys(stored).sort(), ['firstName', 'phoneMasked', 'verifiedAt']);
-  assert.equal(stored.phoneMasked, '+41 79 *** ** 34');
-  assert.equal(loadAccount().firstName, FIRST_NAME);
-  // Kein anderer Speicherplatz enthält Vorname oder Nummer
+test('Mit PRIVACY.logParticipantName = false bleibt der Vorname nur im Konto auf dem Gerät', () => {
+  const { storage, logger } = runSession(false);
+  const sessions = listSessions();
+  assert.equal(sessions[0].participantName, null);
+  for (const text of [sessionsToJson(sessions), sessionsToCsv(sessions), JSON.stringify(logger.session)]) assert.ok(!text.includes(FIRST_NAME), 'kein Vorname im Export');
   for (const [key, value] of storage.dump()) {
     if (key === ACCOUNT_KEY) continue;
     assert.ok(!value.includes(FIRST_NAME), `${key} ohne Vorname`);
-    assert.ok(!value.includes(PHONE), `${key} ohne Nummer`);
   }
-});
-
-test('Die volle Telefonnummer lässt sich nicht im Konto speichern', () => {
-  globalThis.localStorage = fakeStorage();
-  assert.throws(() => saveAccount({ firstName: 'Anna', phoneMasked: '+41 79 123 45 67' }));
-  assert.throws(() => saveAccount({ firstName: 'Anna', phoneMasked: PHONE }));
-  assert.doesNotThrow(() => saveAccount({ firstName: 'Anna', phoneMasked: maskPhone(PHONE) }));
 });

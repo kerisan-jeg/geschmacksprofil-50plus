@@ -1,4 +1,4 @@
-/* Registrierung, SMS-Mitteilung (Simulation), Profil-Knopf und Bearbeitung in „Mein Profil“.
+/* Anmeldung (nur Vorname), Profil-Knopf und Bearbeitung in „Mein Profil“.
    Werte nur aus tokens.css. */
 
 /* ---------- Profil-Knopf (Avatar) ---------- */
@@ -12,172 +12,6 @@
 /* Abschnitte der Profilerstellung füllen die Kopfzeile neben dem Avatar */
 .top-bar-start:has(> .steps) {
   flex: 1 1 auto;
-}
-
-/* ---------- Registrierung ---------- */
-
-.phone-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.phone-country {
-  flex: 0 1 auto;
-  width: auto;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.phone-number {
-  flex: 1 1 var(--size-phone-min);
-  min-width: 0;
-}
-
-.code-input {
-  font-size: var(--font-size-title-m);
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-code);
-  text-align: center;
-}
-
-.status-line {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-ink-secondary);
-  font-weight: var(--font-weight-semibold);
-}
-
-.resend-button {
-  align-self: flex-start;
-  width: auto;
-}
-
-.privacy-left {
-  justify-content: flex-start;
-  text-align: left;
-}
-
-/* Ladeanzeige: dreht sich nur mit Bewegung; der Text daneben sagt immer, was passiert */
-.spinner {
-  display: inline-block;
-  flex: none;
-  width: var(--size-spinner);
-  height: var(--size-spinner);
-  border: var(--border-strong) solid currentColor;
-  border-right-color: transparent;
-  border-radius: var(--radius-round);
-  animation: spin var(--duration-spin) linear infinite;
-}
-
-.spinner-dark {
-  color: var(--color-primary);
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* ---------- Simulierte SMS-Mitteilung ---------- */
-
-/* Im Fluss über dem Bildschirm (kein Overlay): Titel und Eingabefeld bleiben immer sichtbar. */
-.sms-banner {
-  display: flex;
-  justify-content: center;
-  padding: max(var(--space-2), env(safe-area-inset-top)) max(var(--space-gutter), env(safe-area-inset-right)) 0
-    max(var(--space-gutter), env(safe-area-inset-left));
-  animation: banner-in var(--duration-banner) var(--ease-out);
-}
-
-/* Die sichere Zone oben hat schon die Mitteilung übernommen. */
-.sms-banner + .screen {
-  padding-top: var(--space-4);
-}
-
-@keyframes banner-in {
-  from {
-    opacity: 0;
-    transform: translateY(calc(-3 * var(--motion-shift-m)));
-  }
-}
-
-.sms-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
-  gap: var(--space-3);
-  width: 100%;
-  max-width: var(--layout-max-width);
-  padding: var(--space-3) var(--space-1) var(--space-3) var(--space-3);
-  border-radius: var(--radius-xl);
-  background: var(--color-banner);
-  color: var(--color-on-banner);
-  box-shadow: var(--shadow-banner);
-  pointer-events: auto;
-}
-
-.sms-icon {
-  display: grid;
-  place-items: center;
-  width: var(--size-touch);
-  height: var(--size-touch);
-  border: var(--border-hairline) solid var(--color-on-dark-hover);
-  border-radius: var(--radius-m);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-}
-
-.sms-icon svg {
-  width: var(--size-icon-m);
-  height: var(--size-icon-m);
-}
-
-.sms-content {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 0;
-  line-height: var(--line-height-snug);
-}
-
-.sms-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
-  color: var(--color-on-banner-secondary);
-  font-size: var(--font-size-caption);
-}
-
-.sms-sender {
-  font-weight: var(--font-weight-bold);
-}
-
-.sms-text {
-  overflow-wrap: anywhere;
-}
-
-.sms-close {
-  display: grid;
-  place-items: center;
-  width: var(--size-touch);
-  height: var(--size-touch);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-round);
-  background: none;
-  color: var(--color-on-banner);
-  cursor: pointer;
-}
-
-.sms-close svg {
-  width: var(--size-icon-m);
-  height: var(--size-icon-m);
-}
-
-.sms-close:active {
-  background: var(--color-on-dark-hover);
 }
 
 /* ---------- Willkommen zurück ---------- */
@@ -325,10 +159,6 @@ button.taste-row:active {
   button.taste-row:hover,
   .segment-option:hover:not(.is-checked) {
     background: var(--color-hover);
-  }
-
-  .sms-close:hover {
-    background: var(--color-on-dark-hover);
   }
 }
 

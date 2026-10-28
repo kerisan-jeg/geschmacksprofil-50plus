@@ -1,4 +1,4 @@
-# Technische Analyse des Swipe-Prototyps (Stand 26.10.2026)
+# Technische Analyse des Swipe-Prototyps (Stand 26.10.2026, nachgeführt am 28.10.2026)
 
 Dokumentation der tatsächlichen Funktionsweise des Prototyps vor der Nutzerstudie, abgeleitet aus dem Code.
 Erstellt mit Claude Code im Auftrag des Teams (26.10.2026); alle Aussagen sind am Code geprüft, Tests wurden ausgeführt.
@@ -21,12 +21,13 @@ Erstellt mit Claude Code im Auftrag des Teams (26.10.2026); alle Aussagen sind a
 | | Wert |
 |---|---|
 | Git-Commit | `60bc8c5` (main, 24.10.2026, „CSS-Konflikt beheben und Antwortknöpfe wieder sichtbar machen“) |
-| `APP_VERSION` (src/config.js) | 0.9.0-demo |
-| `RULE_VERSION` (src/logic/engine.js) | demo-0.6 |
+| Nachgeführt | 28.10.2026 (Teamentscheide): Anmeldung nur mit Vornamen, Einwilligung als Kästchen, Speisevorschriften zugeklappt, Frage 2 und 3 ohne Zusatzangaben, Alltagsprofil entfernt, Runde 4 ohne Kartenlimit mit nur passenden Gerichten, Egli- und Chili-Foto ersetzt; Kurzfassung in [10_Zusammenfassung_Team.md](10_Zusammenfassung_Team.md) |
+| `APP_VERSION` (src/config.js) | 0.10.0-demo (vor dem 28.10.2026: 0.9.0-demo) |
+| `RULE_VERSION` (src/logic/engine.js) | demo-0.7 (vor dem 28.10.2026: demo-0.6) |
 | `ROUND_FLOW` | staged-v1 |
 | Kartenkatalog `src/data/catalog.json` | 167 Karten: 13 Gruppen, 36 Untergruppen, 96 konkrete Lebensmittel, 22 Gerichte; SHA-256 `d69605d9…f88161` |
-| Standardkonfiguration | 13 Karten je Runde (Maximum 15), 4 Runden, adaptive Auswahl, 6 Kontrollkarten, Skala Runde 1 mit drei Begriffen, Fotos, Registrierung an |
-| Tests | 314 vorhandene plus 26 neue, alle bestanden (`npm test`) |
+| Standardkonfiguration | 13 Karten je Runde (Maximum 15) in Runde 1 bis 3, Runde 4 ohne Limit, 4 Runden, adaptive Auswahl, 6 Kontrollkarten, Skala Runde 1 mit drei Begriffen, Fotos, Anmeldung mit Vornamen an |
+| Tests | 318 am 28.10.2026, alle bestanden (`npm test`); am 26.10.2026 waren es 314 vorhandene plus 26 neue |
 
 Die vollständigen Prüfsummen und ein Vorschlag zum Einfrieren der Studienversion stehen in [09_Studienbereitschaft.md](09_Studienbereitschaft.md).
 

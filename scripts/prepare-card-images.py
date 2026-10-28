@@ -16,7 +16,7 @@ Voraussetzung: pip install pillow
 
   python scripts/prepare-card-images.py stock [id ...]    Unsplash-Fotos ins A15-Format bringen (lokal oder über imageUrl);
                                                           mit Karten-IDs nur diese
-  python scripts/prepare-card-images.py groups            Gruppenbilder aus je drei Fotos (groupImages in image-credits.json)
+  python scripts/prepare-card-images.py groups [id ...]            Gruppenbilder aus je drei Fotos (groupImages in image-credits.json)
   python scripts/prepare-card-images.py check             alle Bilder prüfen (Datei, 4:3, Breite, Grösse, alt-Text)
   python scripts/prepare-card-images.py review            Prüfseite docs/bilder-review.html neu erzeugen (nur lokal)
 Nicht mehr benötigt seit A16 (bleibt für den Fall, dass doch KI-Bilder kommen):
@@ -138,7 +138,7 @@ def original(photo):
 GAP = 6  # Abstand zwischen den drei Fotos eines Gruppenbilds (weiss)
 
 
-def command_groups():
+def command_groups(only=None):
     """Gruppenbilder: je drei Fotos aus groupImages (image-credits.json), wie das frühere Bildraster zusammengesetzt:
     das erste gross links (Breite 1.2 : 1), die anderen zwei rechts übereinander. 4:3, WebP unter 150 KB.
     Dazu je Foto ein Teilbild (cards/parts/{Gruppe}-{n}.webp): Zeigt ein Teil Ausgeschlossenes, setzt die App das Bild
@@ -156,7 +156,7 @@ def command_groups():
     cells = [(0, 0, left_width, height), (left_width + GAP, 0, right_width, half), (left_width + GAP, half + GAP, right_width, height - half - GAP)]
     for card in data['cards']:
         group = groups.get(card['id'])
-        if not group:
+        if not group or (only and card['id'] not in only):
             continue
         canvas = Image.new('RGB', (width, height), 'white')
         for key, (x, y, w, h) in zip(group['photos'], cells):
@@ -367,7 +367,7 @@ if __name__ == '__main__':
     elif args[0] == 'prompts':
         command_prompts()
     elif args[0] == 'groups':
-        command_groups()
+        command_groups(set(args[1:]) or None)
     elif args[0] == 'check':
         command_check()
     elif args[0] == 'review':

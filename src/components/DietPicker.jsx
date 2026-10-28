@@ -7,6 +7,8 @@ import { DIET } from '../labels.js';
 //   A Ernährungsform (Pflicht, Einfachauswahl)
 //   B Einzelausschlüsse (freiwillig, Mehrfachauswahl). Was die Form schon ausschliesst, ist angehakt und gesperrt.
 //   C Speisevorschriften (freiwillig). Sie schliessen selbst nichts aus; die Vorschläge bestätigt die Person einzeln.
+//     Teil C ist zugeklappt (Teamentscheid 28.10.2026): erst öffnen, dann Halal oder Koscher wählen. Gewählte
+//     Vorschriften stehen in der zugeklappten Zeile.
 // definition: ganze stage0.json (für die Tabelle diets), question: Frage 1.
 export default function DietPicker({ definition, question, answer, onChange }) {
   const value = dietAnswer(answer);
@@ -67,40 +69,40 @@ export default function DietPicker({ definition, question, answer, onChange }) {
         />
       </section>
 
-      <section className="stack-tight" aria-labelledby="diet-rules">
-        <h2 id="diet-rules" className="title-section">
-          {question.rulesTitle}
-        </h2>
-        <p className="note">{question.rulesHint}</p>
-        <ChoiceList
-          name="diet-rules"
-          multiple
-          options={question.rules.map((rule) => ({ id: rule.id, label: rule.label }))}
-          value={value.rules}
-          onChange={toggleRule}
-          labelledBy="diet-rules"
-        />
-        {chosenRules.length > 0 && (
-          <div className="detail-block">
-            <p className="notice">
-              <Info aria-hidden="true" />
-              {DIET.rulesNote}
-            </p>
-            <h3 id="diet-suggest" className="title-section">
-              {DIET.suggestTitle(chosenRules.map((rule) => rule.label))}
-            </h3>
-            <ChoiceList
-              name="diet-suggest"
-              multiple
-              options={suggested.map(option)}
-              value={checked(suggested.map((entry) => entry.key))}
-              onChange={toggleExclusion}
-              labelledBy="diet-suggest"
-            />
-            <p className="note">{DIET.suggestNone}</p>
-          </div>
-        )}
-      </section>
+      <details className="lead-details diet-rules">
+        <summary id="diet-rules">{DIET.rulesSummary(question.rulesTitle, chosenRules.map((rule) => rule.label))}</summary>
+        <div className="stack-tight">
+          <p className="note">{question.rulesHint}</p>
+          <ChoiceList
+            name="diet-rules"
+            multiple
+            options={question.rules.map((rule) => ({ id: rule.id, label: rule.label }))}
+            value={value.rules}
+            onChange={toggleRule}
+            labelledBy="diet-rules"
+          />
+          {chosenRules.length > 0 && (
+            <div className="detail-block">
+              <p className="notice">
+                <Info aria-hidden="true" />
+                {DIET.rulesNote}
+              </p>
+              <h3 id="diet-suggest" className="title-section">
+                {DIET.suggestTitle(chosenRules.map((rule) => rule.label))}
+              </h3>
+              <ChoiceList
+                name="diet-suggest"
+                multiple
+                options={suggested.map(option)}
+                value={checked(suggested.map((entry) => entry.key))}
+                onChange={toggleExclusion}
+                labelledBy="diet-suggest"
+              />
+              <p className="note">{DIET.suggestNone}</p>
+            </div>
+          )}
+        </div>
+      </details>
     </div>
   );
 }

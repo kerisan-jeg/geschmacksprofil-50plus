@@ -103,7 +103,9 @@ test('A16: Bildinhalt ehrlich beschrieben; unsichere Inhalte als TODO; Karten oh
     }
   }
   // Käse im Bild: Die Käse-Karte steht in shows, damit das Bild bei ausgeschlossenem Käse nicht erscheint
-  for (const id of ['D01', 'D02', 'D03', 'D11', 'D21']) {
+  // (Chili con Carne hat seit dem 28.10.2026 ein Foto ohne Käse und Sauerrahm)
+  assert.ok(!cards.find((card) => card.id === 'D11').image.shows.some((cardId) => cardId.startsWith('F04')), 'D11: kein Milchprodukt mehr im Bild');
+  for (const id of ['D01', 'D02', 'D03', 'D21']) {
     const shows = cards.find((card) => card.id === id).image?.shows ?? [];
     assert.ok(shows.some((cardId) => cardId.startsWith('F04.2')), `${id}: Käse in shows`);
   }

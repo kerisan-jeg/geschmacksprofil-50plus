@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, ChevronRight, CircleHelp } from 'lucide-react';
-import ChoiceList from './ChoiceList.jsx';
+import { Check, ChevronRight } from 'lucide-react';
 import DetailPicker from './DetailPicker.jsx';
 import FoodSearch from './FoodSearch.jsx';
 import SelectionChips from './SelectionChips.jsx';
@@ -17,8 +16,9 @@ const NEVER_REDUNDANT = { category: () => false, allergenIds: () => false, hit: 
 // - die Suche (FoodSearch) findet auch alle Lebensmittel aus dem Katalog; ohne Treffer wird eine Notiz
 //   eingetragen (A7). Im Profil (allowFoods = false) sucht sie nur Allergene.
 // - schon durch die Ernährungsweise abgedeckte Vorschläge bleiben erkennbar, aber sind deaktiviert
-// - „Ich bin mir nicht sicher, ob es weitere gibt“ setzt nur ein Flag, keinen Ausschluss
-export default function AllergenPicker({ data, catalogIndex, foods = [], answer, redundancy = NEVER_REDUNDANT, onChange, allowFoods = true, allowUnsure = true }) {
+// Keine Zusatzangaben mehr (Teamentscheid 28.10.2026): kein „nicht sicher, ob es weitere gibt“, kein „ärztlich
+// festgestellt“, kein Geltungsbereich. Jeder gewählte Eintrag ist ein vollständiger Ausschluss.
+export default function AllergenPicker({ data, catalogIndex, foods = [], answer, redundancy = NEVER_REDUNDANT, onChange, allowFoods = true }) {
   const [openCategory, setOpenCategory] = useState(null);
   const { selected } = answer;
   const items = answer.items ?? [];
@@ -108,24 +108,6 @@ export default function AllergenPicker({ data, catalogIndex, foods = [], answer,
 
       <SelectionChips chips={chips} onRemove={removeChip} />
       {notes.length > 0 && <p className="note">{ONBOARDING.allergyNoteEffect}</p>}
-
-      {allowUnsure && (
-        <>
-          <ChoiceList
-            name="unsure-more"
-            multiple
-            options={[{ id: 'unsure', label: ONBOARDING.unsureMore }]}
-            value={answer.unsureMore ? ['unsure'] : []}
-            onChange={() => update({ unsureMore: !answer.unsureMore })}
-          />
-          {answer.unsureMore && (
-            <p className="notice">
-              <CircleHelp aria-hidden="true" />
-              {ONBOARDING.unsureHint}
-            </p>
-          )}
-        </>
-      )}
 
       {openCategory && (
         <DetailPicker

@@ -16,14 +16,14 @@ Stand 26.10.2026. Beobachtungen aus `src/logic/stage0.js`, `src/logic/filter.js`
 | Frage 1, Teil A Ernährungsform | none, pescetarian, vegetarian, vegan | kein Eintrag; `diet` wird über die Tabelle `diets` in `stage0.json` zu `animalOrigin`-Ausschlüssen: pescetarisch meat, gelatin; vegetarisch meat, fish, seafood, gelatin; vegan zusätzlich dairy, egg, honey | `filter.js → dietExclusions()`, `buildExclusions()` |
 | Frage 1, Teil B Einzelausschlüsse | Kein Schweinefleisch, Rindfleisch, Geflügel, Fisch, Meeresfrüchte, Alkohol | `animalOrigin:pork` (schliesst `animalOrigin:gelatin` ein), `beef`, `poultry`, `fish`, `seafood`, `food:Alkohol`; `origin: diet` | `stage0.js → deriveOnboarding()`, `withIncluded()` |
 | Frage 1, Teil C Speisevorschriften | halal, koscher | **keine**; nur Vorschläge, die die Person in Teil B einzeln bestätigt (halal: Schwein, Gelatine, Alkohol; koscher: Schwein, Gelatine, Meeresfrüchte). `dietaryRules` wird gespeichert, standardmässig nicht protokolliert | `DietPicker.jsx`, `PRIVACY.logDietaryRules` |
-| Frage 2 Allergien und Unverträglichkeiten | sechs Kacheln (Gluten, Laktose, Milcheiweiss, Nüsse, Eier, Soja), Suche über alle 14 Hauptallergene, Detailauswahl bei Nüssen und Gluten | `allergen:<id>` granular (z. B. `hazelnut`; „Alle Nüsse“ = neun IDs inklusive `peanut`; „Alles mit Gluten“ = wheat, spelt, rye, barley, oats); dazu `medical`, bei Laktose `scope` avoid oder limited | `deriveOnboarding()`, `allergens.js` |
+| Frage 2 Allergien und Unverträglichkeiten | sechs Kacheln (Gluten, Laktose, Milcheiweiss, Nüsse, Eier, Soja), Suche über alle 14 Hauptallergene, Detailauswahl bei Nüssen und Gluten | `allergen:<id>` granular (z. B. `hazelnut`; „Alle Nüsse“ = neun IDs inklusive `peanut`; „Alles mit Gluten“ = wheat, spelt, rye, barley, oats). Seit dem 28.10.2026 ohne `medical` und `scope`: Laktose ist immer ein voller Ausschluss | `deriveOnboarding()`, `allergens.js` |
 | Frage 2 Suche nach Lebensmitteln | Treffer `card:…` oder `food:…` | `card:F05.3` (Karte samt Nachkommen) oder `food:Tomate` (Wort); `card:F01.3` wird zu `animalOrigin:pork` (`canonicalKey()`, `restrictionTag` im Katalog) | `stage0.js → keyEntry()` |
 | Frage 2 und 3 Notizen (kein Treffer) | eingetippter Text | `food:<Text>` mit `freeText: true`, Status „prüfen“ | `noteEntry()` |
-| Frage 3 Nie vorschlagen | Schnellauswahl (Meeresfrüchte, Tofu und Soja, Alkohol), Suche, Notizen, Marken, Herkunft | `animalOrigin:seafood`, `card:F05.4`, `food:Alkohol`, weitere Treffer wie in Frage 2; Marken und Herkunft nur gespeichert, **ohne Wirkung** | `deriveOnboarding()` |
+| Frage 3 Nie vorschlagen | Schnellauswahl (Meeresfrüchte, Tofu und Soja, Alkohol), Suche, Notizen (Marken und Herkunft seit dem 28.10.2026 entfernt) | `animalOrigin:seafood`, `card:F05.4`, `food:Alkohol`, weitere Treffer wie in Frage 2 | `deriveOnboarding()` |
 | Wischen „Vertrage ich nicht“ | Karte ohne Kinder: die Karte; Familienkarte: Detailauswahl | `card:<id>` je gewähltem Eintrag, `source: swipe`, `origin: <Karte>`; „alle gewählt“ wird zur Familie zusammengefasst (`collapseIntolerance()`) | `engine.js → swipeEntries()`, `RoundScreen.jsx` |
 | Mein Profil | Allergien ändern, Ernährungsform, Suche, Einzelausschlüsse | `EXCLUSION_ADDED` / `EXCLUSION_REMOVED` mit `section`, `source: profile`; `DIET_CHANGED` | `App.jsx → profileHandlers`, `engine.js → applyEvents()` |
 
-Jeder Eintrag hat die Form `{ type, value, source, origin, label, medical?, scope?, freeText?, includedBy?, selectedAs? }` (`filter.js`, Kopfkommentar). Die Herkunft bleibt sichtbar („Angegeben im Onboarding / beim Wischen / im Profil“).
+Jeder Eintrag hat die Form `{ type, value, source, origin, label, freeText?, includedBy?, selectedAs? }` (`filter.js`, Kopfkommentar; `medical` und `scope` gibt es seit dem 28.10.2026 nicht mehr). Die Herkunft bleibt sichtbar („Angegeben im Onboarding / beim Wischen / im Profil“).
 
 ## 3. Technische Verdichtung
 
@@ -97,8 +97,7 @@ Laktose entfernt die ganze Gruppe Milchprodukte (auch Hartkäse und Weichkäse, 
 - 34 Karten tragen `todo` (unsichere Zuordnung, bewusst konservativ getaggt). 15 der 22 Gerichte haben `ingredientData: partial`. Konservativ heisst: Im Zweifel ist das Tag gesetzt, die Karte fällt eher weg.
 - Erdnuss, Honig und Gelatine haben keine eigene Karte. Eine Erdnussallergie wirkt nur auf Pad Thai (Tag `peanut`); „Keine Gelatine“ wirkt heute auf keine Karte (Test in `filter.test.js` mit künstlichen Karten zeigt, dass die Regel bereitsteht).
 - Eingetippte Notizen (Status „prüfen“) wirken nur über Wortvergleich auf Stufe 3 und 4 und schliessen nie eine Gruppe aus; die App sagt das in der Zusammenfassung und im Profil (`ONBOARDING.allergyNoteEffect`).
-- „Kleine Mengen gehen“ (Laktose) wird gespeichert, der Ausschluss bleibt vollständig (nurec 0.3; Test `stage0.test.js`).
-- Das Unsicherheits-Kästchen in Frage 2 erzeugt keinen Ausschluss, nur den Hinweis auf „Vertrage ich nicht“.
+- „Kleine Mengen gehen“ (Laktose) und das Unsicherheits-Kästchen in Frage 2 gibt es seit dem 28.10.2026 nicht mehr; Laktose ist ein vollständiger Ausschluss (nurec 0.3; Test `stage0.test.js`), alte Antworten mit diesen Feldern bleiben wirkungslos.
 
 ## 8. Geschmackliche Abneigung gegenüber zwingendem Ausschluss
 

@@ -11,7 +11,7 @@ import { readFileSync } from 'node:fs';
 import { DEFAULT_CONFIG, MAX_ROUNDS, NEGATIVE_GROUP_QUOTA_STAGE3, ROUND_CARD_LIMIT } from '../config.js';
 import { indexCatalog } from './catalog.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
-import { buildProfile, deriveRoundState, eligibleFamilies, hasMoreCards, nextCard, nextRoundNumber, openDishes, openHoldout, presentCard, selectNextCards } from './engine.js';
+import { buildProfile, deriveRoundState, dishAffinity, eligibleFamilies, hasMoreCards, nextCard, nextRoundNumber, openDishes, openHoldout, presentCard, selectNextCards } from './engine.js';
 import { PHASE_HOLDOUT, PHASE_MAIN } from './events.js';
 import { isVisible } from './filter.js';
 import { drawHoldout } from './holdout.js';
@@ -48,19 +48,19 @@ const assertNoTag = (session, tags, label) => {
 
 // ---------- T01 bis T05: Nutzung ohne und mit Einschränkungen ----------
 
-test('T01 Normale Nutzung ohne Einschränkungen: vier Runden, je Runde eine Ebene, höchstens 13 Karten, keine doppelt', () => {
+test('T01 Normale Nutzung ohne Einschränkungen: vier Runden, je Runde eine Ebene, Runden 1 bis 3 höchstens 13 Karten, Runde 4 alle passenden Gerichte, keine doppelt', () => {
   const session = simulateSession({ index, diets, config, respond: () => LIKE, sessionId: 'T01' });
   const all = answers(session);
   assert.equal(new Set(ids(all)).size, all.length, 'keine Karte doppelt');
   for (let round = 1; round <= MAX_ROUNDS; round += 1) {
     const cards = inRound(session, round);
-    assert.ok(cards.length > 0 && cards.length <= ROUND_CARD_LIMIT, `Runde ${round}: ${cards.length} Karten`);
+    assert.ok(cards.length > 0 && (round === 4 || cards.length <= ROUND_CARD_LIMIT), `Runde ${round}: ${cards.length} Karten`);
     assert.ok(cards.every((event) => event.stage === round), `Runde ${round} bleibt auf Ebene ${round}`);
   }
   assert.equal(inRound(session, 1).length, 13, 'alle 13 Gruppen in Runde 1');
   assert.deepEqual(inRound(session, 2).slice(-6).map((event) => event.phase), Array(6).fill(PHASE_HOLDOUT), 'sechs Kontrollkarten am Ende von Runde 2');
   assert.equal(inRound(session, 2).filter((event) => event.phase === PHASE_MAIN).length, 7, 'Runde 2: 7 normale Karten plus 6 Kontrollkarten');
-  assert.equal(inRound(session, 4).length, 13, 'Runde 4: 13 von 22 Gerichten');
+  assert.equal(inRound(session, 4).length, 22, 'Runde 4 ohne Limit (28.10.2026): alle 22 Gerichte, weil nichts abgelehnt wurde');
 });
 
 test('T02 Eine Allergie (Haselnuss): keine Karte mit Haselnuss, Nüsse bleiben mit Hinweis, Birchermüesli fällt weg', () => {
@@ -134,7 +134,9 @@ test('T07 Überwiegend negativ: eine Ausnahme je Gruppe, negative Zweige ganz am
   const third = inRound(session, 3);
   assert.ok(third.every((event) => event.selectionReason === REASONS.AFTER_NEGATIVE_DETAIL));
   assert.ok(Object.values(Object.groupBy(third, (event) => event.parentId)).every((list) => list.length <= NEGATIVE_GROUP_QUOTA_STAGE3));
-  assert.equal(inRound(session, 4).length, 13, 'Gerichte werden trotzdem gezeigt');
+  // Runde 4 (28.10.2026): nur Gerichte, die zum Profil passen. Wer alle Gruppen ablehnt, bekommt kein Gericht; die Sitzung endet nach Runde 3
+  assert.equal(inRound(session, 4).length, 0, 'kein passendes Gericht');
+  assert.equal(nextRoundNumber(state(session.events, NO_ONBOARDING, 3), config), null, 'Runde 4 entfällt');
   const final = state(session.events, NO_ONBOARDING, 4);
   assert.equal(eligibleFamilies(final).length, 13, '„Mag ich nicht“ schliesst keine Gruppe aus');
   assert.deepEqual(buildProfile(final).intolerant, []);
@@ -304,9 +306,10 @@ test('T18 Kontrollkarten: geschichtet gezogen, am Ende von Runde 2; wird eine vo
 
 // ---------- T19 bis T22: Gerichte, Budget, Wirkungslose Unterschiede, Klärungskette ----------
 
-test('T19 Anzahl Gerichte: Limit 13 von 22, bei Laktose oder Milcheiweiss genau 7, Reihenfolge nach Zutatenvorlieben', () => {
+test('T19 Anzahl Gerichte: ohne Limit alle 22, bei Laktose oder Milcheiweiss genau 7, Reihenfolge nach Zutatenvorlieben, nur passende', () => {
   assert.equal(catalog.cards.filter((card) => card.stage === 4).length, 22);
-  assert.equal(selectNextCards(state([], NO_ONBOARDING, 4), config).length, 13);
+  assert.equal(selectNextCards(state([], NO_ONBOARDING, 4), config).length, 22, 'Runde 4 ohne Kartenlimit (28.10.2026)');
+  assert.equal(selectNextCards(state([], NO_ONBOARDING, 4), { ...config, roundCardLimit: 5 }).length, 22, 'das Limit gilt nur für Runde 1 bis 3');
   const lactose = openDishes(state([], onboarding({ allergenIds: ['lactose'] }), 4)).map((card) => card.id);
   assert.deepEqual(lactose.sort(), ['D11', 'D12', 'D15', 'D18', 'D19', 'D20', 'D22']);
   assert.deepEqual(openDishes(state([], onboarding({ allergenIds: ['milk_protein'] }), 4)).map((card) => card.id).sort(), lactose);
@@ -317,7 +320,8 @@ test('T19 Anzahl Gerichte: Limit 13 von 22, bei Laktose oder Milcheiweiss genau 
   const taste = index.cards.filter((card) => card.stage === 1).map((card) => ({ cardId: card.id, response: card.id === 'F08' ? PREFER : card.id === 'F01' ? DISLIKE : LIKE, round: 1 }));
   const ordered = openDishes(state(taste, NO_ONBOARDING, 4)).map((card) => card.id);
   assert.ok(ordered.indexOf('D15') < ordered.indexOf('D12'), 'Gemüsecurry mit Reis vor Wienerschnitzel');
-  assert.ok(ordered.indexOf('D02') > ordered.indexOf('D10'), 'Bolognese hinter Pilzrisotto');
+  assert.ok(ordered.includes('D10') && !ordered.includes('D02'), 'Pilzrisotto bleibt, Bolognese (Fleisch überwiegt) passt nicht mehr zum Profil');
+  assert.ok(ordered.every((id) => dishAffinity(state(taste, NO_ONBOARDING, 4), index.get(id)) >= 0), 'kein Gericht mit überwiegender Abneigung');
   assert.deepEqual(openDishes(state([], NO_ONBOARDING, 4)).map((card) => card.id).slice(0, 3), ['D01', 'D02', 'D03'], 'ohne Antworten Katalogreihenfolge');
 });
 
@@ -361,26 +365,26 @@ test('T22 Ist-Zustand (Befund B2): nach „Kenne ich nicht“ auf Gruppe und bei
   ]);
 });
 
-// ---------- T23: Die drei Ablaufbeispiele der Dokumentation, exakt wie protokolliert (Regeln demo-0.6) ----------
+// ---------- T23: Die drei Ablaufbeispiele der Dokumentation, exakt wie protokolliert (Regeln demo-0.7) ----------
 
 const EXPECTED = {
   A: [
     ['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', 'F13'],
     ['F02.1', 'F05.4', 'F13.1', 'F01.1', 'F04.1', 'F06.1', 'F07.1', 'F12.4', 'F08.1', 'F06.3', 'F13.2', 'F07.2', 'F04.2'],
     ['F05.4.1', 'F13.1.1', 'F05.4.2', 'F13.1.2', 'F01.1.1', 'F02.1.1', 'F04.1.1', 'F06.1.1', 'F07.1.1', 'F08.1.1', 'F01.1.2', 'F02.1.2', 'F04.1.2'],
-    ['D04', 'D05', 'D08', 'D14', 'D15', 'D16', 'D20', 'D21', 'D17', 'D07', 'D10', 'D13', 'D06'],
+    ['D17', 'D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07', 'D08', 'D09', 'D10', 'D12', 'D13', 'D14', 'D15', 'D16', 'D20', 'D21', 'D22', 'D19', 'D11', 'D18'],
   ],
   B: [
     ['F03', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', 'F13'],
     ['F10.2', 'F05.1', 'F06.1', 'F07.1', 'F08.1', 'F11.1', 'F12.1', 'F06.3', 'F12.3', 'F11.2', 'F07.2', 'F10.1', 'F08.2'],
     ['F10.2.1', 'F10.2.2', 'F11.1.1', 'F11.1.2', 'F11.1.3', 'F05.1.1', 'F06.1.3', 'F07.1.1', 'F08.1.1', 'F12.1.1', 'F05.1.2', 'F06.3.1', 'F07.1.2'],
-    ['D20', 'D15', 'D18', 'D22'],
+    ['D20', 'D22', 'D15', 'D18'],
   ],
   C: [
     ['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', 'F13'],
     ['F01.1', 'F02.2', 'F04.2', 'F05.4', 'F07.1', 'F08.1', 'F10.2', 'F05.1', 'F11.2', 'F04.3', 'F12.1', 'F01.2', 'F06.1'],
     ['F04.2.1', 'F04.2.2', 'F06.1.1', 'F06.1.2', 'F01.1.1', 'F02.1.1', 'F05.1.1', 'F07.1.1', 'F08.1.1', 'F10.1.1', 'F11.1.1', 'F12.1.1', 'F13.1.2'],
-    ['D04', 'D08', 'D01', 'D13', 'D06', 'D12', 'D03', 'D07', 'D21', 'D22', 'D11', 'D09', 'D02'],
+    ['D01', 'D04', 'D08', 'D06', 'D07', 'D12', 'D13', 'D21'],
   ],
 };
 
@@ -398,7 +402,9 @@ test('T23 Ablaufbeispiele: Kennzahlen, die in der Dokumentation stehen', () => {
   assert.deepEqual(a.holdout, ['F12.4', 'F08.1', 'F06.3', 'F13.2', 'F07.2', 'F04.2']);
   assert.deepEqual([a.progress.percent, b.progress.percent, c.progress.percent], [81, 85, 89]);
   assert.deepEqual([a.derived.length, b.derived.length, c.derived.length], [97, 69, 102]);
-  assert.deepEqual(a.dashboard.cuisines.map((entry) => [entry.id, entry.direction, entry.rated]), [['swiss', LIKE, 8], ['asian', LIKE, 3]]);
+  assert.deepEqual(a.dashboard.cuisines.map((entry) => [entry.id, entry.direction, entry.rated]), [['swiss', LIKE, 9], ['italian', LIKE, 5], ['asian', LIKE, 4]]);
+  assert.deepEqual(c.dashboard.cuisines.map((entry) => [entry.id, entry.direction, entry.rated]), [['swiss', DISLIKE, 5]]);
+  assert.deepEqual([a.rounds[3].cards.length, b.rounds[3].cards.length, c.rounds[3].cards.length], [22, 4, 8], 'Runde 4 ohne Limit, nur passende Gerichte');
   assert.deepEqual(b.dashboard.cuisines, [], 'vier Gerichte reichen für keine Küchentendenz');
   assert.deepEqual(c.profile.intolerant, ['F03']);
   assert.deepEqual(b.rounds[0].cards.find((card) => card.id === 'F06').notes, ['Ohne Zopf', 'und 2 weitere']);

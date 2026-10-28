@@ -2,15 +2,15 @@
 // Backend und keine Netzwerkanfrage. Jeder Speicherzugriff steht in try/catch: Ist der Speicher
 // nicht verfügbar (z. B. privater Modus), bleibt die Sitzung im Arbeitsspeicher und die App läuft weiter.
 //
-// Sitzung:  sessionId, participantCode, startedAt, endedAt, appVersion, ruleVersion, config,
-//           onboarding { ageGroup, diet, exclusions (mit source), uncertaintyFlag, freeTextNotes,
-//                        avoidBrands, avoidOrigins },
+// Sitzung:  sessionId, participantCode, participantName, startedAt, endedAt, appVersion, ruleVersion, config,
+//           onboarding { ageGroup, diet, exclusions (mit source), freeTextNotes },
 //           profile (aktuell angezeigt), events (Antworten inkl. INTOLERANT und UNDO, Profiländerungen,
 //           AUTH_STARTED/AUTH_COMPLETED), trace (Bildschirme).
 // Ereignis: sessionId, cardId, stage, parentId, positionInRound, response, timestamp,
 //           responseTimeMs, inputMethod, selectionReason (+ excludedCardIds, ruleVersion).
-// Datenschutz: Vorname und Telefonnummer gelangen nie hierher (sie stehen nur im Konto auf dem Gerät,
-// siehe storage/local.js). Exportiert werden nur sessionId und optional die Teilnehmer-Nr.
+// Datenschutz: Der Vorname steht seit dem 28.10.2026 als participantName in der Sitzung und im Export, damit die
+// Testleitung die Sitzung zuordnen kann (Teamentscheid; abschaltbar mit PRIVACY.logParticipantName). Eine
+// Handynummer wird nicht mehr erhoben.
 
 import { APP_VERSION, PRIVACY } from '../config.js';
 import { RULE_VERSION } from '../logic/engine.js';
@@ -86,15 +86,10 @@ export function deleteAllSessions() {
   }
 }
 
-// Zusätze nach nurec v0.2, Kap. 2.2: Quelle der Vorgabe (medical), Geltungsbereich (scope), Prüfstatus (check).
+// Prüfstatus nach nurec v0.2, Kap. 2.2: eingetippte Notizen tragen status "check".
 function exclusionForLog(entry) {
   const { type, value, source, origin, label } = entry;
-  const extra = {
-    ...(entry.medical ? { medical: true } : {}),
-    ...(entry.scope ? { scope: entry.scope } : {}),
-    ...(entry.freeText ? { status: 'check' } : {}),
-  };
-  // Marken und Herkunft sind keine Ausschlüsse und erscheinen separat.
+  const extra = entry.freeText ? { status: 'check' } : {};
   return PRIVACY.logExclusionValues ? { type, value, source, origin: origin ?? null, label: label ?? null, ...extra } : { type, source, ...extra };
 }
 
@@ -121,6 +116,7 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [] }
   const session = existing ?? {
     sessionId: resumeSessionId ?? newSessionId(),
     participantCode: null,
+    participantName: null,
     startedAt: new Date().toISOString(),
     endedAt: null,
     appVersion: APP_VERSION,
@@ -151,11 +147,16 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [] }
 
   return {
     session,
-    // Anmeldung: Teilnehmer-Nr. (optional, von der Testleitung) und Altersgruppe. Nie den Vornamen übergeben.
+    // „Über dich“: Teilnehmer-Nr. (optional, von der Testleitung) und Altersgruppe. Ab hier wird gespeichert.
     start({ participantCode, ageGroup }) {
       session.participantCode = participantCode || null;
       session.onboarding = { ...(session.onboarding ?? {}), ageGroup: ageGroup ?? null };
       stored = true;
+      persist();
+    },
+    // Vorname aus der Anmeldung für die Testleitung (Teamentscheid 28.10.2026), nur mit PRIVACY.logParticipantName.
+    setParticipantName(firstName) {
+      session.participantName = PRIVACY.logParticipantName ? String(firstName ?? '').trim().slice(0, 30) || null : null;
       persist();
     },
     setOnboarding(onboarding) {
@@ -166,10 +167,7 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [] }
         // protokolliert (PRIVACY). null heisst „nicht erfasst“, [] „keine angegeben“.
         dietaryRules: PRIVACY.logDietaryRules ? [...(onboarding.dietaryRules ?? [])] : null,
         exclusions: onboarding.exclusions.map(exclusionForLog),
-        uncertaintyFlag: onboarding.uncertain,
-        freeTextNotes: [...onboarding.freeTextNotes],
-        avoidBrands: [...(onboarding.avoidBrands ?? [])],
-        avoidOrigins: [...(onboarding.avoidOrigins ?? [])],
+        freeTextNotes: [...(onboarding.freeTextNotes ?? [])],
       };
       persist();
     },

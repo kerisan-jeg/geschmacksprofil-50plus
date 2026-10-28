@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import foodList from '../data/foods.json';
 import { CUISINE_MIN_RATED } from '../config.js';
 import cuisineData from '../data/cuisines.json';
-import { Ban, ChevronRight, CircleHelp, Layers, LogOut, NotebookPen, Pencil, Plus, RotateCcw, Salad, ShieldAlert, Smartphone, Sparkles, Utensils, X } from 'lucide-react';
+import { Ban, ChevronRight, CircleHelp, Layers, LogOut, NotebookPen, Pencil, Plus, RotateCcw, Salad, ShieldAlert, Sparkles, Utensils, X } from 'lucide-react';
 import AllergenPicker from '../components/AllergenPicker.jsx';
 import Artwork from '../components/Artwork.jsx';
 import Avatar from '../components/Avatar.jsx';
@@ -22,13 +22,12 @@ import { allPhotos } from '../lib/images.js';
 import { allergenLabel } from '../logic/allergens.js';
 import { derivedEntries, presentCard } from '../logic/engine.js';
 import { buildDashboard, profileProgress } from '../logic/dashboard.js';
-import { practicalAnswered, summarizePractical } from '../logic/practical.js';
 import { ANSWER_ORDER, DISLIKE } from '../logic/answers.js';
 import { buildExclusions, displayCardTitle } from '../logic/filter.js';
 import { buildFoodIndex } from '../logic/foodSearch.js';
 import { groupExclusions, sectionOf } from '../logic/profile.js';
 import { canonicalKey, coveredByForm, includedEntries, keyLabel, parseKey, redundancyFor } from '../logic/stage0.js';
-import { ANSWER_LABELS, BRANDS, COMMON, DIET, ONBOARDING, PRACTICAL, PROFILE } from '../labels.js';
+import { ANSWER_LABELS, COMMON, DIET, ONBOARDING, PROFILE } from '../labels.js';
 
 const SECTION_ICONS = { allergies: ShieldAlert, diet: Salad, intolerances: Ban, never: Utensils, notes: NotebookPen };
 // Entfernen nur mit Bestätigung: Allergien und Unverträglichkeiten (Gesundheit)
@@ -51,8 +50,8 @@ function SectionHead({ id, title, action }) {
   );
 }
 
-// Zusätze zu einer Regel (nurec v0.2, Kap. 2.2: Quelle, Geltungsbereich, Prüfstatus)
-const FLAG_TEXT = { check: PROFILE.statusCheck, medical: PROFILE.medical, limited: PROFILE.scopeLimited };
+// Prüfstatus einer Regel (nurec v0.2, Kap. 2.2): eingetippte Notizen sind „zu prüfen“
+const FLAG_TEXT = { check: PROFILE.statusCheck };
 
 function ExclusionList({ items, onRemove }) {
   return (
@@ -131,8 +130,8 @@ export function exclusionsForHit(hit, { allergens, index, restrictions }) {
 //   Profilstand („Profil aufgebaut“, Erfassungsgrad) mit nächstem sinnvollem Schritt,
 //   direkte Antworten in vier disjunkten Kategorien mit Balken, Zählern und aufklappbaren Listen,
 //   getrennt davon die Vermutungen der App (mögliche Favoriten, B3.2), Offenes („Kenne ich nicht“ getrennt von
-//   „noch nicht gefragt“), Feinheiten (roh/gegart), Gerichte (Stufe 4), Ausschlüsse mit Herkunft und Status,
-//   Alltagsprofil (Kap. 2.3). Jede Änderung wird ein Ereignis im Event-Log (source "profile").
+//   „noch nicht gefragt“), Feinheiten (roh/gegart), Gerichte (Stufe 4), Ausschlüsse mit Herkunft und Status.
+//   Jede Änderung wird ein Ereignis im Event-Log (source "profile"). Kein Alltagsprofil mehr (28.10.2026).
 // round: Zustand der Profilerstellung (auch während einer Gerichte-Runde).
 export default function ProfileScreen({
   round,
@@ -144,12 +143,9 @@ export default function ProfileScreen({
   dietOptions,
   steps,
   next = null,
-  practical = null,
-  practicalDefinition = null,
   canSignOut,
   onCreate,
   onNext,
-  onOpenPractical,
   onRestart,
   onSignOut,
   onChange,
@@ -183,7 +179,6 @@ export default function ProfileScreen({
   const progress = profileProgress(round);
   const board = buildDashboard(round, { cuisines: cuisineData.cuisines });
   const hasTaste = board.summary.total > 0;
-  const practicalLines = practicalDefinition ? summarizePractical(practicalDefinition, practical, PRACTICAL) : [];
   const titleOf = (id) => index.get(id) ? displayCardTitle(index.get(id), index, round.exclusions) : id;
   const openRating = (cardId) => setSheet({ type: 'rating', cardId });
   const sections = groupExclusions(round.entries, { allergens, index });
@@ -257,12 +252,6 @@ export default function ProfileScreen({
           <Avatar name={account?.firstName} size="large" />
           <div className="profile-card-text">
             <p className="profile-name">{PROFILE.greeting(account?.firstName)}</p>
-            {account?.phoneMasked && (
-              <p className="note note-with-icon num">
-                <Smartphone aria-hidden="true" />
-                {account.phoneMasked}
-              </p>
-            )}
           </div>
         </div>
         <CreationSteps steps={steps} />
@@ -391,7 +380,6 @@ export default function ProfileScreen({
             />
             {sections.allergies.length === 0 && <p className="note">{PROFILE.sectionEmpty}</p>}
             <ExclusionList items={sections.allergies} onRemove={(item) => requestRemoval('allergies', item)} />
-            {onboarding.uncertain && <p className="note">{PROFILE.unsure}</p>}
           </section>
 
           <section className="exclusion-section" aria-labelledby="ex-diet">
@@ -432,49 +420,12 @@ export default function ProfileScreen({
 
           <section className="exclusion-section" aria-labelledby="ex-notes">
             <SectionHead id="notes" title={PROFILE.sections.notes} />
-            {sections.notes.length === 0 && onboarding.avoidBrands.length === 0 && onboarding.avoidOrigins.length === 0 && (
-              <p className="note">{PROFILE.sectionEmpty}</p>
-            )}
+            {sections.notes.length === 0 && <p className="note">{PROFILE.sectionEmpty}</p>}
             <ExclusionList items={sections.notes} onRemove={(item) => requestRemoval('notes', item)} />
             {sections.notes.length > 0 && <p className="note">{ONBOARDING.allergyNoteEffect}</p>}
-            {(onboarding.avoidBrands.length > 0 || onboarding.avoidOrigins.length > 0) && (
-              <>
-                <ul className="tag-list">
-                  {onboarding.avoidBrands.length > 0 && <li>{BRANDS.brands(onboarding.avoidBrands)}</li>}
-                  {onboarding.avoidOrigins.length > 0 && <li>{BRANDS.origins(onboarding.avoidOrigins)}</li>}
-                </ul>
-                <p className="note">{ONBOARDING.brandsNotApplied}</p>
-              </>
-            )}
           </section>
         </div>
       </ProfileDisclosure>
-
-      {practicalDefinition && (
-        <ProfileDisclosure id="practical-title" title={PROFILE.practicalTitle} icon={Sparkles} className="practical-panel">
-          <div className="exclusion-head">
-            {onOpenPractical && (
-              <button type="button" className="button-ghost is-strong" onClick={onOpenPractical}>
-                <Pencil aria-hidden="true" />
-                {practicalAnswered(practicalDefinition, practical) > 0 ? PROFILE.practicalEdit : PROFILE.practicalAdd}
-              </button>
-            )}
-          </div>
-          <p className="note">{PROFILE.practicalLead}</p>
-          {practicalLines.length === 0 ? (
-            <p className="note">{PROFILE.practicalEmpty}</p>
-          ) : (
-            <dl className="practical-lines">
-              {practicalLines.map((line) => (
-                <div key={line.id} className="practical-line">
-                  <dt>{line.dimension}</dt>
-                  <dd>{line.text}</dd>
-                </div>
-              ))}
-            </dl>
-          )}
-        </ProfileDisclosure>
-      )}
 
       <section className="profile-footer">
         {canSignOut ? (

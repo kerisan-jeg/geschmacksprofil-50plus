@@ -8,11 +8,11 @@ import SegmentedProgress from '../components/SegmentedProgress.jsx';
 import RoundOverview from '../components/RoundOverview.jsx';
 import Sheet from '../components/Sheet.jsx';
 import TopBar from '../components/TopBar.jsx';
-import { collapseIntolerance, intoleranceOptions, presentCard, progress, selectNextCards } from '../logic/engine.js';
+import { collapseIntolerance, dishesEnoughSeen, intoleranceOptions, isDishRound, presentCard, progress, selectNextCards } from '../logic/engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 import { allowsPrefer, scaleVariant } from '../logic/scale.js';
 import { cardVisual, ImageFilterContext, ImageStyleContext, imageUrls } from '../lib/images.js';
-import { MAX_ROUNDS } from '../config.js';
+import { DISH_ROUND_END_AFTER, MAX_ROUNDS } from '../config.js';
 import { ROUND, ROUNDS } from '../labels.js';
 import { readDuration } from '../theme/motion.js';
 
@@ -38,8 +38,13 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
   const intent = intentFor.cardId === card?.id ? intentFor.intent : null;
   const picker = pickerFor.cardId === card?.id ? pickerFor.options : null;
   const [overviewOpen, setOverviewOpen] = useState(false);
+  // Runde 4 (Gerichte, Teamentscheid 28.10.2026): Nach DISH_ROUND_END_AFTER Gerichten einmal fragen, ob die Person
+  // weitere Gerichte sehen oder die Runde beenden will; danach bleibt „Runde beenden“ unter den Knöpfen sichtbar.
+  const [dishPromptDismissed, setDishPromptDismissed] = useState(false);
+  const dishRound = isDishRound(round.round);
+  const dishPromptDue = dishRound && answered === DISH_ROUND_END_AFTER && !dishPromptDismissed && Boolean(card);
   const pickerOpen = useRef(false);
-  pickerOpen.current = picker !== null || overviewOpen;
+  pickerOpen.current = picker !== null || overviewOpen || dishPromptDue;
   const variant = scaleVariant(card, config);
   const preferAllowed = useRef(true);
   preferAllowed.current = allowsPrefer(variant);
@@ -65,6 +70,16 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
       image.src = src;
     }
   }, [upcomingKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Solange die Nachfrage zu den Gerichten offen ist, läuft die Antwortzeit der Karte nicht (wie bei der Übersicht).
+  useEffect(() => {
+    if (!dishPromptDue || !card) return undefined;
+    const pause = { from: performance.now(), to: null };
+    timingFor(card.id).pauses.push(pause);
+    return () => {
+      if (pause.to === null) pause.to = performance.now();
+    };
+  }, [dishPromptDue, card?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     function handleKey(event) {
@@ -211,6 +226,28 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
       </div>
 
       <AnswerButtons variant={variant} intent={intent} onAnswer={(answer) => cardRef.current?.commit(answer, 'button')} onIntolerant={handleIntolerant} />
+
+      {dishRound && dishesEnoughSeen(round) && (
+        <div className="round-exit">
+          <button type="button" className="button-secondary" onClick={() => onEndRound(imageInfo())}>
+            <X aria-hidden="true" />
+            {ROUND.endRound}
+          </button>
+        </div>
+      )}
+
+      {dishPromptDue && (
+        <Sheet title={ROUND.dishPromptTitle(answered)} intro={ROUND.dishPromptIntro} onClose={() => setDishPromptDismissed(true)}>
+          <div className="sheet-actions is-stacked">
+            <button type="button" className="button-primary" onClick={() => setDishPromptDismissed(true)}>
+              {ROUND.moreDishes}
+            </button>
+            <button type="button" className="button-secondary" onClick={() => onEndRound(imageInfo())}>
+              {ROUND.endRound}
+            </button>
+          </div>
+        </Sheet>
+      )}
 
       {overviewOpen && rounds && (
         <Sheet title={ROUNDS.title} intro={ROUNDS.sheetIntro} onClose={closeOverview}>

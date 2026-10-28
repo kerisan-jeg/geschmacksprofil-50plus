@@ -4,15 +4,14 @@
 // sie nie auf, und ein DISLIKE ist kein Ausschluss.
 //
 // Aus den Antworten entstehen ExclusionEntries (siehe filter.js) mit source = "onboarding".
-// Das Unsicherheits-Flag („Ich bin mir nicht sicher, ob es weitere gibt“) erzeugt KEINE Ausschlüsse;
-// es führt nur dazu, dass beim Wischen auf „Vertrage ich nicht“ hingewiesen wird (A4).
 //
 // Rückmeldung Team (12.10.2026), ersetzt Teile von A5 und A7:
 // - Die Suche in Frage 2 und 3 findet alle Lebensmittel (Allergene, Karten, Beispiele auf Karten).
 // - Was man eintippt, wird immer eingetragen. Ohne eigene Karte wird es ein Lebensmittel-Eintrag
 //   (type "food"): keine Karte fällt weg, aber das Wort erscheint nirgends mehr als Beispiel.
-// - Marken und Herkunft werden gespeichert, wirken im Prototyp aber noch nicht (keine Daten dazu).
 // - Was durch frühere Angaben schon ausgeschlossen ist, wird nicht nochmals angeboten.
+// Teamentscheid 28.10.2026: Frage 2 ohne „nicht sicher, ob es weitere gibt“, ohne „ärztlich festgestellt“ und ohne
+// Geltungsbereich („kleine Mengen gehen“); Frage 3 ohne Marken und Herkunft. Jeder Ausschluss gilt vollständig.
 //
 // Alle Funktionen sind rein: Gleiche Antworten ergeben immer dieselben Regeln.
 
@@ -100,9 +99,9 @@ export function emptyAnswers(questions) {
   const empty = {
     single: () => null,
     diet: () => ({ ...EMPTY_DIET }),
-    // medical: ärztlich oder fachlich festgestellt (0.2); scopes: Geltungsbereich je Unverträglichkeit (0.3)
-    allergens: () => ({ gate: null, selected: [], items: [], notes: [], unsureMore: false, medical: false, scopes: {} }),
-    never: () => ({ gate: null, selected: [], notes: [], brands: [], origins: [] }),
+    // selected: Allergen-IDs; items: Lebensmittel aus der Suche (card:…, food:…); notes: eingetippt ohne Treffer
+    allergens: () => ({ gate: null, selected: [], items: [], notes: [] }),
+    never: () => ({ gate: null, selected: [], notes: [] }),
   };
   return Object.fromEntries(questions.map((question) => [question.id, empty[question.type]()]));
 }
@@ -114,17 +113,8 @@ export function isAnswered(question, answer) {
   if (question.type === 'diet') return dietAnswer(answer).form != null;
   if (!answer || !question.gate.some((option) => option.id === answer.gate)) return false;
   if (answer.gate !== 'yes') return true;
-  if (question.type === 'never') {
-    return answer.selected.length + answer.notes.length + answer.brands.length + answer.origins.length > 0;
-  }
+  if (question.type === 'never') return answer.selected.length + answer.notes.length > 0;
   return answer.selected.length + answer.items.length + answer.notes.length > 0;
-}
-
-// „Ich bin mir nicht sicher, ob es weitere gibt“ nach einer Auswahl bekannter Allergien.
-export function uncertaintyFlag(answers) {
-  const answer = answers.intolerances;
-  if (!answer) return false;
-  return answer.gate === 'yes' && answer.unsureMore === true;
 }
 
 // ---------- Schlüssel ----------
@@ -184,26 +174,11 @@ function noteEntry(text, origin, extra = {}) {
   return { type: 'food', value: text, source: SOURCE_ONBOARDING, origin, label: text, freeText: true, ...extra };
 }
 
-// Unverträglichkeiten mit Geltungsbereich (nurec v0.2, 0.3: „vollständig meiden oder nur begrenzte Menge“).
-// Eine begrenzte Menge wird gespeichert, aber nie als sichere Freigabe verwendet: Die Regel bleibt ein Ausschluss.
-export const SCOPED_INTOLERANCES = ['lactose'];
-export const SCOPES = { AVOID: 'avoid', LIMITED: 'limited' };
-
-// Zusätze für Einträge aus Frage 2: Quelle der Vorgabe und Geltungsbereich.
-function constraintExtra(answer, id) {
-  const extra = {};
-  if (answer.medical) extra.medical = true;
-  if (SCOPED_INTOLERANCES.includes(id)) extra.scope = answer.scopes?.[id] ?? SCOPES.AVOID;
-  return extra;
-}
-
 // Liefert:
 //  - diet:          gewählte Ernährungsform (wirkt über die Tabelle `diets`)
 //  - dietaryRules:  Speisevorschriften (halal, kosher), ohne eigene Wirkung auf die Karten
 //  - exclusions:    ExclusionEntries mit source "onboarding"
-//  - uncertain:     Unsicherheits-Flag (erzeugt keine Ausschlüsse)
 //  - freeTextNotes: frei eingetippte Einträge ohne Treffer (als Lebensmittel-Eintrag wirksam, siehe oben)
-//  - avoidBrands, avoidOrigins: Marken und Herkunft (gespeichert, im Prototyp ohne Wirkung)
 //  - cardLabels:    Wörter der Person je Karten-ID für Hinweise wie „Ohne Schweinefleisch“
 //  - rules:         verständliche Liste für die Zusammenfassung (nurec v0.2, Kap. 2.2)
 // upTo: nur die Fragen bis zu diesem Index berücksichtigen (für „schon ausgeschlossen?“).
@@ -245,26 +220,24 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
   if (intolerances?.gate === 'yes') {
     const question = byId.intolerances;
     for (const id of intolerances.selected) {
-      exclusions.push({ type: 'allergen', value: id, source: SOURCE_ONBOARDING, origin: 'intolerances', label: allergenLabel(allergens, id), ...constraintExtra(intolerances, id) });
+      exclusions.push({ type: 'allergen', value: id, source: SOURCE_ONBOARDING, origin: 'intolerances', label: allergenLabel(allergens, id) });
     }
     for (const line of summarizeSelection(allergens, intolerances.selected)) {
       rules.push({ id: `intolerances.${line.key}`, kind: 'allergen', text: line.text, source: question.source });
     }
-    for (const key of intolerances.items) {
-      const entry = { ...keyEntry(question, catalogIndex, key, 'intolerances', cardLabels), ...constraintExtra(intolerances, key) };
+    for (const key of intolerances.items ?? []) {
+      const entry = keyEntry(question, catalogIndex, key, 'intolerances', cardLabels);
       exclusions.push(entry, ...includedEntries(dietQuestion?.exclusions, entry, { source: SOURCE_ONBOARDING, origin: 'intolerances' }));
       rules.push({ id: `intolerances.${key}`, kind: 'allergen', text: entry.label, source: question.source });
     }
-    for (const note of intolerances.notes) {
-      exclusions.push(noteEntry(note, 'intolerances', constraintExtra(intolerances, note)));
+    for (const note of intolerances.notes ?? []) {
+      exclusions.push(noteEntry(note, 'intolerances'));
       freeTextNotes.push(note);
       rules.push({ id: `intolerances.note.${note}`, kind: 'note', text: note, source: question.source });
     }
   }
 
   const never = byId.never ? answers.never : null;
-  const avoidBrands = never?.gate === 'yes' ? [...never.brands] : [];
-  const avoidOrigins = never?.gate === 'yes' ? [...never.origins] : [];
   if (never?.gate === 'yes') {
     const question = byId.never;
     for (const key of never.selected) {
@@ -273,14 +246,14 @@ export function deriveOnboarding(definition, answers, { allergens, catalogIndex,
       exclusions.push(entry, ...includedEntries(dietQuestion?.exclusions, entry, { source: SOURCE_ONBOARDING, origin: 'never' }));
       rules.push({ id: `never.${key}`, kind: 'never', text: entry.label, source: question.source });
     }
-    for (const note of never.notes) {
+    for (const note of never.notes ?? []) {
       exclusions.push(noteEntry(note, 'never'));
       freeTextNotes.push(note);
       rules.push({ id: `never.note.${note}`, kind: 'note', text: note, source: question.source });
     }
   }
 
-  return { diet, dietaryRules, exclusions, uncertain: uncertaintyFlag(answers), freeTextNotes, avoidBrands, avoidOrigins, cardLabels, rules };
+  return { diet, dietaryRules, exclusions, freeTextNotes, cardLabels, rules };
 }
 
 // ---------- Schon ausgeschlossen? ----------

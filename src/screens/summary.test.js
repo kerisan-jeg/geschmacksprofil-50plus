@@ -27,7 +27,7 @@ const STEPS = [
   { id: 'round', state: 'open', answered: 0, total: 0 },
   { id: 'profile', state: 'open' },
 ];
-const section = (id, changes = {}) => ({ id, items: [], notes: [], open: false, brands: [], origins: [], ...changes });
+const section = (id, changes = {}) => ({ id, items: [], notes: [], ...changes });
 
 function summary(sections, extra = {}) {
   const calls = { edit: [], confirm: 0 };
@@ -46,14 +46,15 @@ function summary(sections, extra = {}) {
 
 test('Zusammenfassung: jede Regel sichtbar, „Ändern“ je Frage, „Stimmt so“ bestätigt', async () => {
   const { element, calls } = summary([
-    section('diet', { items: [{ key: 'diet:vegan', label: 'Vegan: nichts vom Tier' }] }),
-    section('intolerances', { items: [{ key: 'allergen:hazelnut', label: 'Haselnüsse' }], notes: ['Koriander'], open: true }),
-    section('never', { brands: ['M-Budget'] }),
+    section('diet', { items: [{ key: 'diet:vegan', label: 'Vegan: nichts vom Tier' }], dietaryRules: ['Halal'] }),
+    section('intolerances', { items: [{ key: 'allergen:hazelnut', label: 'Haselnüsse' }], notes: ['Koriander'] }),
+    section('never', { notes: ['Rosenkohl'] }),
   ]);
   const { container, unmount } = await render(element);
   const text = container.textContent;
   assert.ok(text.includes(SUMMARY.lead));
-  for (const expected of ['Vegan: nichts vom Tier', 'Haselnüsse', 'Koriander', 'M-Budget', SUMMARY.open]) assert.ok(text.includes(expected), expected);
+  for (const expected of ['Vegan: nichts vom Tier', 'Haselnüsse', 'Koriander', 'Rosenkohl', 'Halal']) assert.ok(text.includes(expected), expected);
+  assert.ok(!/Marken|Herkunft|nicht sicher/.test(text), 'keine Marken, Herkunft oder Unsicherheit mehr (28.10.2026)');
   const editButtons = [...container.querySelectorAll('button')].filter((button) => button.textContent.trim() === SUMMARY.edit);
   assert.equal(editButtons.length, 3);
   for (const button of editButtons) await click(button);
@@ -176,7 +177,12 @@ test('Frage 1: Abgedecktes ist gesperrt, Speisevorschrift zeigt ehrlichen Hinwei
   assert.equal(input('diet-exclusions', 'animalOrigin:gelatin'), null, 'Gelatine nur als Vorschlag');
   await click(input('diet-form', 'none'));
   assert.equal(input('diet-exclusions', 'animalOrigin:fish').disabled, false);
+  // Teil C ist zugeklappt (28.10.2026): erst öffnen, dann wählen; die Zeile nennt die gewählte Vorschrift
+  const details = container.querySelector('details.diet-rules');
+  assert.ok(details && !details.open, 'Speisevorschriften zugeklappt');
+  assert.equal(details.querySelector('summary').textContent, DIET.rulesSummary(definition.questions[0].rulesTitle, []));
   await click(input('diet-rules', 'halal'));
+  assert.equal(details.querySelector('summary').textContent, DIET.rulesSummary(definition.questions[0].rulesTitle, ['Halal']));
   assert.ok(container.textContent.includes(DIET.rulesNote));
   assert.deepEqual(latest.exclusions, [], 'Halal allein schliesst nichts aus');
   await click(input('diet-suggest', 'animalOrigin:gelatin'));

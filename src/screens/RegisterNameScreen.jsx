@@ -3,7 +3,8 @@ import { CircleAlert } from 'lucide-react';
 import TopBar, { BackButton } from '../components/TopBar.jsx';
 import { REGISTER } from '../labels.js';
 
-// Registrierung, Schritt 1: nur der Vorname (kein Nachname).
+// Anmeldung: nur der Vorname (kein Nachname, keine Handynummer; Teamentscheid 28.10.2026). Der Vorname geht ins
+// Konto auf dem Gerät und als participantName in die Sitzung, damit die Testleitung die Antworten zuordnen kann.
 export default function RegisterNameScreen({ firstName, onChange, onNext, onBack }) {
   const [showError, setShowError] = useState(false);
   const inputRef = useRef(null);
@@ -24,7 +25,7 @@ export default function RegisterNameScreen({ firstName, onChange, onNext, onBack
 
   return (
     <main className="screen screen-register">
-      <TopBar start={<BackButton onClick={onBack} />} end={<p className="progress-text num">{REGISTER.stepOf(1, 3)}</p>} />
+      <TopBar start={<BackButton onClick={onBack} />} />
       <form className="form" onSubmit={handleSubmit} noValidate>
         <div className="stack">
           <h1>{REGISTER.nameTitle}</h1>
@@ -56,6 +57,7 @@ export default function RegisterNameScreen({ firstName, onChange, onNext, onBack
               {REGISTER.nameError}
             </p>
           )}
+          <p className="field-hint">{REGISTER.namePrivacy}</p>
         </div>
         <div className="action-bar">
           <button type="submit" className="button-primary">

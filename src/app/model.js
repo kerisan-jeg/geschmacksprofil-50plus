@@ -1,20 +1,22 @@
 // Zustand und Ablauf der App als reine Funktionen (ohne React), damit der Ablauf testbar ist.
 //
 // Bereich „Profil erstellen“:
-//   mit Registrierung (AUTH_ENABLED):  start → register-name → register-phone → register-code → about → …
-//   ohne Registrierung:                about (Vorname freiwillig) → …
+//   mit Anmeldung (AUTH_ENABLED):      start → register-name → about → …
+//   ohne Anmeldung:                    about (Vorname freiwillig) → …
 //   danach:                            questions → summary → round → complete → round (Runde 2) → complete …
 //   Runden 1 bis 4:                    Familien → Untergruppen → konkrete Lebensmittel → Gerichte
-//   freiwillig danach:                Alltagsprofil (practical, nurec v0.2 Kap. 2.3)
+// Die Anmeldung fragt nur den Vornamen (Teamentscheid 28.10.2026, keine Handynummer, keine SMS). Er steht im Konto
+// auf dem Gerät und als participantName in der Sitzung für die Testleitung (logging/logger.js).
 // Nach Frage 3 folgt die Zusammenfassung (nurec v0.2, Kap. 2.2): Die Person bestätigt die festen Regeln
 // („Stimmt so“) oder korrigiert sie („Ändern“ führt zur passenden Frage und wieder zurück). Danach kommt
 // direkt die erste Karte; das Tutorial (intro) nur, wenn TUTORIAL_ENABLED eingeschaltet ist.
 // Nach jeder Runde: weiter, solange es noch Karten gibt, insgesamt höchstens MAX_ROUNDS Runden.
 // Wiederkehrende Person auf demselben Gerät: welcome-back, dann weiter, wo sie war.
 // Bereich „Mein Profil“: eigener Tab, der Ablauf oben bleibt dabei an seiner Stelle stehen.
+// Das Alltagsprofil (Kap. 2.3) ist seit dem 28.10.2026 nicht mehr Teil des Prototyps.
 //
 // Das Event-Log (events) bleibt die einzige Quelle der Wahrheit (A8): Antworten beim Wischen,
-// Profiländerungen und die Ereignisse der Registrierung stehen darin. Der Zustand der Runde und des
+// Profiländerungen und die Ereignisse der Anmeldung stehen darin. Der Zustand der Runde und des
 // Profils wird immer daraus abgeleitet (deriveRoundState → replay).
 
 import { MAX_ROUNDS, normalizeConfig } from '../config.js';
@@ -26,8 +28,6 @@ import { deriveOnboarding, emptyAnswers } from '../logic/stage0.js';
 export const SCREENS = {
   START: 'start',
   REGISTER_NAME: 'register-name',
-  REGISTER_PHONE: 'register-phone',
-  REGISTER_CODE: 'register-code',
   WELCOME_BACK: 'welcome-back',
   ABOUT: 'about',
   QUESTIONS: 'questions',
@@ -35,7 +35,6 @@ export const SCREENS = {
   INTRO: 'intro',
   ROUND: 'round',
   COMPLETE: 'complete',
-  PRACTICAL: 'practical',
 };
 
 // DISHES bleibt nur für die Migration früherer separater Gerichte-Runden erhalten.
@@ -43,19 +42,23 @@ export const ROUND_MODES = { MAIN: 'main', DISHES: 'dishes' };
 
 export const TABS = { CREATE: 'create', PROFILE: 'profile' };
 
-// Angaben für die Auswertung (ohne Namen). Vorname und Telefonnummer stehen nur im Konto (account).
+// Angaben für die Auswertung. Der Vorname steht im Konto (account) und in der Sitzung (participantName).
 export const EMPTY_PERSON = { ageGroup: null, participantCode: '', consent: false };
-export const EMPTY_REGISTRATION = { firstName: '', country: 'CH', phoneInput: '', e164: null, requestId: null, sentAt: null, resendAvailableAt: null };
+export const EMPTY_REGISTRATION = { firstName: '' };
 
-const BEFORE_ONBOARDING = [SCREENS.START, SCREENS.REGISTER_NAME, SCREENS.REGISTER_PHONE, SCREENS.REGISTER_CODE, SCREENS.WELCOME_BACK, SCREENS.ABOUT];
+const BEFORE_ONBOARDING = [SCREENS.START, SCREENS.REGISTER_NAME, SCREENS.WELCOME_BACK, SCREENS.ABOUT];
 
-// Erster Bildschirm: mit Registrierung die Begrüssung, sonst direkt das Onboarding („Über dich“).
+// Bildschirme früherer Versionen (Handynummer, SMS-Code, Alltagsprofil): Ein gespeicherter Stand dort geht an die
+// nächste sinnvolle Stelle weiter.
+const LEGACY_SCREENS = { 'register-phone': SCREENS.REGISTER_NAME, 'register-code': SCREENS.REGISTER_NAME, practical: SCREENS.COMPLETE };
+
+// Erster Bildschirm: mit Anmeldung die Begrüssung, sonst direkt das Onboarding („Über dich“).
 export function firstScreen(config) {
   return config.auth ? SCREENS.START : SCREENS.ABOUT;
 }
 
 // Die untere Navigation erscheint erst nach der ersten Runde (Abschluss) und in „Mein Profil“.
-// Während Registrierung, Fragen, Zusammenfassung und beim Wischen fehlt sie: Dort gibt es nur einen
+// Während Anmeldung, Fragen, Zusammenfassung und beim Wischen fehlt sie: Dort gibt es nur einen
 // Weg nach vorn, und in der Runde haben Karte und Knöpfe den ganzen Bildschirm. „Mein Profil“ ist
 // vorher über den runden Knopf oben rechts erreichbar; dort führt die Leiste zurück.
 export function isNavVisible(state) {
@@ -68,7 +71,7 @@ export function screenAfterSummary(config) {
   return config.tutorial ? SCREENS.INTRO : SCREENS.ROUND;
 }
 
-// Lohnt es sich, den Stand zu speichern? Erst wenn jemand registriert ist oder „Über dich“ bestätigt hat.
+// Lohnt es sich, den Stand zu speichern? Erst wenn jemand angemeldet ist oder „Über dich“ bestätigt hat.
 export function hasProgress(state) {
   return Boolean(state.account) || state.person.consent;
 }
@@ -124,13 +127,13 @@ export function createAppModel({ index, stage0, allergens }) {
       // Legacy-Felder für bereits gespeicherte Sitzungen; neue Runden gehören zum selben Ablauf.
       roundMode: ROUND_MODES.MAIN,
       dishRound: 0,
-      // Alltagsprofil: von wo es geöffnet wurde (dorthin geht es danach zurück)
-      practicalFrom: null,
       endedEarly: false,
       resume: null,
     };
     if (!saved?.state) return base;
     const restored = { ...base, ...saved.state, config: normalizeConfig(saved.state.config ?? config), account, registration: EMPTY_REGISTRATION };
+    delete restored.practicalFrom;
+    if (restored.screen in LEGACY_SCREENS) restored.screen = LEGACY_SCREENS[restored.screen];
     if (restored.roundMode === ROUND_MODES.DISHES) restored.roundNumber = 4;
     restored.roundMode = ROUND_MODES.MAIN;
     // Alte Sitzungen jenseits der neuen Obergrenze abschliessen; bisherige Antworten bleiben erhalten.
@@ -159,21 +162,19 @@ export function createAppModel({ index, stage0, allergens }) {
         return { ...state, tab: TABS.CREATE, screen: action.screen };
       case 'tab':
         return { ...state, tab: action.tab };
-      // ---------- Registrierung ----------
+      // ---------- Anmeldung (nur Vorname) ----------
       case 'registration':
         return { ...state, registration: { ...state.registration, ...action.changes } };
-      case 'codeSent':
-        return { ...state, screen: SCREENS.REGISTER_CODE, registration: { ...state.registration, ...action.request } };
-      // Gültiger Code: Konto (nur Vorname und gekürzte Nummer) übernehmen, weiter zu „Über dich“.
-      case 'verified':
-        return { ...state, account: action.account, registration: EMPTY_REGISTRATION, screen: SCREENS.ABOUT };
+      // Vorname bestätigt: Konto (nur Vorname) übernehmen, weiter zu „Über dich“.
+      case 'register':
+        return { ...state, account: { firstName: action.firstName }, registration: EMPTY_REGISTRATION, screen: SCREENS.ABOUT };
       case 'welcomeContinue': {
         const resume = state.resume ?? { screen: firstScreen(state.config), tab: TABS.CREATE };
         return { ...state, screen: resume.screen === SCREENS.WELCOME_BACK ? firstScreen(state.config) : resume.screen, tab: resume.tab, resume: null };
       }
       // ---------- Onboarding ----------
       case 'about': {
-        const account = action.firstName ? { ...(state.account ?? { phoneMasked: null, verifiedAt: null }), firstName: action.firstName } : state.account;
+        const account = action.firstName ? { ...(state.account ?? {}), firstName: action.firstName } : state.account;
         return { ...state, person: action.person, account, screen: SCREENS.QUESTIONS, step: 0, editing: false };
       }
       case 'setAnswer':
@@ -184,7 +185,7 @@ export function createAppModel({ index, stage0, allergens }) {
         if (!state.editing && action.to < 0) return { ...state, screen: SCREENS.ABOUT };
         if (!state.editing && action.to < stage0.questions.length) return { ...state, step: action.to };
         const onboarding = deriveOnboarding(stage0, state.answers, { allergens, catalogIndex: index });
-        // Antworten beim Wischen beginnen neu; Profiländerungen und Registrierung bleiben im Log.
+        // Antworten beim Wischen beginnen neu; Profiländerungen und Anmeldung bleiben im Log.
         const events = state.events.filter((event) => eventType(event) !== ANSWER);
         return { ...state, onboarding, events, roundNumber: 1, roundMode: ROUND_MODES.MAIN, dishRound: 0, endedEarly: false, editing: false, screen: SCREENS.SUMMARY };
       }
@@ -210,13 +211,6 @@ export function createAppModel({ index, stage0, allergens }) {
         const target = { ...state, roundMode: ROUND_MODES.MAIN, roundNumber: action.round };
         return canResumeRound(roundOf(target), state.config) ? enterRound(target) : state;
       }
-      // Alltagsprofil öffnen und danach dorthin zurück, wo die Person war (Abschluss oder „Mein Profil“).
-      case 'openPractical':
-        return { ...state, practicalFrom: { screen: state.screen, tab: state.tab }, tab: TABS.CREATE, screen: SCREENS.PRACTICAL };
-      case 'closePractical': {
-        const from = state.practicalFrom ?? { screen: SCREENS.COMPLETE, tab: TABS.PROFILE };
-        return { ...state, screen: from.screen === SCREENS.PRACTICAL ? SCREENS.COMPLETE : from.screen, tab: from.tab, practicalFrom: null };
-      }
       // ---------- Ereignisse ----------
       // Antwort beim Wischen: kann die Runde abschliessen.
       case 'event': {
@@ -225,7 +219,7 @@ export function createAppModel({ index, stage0, allergens }) {
         const complete = answer && isRoundComplete(roundOf(state, events), state.config);
         return { ...state, events, screen: complete ? SCREENS.COMPLETE : state.screen, endedEarly: false };
       }
-      // Profiländerung oder Registrierung: nur ins Log, der Bildschirm bleibt.
+      // Profiländerung oder Anmeldung: nur ins Log, der Bildschirm bleibt.
       case 'log':
         return { ...state, events: [...state.events, action.event] };
       case 'end':

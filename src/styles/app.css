@@ -104,12 +104,6 @@
   outline-offset: calc(-1 * var(--border-focus));
 }
 
-/* reCAPTCHA (echte SMS über Firebase): Das Logo von Google würde den Aktionsbereich verdecken.
-   Google erlaubt das Ausblenden, wenn der Hinweis auf reCAPTCHA als Text dasteht (RegisterPhoneScreen). */
-.grecaptcha-badge {
-  visibility: hidden;
-}
-
 /* ---------- Fester Aktionsbereich unten ---------- */
 
 .action-bar {

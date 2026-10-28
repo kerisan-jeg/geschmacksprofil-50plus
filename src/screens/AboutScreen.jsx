@@ -5,9 +5,9 @@ import TopBar, { BackButton } from '../components/TopBar.jsx';
 import { ABOUT } from '../labels.js';
 
 // „Über dich“: erster Schritt im Onboarding. Alter und Einwilligung sind Pflicht (Rückmeldung Team, 12.10.).
-// Mit Registrierung kennen wir den Vornamen schon. Ohne Registrierung (AUTH_ENABLED = false) ist er
-// hier freiwillig. Der Vorname bleibt nur auf diesem Gerät und wird nie protokolliert oder exportiert;
-// die Altersgruppe geht in die Auswertung.
+// Mit Anmeldung kennen wir den Vornamen schon. Ohne Anmeldung (AUTH_ENABLED = false) ist er hier freiwillig.
+// Die Einwilligung steht als kleine Schrift mit Kästchen unter den Altersfeldern (Teamentscheid 28.10.2026),
+// bleibt aber Pflicht. Die Altersgruppe geht in die Auswertung.
 export default function AboutScreen({ person, askName, firstName: initialName = '', onSubmit, onBack }) {
   const [firstName, setFirstName] = useState(initialName);
   const [ageGroup, setAgeGroup] = useState(person.ageGroup);
@@ -86,7 +86,10 @@ export default function AboutScreen({ person, askName, firstName: initialName = 
         </fieldset>
 
         <div className="field" ref={consentRef}>
-          <ChoiceList name="consent" multiple options={[{ id: 'consent', label: ABOUT.consent }]} value={consent ? ['consent'] : []} onChange={() => setConsent(!consent)} />
+          <label className="consent-line">
+            <input type="checkbox" name="consent" checked={consent} onChange={() => setConsent(!consent)} />
+            <span className="note">{ABOUT.consent}</span>
+          </label>
           {showError && missing.consent && (
             <p className="form-error" role="alert">
               <CircleAlert aria-hidden="true" />

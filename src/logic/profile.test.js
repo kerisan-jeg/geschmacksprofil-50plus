@@ -143,15 +143,16 @@ test('Zusammenfassung: ein Abschnitt je Frage; ohne Angaben gibt es nichts zu be
   assert.deepEqual(sections.map((section) => section.id), ['diet', 'intolerances', 'never']);
   assert.equal(hasSummaryRules(sections), false);
   for (const section of sections) {
-    assert.deepEqual([section.items, section.notes, section.brands, section.origins, section.open], [[], [], [], [], false], section.id);
+    assert.deepEqual([section.items, section.notes], [[], []], section.id);
+    assert.ok(!('open' in section) && !('brands' in section) && !('origins' in section), 'keine Felder für entfernte Angaben (28.10.2026)');
   }
 });
 
-test('Zusammenfassung: jede Regel steht bei ihrer Frage, Notizen und Marken ebenso; Unsicherheit bleibt offen', () => {
+test('Zusammenfassung: jede Regel steht bei ihrer Frage, Notizen ebenso', () => {
   const onboarding = onboardingFrom({
     diet: 'vegetarian',
-    intolerances: { ...blank.intolerances, gate: 'yes', selected: ['hazelnut'], notes: ['Koriander'], unsureMore: true },
-    never: { ...blank.never, gate: 'yes', selected: ['card:F01.3'], notes: ['Rosenkohl'], brands: ['M-Budget'], origins: ['Übersee'] },
+    intolerances: { ...blank.intolerances, gate: 'yes', selected: ['hazelnut'], notes: ['Koriander'] },
+    never: { ...blank.never, gate: 'yes', selected: ['card:F01.3'], notes: ['Rosenkohl'] },
   });
   const sections = summaryOf(onboarding);
   const [dietRule, intolerances, never] = sections;
@@ -159,11 +160,9 @@ test('Zusammenfassung: jede Regel steht bei ihrer Frage, Notizen und Marken eben
   assert.equal(intolerances.items.length, 1, 'Haselnuss als eine Regel');
   assert.match(intolerances.items[0].label, /Haselnu/);
   assert.deepEqual(intolerances.notes, ['Koriander'], 'Notiz aus Frage 2 steht bei Frage 2');
-  assert.equal(intolerances.open, true, 'keine Freigabe aus einer offenen Sicherheitsfrage');
   assert.equal(never.items.length, 1);
   assert.match(never.items[0].label, /Schwein/);
   assert.deepEqual(never.notes, ['Rosenkohl']);
-  assert.deepEqual([never.brands, never.origins], [['M-Budget'], ['Übersee']]);
   assert.equal(hasSummaryRules(sections), true);
 });
 

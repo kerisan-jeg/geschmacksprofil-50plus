@@ -69,87 +69,27 @@ export const STEPS = {
 export const START = {
   title: 'Was isst du gern?',
   lead: 'Wir zeigen dir Lebensmittel auf Karten. Bei jeder Karte sagst du mit einem Wisch oder einem Tipp, wie gern du sie isst.',
-  steps: ['Kurz anmelden mit Vorname und Handynummer', 'Drei Fragen zu Allergien und Ernährung', 'Karten wischen oder tippen'],
+  steps: ['Kurz anmelden mit deinem Vornamen', 'Drei Fragen zu Allergien und Ernährung', 'Karten wischen oder tippen'],
   pause: 'Aufhören kannst du jederzeit.',
   start: 'Los geht’s',
   fineprint: 'Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten bleiben auf diesem Gerät.',
   storageBlocked: 'Dein Browser erlaubt hier kein Speichern. Die App funktioniert, aber beim Schliessen gehen deine Antworten verloren.',
 };
 
-// Registrierung: Vorname → Handynummer → SMS-Code (simuliert, siehe src/auth/MockAuthService.js)
+// Anmeldung: nur der Vorname (Teamentscheid 28.10.2026, keine Handynummer, keine SMS)
 export const REGISTER = {
-  stepOf: (position, total) => `Schritt ${position} von ${total}`,
   nameTitle: 'Wie heisst du?',
   nameLead: 'Nur dein Vorname, kein Nachname. So sprechen wir dich in der App an.',
   nameLabel: 'Vorname',
   nameError: 'Bitte gib deinen Vornamen ein.',
   nameNext: 'Weiter',
-  phoneTitle: 'Deine Handynummer',
-  phoneLead: 'Wir schicken dir einen Code per SMS. Damit findest du dein Profil auf diesem Gerät wieder.',
-  countryLabel: 'Ländervorwahl',
-  countries: { CH: 'Schweiz', DE: 'Deutschland', AT: 'Österreich', LI: 'Liechtenstein', FR: 'Frankreich', IT: 'Italien' },
-  countryOption: (name, dial) => `${name} (${dial})`,
-  phoneLabel: 'Handynummer',
-  phonePlaceholder: '079 123 45 67',
-  phoneErrors: {
-    empty: 'Bitte gib deine Handynummer ein.',
-    too_short: 'Die Nummer ist zu kurz. Prüfe, ob alle Ziffern stimmen.',
-    too_long: 'Die Nummer ist zu lang. Prüfe, ob alle Ziffern stimmen.',
-    not_mobile: 'Das ist keine Handynummer. In der Schweiz beginnt sie mit 07, z. B. 079 123 45 67.',
-  },
-  phonePrivacy: 'Deine Nummer bleibt auf diesem Gerät. Nach der Bestätigung behalten wir sie nur gekürzt.',
-  sendCode: 'Code senden',
-  sending: 'Code wird gesendet …',
-  sendError: 'Der Code konnte nicht gesendet werden. Bitte versuche es nochmals.',
-  sendErrors: {
-    invalidNumber: 'An diese Nummer können wir keine SMS schicken. Prüfe sie bitte.',
-    tooMany: 'Zu viele Versuche. Bitte warte ein paar Minuten und versuche es dann nochmals.',
-    network: 'Keine Verbindung zum Internet. Prüfe die Verbindung und versuche es nochmals.',
-    retry: 'Die Sicherheitsprüfung hat nicht geklappt. Bitte versuche es nochmals.',
-    unavailable: 'Der SMS-Versand ist im Moment nicht möglich. Bitte versuche es später nochmals.',
-  },
-  // Echte SMS über Firebase (Google): ehrlich sagen, wohin die Nummer geht
-  phonePrivacyReal: 'Für die SMS geht deine Nummer an Google Firebase. Nach der Bestätigung löschen wir sie dort wieder; auf diesem Gerät bleibt sie nur gekürzt.',
-  recaptcha: {
-    text: 'Geschützt durch reCAPTCHA. Es gelten die Datenschutzerklärung und die Nutzungsbedingungen von Google.',
-    privacy: 'Datenschutzerklärung',
-    terms: 'Nutzungsbedingungen',
-    privacyUrl: 'https://policies.google.com/privacy',
-    termsUrl: 'https://policies.google.com/terms',
-  },
-  realSmsNote: 'Die SMS kommt meist innert einer Minute. Auf vielen Handys erscheint der Code direkt über der Tastatur.',
-  codeTooMany: 'Zu viele Versuche. Bitte warte ein paar Minuten.',
-  codeFailed: 'Die Prüfung hat nicht geklappt. Prüfe die Internetverbindung und versuche es nochmals.',
-  codeTitle: 'Code eingeben',
-  codeLead: (masked) => `Wir haben dir einen Code mit 6 Ziffern an ${masked} geschickt.`,
-  codeLabel: 'Code aus der SMS',
-  codeHint: 'Du kannst den Code auch einfügen.',
-  checking: 'Code wird geprüft …',
-  confirmCode: 'Bestätigen',
-  codeWrong: 'Der Code stimmt nicht. Prüfe die SMS und gib ihn nochmals ein.',
-  codeExpired: 'Der Code ist abgelaufen. Lass dir einen neuen schicken.',
-  resend: 'Code erneut senden',
-  resendIn: (seconds) => `Neuen Code in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`,
-  resent: 'Wir haben dir einen neuen Code geschickt.',
-  changeNumber: 'Nummer ändern',
-  simulationNote: 'Prototyp: Es wird keine echte SMS verschickt. Der Code erscheint oben als Mitteilung.',
-};
-
-// Simulierte SMS-Mitteilung oben am Bildschirm
-export const SMS = {
-  region: 'Mitteilung',
-  app: 'Nachrichten',
-  time: 'jetzt',
-  sender: 'Geschmack',
-  text: (code) => `${code} ist dein Code für Geschmacksprofil. Gib ihn nicht weiter.`,
-  dismiss: 'Mitteilung schliessen',
+  namePrivacy: 'Dein Vorname bleibt auf diesem Gerät. Die Testleitung sieht ihn, um deine Antworten zuzuordnen. Eine Handynummer brauchen wir nicht.',
 };
 
 // Wiederkehrende Person auf demselben Gerät
 export const WELCOME_BACK = {
   title: (name) => (name ? `Willkommen zurück, ${name}` : 'Willkommen zurück'),
   lead: 'Schön, dass du wieder da bist. Du machst dort weiter, wo du aufgehört hast.',
-  phone: (masked) => `Angemeldet mit ${masked}`,
   continue: 'Weiter',
   notMe: (name) => (name ? `Ich bin nicht ${name}` : 'Jemand anderes möchte die App nutzen'),
 };
@@ -208,6 +148,8 @@ export const DIET = {
   rulesLine: (rules) => `Speisevorschrift: ${rules.join(', ')}`,
   rulesEffect: 'Weggelassen wird nur, was du bestätigt hast.',
   addTitle: 'Lässt du etwas immer weg?',
+  // Teil C zugeklappt (Teamentscheid 28.10.2026): Die Zeile nennt gewählte Vorschriften, sonst nur die Frage
+  rulesSummary: (title, rules) => (rules.length > 0 ? `${title} · ${rules.join(', ')}` : title),
 };
 
 // Onboarding (Stufe 0): Allergien und „Nie vorschlagen“
@@ -218,15 +160,6 @@ export const ONBOARDING = {
   removeChip: (text) => `${text} entfernen`,
   tileChooseDetail: 'Auswählen',
   tileCount: (count, total) => (count === total ? 'Alle' : `${count} von ${total}`),
-  unsureMore: 'Ich bin mir nicht sicher, ob es weitere gibt',
-  // nurec v0.2, Kap. 2.1: Quelle der Vorgabe (0.2) und Geltungsbereich bei Unverträglichkeiten (0.3)
-  medical: 'Ärztlich oder fachlich festgestellt (z. B. Zöliakie)',
-  medicalHint: 'Freiwillig. Hilft später bei Vorschlägen, ändert aber nichts: Wir lassen alles weg, was du angibst.',
-  scopeTitle: (name) => `${name}: Musst du ganz darauf verzichten?`,
-  scopes: { avoid: 'Ganz meiden', limited: 'Kleine Mengen gehen' },
-  scopeNote: 'Wir schlagen es dir trotzdem nicht vor, solange keine genaue Menge feststeht.',
-  // A4: Satz bei gesetztem Unsicherheits-Flag. Das Flag selbst schliesst nichts aus.
-  unsureHint: 'Merkst du beim Wischen, dass du etwas nicht verträgst, tippe auf «Vertrage ich nicht».',
   noResult: 'Kein Eintrag gefunden.',
   alreadyCovered: 'Das ist durch deine bisherigen Angaben schon ausgeschlossen.',
   addEntry: (text) => `„${text}“ eintragen`,
@@ -239,17 +172,7 @@ export const ONBOARDING = {
   searchNeverLabel: 'Anderes Lebensmittel suchen',
   searchNeverPlaceholder: 'z. B. Speck oder Tomate',
   matchedVia: (term) => `passt zu „${term}“`,
-  brandsBlockTitle: 'Marken und Herkunft',
-  brandsTitle: 'Marken, die du meidest',
-  brandsPlaceholder: 'Marke',
-  originsTitle: 'Herkunft, die du meidest',
-  originsPlaceholder: 'Land, Region',
-  brandsNotApplied: 'Wir speichern das für spätere Produktvorschläge. Auf die Karten hier hat es noch keine Wirkung.',
   noteChip: 'Notiz',
-  // Marken und Händler (Bereich 0.6): genau zuordnen, sonst Status „prüfen“
-  brandsSearchLabel: 'Marke oder Händler suchen',
-  brandsSearchPlaceholder: 'z. B. M-Budget oder Denner',
-  brandAddNote: (text) => `„${text}“ trotzdem eintragen`,
 };
 
 // Einheitliche Suche (FoodSearch): Onboarding und Profil
@@ -266,9 +189,6 @@ export const SEARCH = {
   addNote: (text) => `„${text}“ trotzdem als Notiz eintragen`,
   selected: 'ausgewählt',
   dish: 'Gericht',
-  retailer: 'Händler',
-  brand: 'Marke',
-  brandOf: (owner) => `Marke von ${owner}`,
 };
 
 // Detailauswahl (Onboarding und „Vertrage ich nicht“ beim Wischen)
@@ -278,12 +198,6 @@ export const PICKER = {
   close: 'Schliessen',
   selectSection: (label) => `Alle ${label}`,
   nothingSelected: 'Bitte wähle mindestens einen Eintrag.',
-};
-
-// Marken und Herkunft (Frage 3), wie sie in der Zusammenfassung und in „Mein Profil“ stehen
-export const BRANDS = {
-  brands: (list) => `Marken: ${list.join(', ')}`,
-  origins: (list) => `Herkunft: ${list.join(', ')}`,
 };
 
 // Zusammenfassung vor der ersten Karte (nurec v0.2, Kap. 2.2): Die Person bestätigt oder korrigiert jede Regel.
@@ -297,8 +211,6 @@ export const SUMMARY = {
   none: { diet: 'Keine besondere Ernährungsform', intolerances: 'Keine bekannt', never: 'Nichts angegeben' },
   edit: 'Ändern',
   editFor: (section) => `${section} ändern`,
-  // Unsicherheits-Flag aus Frage 2: Die Frage bleibt offen, daraus folgt keine Freigabe (Kap. 2.2).
-  open: 'Offen: Du bist dir nicht sicher, ob es weitere gibt. Merkst du beim Wischen etwas, tippe auf „Vertrage ich nicht“.',
   noCards: 'Nach deinen Angaben bleibt keine Karte übrig. Prüfe deine Angaben oder schliesse direkt ab.',
   confirm: 'Stimmt so',
   // Einleitung zu Runde 1 (Dozentenfeedback 19.10.2026), Text in ROUND.round1Intro
@@ -348,6 +260,10 @@ export const ROUNDS = {
 export const ROUND = {
   undo: 'Rückgängig',
   endRound: 'Runde beenden',
+  // Runde 4 (Gerichte, Teamentscheid 28.10.2026): nach DISH_ROUND_END_AFTER Gerichten weiter oder beenden
+  dishPromptTitle: (count) => `${count} Gerichte bewertet`,
+  dishPromptIntro: 'Du kannst weitere Gerichte ansehen oder die Runde beenden. Es kommen nur Gerichte, die zu deinen Angaben und Antworten passen.',
+  moreDishes: 'Weitere Gerichte ansehen',
   cardOf: (position, total) => ({ strong: `Karte ${position}`, rest: ` von ${total}` }),
   progressLabel: 'Fortschritt der Runde',
   progressText: (answered, total) => `${answered} von ${total} Karten beantwortet`,
@@ -403,12 +319,6 @@ export const COMPLETE = {
   kickerDishes: 'Gerichte bewertet',
   leadDishes: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet.`,
   leadDishesEnded: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet. Deine bisherigen Antworten sind gespeichert.`,
-  optionalTitle: 'Freiwillig',
-  startDishes: 'Gerichte bewerten',
-  moreDishes: 'Weitere Gerichte bewerten',
-  dishesHint: 'Zum Beispiel Pizza Margherita oder Rösti. Gerichte stehen getrennt von den Lebensmitteln.',
-  startPractical: 'Alltag ergänzen',
-  practicalHint: 'Kochzeit, Küche, Budget und Einkauf: damit Vorschläge später zu deinem Alltag passen.',
 };
 
 // Profilstand „Profil aufgebaut“ (nurec v0.2, Anhang B2): ein Erfassungsgrad, keine Trefferquote
@@ -422,33 +332,13 @@ export const PROGRESS = {
   next: {
     continue: 'Weiter mit der Profilerstellung',
     round: (number, titles) => (titles.length > 0 ? `Runde ${number}, zum Beispiel ${titles.join(', ')}` : `Runde ${number}`),
-    dishes: 'Gerichte bewerten (freiwillig)',
-    practical: 'Alltag ergänzen (freiwillig)',
     done: 'Die Profilerstellung ist abgeschlossen. Antworten kannst du hier jederzeit ändern.',
   },
   action: {
     continue: 'Weitermachen',
     round: (number) => `Weiter mit Runde ${number}`,
-    dishes: 'Gerichte bewerten',
-    practical: 'Alltag ergänzen',
   },
 };
-
-// Alltagsprofil (nurec v0.2, Kap. 2.3), freiwillig. Fragen und Antworten stehen in src/data/practical.json.
-export const PRACTICAL = {
-  kicker: 'Freiwillig: dein Alltag',
-  counter: (position, total) => ({ strong: `Frage ${position}`, rest: ` von ${total}` }),
-  progressLabel: 'Fortschritt Alltagsprofil',
-  lead: 'Damit spätere Vorschläge zu deinem Alltag passen. Jede Frage kannst du überspringen.',
-  next: 'Weiter',
-  skip: 'Überspringen',
-  done: 'Fertig',
-  brandsPreferred: 'Marken, die du gern kaufst',
-  brandsAvoided: 'Marken, die du ungern kaufst',
-  brandsHint: 'Nicht verbindlich. Was du nie kaufen willst, gehört zu „Möchte ich nicht essen“.',
-  brandsPlaceholder: 'z. B. M-Budget oder Coop Naturaplan',
-  noEffect: 'Wirkt erst, wenn es Produktvorschläge gibt. Auf die Karten hier hat es keine Wirkung.',
-}; 
 
 // Mein Profil
 export const PROFILE = {
@@ -490,16 +380,8 @@ export const PROFILE = {
   cuisineLine: (label, direction, rated) =>
     `${label}: ${{ LIKE: 'eher gern', DISLIKE: 'eher ungern', MIXED: 'gemischt' }[direction]} (${rated} Gerichte bewertet)`,
   cuisinesNote: (min) => `Eine Tendenz zeigen wir erst ab ${min} bewerteten Gerichten einer Küche. „Kenne ich nicht“ zählt nicht.`,
-  dishesAction: (some) => (some ? 'Weitere Gerichte bewerten' : 'Gerichte bewerten'),
-  practicalTitle: 'Alltag',
-  practicalLead: 'Freiwillig. Hilft später bei Vorschlägen, die zu deinem Alltag passen. Wirkt noch nicht auf die Karten.',
-  practicalEmpty: 'Noch nichts angegeben.',
-  practicalAdd: 'Ergänzen',
-  practicalEdit: 'Ändern',
   statusCheck: 'prüfen',
   statusCheckHint: 'Nicht eindeutig zugeordnet. Kein verlässlich geprüfter Ausschluss.',
-  medical: 'ärztlich vorgegeben',
-  scopeLimited: 'kleine Mengen gehen',
   groups: {
     PREFER: 'Das magst du besonders',
     LIKE: 'Das magst du',
@@ -545,7 +427,6 @@ export const PROFILE = {
   sourceLine: (texts) => `Angegeben ${texts.join(' und ')}`,
   noDiet: 'Keine besondere Ernährungsform',
   sectionEmpty: 'Nichts angegeben',
-  unsure: 'Du bist dir nicht sicher, ob es weitere Unverträglichkeiten gibt.',
   emptyTitle: 'Noch kein Geschmacksprofil',
   emptyText: 'Beantworte zuerst die Fragen und wische dich durch die erste Runde. Danach steht hier, was du magst.',
   emptyAction: 'Profil erstellen',
@@ -556,7 +437,7 @@ export const PROFILE = {
   restartConfirm: 'Ja, von vorn beginnen',
   signOut: 'Abmelden',
   signOutTitle: 'Abmelden?',
-  signOutText: 'Dein Profil wird von diesem Gerät gelöscht. Für die Auswertung bleiben deine Antworten ohne Namen und ohne Nummer gespeichert.',
+  signOutText: 'Dein Profil wird von diesem Gerät gelöscht. Für die Auswertung bleiben deine Antworten auf diesem Gerät gespeichert.',
   signOutConfirm: 'Ja, abmelden',
   // Bearbeiten
   editRating: 'Bewertung ändern',
@@ -608,6 +489,8 @@ export const ADMIN = {
   exportCsv: 'Export CSV (Ereignisse)',
   empty: 'Noch keine Sitzungen auf diesem Gerät.',
   noCode: 'ohne Nr.',
+  // Teilnehmer-Nr. und Vorname aus der Anmeldung (Teamentscheid 28.10.2026)
+  participant: (code, name) => (name ? `${code} · ${name}` : code),
   finished: (duration) => `fertig, ${duration}`,
   unfinished: 'nicht beendet',
   duration: (minutes, seconds) => `${minutes}:${String(seconds).padStart(2, '0')} min`,

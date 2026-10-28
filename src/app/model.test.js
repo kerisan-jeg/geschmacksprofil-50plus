@@ -15,7 +15,7 @@ const index = indexCatalog(read('../data/catalog.json').cards);
 const model = createAppModel({ index, stage0, allergens });
 
 const person = { ageGroup: '60-69', participantCode: '', consent: true };
-const account = { firstName: 'Anna', phoneMasked: '+41 79 *** ** 67', verifiedAt: '2026-10-14T10:00:00.000Z' };
+const account = { firstName: 'Anna' };
 
 function run(state, ...actions) {
   return actions.reduce((current, action) => model.reducer(current, action), state);
@@ -38,7 +38,7 @@ const finishQuestions = (state) => run(state, { type: 'step', to: stage0.questio
 const toRound = (state) => run(finishQuestions(state), { type: 'confirmSummary' });
 
 function finishRound(state) {
-  for (let i = 0; state.screen === SCREENS.ROUND && i < 16; i += 1) {
+  for (let i = 0; state.screen === SCREENS.ROUND && i < 40; i += 1) {
     const card = nextCard(model.roundOf(state), state.config);
     assert.ok(card);
     state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: card.id, stage: card.stage, response: LIKE, round: state.roundNumber } });
@@ -47,21 +47,23 @@ function finishRound(state) {
   return state;
 }
 
-test('Registrierung: Willkommen → Vorname → Handynummer → SMS-Code → Onboarding', () => {
-  assert.equal(AUTH_ENABLED, true, 'Standard: Registrierung an');
+test('Anmeldung: Willkommen → Vorname → Onboarding (keine Handynummer, kein SMS-Code seit dem 28.10.2026)', () => {
+  assert.equal(AUTH_ENABLED, true, 'Standard: Anmeldung an');
   let state = model.initialState(DEFAULT_CONFIG);
   assert.equal(state.screen, SCREENS.START);
-  state = run(state, { type: 'go', screen: SCREENS.REGISTER_NAME }, { type: 'registration', changes: { firstName: 'Anna' } }, { type: 'go', screen: SCREENS.REGISTER_PHONE });
-  assert.equal(state.screen, SCREENS.REGISTER_PHONE);
-  state = run(state, { type: 'codeSent', request: { requestId: 'sim-1', sentAt: 0, resendAvailableAt: 30_000, e164: '+41791234567' } });
-  assert.equal(state.screen, SCREENS.REGISTER_CODE);
-  // Gültiger Code führt weiter
-  state = run(state, { type: 'verified', account });
+  assert.ok(!('REGISTER_PHONE' in SCREENS) && !('REGISTER_CODE' in SCREENS) && !('PRACTICAL' in SCREENS));
+  state = run(state, { type: 'go', screen: SCREENS.REGISTER_NAME }, { type: 'registration', changes: { firstName: 'Anna' } });
+  assert.equal(state.screen, SCREENS.REGISTER_NAME);
+  state = run(state, { type: 'register', firstName: 'Anna' });
   assert.equal(state.screen, SCREENS.ABOUT, 'weiter zum Onboarding');
-  assert.deepEqual(state.account, account);
-  assert.equal(state.registration.e164, null, 'die volle Nummer bleibt nicht im Zustand');
+  assert.deepEqual(state.account, { firstName: 'Anna' });
+  assert.deepEqual(state.registration, { firstName: '' }, 'die Eingabe bleibt nicht im Zustand');
   state = run(state, { type: 'about', person });
   assert.equal(state.screen, SCREENS.QUESTIONS);
+  // Gespeicherte Stände alter Bildschirme (Handynummer, SMS-Code, Alltag) laufen an der nächsten sinnvollen Stelle weiter
+  const legacy = model.initialState(DEFAULT_CONFIG, { account, saved: { sessionId: 'alt', state: { ...model.initialState(DEFAULT_CONFIG), screen: 'register-code', practicalFrom: { screen: 'complete' } } } });
+  assert.equal(legacy.resume.screen, SCREENS.REGISTER_NAME);
+  assert.ok(!('practicalFrom' in legacy));
 });
 
 test('AUTH_ENABLED = false überspringt die Registrierung und startet beim Onboarding', () => {
@@ -169,7 +171,7 @@ test('Nach Runde 1 geht es mit Runde 2 weiter; Rundennummer im Zustand und in de
   assert.deepEqual([back.screen, back.roundNumber], [SCREENS.COMPLETE, 2]);
 });
 
-test('Vier Runden steigen jeweils eine Ebene ab und überschreiten auch mit alten Limits nie 15 Karten', () => {
+test('Vier Runden steigen jeweils eine Ebene ab; Runden 1 bis 3 überschreiten auch mit alten Limits nie 15 Karten, Runde 4 zeigt alle passenden Gerichte', () => {
   for (const selection of ['fixed', 'adaptive']) for (const roundCardLimit of [4, 12, 13, 15, 30]) {
     let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit, selection, holdout: 0 }));
     const counts = new Map();
@@ -189,7 +191,8 @@ test('Vier Runden steigen jeweils eine Ebene ab und überschreiten auch mit alte
     }
     assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 4]);
     assert.deepEqual([...counts.keys()], [1, 2, 3, 4]);
-    assert.ok([...counts.values()].every((count) => count <= Math.min(roundCardLimit, 15)));
+    for (const round of [1, 2, 3]) assert.ok(counts.get(round) <= Math.min(roundCardLimit, 15), `Runde ${round}`);
+    assert.equal(counts.get(4), 22, 'Runde 4 ohne Limit: alle 22 Gerichte, wenn alles „Mag ich“ ist');
     assert.ok(model.roundOf(state).sequence.some((id) => index.get(id).stage === 4));
     assert.equal(run(state, { type: 'nextRound' }, { type: 'nextRound' }), state, 'weitere Klicks starten keine Runde');
     assert.equal(run(state, { type: 'tab', tab: TABS.PROFILE }).tab, TABS.PROFILE);
@@ -290,18 +293,7 @@ test('Gerichte sind Runde 4; startDishes kann weder vorher noch danach eine zus�
   assert.equal(state.screen, SCREENS.COMPLETE, 'Gerichte-Runde nach dem Kartenlimit fertig');
   assert.equal(run(state, { type: 'nextRound' }), state);
   assert.equal(run(state, { type: 'startDishes' }), state);
-  assert.equal(model.mainRoundOf(state).sequence.length, 16, 'alle Antworten im selben Log');
-});
-
-test('Alltagsprofil öffnen und danach dorthin zurück, wo man war', () => {
-  let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit: 4 }));
-  for (const cardId of ['F01', 'F02', 'F03', 'F04']) state = run(state, { type: 'event', event: { type: 'ANSWER', cardId, response: LIKE, round: 1 } });
-  const fromProfile = run(state, { type: 'tab', tab: TABS.PROFILE }, { type: 'openPractical' });
-  assert.deepEqual([fromProfile.screen, fromProfile.tab], [SCREENS.PRACTICAL, TABS.CREATE]);
-  assert.equal(isNavVisible(fromProfile), false, 'ein Weg nach vorn, keine Leiste');
-  assert.deepEqual([run(fromProfile, { type: 'closePractical' }).screen, run(fromProfile, { type: 'closePractical' }).tab], [SCREENS.COMPLETE, TABS.PROFILE]);
-  const fromComplete = run(state, { type: 'openPractical' }, { type: 'closePractical' });
-  assert.deepEqual([fromComplete.screen, fromComplete.tab], [SCREENS.COMPLETE, TABS.CREATE]);
+  assert.equal(model.mainRoundOf(state).sequence.length, 12 + 22, 'alle Antworten im selben Log, Runde 4 mit allen passenden Gerichten');
 });
 
 test('Alte vierte Runde setzt mit Gerichten fort; gespeicherte Antworten und Ausschlüsse bleiben erhalten', () => {

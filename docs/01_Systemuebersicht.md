@@ -4,7 +4,7 @@ Stand 26.10.2026, Commit `60bc8c5`, Regeln `demo-0.6`. Alle Angaben sind Beobach
 
 ## 1. Was der Prototyp ist
 
-Eine React-Anwendung (React 19, Vite 8) ohne eigenen Server. Alles läuft im Browser des Testgeräts: Fragebogen, Kartenauswahl, Profilberechnung, Protokoll und Export. Daten liegen ausschliesslich im `localStorage` des Geräts. Die einzige Netzwerkverbindung ist der optionale SMS-Versand über Firebase bei der Registrierung (`src/auth/FirebaseAuthService.js`); ohne Firebase-Konfiguration wird die SMS simuliert.
+Eine React-Anwendung (React 19, Vite 8) ohne eigenen Server. Alles läuft im Browser des Testgeräts: Fragebogen, Kartenauswahl, Profilberechnung, Protokoll und Export. Daten liegen ausschliesslich im `localStorage` des Geräts. Es gibt keine Netzwerkverbindung zu Dritten; der frühere SMS-Versand über Firebase ist seit dem 28.10.2026 entfernt.
 
 Es gibt keine Datenbank, kein Backend, kein maschinelles Lernen und keine Produkt- oder Rezeptdaten. „Anwendungslogik“ heisst in diesem Projekt: reine JavaScript-Funktionen in `src/logic/`, die im Frontend ausgeführt werden. Sie sind ohne Browser testbar, und genau diese Funktionen werden in den Dokumenten 02 bis 04 beschrieben.
 
@@ -13,22 +13,21 @@ Es gibt keine Datenbank, kein Backend, kein maschinelles Lernen und keine Produk
 | Schritt | Bildschirm (`src/screens/`) | Was passiert |
 |---|---|---|
 | 1 | StartScreen | Einführung in drei Sätzen |
-| 2 | RegisterName, RegisterPhone, RegisterCode | Vorname, Handynummer, SMS-Code (nur mit `AUTH_ENABLED = true`, Standard) |
-| 3 | AboutScreen | Altersgruppe (Pflicht), Einwilligung (Pflicht), Teilnehmer-Nr. (für die Testleitung) |
-| 4 | QuestionnaireScreen | Stufe 0: drei Fragen, je ein Bildschirm (Ernährungsform mit Einzelausschlüssen und Speisevorschriften; Allergien und Unverträglichkeiten; „Nie vorschlagen“) |
+| 2 | RegisterName | Anmeldung nur mit dem Vornamen (nur mit `AUTH_ENABLED = true`, Standard); seit dem 28.10.2026 ohne Handynummer und SMS-Code. Der Vorname steht als `participantName` in der Sitzung und im Export für die Testleitung (`PRIVACY.logParticipantName`) |
+| 3 | AboutScreen | Altersgruppe (Pflicht), Einwilligung als Kästchen mit kleinem Text unter den Altersfeldern (Pflicht), Teilnehmer-Nr. (für die Testleitung) |
+| 4 | QuestionnaireScreen | Stufe 0: drei Fragen, je ein Bildschirm (Ernährungsform mit Einzelausschlüssen und zugeklappten Speisevorschriften; Allergien und Unverträglichkeiten ohne Zusatzangaben; „Nie vorschlagen“ ohne Marken und Herkunft; Stand 28.10.2026) |
 | 5 | SummaryScreen | „Stimmt das so?“: alle festen Regeln, „Ändern“ je Frage, „Stimmt so“ |
 | 6 | RoundScreen | Runde 1: Lebensmittelgruppen (bis 13 Karten) |
 | 7 | CompleteScreen | Abschluss mit Zählung der Antworten, Profilstand, Rundenübersicht, „Weiter mit Runde 2“ |
-| 8 | RoundScreen / CompleteScreen | Runde 2: Untergruppen und Kontrollkarten; Runde 3: einzelne Lebensmittel; Runde 4: Gerichte |
-| 9 | PracticalScreen (freiwillig) | Alltagsprofil: sechs Fragen, überspringbar, ohne Wirkung auf Karten oder Profilstand |
-| 10 | ProfileScreen | „Mein Profil“: Antwortkategorien, Profilstand, Vermutungen, Ausschlüsse, Alltag; Bearbeiten möglich |
+| 8 | RoundScreen / CompleteScreen | Runde 2: Untergruppen und Kontrollkarten; Runde 3: einzelne Lebensmittel; Runde 4: alle passenden Gerichte ohne Kartenlimit, nach zehn Gerichten „Runde beenden“ (seit dem 28.10.2026) |
+| 9 | ProfileScreen | „Mein Profil“: Antwortkategorien, Profilstand, Vermutungen, Ausschlüsse; Bearbeiten möglich. Das Alltagsprofil (PracticalScreen) ist seit dem 28.10.2026 entfernt |
 
 Zusätzlich: WelcomeBackScreen (gespeicherter Stand auf demselben Gerät), IntroScreen (Tutorial, standardmässig aus), AdminScreen (`?admin=1`: Sitzungen, Export, „Neue Testperson starten“).
 
 ## 3. Architektur in Schichten
 
 ```
-Daten (JSON)            src/data/catalog.json, stage0.json, allergens.json, cuisines.json, practical.json, brands.json, foods.json
+Daten (JSON)            src/data/catalog.json, stage0.json, allergens.json, cuisines.json, foods.json
 Logik (rein)            src/logic/*.js         Auswahl, Filter, Profil, Vermutungen, Kontrollkarten, Dashboard
 Zustand                 src/app/model.js       Bildschirmwechsel als Reducer; Event-Log als einzige Quelle der Wahrheit
 Oberfläche              src/App.jsx, src/screens/, src/components/   React, Texte nur aus src/labels.js
@@ -105,4 +104,4 @@ Alle Stellschrauben stehen in `src/config.js`: Kartenlimit, Anzahl Runden, Auswa
 
 ## 5. Was im Prototyp bewusst nicht wirkt
 
-Beobachtung: Diese Angaben werden gespeichert, verändern aber keine Karte und keinen Wert: Speisevorschriften (halal, koscher) ohne einzeln bestätigte Vorschläge, Marken und Herkunft (Frage 3), das gesamte Alltagsprofil, „ärztlich festgestellt“ und „kleine Mengen gehen“ (beides bleibt ein voller Ausschluss), die Esskultur eines Gerichts (nur Metadatum und Tendenz im Profil). Das Unsicherheits-Kästchen in Frage 2 erzeugt keinen Ausschluss, nur einen Hinweis.
+Beobachtung: Diese Angaben werden gespeichert, verändern aber keine Karte und keinen Wert: Speisevorschriften (halal, koscher) ohne einzeln bestätigte Vorschläge und die Esskultur eines Gerichts (nur Metadatum und Tendenz im Profil). Die früheren wirkungslosen Angaben (Marken und Herkunft in Frage 3, Alltagsprofil, „ärztlich festgestellt“, „kleine Mengen gehen“, Unsicherheits-Kästchen in Frage 2) hat das Team am 28.10.2026 entfernt; alte gespeicherte Antworten mit diesen Feldern bleiben wirkungslos.

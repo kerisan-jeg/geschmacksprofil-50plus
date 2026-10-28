@@ -58,7 +58,7 @@ Die Vermutungen gehen in die Kartenauswahl nicht ein (`selection.js` nutzt nur `
 |---|---|---|---|
 | Stufe 1 (bis 35) | 35 × Anteil der sichtbaren Gruppen mit Geschmacksantwort | DISLIKE, LIKE, PREFER | UNFAMILIAR, INTOLERANT, ausgeschlossene Gruppen (sie sind nicht relevant) |
 | Stufe 2 (bis 30) | 30 × Mittel des Zweigkredits über alle Gruppen mit nutzbaren Untergruppen | Zweigkredit: Gruppe unbewertet 0; UNFAMILIAR oder INTOLERANT: 1, sobald ein Kind eine Geschmacksantwort hat; DISLIKE: Ausnahme beantwortet (0 oder 1); LIKE/PREFER: beantwortete Karten des Kontrastpaars geteilt durch 2 | Gruppen ohne Untergruppen (Eier, Kartoffeln) sind kein Zweig |
-| Stufe 3 (bis 35) | 35 × min(1, Lebensmittel mit Geschmacksantwort / 12) | konkrete Karten der Stufe 3 | Gerichte, Alltagsprofil |
+| Stufe 3 (bis 35) | 35 × min(1, Lebensmittel mit Geschmacksantwort / 12) | konkrete Karten der Stufe 3 | Gerichte |
 
 `percent` ist die gerundete Summe, höchstens 100. `stage` (höchste abgeschlossene Stufe): 1, wenn jede sichtbare Gruppe beantwortet ist; 2, wenn zusätzlich keine Klärung, Ausnahme oder Kontrastkarte mehr offen ist (`rankedCards()` enthält keinen Eintrag mit diesen Gründen).
 
@@ -82,11 +82,11 @@ Beobachtung: Der Wert misst Erfassung, nicht Zustimmung. Szenario C erreicht 89 
 | `dishes` | Gerichte mit Geschmacksantwort |
 | `cuisines` | Tendenz je Küche ab `CUISINE_MIN_RATED = 3` bewerteten Gerichten: Vorzeichen des Mittels der Gewichte, „gemischt“ bei 0; Unterküchen zählen für „asiatisch“ |
 
-Die Oberfläche (`ProfileScreen.jsx`) zeigt zuerst die Anzahl Antworten und vier Balken (Anteil je Kategorie), dann den Profilstand mit nächstem Schritt, dann aufklappbar „Weitere Einblicke“ (Vermutungen, noch nicht gefragt, Feinheiten, Küchen), „Ausschlüsse“ und „Alltag“.
+Die Oberfläche (`ProfileScreen.jsx`) zeigt zuerst die Anzahl Antworten und vier Balken (Anteil je Kategorie), dann den Profilstand mit nächstem Schritt, dann aufklappbar „Weitere Einblicke“ (Vermutungen, noch nicht gefragt, Feinheiten, Küchen), „Ausschlüsse“ (das frühere „Alltag“ ist seit dem 28.10.2026 entfernt).
 
 ## 6. Gerichte
 
-Reihenfolge in Runde 4 (`engine.js → openDishes()`): Mittelwert der Modellwerte über die verknüpften Zutatenkarten (`ingredients`), fehlende Werte 0, absteigend; gleiche Werte in Katalogreihenfolge. Beispiel aus Szenario B: Frühlingsrollen zuerst, weil ihre einzige verknüpfte Zutat „Gegartes Gemüse“ +2 hat. Die Antwort auf ein Gericht ist eine eigene Bewertung und bleibt es.
+Auswahl und Reihenfolge in Runde 4 (`engine.js → openDishes()`, seit dem 28.10.2026): Zutaten-Zuneigung = Mittelwert über die verknüpften Zutatenkarten (`ingredients`) der jeweils nächsten direkten Bewertung im Baum (−1, +1, +2; ohne Bewertung 0, keine Abschwächung je Stufe); nur Gerichte mit Zuneigung ≥ 0, absteigend, gleiche Werte in Katalogreihenfolge, ohne Kartenlimit. Beispiel aus Szenario B: Frühlingsrollen und Ratatouille zuerst, weil ihre Zutaten zu „Gegartes Gemüse“ (+2) gehören. Die Antwort auf ein Gericht ist eine eigene Bewertung und bleibt es; Gerichte zählen nicht zum Profilstand.
 
 ## 7. Änderungen im Profil
 
@@ -102,7 +102,7 @@ Alle Profiländerungen tragen `source: profile`; nur solche verändern das Profi
 
 ## 8. Was protokolliert wird
 
-Je Sitzung `profile` mit `ruleVersion`, `taste` (PREFER, LIKE, DISLIKE), `unfamiliar`, `unrated`, `intolerant`, `removed`, `predicted` (`cardId`, `score`, `basisId`), `diet`, `exclusions` (mit `medical`, `scope`, `status check`), `progress` (`percent`, `points`, `stage`) und `practical`. Mit `PRIVACY.logExclusionValues = false` bleiben von den Ausschlüssen nur Typ und Herkunft.
+Je Sitzung `profile` mit `ruleVersion`, `taste` (PREFER, LIKE, DISLIKE), `unfamiliar`, `unrated`, `intolerant`, `removed`, `predicted` (`cardId`, `score`, `basisId`), `diet`, `exclusions` (mit `status check`), `progress` (`percent`, `points`, `stage`); `medical`, `scope` und `practical` gibt es seit dem 28.10.2026 nicht mehr. Mit `PRIVACY.logExclusionValues = false` bleiben von den Ausschlüssen nur Typ und Herkunft.
 
 ## 9. Nachvollziehbarkeit
 

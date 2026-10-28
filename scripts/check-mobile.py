@@ -1,9 +1,9 @@
 """Misst die Mobile-Kriterien (Addendum A11) auf allen Bildschirmen des Prototyps.
 
-Geprüft bei 360 x 640 und 430 x 932 auf allen Bildschirmen inkl. Registrierung (SMS simuliert),
-Zusatzangaben in Frage 2, Zusammenfassung mit „Ändern“, Runde 2 bis 4, Abschluss mit Profilstand,
-Gerichte-Runde, Alltagsprofil, Dashboard, Bewertung, Vermutungen der App, Allergien, Suche und Bestätigung
-in „Mein Profil“ und „Willkommen zurück“:
+Geprüft bei 360 x 640 und 430 x 932 auf allen Bildschirmen inkl. Anmeldung mit Vornamen (seit dem 28.10.2026 ohne
+Handynummer und SMS), Zusatzangaben in Frage 2, Zusammenfassung mit „Ändern“, Runde 2 bis 4, Abschluss mit Profilstand,
+Gerichte-Runde ohne Limit mit Hinweis nach 10 Gerichten, Dashboard, Bewertung, Vermutungen der App, Allergien, Suche
+und Bestätigung in „Mein Profil“ und „Willkommen zurück“:
   - kein horizontaler Scroll
   - Touch-Ziele >= 44 x 44 CSS-px
   - Textkontrast >= 4.5:1 (axe-core, Regel color-contrast)
@@ -141,20 +141,11 @@ def run(p, W, H):
     results = {}
     pg.goto(BASE + '?limit=4')
     check(pg, 'start', results, W)
-    # Registrierung (SMS simuliert: Code aus der Mitteilung oben)
+    # Anmeldung (28.10.2026): nur der Vorname, keine Handynummer, kein SMS-Code; leer gibt es eine Fehlermeldung
     pg.get_by_role('button', name='Los geht’s').click(); check(pg, 'reg_vorname', results, W)
+    pg.get_by_role('button', name='Weiter', exact=True).click(); check(pg, 'reg_vorname_fehler', results, W)
     pg.get_by_label('Vorname').fill('Test')
     pg.get_by_role('button', name='Weiter', exact=True).click()
-    pg.get_by_label('Handynummer').fill('044 123 45 67')
-    pg.get_by_role('button', name='Code senden').click(); check(pg, 'reg_nummer_fehler', results, W)
-    pg.get_by_label('Handynummer').fill('079 123 45 67')
-    pg.get_by_role('button', name='Code senden').click()
-    pg.wait_for_selector('.sms-banner')
-    check(pg, 'reg_code_mitteilung', results, W)
-    code = re.search(r'\d{6}', pg.locator('.sms-text').inner_text()).group(0)
-    pg.get_by_label('Code aus der SMS').fill('000000' if code != '000000' else '111111')
-    pg.wait_for_timeout(600); check(pg, 'reg_code_falsch', results, W)
-    pg.get_by_label('Code aus der SMS').fill(code)
     pg.wait_for_selector('.screen-about'); check(pg, 'ueber_dich', results, W)
     pg.get_by_text('Für die Testleitung').click()
     pg.get_by_text('60 bis 69').click()
@@ -191,7 +182,6 @@ def run(p, W, H):
     # Nur was in keiner Liste steht, wird eine Notiz
     pg.get_by_label('Anderes Lebensmittel suchen').fill('Omas Spezialsauce')
     pg.locator('.add-entry').click()
-    pg.get_by_label('Marken, die du meidest').fill('Marke X'); pg.keyboard.press('Enter')
     # Nach Frage 3 die Zusammenfassung (nurec v0.2, Kap. 2.2); „Ändern“ führt zur Frage und zurück.
     # Danach direkt die erste Karte (Tutorial standardmässig aus).
     pg.get_by_role('button', name='Weiter', exact=True).click(); check(pg, 'zusammenfassung', results, W)
@@ -221,28 +211,23 @@ def run(p, W, H):
     pg.get_by_role('button', name='Weiter mit Runde 2').click(); check(pg, 'runde_2', results, W)
     pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(300)
     pg.get_by_role('button', name='Runde beenden').click(); check(pg, 'abschluss_2', results, W)
-    # Runde 3 und 4 bis zum Ende der Profilerstellung, dann freiwillig Gerichte (Stufe 4) und Alltag (Kap. 2.3)
-    # Runde 3 kann je nach gezogenen Kontrollkarten leer sein; dann bietet die App direkt Runde 4 an
-    for _ in range(2):
-        nxt = pg.get_by_role('button', name=re.compile('^Weiter mit Runde [34]'))
-        if not nxt.count():
-            break
-        nxt.first.click(); answer_until_complete(pg)
-    check(pg, 'abschluss_ende', results, W)
-    # Seit dem Stufenablauf (18.10.) ist Runde 4 die Gerichte-Runde; ein eigener Gerichte-Schritt nur, falls angeboten
-    if pg.get_by_role('button', name='Gerichte bewerten').count():
-        pg.get_by_role('button', name='Gerichte bewerten').click(); check(pg, 'gerichte_runde', results, W)
-        answer_until_complete(pg); check(pg, 'gerichte_abschluss', results, W)
-    pg.get_by_role('button', name='Alltag ergänzen').click(); check(pg, 'alltag', results, W)
-    pg.locator('label.choice').nth(1).click(); pg.get_by_role('button', name='Weiter', exact=True).click()
-    pg.get_by_role('button', name='Überspringen').click(); pg.get_by_role('button', name='Überspringen').click()
-    pg.get_by_text('Migros', exact=True).click()
-    pg.get_by_label('Marken, die du gern kaufst').fill('M-Bud'); check(pg, 'alltag_einkauf', results, W)
-    pg.locator('.search-hit').first.click()
-    pg.get_by_role('button', name='Weiter', exact=True).click()
-    for _ in range(2):
-        pg.get_by_role('button', name='Überspringen').click()
-    pg.wait_for_selector('.screen-complete')
+    # Runde 3 bis zum Ende; sie kann je nach gezogenen Kontrollkarten leer sein, dann bietet die App direkt Runde 4 an
+    nxt = pg.get_by_role('button', name='Weiter mit Runde 3')
+    if nxt.count():
+        nxt.click(); answer_until_complete(pg)
+    # Runde 4 (Gerichte) seit dem 28.10.2026 ohne Kartenlimit: nach 10 Gerichten fragt die App „Weitere Gerichte
+    # ansehen“ oder „Runde beenden“; danach steht „Runde beenden“ unter den Antwortknöpfen, solange Gerichte offen sind
+    pg.get_by_role('button', name='Weiter mit Runde 4').click(); check(pg, 'gerichte_runde', results, W)
+    for position in range(10):
+        round_fit(pg, f'Gericht {position + 1}')
+        pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(120)
+    pg.wait_for_selector('.sheet'); check(pg, 'gerichte_hinweis', results, W)
+    pg.get_by_role('button', name='Weitere Gerichte ansehen').click(); pg.wait_for_timeout(200)
+    round_fit(pg, 'Gericht 11 mit „Runde beenden“ unten')
+    pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(120)
+    check(pg, 'gerichte_weiter', results, W)
+    pg.locator('.round-exit').get_by_role('button', name='Runde beenden').click()
+    pg.wait_for_selector('.screen-complete'); check(pg, 'gerichte_abschluss', results, W)
     pg.get_by_role('button', name='Mein Profil ansehen').click(); check(pg, 'profil', results, W)
     pg.locator('.answer-distribution details').filter(has=pg.locator('.taste-row')).first.locator('summary').click()
     pg.locator('button.taste-row').first.click(); check(pg, 'profil_bewertung', results, W)

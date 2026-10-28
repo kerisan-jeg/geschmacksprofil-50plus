@@ -1,12 +1,9 @@
-import { CircleHelp, Info, Pencil, Salad, ShieldAlert, ShieldCheck, Utensils } from 'lucide-react';
+import { Info, Pencil, Salad, ShieldAlert, ShieldCheck, Utensils } from 'lucide-react';
 import CreationSteps from '../components/CreationSteps.jsx';
 import Avatar from '../components/Avatar.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { hasSummaryRules } from '../logic/profile.js';
-import { BRANDS, DIET, ONBOARDING, PROFILE, ROUND, SUMMARY } from '../labels.js';
-
-// Zusätze zu einer Regel (nurec v0.2, Kap. 2.2): ärztlich vorgegeben, kleine Mengen gehen
-const FLAG_TEXT = { medical: PROFILE.medical, limited: PROFILE.scopeLimited };
+import { DIET, ONBOARDING, PROFILE, ROUND, SUMMARY } from '../labels.js';
 
 const SECTION_ICONS = { diet: Salad, intolerances: ShieldAlert, never: Utensils };
 
@@ -36,7 +33,6 @@ export default function SummaryScreen({ sections, noCards, firstName, steps, onC
           const title = SUMMARY.sections[section.id];
           const empty = section.items.length === 0 && section.notes.length === 0;
           const rules = section.dietaryRules ?? [];
-          const hasBrands = section.brands.length > 0 || section.origins.length > 0;
           return (
             <section key={section.id} className="exclusion-section" aria-labelledby={`summary-${section.id}`}>
               <div className="exclusion-head">
@@ -50,25 +46,13 @@ export default function SummaryScreen({ sections, noCards, firstName, steps, onC
                 </button>
               </div>
 
-              {empty && !hasBrands && <p className="note">{SUMMARY.none[section.id]}</p>}
+              {empty && <p className="note">{SUMMARY.none[section.id]}</p>}
               {!empty && (
                 <ul className="exclusion-list">
                   {section.items.map((item) => (
                     <li key={item.key} className="exclusion-row">
                       <span className="exclusion-text">
                         <span className="exclusion-label">{item.label}</span>
-                        {item.flags?.some((flag) => flag !== 'check') && (
-                          <span className="exclusion-flags">
-                            {item.flags
-                              .filter((flag) => flag !== 'check')
-                              .map((flag) => (
-                                <span key={flag} className="flag">
-                                  {FLAG_TEXT[flag]}
-                                </span>
-                              ))}
-                          </span>
-                        )}
-                        {item.flags?.includes('limited') && <span className="exclusion-source">{ONBOARDING.scopeNote}</span>}
                       </span>
                     </li>
                   ))}
@@ -89,23 +73,6 @@ export default function SummaryScreen({ sections, noCards, firstName, steps, onC
               {rules.length > 0 && (
                 <p className="note">
                   {DIET.rulesLine(rules)}. {DIET.rulesEffect}
-                </p>
-              )}
-
-              {hasBrands && (
-                <>
-                  <ul className="tag-list">
-                    {section.brands.length > 0 && <li>{BRANDS.brands(section.brands)}</li>}
-                    {section.origins.length > 0 && <li>{BRANDS.origins(section.origins)}</li>}
-                  </ul>
-                  <p className="note">{ONBOARDING.brandsNotApplied}</p>
-                </>
-              )}
-
-              {section.open && (
-                <p className="notice">
-                  <CircleHelp aria-hidden="true" />
-                  {SUMMARY.open}
                 </p>
               )}
             </section>

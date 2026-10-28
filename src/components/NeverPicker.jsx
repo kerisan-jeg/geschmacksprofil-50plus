@@ -1,68 +1,17 @@
-import { useId, useMemo, useState } from 'react';
-import { Info, Plus } from 'lucide-react';
-import BrandField from './BrandField.jsx';
+import { useMemo } from 'react';
 import FoodSearch from './FoodSearch.jsx';
 import SelectionChips from './SelectionChips.jsx';
 import { buildFoodIndex } from '../logic/foodSearch.js';
-import { cleanText, keyLabel } from '../logic/stage0.js';
+import { keyLabel } from '../logic/stage0.js';
 import { ONBOARDING } from '../labels.js';
-
-// Freitext-Liste als Chips, z. B. für Marken oder Herkunft.
-function TextList({ title, hint, placeholder, values, onChange }) {
-  const [text, setText] = useState('');
-  const inputId = useId();
-  const value = cleanText(text);
-
-  function add() {
-    if (value && !values.some((entry) => entry.toLowerCase() === value.toLowerCase())) onChange([...values, value]);
-    setText('');
-  }
-
-  return (
-    <div className="text-list">
-      <label htmlFor={inputId} className="search-label">{title}</label>
-      {hint && <p className="note">{hint}</p>}
-      <div className="text-list-row">
-        <input
-          id={inputId}
-          className="input"
-          type="text"
-          autoComplete="off"
-          enterKeyHint="done"
-          maxLength={60}
-          placeholder={placeholder}
-          value={text}
-          onChange={(event) => setText(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              add();
-            }
-          }}
-        />
-        <button type="button" className="button-secondary text-list-add" disabled={!value} onClick={add}>
-          <Plus aria-hidden="true" />
-          {ONBOARDING.add}
-        </button>
-      </div>
-      <SelectionChips
-        title={title}
-        hideTitle
-        chips={values.map((entry) => ({ key: entry, text: entry }))}
-        onRemove={(chip) => onChange(values.filter((entry) => entry !== chip.key))}
-      />
-    </div>
-  );
-}
 
 // Frage 3 „Nie vorschlagen“:
 // - wenige häufige Beispiele als Chips, jedes auf eine Katalog-ID oder einen Tag abgebildet (A7)
 // - Suche (FoodSearch) über alle Lebensmittel; ohne Treffer wird eine Notiz eingetragen (A7)
 // - was durch frühere Angaben schon ausgeschlossen ist, wird nicht nochmals angeboten
-// - Marken und Herkunft als eigener Block; gespeichert, im Prototyp noch ohne Wirkung. Marken und Händler werden
-//   über eine Liste genau zugeordnet (nurec v0.2, 0.6); Unbekanntes bleibt als Text mit Status „prüfen“.
+// Marken und Herkunft gibt es seit dem 28.10.2026 nicht mehr (Teamentscheid: ohne Wirkung, überflüssig).
 export default function NeverPicker({ question, catalogIndex, foods = [], answer, redundancy, onChange }) {
-  const { selected, notes, brands, origins } = answer;
+  const { selected, notes } = answer;
   const searchIndex = useMemo(() => buildFoodIndex({ catalogIndex, foods, tagLabels: question.tagLabels }), [catalogIndex, foods, question]);
 
   function update(changes) {
@@ -117,21 +66,6 @@ export default function NeverPicker({ question, catalogIndex, foods = [], answer
         onRemove={(chip) => (chip.note ? update({ notes: notes.filter((note) => note !== chip.note) }) : toggleKey(chip.key))}
       />
       {notes.length > 0 && <p className="note">{ONBOARDING.entryEffect}</p>}
-
-      <section className="brands-block" aria-labelledby="brands-title">
-        <h3 id="brands-title" className="brands-title">{ONBOARDING.brandsBlockTitle}</h3>
-        <BrandField label={ONBOARDING.brandsTitle} placeholder={ONBOARDING.brandsSearchPlaceholder} values={brands} onChange={(next) => update({ brands: next })} />
-        <TextList
-          title={ONBOARDING.originsTitle}
-          placeholder={ONBOARDING.originsPlaceholder}
-          values={origins}
-          onChange={(next) => update({ origins: next })}
-        />
-        <p className="notice">
-          <Info aria-hidden="true" />
-          {ONBOARDING.brandsNotApplied}
-        </p>
-      </section>
     </div>
   );
 }

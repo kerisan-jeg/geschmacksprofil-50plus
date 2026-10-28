@@ -22,9 +22,9 @@ shots = Path(tempfile.gettempdir()) / 'geschmacksprofil-targeted'
 shots.mkdir(exist_ok=True)
 
 def saved(events=None, step=None):
-    allergy = {'gate': 'yes', 'selected': ['fish'], 'items': [], 'notes': [], 'scopes': {}, 'medical': False, 'unsureMore': False}
-    onboarding = {'diet': 'none', 'exclusions': [{'type': 'allergen', 'value': 'fish', 'source': 'onboarding', 'origin': 'intolerances'}], 'cardLabels': {}, 'uncertain': False, 'avoidBrands': [], 'avoidOrigins': [], 'freeTextNotes': []}
-    state = {'screen': 'complete' if step is None else 'questions', 'tab': 'profile' if step is None else 'create', 'config': {'auth': False, 'roundFlow': 'test'}, 'person': {'consent': True, 'ageGroup': '60-69'}, 'onboarding': onboarding, 'step': step or 0, 'answers': {'diet': {'form': 'none', 'exclusions': [], 'rules': []}, 'intolerances': allergy, 'never': {'gate': 'no', 'selected': [], 'notes': [], 'brands': [], 'origins': []}}, 'events': events or [], 'roundNumber': 4}
+    allergy = {'gate': 'yes', 'selected': ['fish'], 'items': [], 'notes': []}
+    onboarding = {'diet': 'none', 'exclusions': [{'type': 'allergen', 'value': 'fish', 'source': 'onboarding', 'origin': 'intolerances'}], 'cardLabels': {}, 'freeTextNotes': []}
+    state = {'screen': 'complete' if step is None else 'questions', 'tab': 'profile' if step is None else 'create', 'config': {'auth': False, 'roundFlow': 'test'}, 'person': {'consent': True, 'ageGroup': '60-69'}, 'onboarding': onboarding, 'step': step or 0, 'answers': {'diet': {'form': 'none', 'exclusions': [], 'rules': []}, 'intolerances': allergy, 'never': {'gate': 'no', 'selected': [], 'notes': []}}, 'events': events or [], 'roundNumber': 4}
     return {'version': 1, 'sessionId': 'browser-fixture', 'savedAt': '2026-10-24T10:00:00Z', 'state': state}
 
 with sync_playwright() as p:
@@ -105,9 +105,6 @@ with sync_playwright() as p:
         pg.get_by_role('radio').last.click()
         assert pg.locator('.answer-total strong').inner_text() == '7'
         pg.locator('[aria-labelledby="insights-title"] > summary').click()
-        pg.locator('.practical-panel > summary').click()
-        audit('profile-practical-open')
-        pg.locator('.practical-panel > summary').click()
         pg.locator('[aria-labelledby="exclusions-title"] > summary').click()
         audit('profile-exclusions-open')
         pg.locator('.exclusion-section').first.get_by_role('button', name='Ändern', exact=True).click()

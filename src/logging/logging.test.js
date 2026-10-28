@@ -64,10 +64,10 @@ test('Logger speichert erst nach der Anmeldung, dann Onboarding, Ereignisse und 
   logger.trace('screen', { screen: 'start' });
   assert.equal(listSessions().length, 0, 'keine leere Sitzung');
   logger.start({ participantCode: 'T01', ageGroup: '60-69' });
+  logger.setParticipantName(' Annelies ');
   logger.setOnboarding({
     diet: 'vegan',
     exclusions: [{ type: 'allergen', value: 'hazelnut', source: 'onboarding', origin: 'intolerances', label: 'Haselnuss' }],
-    uncertain: true,
     freeTextNotes: ['Koriander'],
   });
   const logged = logger.recordEvent(event);
@@ -76,10 +76,11 @@ test('Logger speichert erst nach der Anmeldung, dann Onboarding, Ereignisse und 
   logger.finish({ taste: {}, exclusions: [] });
   const [session] = listSessions();
   assert.equal(session.participantCode, 'T01');
+  assert.equal(session.participantName, 'Annelies', 'Vorname aus der Anmeldung für die Testleitung (28.10.2026)');
   assert.deepEqual(session.config, { roundCardLimit: 8, tutorial: false });
   assert.equal(session.onboarding.ageGroup, '60-69');
   assert.equal(session.onboarding.diet, 'vegan');
-  assert.equal(session.onboarding.uncertaintyFlag, true);
+  assert.ok(!('uncertaintyFlag' in session.onboarding) && !('avoidBrands' in session.onboarding), 'keine entfernten Felder mehr');
   assert.deepEqual(session.onboarding.freeTextNotes, ['Koriander']);
   assert.equal(session.onboarding.exclusions[0].source, 'onboarding');
   assert.equal(session.events.length, 2);
@@ -163,24 +164,30 @@ test('CSV und Übersicht ab Version 0.7: Phase, Kontrollkarten, bestätigte Verm
   assert.deepEqual(summarizeSession({ events: [event] }).checks, { answered: 0, drawn: 0 });
 });
 
-test('CSV ab Version 0.8: Entitätstyp, nicht gezeigte Kandidaten, Abbruch und Alltagsprofil', () => {
+test('CSV ab Version 0.8: Entitätstyp, nicht gezeigte Kandidaten und Abbruch; ab 0.10 der Vorname, kein Alltagsprofil mehr', () => {
   const session = {
     sessionId: 's-08',
+    participantCode: 'T03',
+    participantName: 'Annelies',
     config: { roundCardLimit: 10, selection: 'adaptive', holdout: 0 },
     events: [
       { type: 'ANSWER', cardId: 'F05.4.1', kind: 'SIMPLE_FOOD', response: 'PREFER', round: 2, phase: 'main', alternatives: ['F05.4.2', 'F12.1'] },
       { type: 'QUESTION_ABORTED', cardId: 'F12.1', round: 2, phase: 'main', selectionReason: 'stage2_contrast' },
+      // Alte Sitzungen können das Ereignis noch enthalten; es bleibt eine Zeile mit type, ohne eigene Spalte
       { type: 'PRACTICAL_SAVED', source: 'practical', practical: { budget: 'low', shops: ['migros'] } },
     ],
   };
   const [header, ...lines] = sessionsToCsv([session]).trim().split('\r\n');
   const columns = header.split(',');
-  for (const column of ['kind', 'alternatives', 'practical']) assert.ok(columns.includes(column), column);
+  for (const column of ['kind', 'alternatives', 'participantName']) assert.ok(columns.includes(column), column);
+  for (const column of ['practical', 'uncertaintyFlag', 'sms']) assert.ok(!columns.includes(column), `${column} entfällt`);
   const cell = (line, column) => line.split(',')[columns.indexOf(column)];
   assert.equal(cell(lines[0], 'kind'), 'SIMPLE_FOOD');
   assert.equal(cell(lines[0], 'alternatives'), 'F05.4.2|F12.1');
+  assert.equal(cell(lines[0], 'participantName'), 'Annelies');
   assert.equal(cell(lines[1], 'type'), 'QUESTION_ABORTED');
-  assert.ok(lines[2].includes('""budget"":""low""'), 'Alltagsprofil als JSON in einer Zelle');
+  assert.equal(cell(lines[2], 'type'), 'PRACTICAL_SAVED');
+  assert.ok(!lines[2].includes('budget'), 'kein Alltagsprofil mehr im Export');
 });
 
 test('Speisevorschriften: standardmässig nicht protokolliert, nur mit PRIVACY.logDietaryRules; type ist der Ereignistyp', () => {

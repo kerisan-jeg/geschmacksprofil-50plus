@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { indexCatalog } from './catalog.js';
-import { createRedundancyCheck, deriveOnboarding, emptyAnswers, isAnswered, searchIntolerances, searchNever, uncertaintyFlag } from './stage0.js';
+import { createRedundancyCheck, deriveOnboarding, emptyAnswers, isAnswered, searchIntolerances, searchNever } from './stage0.js';
 import { describeSelection, searchAllergens, toggleIds } from './allergens.js';
 import { deriveRoundState, eligibleFamilies } from './engine.js';
 import { matchRank } from './search.js';
@@ -38,18 +38,22 @@ test('Allergien werden als granulare Ausschlüsse mit source "onboarding" gespei
   );
 });
 
-test('Bekannte Allergie und Unsicherheits-Flag gleichzeitig möglich; das Flag schliesst nichts aus', () => {
-  const answers = answersWith({ intolerances: yes2({ selected: ['peanut'], unsureMore: true }) });
-  const result = derive(answers);
-  assert.equal(result.uncertain, true);
-  assert.equal(result.exclusions.length, 1);
+test('Frage 2 ohne Zusatzangaben (28.10.2026): keine Unsicherheit, kein „ärztlich“, kein Geltungsbereich; alte Felder bleiben wirkungslos', () => {
+  assert.deepEqual(Object.keys(empty.intolerances), ['gate', 'selected', 'items', 'notes']);
+  assert.deepEqual(Object.keys(empty.never), ['gate', 'selected', 'notes']);
+  // Gespeicherte Antworten früherer Versionen mit diesen Feldern ändern nichts am Ergebnis
+  const legacy = answersWith({ intolerances: yes2({ selected: ['lactose'], unsureMore: true, medical: true, scopes: { lactose: 'limited' } }) });
+  const result = derive(legacy);
+  assert.deepEqual(result.exclusions.map(({ type, value }) => [type, value]), [['allergen', 'lactose']]);
+  assert.ok(!('uncertain' in result) && !('avoidBrands' in result) && !('avoidOrigins' in result));
+  assert.ok(!('medical' in result.exclusions[0]) && !('scope' in result.exclusions[0]));
+  assert.equal(isVisible(index.get('F04.3'), index, buildExclusions(result.exclusions, { index })), false, 'Laktose bleibt ein vollständiger Ausschluss');
 });
 
 test('Frage 2 bietet nur Ja und Keine bekannt; eine alte Unsicher-Antwort ist ungültig', () => {
   assert.deepEqual(intolerances.gate, [{ id: 'yes', label: 'Ja' }, { id: 'no', label: 'Keine bekannt' }]);
   const legacyAnswer = { ...empty.intolerances, gate: 'unsure', selected: ['egg'] };
   assert.equal(isAnswered(intolerances, legacyAnswer), false);
-  assert.equal(uncertaintyFlag(answersWith({ intolerances: legacyAnswer })), false);
   assert.deepEqual(derive(answersWith({ intolerances: legacyAnswer })).exclusions, []);
 });
 
@@ -97,14 +101,12 @@ test('Frage 2: Suche findet auch Lebensmittel, die kein Allergen sind', () => {
   assert.ok(result.rules.some((rule) => rule.text === 'Tomate'));
 });
 
-test('Marken und Herkunft werden gespeichert, schliessen aber nichts aus', () => {
+test('Frage 3 ohne Marken und Herkunft (28.10.2026): alte Angaben dazu bleiben ohne Wirkung, „Ja“ braucht eine Auswahl oder Notiz', () => {
   const answers = answersWith({ never: yes3({ brands: ['Marke X'], origins: ['Übersee'] }) });
   const result = derive(answers);
-  assert.deepEqual(result.avoidBrands, ['Marke X']);
-  assert.deepEqual(result.avoidOrigins, ['Übersee']);
   assert.deepEqual(result.exclusions, []);
   assert.equal(families(answers).length, 13);
-  assert.equal(isAnswered(never, answers.never), true);
+  assert.equal(isAnswered(never, answers.never), false, 'Marken allein zählen nicht mehr als Antwort');
 });
 
 test('Was die Ernährungsweise schon ausschliesst, wird nicht nochmals angeboten', () => {
@@ -163,7 +165,7 @@ test('Suche ist tolerant gegenüber Gross-/Kleinschreibung und Umlauten', () => 
 });
 
 test('Bei „Ja“ ohne Auswahl ist die Frage noch nicht beantwortet', () => {
-  assert.equal(isAnswered(intolerances, yes2({ unsureMore: true })), false);
+  assert.equal(isAnswered(intolerances, yes2({})), false);
   assert.equal(isAnswered(intolerances, { ...empty.intolerances, gate: 'no' }), true);
   assert.equal(isAnswered(never, yes3({})), false);
 });
@@ -173,16 +175,3 @@ test('Gleiche Antworten ergeben immer dieselben Regeln', () => {
   assert.deepEqual(derive(answers), derive(answers));
 });
 
-test('Frage 2: ärztlich festgestellt (0.2) und Geltungsbereich bei Laktose (0.3) werden gespeichert, der Ausschluss bleibt', () => {
-  const answers = answersWith({ intolerances: yes2({ selected: ['lactose', 'hazelnut'], medical: true, scopes: { lactose: 'limited' } }) });
-  const result = derive(answers);
-  const lactose = result.exclusions.find((entry) => entry.value === 'lactose');
-  const hazelnut = result.exclusions.find((entry) => entry.value === 'hazelnut');
-  assert.deepEqual([lactose.medical, lactose.scope], [true, 'limited']);
-  assert.deepEqual([hazelnut.medical, hazelnut.scope], [true, undefined], 'Geltungsbereich nur bei Unverträglichkeiten');
-  // „Kleine Mengen gehen“ ist keine Freigabe: Milch bleibt ausgeschlossen
-  const exclusions = buildExclusions(result.exclusions, { diet: result.diet, diets: definition.diets, index });
-  assert.equal(isVisible(index.get('F04.3'), index, exclusions), false);
-  // Ohne Angabe: ganz meiden
-  assert.equal(derive(answersWith({ intolerances: yes2({ selected: ['lactose'] }) })).exclusions[0].scope, 'avoid');
-});

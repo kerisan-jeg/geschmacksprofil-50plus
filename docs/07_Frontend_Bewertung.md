@@ -8,7 +8,7 @@ Stand 26.10.2026. Grundlage: Code der Bildschirme und Komponenten (`src/screens/
 - **Jede Geste hat einen Knopf** an der Stelle, wohin die Karte fliegt; Wischen ist nie nötig (`AnswerButtons.jsx`). Bewertungen nie nur über Farbe (Symbol plus Text).
 - **Rückgängig** sofort nach jeder Antwort, ohne Zeitlimit; nach „Vertrage ich nicht“ erscheint eine Bestätigung mit Rückgängig.
 - **Kein Scrollen in der Runde**, keine Beispieltexte auf Gruppenkarten, Rundenanzeige „Runde 1 von 4 · Lebensmittelgruppen“ und Zähler „Karte 3 von 13“ immer sichtbar.
-- **Ehrliche Texte:** „Zeigt, wie viel von deinem Geschmack erfasst ist, nicht wie genau Vorschläge sind“; Notizen heissen „prüfen“; Marken „wirken noch nicht“; Speisevorschriften „weggelassen wird nur, was du bestätigt hast“.
+- **Ehrliche Texte:** „Zeigt, wie viel von deinem Geschmack erfasst ist, nicht wie genau Vorschläge sind“; Notizen heissen „prüfen“; Speisevorschriften „weggelassen wird nur, was du bestätigt hast“.
 - **Alle Texte an einer Stelle** (`labels.js`), Du-Form, Schweizer Rechtschreibung, Tests verhindern harte Texte im JSX.
 - **Fehlerzustände:** Fehlergrenze mit „Neu laden“, Hinweis bei gesperrtem Speicher, Platzhalter statt kaputter Bilder, Bilder zeigen nie Ausgeschlossenes.
 - **App-Gefühl:** PWA, sichere Zonen, reduzierte Bewegung wird respektiert, nächste Karte sichtbar dahinter, Bilder vorgeladen.
@@ -17,9 +17,9 @@ Stand 26.10.2026. Grundlage: Code der Bildschirme und Komponenten (`src/screens/
 
 ### Verständlichkeit der Fragen (Stufe 0)
 
-Beobachtung: Frage 1 hat drei Teile auf einem Bildschirm (Ernährungsform Pflicht, Einzelausschlüsse, Speisevorschriften mit Vorschlägen). Frage 2 und 3 sind zweistufig: „Ja / Keine bekannt“ und erst dann Auswahl, Suche, Notiz, bei Frage 2 zusätzlich „ärztlich festgestellt“, bei Laktose „ganz meiden / kleine Mengen gehen“, Kästchen „nicht sicher, ob es weitere gibt“; bei Frage 3 zusätzlich Marken und Herkunft.
+Beobachtung: Frage 1 hat drei Teile auf einem Bildschirm (Ernährungsform Pflicht, Einzelausschlüsse, Speisevorschriften mit Vorschlägen). Frage 2 und 3 sind zweistufig: „Ja / Keine bekannt“ und erst dann Auswahl, Suche, Notiz. Seit dem 28.10.2026 sind die Speisevorschriften in Frage 1 zugeklappt (erst öffnen, dann Halal oder Koscher wählen), und die Zusatzangaben („ärztlich festgestellt“, „ganz meiden / kleine Mengen gehen“, „nicht sicher, ob es weitere gibt“, Marken und Herkunft) sind entfernt.
 
-Einschätzung: Die Fragen sind klar formuliert und die Pflichtteile klein. Frage 1 ist durch die drei Teile lang; Frage 3 enthält mit Marken und Herkunft Felder, die nichts bewirken (das steht zwar dabei). Für Personen ab 50 ist die Menge an Optionen pro Bildschirm der grösste Zeitfaktor vor dem ersten Swipe (Registrierung, drei Fragen, Zusammenfassung). Risiko: „Mag ich nicht“ wird in Frage 3 eingetragen statt beim Wischen; der Hinweis „Was du einfach nicht magst, kannst du später beim Wischen angeben“ ist vorhanden.
+Einschätzung: Die Fragen sind klar formuliert und die Pflichtteile klein. Frage 1 ist durch die drei Teile lang, seit dem 28.10.2026 mit zugeklapptem Teil C aber kürzer; Frage 3 kommt ohne die wirkungslosen Felder aus. Für Personen ab 50 ist die Menge an Optionen pro Bildschirm der grösste Zeitfaktor vor dem ersten Swipe (Registrierung, drei Fragen, Zusammenfassung). Risiko: „Mag ich nicht“ wird in Frage 3 eingetragen statt beim Wischen; der Hinweis „Was du einfach nicht magst, kannst du später beim Wischen angeben“ ist vorhanden.
 
 ### Swipe-Bedienung
 
@@ -37,7 +37,7 @@ Einschätzung: klar und ruhig. Zwei Punkte: Erstens widerspricht das Gruppenfoto
 
 Beobachtung: Nach jeder Runde ein Abschluss mit Zählung, Profilstand, Rundenübersicht mit Status („Noch offen / Begonnen / Abgeschlossen“), „Weiter mit Runde n“ als Hauptknopf, „Mein Profil ansehen“ als zweiter. In der Runde: „Runde beenden“ oben links, Rundenanzeige als Knopf zur Übersicht (Antwortzeit pausiert). Untere Leiste erst ab dem Abschluss.
 
-Einschätzung: der Pfad nach vorn ist eindeutig. Der Abschluss ist inhaltlich dicht (vier Blöcke plus freiwilliges Alltagsprofil); für die Studie genügt er, weil die Testleitung anleitet. „Runde beenden“ als X oben links könnte mit „Zurück“ verwechselt werden; der Abbruch ist aber protokolliert und die Runde lässt sich fortsetzen.
+Einschätzung: der Pfad nach vorn ist eindeutig. Der Abschluss ist inhaltlich dicht (vier Blöcke; das freiwillige Alltagsprofil ist seit dem 28.10.2026 entfernt); für die Studie genügt er, weil die Testleitung anleitet. „Runde beenden“ als X oben links könnte mit „Zurück“ verwechselt werden; der Abbruch ist aber protokolliert und die Runde lässt sich fortsetzen.
 
 ### Verständlichkeit der Rückmeldungen
 
@@ -47,7 +47,7 @@ Einschätzung: angemessen. Es fehlt eine Rückmeldung, **warum** eine Karte komm
 
 ### Darstellung der Ergebnisse und Dashboard
 
-Beobachtung: „Mein Profil“ zeigt die Anzahl Antworten, vier Balken (Anteil je Kategorie), aufklappbare Listen mit Bild, Titel, Kartenart und Bewertung; Profilstand mit Prozent, Stufe und nächstem Schritt; „Weitere Einblicke“ mit Vermutungen (fünf je Richtung, „Alle anzeigen (97)“), „Noch nicht gefragt“, roh/gegart, Küchentendenz; „Ausschlüsse“ mit Herkunft; „Alltag“. Alles bearbeitbar.
+Beobachtung: „Mein Profil“ zeigt die Anzahl Antworten, vier Balken (Anteil je Kategorie), aufklappbare Listen mit Bild, Titel, Kartenart und Bewertung; Profilstand mit Prozent, Stufe und nächstem Schritt; „Weitere Einblicke“ mit Vermutungen (fünf je Richtung, „Alle anzeigen (97)“), „Noch nicht gefragt“, roh/gegart, Küchentendenz; „Ausschlüsse“ mit Herkunft („Alltag“ seit dem 28.10.2026 entfernt). Alles bearbeitbar.
 
 Einschätzung: inhaltlich vollständig und ehrlich beschriftet. Drei Risiken: Der Prozentwert wird trotz Hinweis als Qualität gelesen werden (89 % bei fast nur Ablehnung, Szenario C). Die Vermutungslisten sind sehr lang (69 bis 102 Einträge), weil fast jede Karte einen bewerteten Vorfahren hat; die Begründungszeile hilft, aber die Masse wirkt beliebig. Die vielen Bearbeitungsmöglichkeiten sind für die Studie zweischneidig: Jede Änderung ist protokolliert, verändert aber das Profil, das die Person bewertet (Entscheid in [09](09_Studienbereitschaft.md)).
 
@@ -59,7 +59,7 @@ Einschätzung: technisch über dem Üblichen. Offen bleibt die kognitive Last: d
 
 ### Mögliche Missverständnisse
 
-- „Vertrage ich nicht“ ist ein kleiner Textlink unter den Knöpfen; wer ihn übersieht, wählt „Mag ich nicht“, und die Allergie bleibt unerfasst (das Kästchen „nicht sicher“ in Frage 2 soll genau darauf hinweisen). Im Protokoll über `inputMethod = link` auswertbar.
+- „Vertrage ich nicht“ ist ein kleiner Textlink unter den Knöpfen; wer ihn übersieht, wählt „Mag ich nicht“, und die Allergie bleibt unerfasst (das frühere Kästchen „nicht sicher“ in Frage 2 ist seit dem 28.10.2026 weg; die Testleitung sollte Allergien in Frage 2 erfassen lassen). Im Protokoll über `inputMethod = link` auswertbar.
 - „Kenne ich nicht“ bei Gruppen wie Eier oder Kartoffeln ist kaum sinnvoll, der Knopf ist aber überall gleich (Teamentscheid, im Pilot messen).
 - „Karte 3 von 13“: Die Gesamtzahl kann sich während der Runde ändern (z. B. wenn eine Kontrollkarte durch „Vertrage ich nicht“ wegfällt). Selten, aber irritierend.
 - Der Begriff „Gruppe“ auf dem Etikett und „Lebensmittelgruppe“ auf Karten könnte für Laien abstrakt sein.
@@ -67,8 +67,8 @@ Einschätzung: technisch über dem Üblichen. Offen bleibt die kognitive Last: d
 
 ### Überflüssige Interaktionen (Einschätzung)
 
-- Registrierung mit SMS vor dem Swipen (Zeit, Google-Abhängigkeit); für die Studie wäre `AUTH_ENABLED = false` oder `?sms=sim` einfacher. Der Nutzen (Wiederfinden auf dem Gerät) ist in einer begleiteten Studie gering.
-- Marken und Herkunft in Frage 3 und das Alltagsprofil wirken nicht auf die Karten. Beides ist freiwillig bzw. deutlich markiert.
+- Die Anmeldung vor dem Swipen ist seit dem 28.10.2026 nur noch der Vorname (keine Handynummer, kein SMS-Code); sie kostet wenige Sekunden und gibt der Testleitung die Zuordnung (`participantName`). Abschaltbar mit `AUTH_ENABLED = false`.
+- Marken und Herkunft in Frage 3 und das Alltagsprofil (beide ohne Wirkung auf die Karten) sind seit dem 28.10.2026 entfernt.
 - Die Zusammenfassung vor Runde 1 ist von nurec gefordert; sie kostet einen Bildschirm.
 
 ### Allgemeine Nutzerfreundlichkeit
@@ -85,4 +85,4 @@ Einschätzung: Die Oberfläche ist reif genug für eine begleitete Studie. Die t
 | später | Vermutungen im Profil auf die stärksten je Gruppe begrenzen oder nach Gruppe bündeln | mittel |
 | später | Begründung je Karte anzeigen („Weil du Obst sehr gern magst“) | klein, aber nicht während der Studie |
 | später | Prozentwert des Profilstands durch eine Stufenanzeige ohne Prozent ersetzen | klein |
-| später | Marken, Herkunft und Alltagsprofil ausblenden, bis sie wirken | klein |
+| erledigt 28.10.2026 | Marken, Herkunft und Alltagsprofil entfernt; Speisevorschriften zugeklappt; Einwilligung als Kästchen; Anmeldung ohne SMS | klein |

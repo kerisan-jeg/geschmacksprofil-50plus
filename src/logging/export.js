@@ -18,12 +18,13 @@ export const EVENT_FIELDS = [
   'selectionReason',
 ];
 
-// Seit Commit 3: Profiländerungen und Registrierung stehen im selben Log (type, source, …).
-// Vorname und Telefonnummer gibt es in keiner Sitzung und damit in keiner Spalte.
+// Seit Commit 3: Profiländerungen und Anmeldung stehen im selben Log (type, source, …).
 // Seit Version 0.7: phase (main | holdout), Kontrollkarten (HOLDOUT_DRAWN mit cardIds), bestätigte Vermutungen
 // (fromPrediction, predictedScore) und die Auswahl der Sitzung (selection, holdout).
 // Seit Version 0.8: kind (Entitätstyp, nurec Kap. 8), phase dish (Gerichte), alternatives (nicht gezeigte Kandidaten,
-// Anhang B3.2), QUESTION_ABORTED (Abbruch, Kap. 6) und PRACTICAL_SAVED (Alltagsprofil als JSON, Kap. 2.3).
+// Anhang B3.2) und QUESTION_ABORTED (Abbruch, Kap. 6).
+// Seit Version 0.10 (28.10.2026): participantName (Vorname aus der Anmeldung, für die Testleitung); die Spalten
+// practical, uncertaintyFlag und sms gibt es nicht mehr (Alltagsprofil, Unsicherheits-Flag und SMS entfernt).
 export const CSV_COLUMNS = [
   ...EVENT_FIELDS,
   'round',
@@ -45,22 +46,20 @@ export const CSV_COLUMNS = [
   'previousRating',
   'fromPrediction',
   'predictedScore',
-  'practical',
   'section',
   'exclusions',
   'newDiet',
   'previousDiet',
   'participantCode',
+  'participantName',
   'ageGroup',
   'diet',
   'dietOriginal',
   'dietaryRules',
-  'uncertaintyFlag',
   'roundCardLimit',
   'tutorial',
   'imageStyle',
   'auth',
-  'sms',
   'selection',
   'holdout',
   'r1scale',
@@ -81,18 +80,17 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
   for (const session of sessions) {
     const shared = {
       participantCode: session.participantCode,
+      participantName: session.participantName ?? null,
       ageGroup: session.onboarding?.ageGroup ?? null,
       // Alte Sitzungen („Kein Schweinefleisch“ als Ernährungsweise): diet ist die Ernährungsform wie heute
       // gelesen, dietOriginal der damals gespeicherte Wert (nur bei solchen Sitzungen gefüllt).
       diet: isLegacyDiet(session.onboarding?.diet) ? dietAnswer(session.onboarding.diet).form : (session.onboarding?.diet ?? null),
       dietOriginal: isLegacyDiet(session.onboarding?.diet) ? session.onboarding.diet : null,
       dietaryRules: session.onboarding?.dietaryRules ?? null,
-      uncertaintyFlag: session.onboarding?.uncertaintyFlag ?? null,
       roundCardLimit: session.config?.roundCardLimit,
       tutorial: session.config?.tutorial,
       imageStyle: session.config?.imageStyle ?? null,
       auth: session.config?.auth,
-      sms: session.config?.sms ?? null,
       // Sitzungen vor Version 0.7: feste Reihenfolge, keine Kontrollkarten
       selection: session.config?.selection ?? 'fixed',
       holdout: session.config?.holdout ?? 0,
@@ -117,7 +115,6 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
         round: event.round ?? ((event.type ?? 'ANSWER') === 'ANSWER' ? 1 : null),
         exclusions: (event.exclusions ?? []).map((exclusion) => [exclusion.type, exclusion.value].filter(Boolean).join(':')),
         newDiet: event.type === 'DIET_CHANGED' ? event.diet : null,
-        practical: event.practical ? JSON.stringify(event.practical) : null,
         diet: shared.diet,
         sessionId: session.sessionId,
       };
@@ -139,6 +136,7 @@ export function summarizeSession(session) {
   return {
     sessionId: session.sessionId,
     participantCode: session.participantCode ?? null,
+    participantName: session.participantName ?? null,
     startedAt: session.startedAt,
     finished: Boolean(session.endedAt),
     durationMs,

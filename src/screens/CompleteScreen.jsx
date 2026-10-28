@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { ArrowRight, CircleCheck, Lock, Sparkles } from 'lucide-react';
+import { ArrowRight, CircleCheck, Lock } from 'lucide-react';
 import CreationSteps from '../components/CreationSteps.jsx';
 import Avatar from '../components/Avatar.jsx';
 import ProfileStatus from '../components/ProfileStatus.jsx';
@@ -15,7 +15,7 @@ const ROWS = [PREFER, LIKE, DISLIKE, UNFAMILIAR, INTOLERANT];
 
 // Abschluss nach jeder Runde (nurec v0.2, Kap. 3: „Kurze Runde beenden und Profilstand sichern“):
 // kurze Übersicht, „Profil aufgebaut“ (Anhang B2), dann weiter, solange eine weitere Runde erlaubt ist, oder
-// „Mein Profil ansehen“. Gerichte gehören zu Runde 4; danach bleibt das Alltagsprofil freiwillig (Kap. 2.3).
+// „Mein Profil ansehen“. Gerichte gehören zu Runde 4. Das Alltagsprofil gibt es seit dem 28.10.2026 nicht mehr.
 // Zahlen sind reine Zählungen der Antworten; der Prozentwert ist ein Erfassungsgrad (siehe ProfileStatus).
 // Runde 4 schliesst mit Gerichten ab. nextNumber berücksichtigt übersprungene leere Ebenen;
 // nextTitles sind die Karten dieser nächsten Runde, leer nach dem endgültigen Abschluss.
@@ -29,11 +29,9 @@ export default function CompleteScreen({
   steps,
   nextTitles,
   nextNumber,
-  practicalDone = true,
   rounds = null,
   onResumeRound,
   onNextRound,
-  onOpenPractical,
   onToProfile,
 }) {
   const dishMode = round.round === 4 || mode === 'dishes';
@@ -57,8 +55,6 @@ export default function CompleteScreen({
   else if (answered === 0) lead = COMPLETE.leadEmpty;
   else if (endedEarly) lead = COMPLETE.leadEnded(answered);
   let kicker = endedEarly ? COMPLETE.kickerEnded(round.round) : COMPLETE.kickerDone(round.round);
-  const showPractical = finished && !practicalDone && Boolean(onOpenPractical);
-  const showOptional = showPractical;
 
   return (
     <main className="screen screen-complete">
@@ -112,23 +108,6 @@ export default function CompleteScreen({
           <Lock aria-hidden="true" />
           {COMPLETE.rules(ruleCount)}
         </p>
-      )}
-
-      {showOptional && (
-        <section className="panel optional-panel" aria-labelledby="optional-title">
-          <h2 id="optional-title" className="panel-title">
-            {COMPLETE.optionalTitle}
-          </h2>
-          {showPractical && (
-            <div className="optional-item">
-              <p className="note">{COMPLETE.practicalHint}</p>
-              <button type="button" className="button-secondary" onClick={onOpenPractical}>
-                <Sparkles aria-hidden="true" />
-                {COMPLETE.startPractical}
-              </button>
-            </div>
-          )}
-        </section>
       )}
 
       <div className="action-bar">

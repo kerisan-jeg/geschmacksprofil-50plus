@@ -186,6 +186,32 @@
   line-height: var(--line-height-snug);
 }
 
+/* Einwilligung unter den Altersfeldern (Teamentscheid 28.10.2026): kleine Schrift mit echtem Kästchen statt einer
+   Auswahlbox, bleibt Pflichtfeld. Die ganze Zeile ist Tippfläche (mindestens 44 px hoch). */
+.consent-line {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-2);
+  min-height: var(--size-touch);
+  cursor: pointer;
+}
+
+.consent-line input {
+  width: var(--size-icon-l);
+  height: var(--size-icon-l);
+  margin: 0;
+  margin-top: var(--space-1);
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+
+.consent-line:has(input:focus-visible) {
+  outline: var(--border-focus) solid var(--color-focus);
+  outline-offset: var(--space-1);
+  border-radius: var(--radius-s);
+}
+
 .field-set {
   display: grid;
   gap: var(--space-2);

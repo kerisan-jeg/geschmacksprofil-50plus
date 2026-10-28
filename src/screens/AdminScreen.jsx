@@ -108,7 +108,7 @@ export default function AdminScreen() {
         <ul className="panel admin-list">
           {summaries.map((summary) => (
             <li key={summary.sessionId}>
-              <strong>{summary.participantCode ?? ADMIN.noCode}</strong>
+              <strong>{ADMIN.participant(summary.participantCode ?? ADMIN.noCode, summary.participantName)}</strong>
               <span>
                 {formatDate(summary.startedAt)} · {summary.finished ? ADMIN.finished(formatDuration(summary.durationMs)) : ADMIN.unfinished}
               </span>

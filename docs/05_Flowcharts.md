@@ -9,9 +9,9 @@ Code: `src/app/model.js → reducer()`, `src/App.jsx`, `src/logic/engine.js → 
 ```mermaid
 flowchart TD
   S["Start: Willkommen"] --> R{"Registrierung aktiv?<br/>AUTH_ENABLED"}
-  R -- "ja" --> REG["Vorname, Handynummer, SMS-Code<br/>Ereignisse AUTH_STARTED, AUTH_COMPLETED"]
+  R -- "ja" --> REG["Anmeldung nur mit dem Vornamen (seit 28.10.2026)<br/>Ereignisse AUTH_STARTED, AUTH_COMPLETED"]
   R -- "nein" --> AB
-  REG --> AB["Über dich: Altersgruppe, Einwilligung, Teilnehmer-Nr."]
+  REG --> AB["Über dich: Altersgruppe, Einwilligung als Kästchen, Teilnehmer-Nr."]
   AB --> Q1["Frage 1: Ernährungsform, Einzelausschlüsse, Speisevorschriften"]
   Q1 --> Q2["Frage 2: Allergien und Unverträglichkeiten"]
   Q2 --> Q3["Frage 3: Nie vorschlagen"]
@@ -24,11 +24,10 @@ flowchart TD
   E -- "ja" --> R1["Runde 1: Lebensmittelgruppen, bis 13 Karten"]
   R1 --> C["Abschluss: Antworten gezählt, Profilstand, Rundenübersicht"]
   C --> M{"nextRoundNumber(): gibt es eine weitere Runde mit Karten?"}
-  M -- "ja" --> RN["Runde 2: Untergruppen und Kontrollkarten<br/>Runde 3: einzelne Lebensmittel<br/>Runde 4: Gerichte"]
+  M -- "ja" --> RN["Runde 2: Untergruppen und Kontrollkarten<br/>Runde 3: einzelne Lebensmittel<br/>Runde 4: alle passenden Gerichte ohne Limit"]
   RN --> C
   M -- "nein" --> P["Mein Profil: Dashboard"]
   C -- "Mein Profil ansehen" --> P
-  P -. "freiwillig" .-> PR["Alltagsprofil, ohne Wirkung auf Karten"]
   P -- "Bewertung oder Ausschluss ändern" --> LOG["Ereignis mit source profile ins Log"]
   LOG --> P
 ```
@@ -41,13 +40,13 @@ Code: `src/logic/engine.js → selectNextCards()`, `openDishes()`, `openHoldout(
 
 ```mermaid
 flowchart TD
-  A["selectNextCards(state, config)"] --> B["remaining = Kartenlimit minus beantwortete Karten dieser Runde"]
-  B --> C{"remaining > 0 und Runde 1 bis 4?"}
+  A["selectNextCards(state, config)"] --> D{"Runde 4?"}
+  D -- "ja" --> E["openDishes(): sichtbare, offene Gerichte mit Zutaten-Zuneigung ≥ 0,<br/>sortiert nach Zuneigung, dann Katalogreihenfolge"]
+  E --> Y4["alle an die Oberfläche: kein Kartenlimit in Runde 4 (seit 28.10.2026)"]
+  D -- "nein" --> B["remaining = Kartenlimit minus beantwortete Karten dieser Runde"]
+  B --> C{"remaining > 0 und Runde 1 bis 3?"}
   C -- "nein" --> Z["leer: Runde ist zu Ende"]
-  C -- "ja" --> D{"Runde 4?"}
-  D -- "ja" --> E["openDishes(): sichtbare, offene Gerichte,<br/>sortiert nach Zutatenaffinität, dann Katalogreihenfolge"]
-  E --> Y["die ersten remaining Karten an die Oberfläche"]
-  D -- "nein" --> F["openHoldout(): Kontrollkarten dieser Stufe, offen und sichtbar"]
+  C -- "ja" --> F["openHoldout(): Kontrollkarten dieser Stufe, offen und sichtbar"]
   F --> G["rankedStageCards(): Kandidaten der Stufe gleich Runde"]
   G --> H["rankedCards(): Regeln je Gruppe nach der aktuellen Bewertung"]
   H --> H1["Rang 1: Kenne ich nicht → bis 2 Klärungskarten"]
@@ -65,7 +64,7 @@ flowchart TD
   L -- "nein" --> N
   L1 --> N["main = die ersten (remaining minus Kontrollkarten) Kandidaten"]
   N --> O["Reihenfolge: main, dann Kontrollkarten, auf remaining gekürzt"]
-  O --> Y
+  O --> Y["die ersten remaining Karten an die Oberfläche"]
 ```
 
 ## Diagramm B (vereinfacht): Was in welcher Runde kommt
@@ -77,9 +76,10 @@ flowchart TD
   B -- "Runde 2" --> D["Je Gruppe nach ihrer Antwort:<br/>Kenne ich nicht → eine Klärungskarte<br/>Eher ungern → die Ausnahme<br/>Eher gern oder Sehr gern → zwei Kontraste"]
   D --> D2["Gruppen wechseln sich ab, 7 Plätze,<br/>danach die 6 Kontrollkarten"]
   B -- "Runde 3" --> E["Lebensmittel aus Ausnahmen, Unterschieden und Favoriten,<br/>dann bis 2 je gern bewertete Untergruppe,<br/>zuletzt bis 2 je negativem Zweig"]
-  B -- "Runde 4" --> F["Erlaubte Gerichte, nach Zutatenvorlieben sortiert"]
-  C & D2 & E & F --> G["Ausgeschlossene und beantwortete Karten entfernen,<br/>auf das Kartenlimit kürzen"]
+  B -- "Runde 4" --> F["Erlaubte Gerichte mit Zutaten-Zuneigung ≥ 0,<br/>nach Zuneigung sortiert, ohne Kartenlimit"]
+  C & D2 & E --> G["Ausgeschlossene und beantwortete Karten entfernen,<br/>auf das Kartenlimit kürzen"]
   G --> H["Erste Karte anzeigen, zweite dahinter"]
+  F --> H
 ```
 
 ## Diagramm C: Verarbeitung einer Swipe-Entscheidung
@@ -139,7 +139,7 @@ flowchart LR
     C5["negative Untergruppen → bis 2, ganz am Schluss"]
   end
   subgraph R4["Runde 4: Gerichte"]
-    D1["erlaubte Gerichte, sortiert nach Zutatenaffinität"]
+    D1["erlaubte Gerichte mit Zutaten-Zuneigung ≥ 0,<br/>sortiert, ohne Kartenlimit"]
   end
   MOD["Präferenzmodell: direkte Werte −1, +1, +2;<br/>Vermutungen für Unbewertetes, halbiert je Stufe"]
   O -- "isVisible() in jeder Runde" --> R1
@@ -186,7 +186,7 @@ flowchart TD
   X --> P4["profileProgress(): Stufe 1 bis 35 Punkte (Anteil Gruppen mit Geschmacksantwort),<br/>Stufe 2 bis 30 (Anteil geklärter Zweige),<br/>Stufe 3 bis 35 (Lebensmittel mit Antwort, voll ab 12)"]
   P1 --> P5["buildDashboard(): Antwortkategorien, Favoriten nur aus konkreten Karten,<br/>Gruppen, Ungern mit Ausnahmen, Offen, roh gegenüber gegart, Gerichte"]
   P5 --> P6["cuisineTendencies(): ab 3 bewerteten Gerichten je Küche, Vorzeichen des Mittels"]
-  P2 --> D4["openDishes(): Reihenfolge der Gerichte in Runde 4"]
+  X --> D4["openDishes(): Auswahl und Reihenfolge der Gerichte in Runde 4<br/>(nächste direkte Bewertung je Zutat, ohne Abschwächung; nur Zuneigung ≥ 0)"]
   P1 & P3 & P4 & P5 & P6 --> UI["Mein Profil und Abschluss"]
   P1 & P3 & P4 --> LOGP["buildProfile() → logger.finish(): profile in der Sitzung, nach jeder Runde und nach Profiländerungen"]
 ```

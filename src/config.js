@@ -2,7 +2,7 @@
 // Alles, was im Pilot variiert werden soll (Wortlaut, Schwellen, Funktionen), steht hier.
 // Gestaltung (Farben, Abstände, Animationsdauern) steht in src/theme/tokens.css.
 
-export const APP_VERSION = '0.9.0-demo';
+export const APP_VERSION = '0.10.0-demo';
 
 // Karten pro Runde (ROUND_CARD_LIMIT). Fortschrittsanzeigen leiten ihre Werte davon ab.
 export const ROUND_CARD_LIMIT = 13;
@@ -10,6 +10,12 @@ export const ROUND_FLOW = 'staged-v1';
 
 // Vorgabe des Dozenten: höchstens vier Swipe-Runden, unabhängig vom Kartenlimit.
 export const MAX_ROUNDS = 4;
+
+// Gerichte (Runde 4, Teamentscheid 28.10.2026): Es kommen alle Gerichte, die zu den Angaben und Antworten passen
+// (src/logic/engine.js → openDishes), ohne Kartenlimit. Nach so vielen bewerteten Gerichten fragt die App, ob die
+// Person weitere Gerichte sehen oder die Runde beenden will; danach bleibt „Runde beenden“ unter den Knöpfen sichtbar.
+// Ab dieser Zahl gilt Runde 4 in der Rundenübersicht als abgeschlossen (fortsetzen bleibt möglich).
+export const DISH_ROUND_END_AFTER = 10;
 
 // Kartenauswahl (src/logic/selection.js): 'adaptive' wählt je nach den bisherigen Antworten (nurec v0.2,
 // Kap. 4 und 6), 'fixed' zeigt die feste Reihenfolge von Version 0.6 (Vergleich im Pilot, ?selection=fixed).
@@ -93,31 +99,14 @@ export const GROUP_IMAGES = true;
 // Annahme [V]: 3 Sekunden; die nächsten zwei Karten werden vorgeladen, damit das selten nötig ist. Im Pilot prüfen.
 export const IMAGE_LOAD_TIMEOUT_MS = 3000;
 
-// Registrierung mit Vorname, Handynummer und SMS-Code (echte SMS über Firebase oder Simulation, siehe unten).
+// Anmeldung nur mit dem Vornamen (Teamentscheid 28.10.2026): keine Handynummer, keine SMS. Der Vorname steht im
+// Konto auf dem Gerät und, mit PRIVACY.logParticipantName, als participantName in der Sitzung für die Testleitung.
 // false: Die App startet direkt beim Onboarding („Über dich“), der Vorname ist dort freiwillig.
-// Ob die Registrierung in der Nutzerstudie aktiv sein soll, ist offen (Aufwand vor dem Swipen).
-// Der URL-Parameter ?auth=0|1 folgt mit der URL-Konfiguration (Commit 4).
 export const AUTH_ENABLED = true;
 
-// Echte SMS über Firebase (src/auth/FirebaseAuthService.js), sobald das Projekt eingerichtet ist.
-// Die Werte kommen beim Build aus VITE_FIREBASE_API_KEY, _AUTH_DOMAIN, _PROJECT_ID, _APP_ID (GitHub-Variablen
-// bzw. .env.local), nie aus dem Code. Fehlen sie, läuft die Simulation (MockAuthService).
-export function firebaseConfigFrom(env = {}) {
-  const config = {
-    apiKey: env.VITE_FIREBASE_API_KEY,
-    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
-    projectId: env.VITE_FIREBASE_PROJECT_ID,
-    appId: env.VITE_FIREBASE_APP_ID,
-  };
-  return Object.values(config).every((value) => typeof value === 'string' && value.trim()) ? config : null;
-}
-
-export const FIREBASE_CONFIG = firebaseConfigFrom(import.meta.env ?? {});
-
 // Standardwerte für den Testablauf (A10). URL-Parameter überschreiben sie, z. B.
-//   ?limit=12          Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 15
+//   ?limit=12          Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 15; Runde 4 (Gerichte) hat kein Limit
 //   ?admin=1           Ansicht für die Testleitung (Export, Sitzungen)
-//   ?sms=sim           SMS-Code simulieren statt echt verschicken (z. B. für Testpersonen ohne Handy)
 //   ?selection=fixed   feste Reihenfolge statt adaptiver Auswahl (Vergleich)
 //   ?holdout=4         Anzahl Kontrollkarten, gültig 0 bis 10 (0 = keine)
 //   ?r1scale=2         Bewertungsbegriffe in Runde 1: 3 (Standard) oder 2
@@ -130,7 +119,6 @@ export const DEFAULT_CONFIG = {
   tutorial: TUTORIAL_ENABLED, // Für bestehende Sitzungen und Exporte bleibt das Datenfeld erhalten.
   imageStyle: IMAGE_STYLE,
   auth: AUTH_ENABLED,
-  sms: FIREBASE_CONFIG ? 'firebase' : 'simulation', // echte SMS oder Simulation
   selection: SELECTION_MODE,
   holdout: HOLDOUT_CARDS,
   r1scale: R1_SCALE,
@@ -169,9 +157,6 @@ export function resolveConfig(search = '') {
   const limit = integerParam(params, 'limit', ROUND_CARD_LIMIT_RANGE);
   if (limit !== null) config.roundCardLimit = limit;
   else ignore('limit');
-
-  if (params.get('sms') === 'sim') config.sms = 'simulation';
-  else ignore('sms');
 
   const selection = params.get('selection');
   if (selection === 'fixed' || selection === 'adaptive') config.selection = selection;
@@ -215,14 +200,18 @@ export const FEATURES = {
   haptics: true, // kurzes Vibrieren bei einer Antwort (nur Android)
 };
 
-// Datenschutz im Protokoll. Der Vorname wird nie gespeichert.
+// Datenschutz im Protokoll.
 // Seit dem Addendum (A9) speichert jede Sitzung die Ausschlüsse mit source, also z. B. welche Allergie
 // jemand angegeben hat. Das sind Gesundheitsdaten; Einwilligung und Umgang (Frage F4) sind noch offen.
 // Mit false werden statt der Werte nur Typ und Herkunft gespeichert (z. B. "allergen" aus "onboarding").
 // Speisevorschriften (halal, koscher) werden standardmässig nicht protokolliert (Teamentscheid 19.10.2026): kleine
 // Stichprobe, möglicher Rückschluss auf Religion, kaum Nutzen für die Auswertung (docs/dozentenfeedback-2026-10-19.md).
 // Die Wirkung bleibt: Bestätigte Ausschlüsse (z. B. Schweinefleisch) stehen wie alle Ausschlüsse im Protokoll.
+// Vorname (Teamentscheid 28.10.2026): Die Anmeldung speichert den Vornamen als participantName in der Sitzung, damit
+// die Testleitung die Sitzung einer Person zuordnen kann. Das ist ein Personendatum; die Einwilligung muss es nennen.
+// Mit false bleibt der Vorname nur im Konto auf dem Gerät und fehlt in Sitzung und Export.
 export const PRIVACY = {
   logExclusionValues: true,
   logDietaryRules: false,
+  logParticipantName: true,
 };

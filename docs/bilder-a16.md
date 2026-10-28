@@ -18,7 +18,7 @@ Alle Fotos stammen von Unsplash unter der Unsplash License; keine Unsplash+-Foto
 
 1. **Suche:** öffentliche Unsplash-Suchseiten (`unsplash.com/s/photos/<begriff>`), gedrosselt (eine Seite alle 3 Sekunden), je Karte ein englischer Begriff; für Lücken ein zweiter Begriff. Übernommen wurden nur Fotos mit `premium: false` und `plus: false` auf `images.unsplash.com`. Unsplashs eigene Such-Schnittstelle ohne Schlüssel ist inzwischen gesperrt („Authorization required“).
 2. **Sichtung:** Kontaktbögen je Karte, danach jedes gewählte Foto vergrössert im 4:3-Ausschnitt der Karte geprüft. Verworfen wurden Fotos mit Händen oder Personen, Text, Logos, Preisschildern, einem zweiten Lebensmittel als Hauptmotiv oder einer anderen Sorte (z. B. Sesam auf dem Zopf, Schrift auf dem Brett beim Schweinsbraten, Kräuterquark statt Frischkäse).
-3. **Inhalt:** `shows` und `foods` beschreiben, was tatsächlich zu sehen ist, nicht den Kartennamen. Beispiel: Auf dem Chili con Carne liegen Käse und Sauerrahm, die im Rezept nicht vorkommen; darum steht die Käse-Karte (F04.2) in `shows`, und wer Käse ausschliesst, sieht dort den Platzhalter. Auch bei Pizza, Spaghetti Bolognese, Lasagne und Enchiladas steht der sichtbare Käse in `shows`.
+3. **Inhalt:** `shows` und `foods` beschreiben, was tatsächlich zu sehen ist, nicht den Kartennamen. Beispiel: Auf dem früheren Foto des Chili con Carne lagen Käse und Sauerrahm, die im Rezept nicht vorkommen; darum stand die Käse-Karte (F04.2) in `shows`, und wer Käse ausschloss, sah dort den Platzhalter (seit dem 28.10.2026 ein Foto ohne Käse, siehe Nachtrag). Bei Pizza, Spaghetti Bolognese, Lasagne und Enchiladas steht der sichtbare Käse in `shows`.
 4. **Unsicheres** steht als `todo` im Bildnachweis und auf der Prüfseite (Liste unten).
 5. **Format:** `python scripts/prepare-card-images.py stock` lädt das Original von images.unsplash.com (`imageUrl` im Nachweis), schneidet auf 4:3 zu und speichert WebP unter 150 KB in `public/cards/`. Sehr feine Motive werden etwas schmaler gespeichert (Bulgur), nie breiter als 1200 px. `check` prüft alle Bilder.
 6. **Nachweis:** pro Foto in `src/data/image-credits.json` Fotograf, Profil, Original-URL, Lizenz, Veröffentlichungsdatum und Nachweis nach APA 7, wie bei den bestehenden 60. Die Titel in eckigen Klammern beschreiben den Bildinhalt auf Deutsch und dienen als alt-Text.
@@ -38,7 +38,7 @@ Nicht verwendet. Die Pexels-Suche lässt keinen automatischen Zugriff zu (Seite 
 | D02 | Spaghetti Bolognese | Hackfleisch: Fleischart im Bild nicht erkennbar (Rezept: Rind und Schwein) |
 | D03 | Lasagne | Füllung im Bild nicht erkennbar (Rezept: Hackfleisch, Béchamel) |
 | D09 | Bündner Gerstensuppe | Fleischart im Bild nicht erkennbar (Rezept: Bündnerfleisch und Speck); Rahm nicht sichtbar |
-| D11 | Chili con Carne | Käse und Sauerrahm obendrauf, im Rezept nicht vorgesehen (darum Käse in shows); Fleischart im Bild nicht erkennbar |
+| D11 | Chili con Carne | Seit dem 28.10.2026 neues Foto ohne Käse und Sauerrahm; Fleischart im Bild nicht erkennbar; Maischips und Maisbrot im Bild, im Rezept nicht vorgesehen |
 | D12 | Wienerschnitzel mit Pommes frites | Fleischart im Bild nicht erkennbar (Rezept: Kalbfleisch; ähnlich sieht Schweins- oder Pouletschnitzel aus) |
 | D14 | Gemüsewähe | Füllung grün, Gemüsesorte nicht erkennbar (Rezept: Lauch, Ei-Rahm-Guss) |
 | D15 | Gemüsecurry mit Reis | Sauce könnte Kokosmilch oder Rahm enthalten |
@@ -105,13 +105,13 @@ Wunsch des Teams nach A16: „überall Bilder“. Seither zeigt **jede der 167 K
 | F01.2.3 | Kalbfleisch | Rohe, marinierte Plätzli auf einem Holzbrett, daneben kleine Peperoni und Chili | Fleischart im Bild nicht erkennbar (Kalb, Schwein oder Pute); Peperoni und Chili als Dekoration |
 | F01.3.2 | Schweinsbraten | Knusprig gebratene Schweinebauchscheiben auf einem weissen Teller | Schweinebauch statt klassischem Schweinsbraten |
 | F02.1.2 | Kabeljau | Rohe weisse Fischfilets auf Eis | Fischart im Bild nicht sicher erkennbar (weisser Fisch, vermutlich Kabeljau) |
-| F02.1.3 | Egli | Zwei rohe Fischfilets auf einem dunklen Brett, daneben Schälchen mit Rahm, Kräutern und Salz | Fischart nicht erkennbar (eher Plattfisch als Egli); Schälchen links vermutlich Rahm |
+| F02.1.3 | Egli | Zwei rohe Fischfilets auf einem weissen Brett, daneben Peperoni, Zitrone, Tomaten und Salat (seit dem 28.10.2026; vorher Filets neben einem Schälchen Rahm) | Fischart nicht erkennbar (eher Makrele als Egli); Gemüse als Dekoration |
 | F02.1.4 | Thunfisch | Ein rohes Stück Thunfisch auf einem Holzbrett | Roher Thunfisch statt Thon aus der Dose |
 | F04.1.2 | Skyr | Dicker weisser Joghurt mit Minze in einer Schale | Skyr im Bild nicht von griechischem Joghurt zu unterscheiden |
 | F04.1.4 | Fruchtjoghurt | Himbeerjoghurt mit frischen Himbeeren in einer Schale | – |
 | F04.2.2 | Weichkäse | Ein Stück Weichkäse mit weisser Rinde auf einem Holzbrett | Im Hintergrund unscharf weitere Käse, Trauben und Trockenfrüchte |
 | F06.2.2 | Vollkorntoast | Vier Scheiben Vollkorntoast mit Körnern auf einem Holzbrett | Körner auf der Rinde, Sorte unbekannt (Sesam möglich) |
-| F06.3.2 | Mehrkornknäcke | Mehrkorn-Knäckebrot mit Saaten auf einem Holzbrett, ein Stück mit Aufstrich | Aufstrich auf einem Stück (Butter oder Frischkäse?); Saaten unbekannt |
+| F06.3.2 | Mehrkornknäcke | Seit dem 28.10.2026 das Knäckebrot-Foto der Untergruppe F06.3 (`cardPhotos`); vorher Mehrkornknäcke mit Butter-Aufstrich | Zeigt gebündeltes Knäckebrot, nicht ausdrücklich Mehrkorn; ein eigenes Foto ohne Aufstrich wäre besser |
 | F07.2 | Vollkornpasta | Vollkornpenne mit Peperoni und Oliven in einer weissen Schale | Gericht mit Peperoni, Oliven und Sauce; Sorte nicht sicher (dunkle Penne) |
 | F07.2.1 | Vollkornspaghetti | Trockene dunkle Spaghetti, Nahaufnahme | Sorte nicht sicher (dunkle Spaghetti, vermutlich Vollkorn) |
 | F07.2.2 | Dinkelpasta | Helle Nudelnester zum Trocknen | Ersatzbild: Sorte nicht erkennbar (Dinkel nicht sichtbar) |
@@ -128,9 +128,26 @@ Wunsch des Teams nach A16: „überall Bilder“. Seither zeigt **jede der 167 K
 | D13 | Eglifilets mit Salzkartoffeln | Zwei gebratene Fischfilets in der Pfanne | Fischart nicht erkennbar; Kartoffeln fehlen |
 | D17 | Birchermüesli | Haferbrei mit Apfelstücken und Gewürz in einer weissen Schale | Haferbrei statt Birchermüesli; Joghurt und Nüsse nicht sichtbar |
 
-Damit gibt es 42 Bilder mit TODO (16 aus A16, 25 aus der Nachsuche, dazu das Gruppenbild Kartoffeln: Püree kann Milch enthalten). Milchprodukte im Bild (Rahm, Butter, Sauerrahm) stehen als `F04` in shows: Ist alles Milchige ausgeschlossen, fällt das Bild weg. Sichtbare Zutaten anderer Karten (z. B. Peperoni, Bohnen, Bandnudeln mit Ei) stehen ebenso in shows.
+Damit gab es am 21.10.2026 42 Bilder mit TODO (16 aus A16, 25 aus der Nachsuche, dazu das Gruppenbild Kartoffeln: Püree kann Milch enthalten); seit dem 28.10.2026 sind es 43 (Nachtrag unten). Milchprodukte im Bild (Rahm, Butter, Sauerrahm) stehen als `F04` in shows: Ist alles Milchige ausgeschlossen, fällt das Bild weg. Sichtbare Zutaten anderer Karten (z. B. Peperoni, Bohnen, Bandnudeln mit Ei) stehen ebenso in shows.
 
 Die Liste „ohne passendes Bild“ (`withoutPhoto`) ist leer.
+
+## Nachtrag 28.10.2026: Karten, die je nach Profil kein Bild zeigten
+
+Alle 154 Karten ausser den Gruppen haben ein Foto (`withoutPhoto` ist leer). Ein Foto wird aber durch den Platzhalter ersetzt, wenn es etwas zeigt, das die Person ausgeschlossen hat (`shows`, `foods`). Vier Karten waren davon betroffen, obwohl die Karte selbst erlaubt war („Egli hat kein Bild“); sie haben seit dem 28.10.2026 andere Fotos (`python scripts/prepare-card-images.py stock F02.1.3 D11 F06.3.2 F13.2` und `groups F13`):
+
+| Karte | vorher | neu | Platzhalter vorher bei |
+|---|---|---|---|
+| F02.1.3 Egli | Filets neben einem Schälchen Rahm (`shows` F04) | Zwei Filets auf einem Brett mit Gemüse (Food PhotoGraphy Mumbai) | Laktose, Milcheiweiss, vegan |
+| D11 Chili con Carne | Chili mit Käse und Sauerrahm (`shows` F04.2) | Chili ohne Käse, mit Maischips (Maria Klichik) | Laktose, Milcheiweiss, Käse ausgeschlossen |
+| F06.3.2 Mehrkornknäcke | Knäckebrot mit Butter-Aufstrich (`shows` F04) | Knäckebrot-Foto der Untergruppe F06.3 (`cardPhotos`, dasselbe Foto wie F06.3 und Roggenknäcke) | Laktose, Milcheiweiss, vegan |
+| F13.2 Kerne und Samen | Kürbiskerne mit einer Mandel (`shows` F13.1.3) | Ungeschälte Kürbiskerne in einer Schale (Kasem Sleem), auch als dritter Teil des Gruppenbilds Nüsse | Mandel, alle Nüsse |
+
+Weiterhin profilabhängig (geprüft mit allen Ernährungsformen und Allergenen, Stand 28.10.2026):
+
+- Gruppenbilder bestehen aus drei Teilen; Teile mit Ausgeschlossenem fallen weg, die übrigen bleiben: Kartoffeln (Püree mit Milch) bei Laktose, Milcheiweiss und vegan; Pasta bei vegan und Eiern (Bandnudeln); Reis und andere Getreide bei Gluten (Couscous); Fisch und Meeresfrüchte bei Fisch, Krebstieren und Meeresfrüchten; Nüsse und Samen bei Mandeln und „alle Nüsse“.
+- Platzhalter trotz sichtbarer Karte: Pasta (Gruppe) bei „alles mit Gluten“ (alle drei Teile sind Weizenpasta, die Karte bleibt wegen der Pasta aus Hülsenfrüchten sichtbar); Zürcher Geschnetzeltes bei Eiern (Ersatzbild mit Bandnudeln); Paranüsse bei Haselnuss- oder Mandelallergie und Baumnüsse bei Mandelallergie (Ersatzbilder mit gemischten Nüssen). Dafür bräuchte es eigene Fotos (Zürcher Geschnetzeltes mit Rösti, reine Paranüsse, Baumnüsse ohne Mandeln) oder einen glutenfreien Teil im Gruppenbild Pasta.
+- Vegetarisch, pescetarisch, Soja, Sellerie, Sesam und Haselnuss (ausser Paranüsse): keine betroffene Karte.
 
 ## Offen
 

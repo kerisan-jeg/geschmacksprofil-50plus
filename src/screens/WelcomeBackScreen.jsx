@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Leaf, Smartphone } from 'lucide-react';
+import { Leaf } from 'lucide-react';
 import Avatar from '../components/Avatar.jsx';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import { APP, PROFILE, WELCOME_BACK } from '../labels.js';
@@ -24,12 +24,6 @@ export default function WelcomeBackScreen({ account, onContinue, onSignOut }) {
         <div className="stack">
           <h1>{WELCOME_BACK.title(name)}</h1>
           <p className="lead">{WELCOME_BACK.lead}</p>
-          {account?.phoneMasked && (
-            <p className="note note-with-icon num">
-              <Smartphone aria-hidden="true" />
-              {WELCOME_BACK.phone(account.phoneMasked)}
-            </p>
-          )}
         </div>
       </div>
 

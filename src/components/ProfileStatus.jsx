@@ -4,7 +4,7 @@ import { PROGRESS } from '../labels.js';
 // Profilstand nach nurec v0.2, Anhang B2: „Profil aufgebaut“ in Prozent, die höchste abgeschlossene Stufe und
 // (im Profil) der nächste sinnvolle Schritt. Der Prozentwert ist ein Erfassungsgrad, keine Trefferquote: Das steht
 // direkt darunter. Er wird in src/logic/dashboard.js berechnet (35/30/35) und sinkt durch neue Antworten nie.
-// next: { type: 'continue' | 'round' | 'practical' | 'done', number?, titles? } oder null.
+// next: { type: 'continue' | 'round' | 'done', number?, titles? } oder null.
 export default function ProfileStatus({ progress, next = null, onNext }) {
   const nextText = next ? (next.type === 'round' ? PROGRESS.next.round(next.number, next.titles ?? []) : PROGRESS.next[next.type]) : null;
   let actionLabel = null;

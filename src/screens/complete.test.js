@@ -46,23 +46,20 @@ test('Sind alle Karten beantwortet, gibt es keine weitere Runde, nur „Mein Pro
   assert.ok(html.includes(COMPLETE.toProfile));
 });
 
-test('Nach Runde 4 führt der Abschluss trotz offener Karten nur noch zum Profil', () => {
+test('Nach Runde 4 führt der Abschluss trotz offener Karten nur noch zum Profil; kein Alltagsprofil mehr', () => {
   const initial = deriveRoundState({ index, onboarding: null, diets, round: 4 });
-  const events = selectNextCards(initial, config).map((card) => ({ cardId: card.id, response: 'LIKE', round: 4 }));
+  const events = selectNextCards(initial, config).slice(0, 10).map((card) => ({ cardId: card.id, response: 'LIKE', round: 4 }));
   const round = deriveRoundState({ index, onboarding: null, diets, events, round: 4 });
-  const html = render(round, nextRoundCards(round, config).map((card) => card.title), {
-    dishes: { available: true, started: true }, onStartDishes() {}, practicalDone: false, onOpenPractical() {},
-  });
-  assert.ok(html.includes(COMPLETE.kickerDone(4)));
-  assert.ok(html.includes(COMPLETE.leadDishes(10)));
+  const html = render(round, nextRoundCards(round, config).map((card) => card.title), { endedEarly: true });
+  assert.ok(html.includes(COMPLETE.kickerEnded(4)));
+  assert.ok(html.includes(COMPLETE.leadDishesEnded(10)));
   assert.ok(html.includes(COMPLETE.profileHint));
   assert.ok(html.includes(COMPLETE.toProfile));
   assert.ok(!html.includes('Weiter mit Runde'));
   assert.ok(!html.includes('Als Nächstes zum Beispiel'));
   assert.ok(!html.includes('Du hast alle Karten beantwortet.'));
   assert.ok(!html.includes('Gerichte bewerten'));
-  assert.ok(!html.includes('Weitere Gerichte bewerten'));
-  assert.ok(html.includes(COMPLETE.startPractical), 'Alltag bleibt nach Runde 4 freiwillig möglich');
+  assert.ok(!html.includes('Alltag'), 'kein Alltagsprofil mehr (28.10.2026)');
 });
 
 test('Abschluss: Rundenübersicht mit Status; „Runde fortsetzen“ nur für eine begonnene Runde', async () => {
