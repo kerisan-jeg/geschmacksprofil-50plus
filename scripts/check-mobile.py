@@ -219,7 +219,7 @@ def run(p, W, H):
         round_fit(pg, f'Gericht {position + 1}')
         pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(120)
     assert pg.locator('.sheet').count() == 0, 'Keine Nachfrage nach zehn Gerichten'
-    round_fit(pg, 'Gericht 11 mit „Runde beenden“ unten')
+    round_fit(pg, 'Gericht 11 von 13')
     pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(120)
     check(pg, 'gerichte_weiter', results, W)
     answer_until_complete(pg)

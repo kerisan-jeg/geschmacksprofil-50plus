@@ -403,20 +403,6 @@
   align-content: center;
 }
 
-/* Runde 4 (Gerichte): „Runde beenden“ unter den Antwortknöpfen, sobald genug Gerichte gesehen sind
-   (Teamentscheid 28.10.2026). Schmal und mittig, damit die Karte möglichst viel Höhe behält. */
-.round-exit {
-  display: grid;
-  justify-items: center;
-}
-
-.round-exit .button-secondary {
-  width: auto;
-  min-height: var(--size-touch);
-  padding-right: var(--space-5);
-  padding-left: var(--space-5);
-}
-
 /* ---------- Rundenübersicht (Verbesserung 7) ---------- */
 
 .round-overview {
