@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { indexCatalog } from './catalog.js';
-import { buildProfile, canResumeRound, deriveRoundState, ROUND_STATUS, roundStatus, hasMoreCards, isRoundComplete, nextCard, nextRoundCards, presentCard, progress, replay, selectionReason, selectNextCards, tasteSignals } from './engine.js';
+import { buildProfile, canResumeRound, deriveRoundState, dishAffinity, openDishes, ROUND_STATUS, roundStatus, hasMoreCards, isRoundComplete, nextCard, nextRoundCards, presentCard, progress, replay, selectionReason, selectNextCards, tasteSignals } from './engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
 import { deriveOnboarding, emptyAnswers } from './stage0.js';
 
@@ -31,10 +31,10 @@ test('Feste Auswahl hält jede Runde auf einer Ebene und begrenzt direkte Aufruf
   assert.deepEqual(subgroups.slice(0, 5).map((card) => card.id), ['F01.1', 'F02.1', 'F04.1', 'F05.1', 'F06.1']);
   assert.ok(subgroups.every((card) => card.stage === 2));
   for (let i = 1; i < subgroups.length; i += 1) assert.notEqual(subgroups[i].parentId, subgroups[i - 1].parentId, subgroups[i].id);
-  // Jede Runde bleibt auf ihrer Ebene; Runden 1 bis 3 höchstens 15 Karten, Runde 4 alle passenden Gerichte (28.10.2026)
+  // Jede Runde bleibt auf ihrer Ebene und hat höchstens 15 Karten, auch die Gerichte in Runde 4.
   for (let round = 1; round <= 4; round += 1) {
     const offered = selectNextCards(state([], noOnboarding, round), { roundCardLimit: 100 });
-    assert.ok(round === 4 ? offered.length === 64 : offered.length <= 15, `Runde ${round}: ${offered.length}`);
+    assert.ok(offered.length <= 15, `Runde ${round}: ${offered.length}`);
     assert.ok(offered.every((card) => card.stage === round));
   }
   assert.equal(selectionReason(state([]), index.get('F01')), 'stage1_fixed_order');
@@ -235,27 +235,30 @@ test('Gruppennamen folgen auch Ausschlüssen beim Wischen und im Profil sowie R�
   assert.equal(presentCard(state([], noFish), index.get('F02.2')).group, 'Meeresfrüchte');
 });
 
-test('Runde 4 bleibt spielbar, zeigt alle passenden Gerichte ohne Limit und bietet keine fünfte Runde an', () => {
+test('Runde 4 endet nach 13 Gerichten, lässt sich vorher fortsetzen und bietet keine fünfte Runde an', () => {
+  const config = { roundCardLimit: 13 };
   const cards = selectNextCards(state([]), { roundCardLimit: 100 });
   const events = cards.slice(0, 30).map((card, i) => answer(card.id, LIKE, { round: 1 + Math.floor(i / 10) }));
   const third = state(events, noOnboarding, 3);
   const fourth = state(events, noOnboarding, 4);
   assert.equal(hasMoreCards(third), true);
   assert.deepEqual(nextRoundCards(third, config), selectNextCards(fourth, config));
-  assert.equal(selectNextCards(fourth, config).length, 64, 'kein Kartenlimit in Runde 4 (Teamentscheid 28.10.2026); 64 Gerichte seit dem 29.10.2026');
+  assert.equal(selectNextCards(fourth, config).length, 13, 'dasselbe Kartenlimit wie in den Vorrunden');
   assert.equal(isRoundComplete(fourth, config), false);
   assert.equal(hasMoreCards(fourth), false);
   assert.deepEqual(nextRoundCards(fourth, config), []);
-  // Nach DISH_ROUND_END_AFTER Gerichten gilt die Runde als abgeschlossen, bleibt aber fortsetzbar
+  // Nach zehn Gerichten noch begonnen: drei Plätze bleiben bis zum regulären Abschluss.
   const ten = state([...events, ...selectNextCards(fourth, config).slice(0, 10).map((card) => answer(card.id, LIKE, { round: 4 }))], noOnboarding, 4);
-  assert.equal(roundStatus(ten, config), ROUND_STATUS.COMPLETED);
+  assert.equal(roundStatus(ten, config), ROUND_STATUS.STARTED);
   assert.equal(canResumeRound(ten, config), true);
-  assert.equal(selectNextCards(ten, config).length, 54);
+  assert.equal(selectNextCards(ten, config).length, 3);
+  assert.deepEqual(progress(ten, config), { answered: 10, total: 13, percent: 77 });
 
   events.push(...selectNextCards(fourth, config).map((card) => answer(card.id, LIKE, { round: 4 })));
   const done = state(events, noOnboarding, 4);
   assert.equal(isRoundComplete(done, config), true);
   assert.equal(canResumeRound(done, config), false, 'nichts mehr zum Fortsetzen');
+  assert.deepEqual(progress(done, config), { answered: 13, total: 13, percent: 100 });
   assert.ok(index.cards.some((card) => !(card.id in done.answers)), 'weitere Karten bleiben bewusst offen');
   assert.equal(hasMoreCards(done), false);
   assert.deepEqual(nextRoundCards(done, config), []);
@@ -271,17 +274,58 @@ test('Gerichte werden nach zulässigen Vorlieben sortiert und übertragen keine 
   const fourth = state([answer('F08.1', PREFER, { round: 2 })], noOnboarding, 4);
   const offered = selectNextCards(fourth, { roundCardLimit: 15 });
   assert.ok(offered.every((card) => card.stage === 4));
-  assert.ok(offered.findIndex((card) => card.id === 'D10') < offered.findIndex((card) => card.id === 'D01'), 'Reisvorliebe priorisiert Pilzrisotto');
-  // Kein Geschmacksfilter (29.10.2026): Gerichte mit abgelehnten Zutaten kommen trotzdem, nur später
+  assert.ok(offered.some((card) => card.id === 'D10'), 'Reisvorliebe nimmt Pilzrisotto in die Auswahl auf');
+  assert.deepEqual(offered, openDishes(fourth).slice(0, 15), 'die 15 passendsten Gerichte aus dem gesamten Katalog');
   const meatHater = state([answer('F01', DISLIKE, { round: 1 }), answer('F09', LIKE, { round: 1 })], noOnboarding, 4);
-  const ids = selectNextCards(meatHater, config).map((card) => card.id);
-  assert.equal(ids.length, 64, 'alle erlaubten Gerichte');
+  const ids = openDishes(meatHater).map((card) => card.id);
+  assert.deepEqual(selectNextCards(meatHater, config).map((card) => card.id), ids.slice(0, 10), 'nur die zehn passendsten Gerichte im Budget');
   assert.ok(ids.indexOf('D05') < ids.indexOf('D02') && ids.indexOf('D12') < ids.indexOf('D16'), 'Rösti und Schnitzel (Kartoffeln) vor Bolognese und Poulet-Curry (Fleisch überwiegt)');
   const vegetarian = state([], { ...noOnboarding, diet: 'vegetarian' }, 4);
   assert.ok(selectNextCards(vegetarian, { roundCardLimit: 15 }).every((card) => !card.animalOrigin.some((origin) => ['meat', 'pork', 'fish', 'seafood'].includes(origin))));
   const after = state([answer('D01', PREFER, { round: 4 })], noOnboarding, 4);
   assert.equal(after.ratings['F04.2.3'], undefined, 'Pizza macht Frischkäse nicht zum Favoriten');
   assert.ok(!buildProfile(after).predicted.some((entry) => entry.basisId === 'D01'));
+});
+
+test('Gerichte nutzen Antworten aus Runde 1 bis 3; konkrete Zutaten haben Vorrang vor ihrer Gruppe', () => {
+  const events = [answer('F01', DISLIKE, { round: 1 }), answer('F01.1', PREFER, { round: 2 }), answer('F01.1.1', DISLIKE, { round: 3 })];
+  const chickenCurry = index.get('D16');
+  const group = state(events.slice(0, 1), noOnboarding, 4);
+  const subgroup = state(events.slice(0, 2), noOnboarding, 4);
+  const food = state(events, noOnboarding, 4);
+  assert.equal(dishAffinity(group, chickenCurry), -0.5, 'Runde 1: Fleisch eher ungern');
+  assert.equal(dishAffinity(subgroup, chickenCurry), 1, 'Runde 2: Geflügel sehr gern überschreibt Fleisch');
+  assert.equal(dishAffinity(food, chickenCurry), -0.5, 'Runde 3: Poulet ungern überschreibt Geflügel');
+  assert.ok(selectNextCards(subgroup).some((card) => card.id === 'D16'), 'Geflügelvorliebe wählt Poulet-Curry aus');
+  assert.ok(!selectNextCards(food).some((card) => card.id === 'D16'), 'konkrete Ablehnung lässt besser passende Gerichte vorrücken');
+  const unknown = state([...events.slice(0, 2), answer('F01.1.1', UNFAMILIAR, { round: 3 })], noOnboarding, 4);
+  assert.equal(dishAffinity(unknown, chickenCurry), 1, 'unbekannt zählt nicht als Ablehnung');
+});
+
+test('Runde 4 behält ihr Budget bei gemischten Antworten, Rückgängig und alten längeren Sitzungen', () => {
+  for (const limit of [10, 13, 15]) {
+    const config = { roundCardLimit: limit };
+    const events = [];
+    const expected = selectNextCards(state(events, noOnboarding, 4), config).map((card) => card.id);
+    for (let i = 0; i < limit; i += 1) {
+      const current = state(events, noOnboarding, 4);
+      assert.equal(progress(current, config).total, limit);
+      assert.equal(selectNextCards(current, config).length, limit - i);
+      const card = nextCard(current, config);
+      assert.equal(card.id, expected[i], 'bewertete Gerichte verändern keine Zutatenvorlieben');
+      events.push(answer(card.id, [LIKE, DISLIKE, PREFER, UNFAMILIAR, INTOLERANT][i % 5], { round: 4 }));
+    }
+    assert.equal(nextCard(state(events, noOnboarding, 4), config), null);
+    const undone = state([...events, answer(events.at(-1).cardId, UNDO, { round: 4 })], noOnboarding, 4);
+    assert.deepEqual(selectNextCards(undone, config).map((card) => card.id), [events.at(-1).cardId]);
+    assert.equal(progress(undone, config).total, limit);
+  }
+  const old = index.cards.filter((card) => card.stage === 4).slice(0, 30).map((card) => answer(card.id, LIKE, { round: 4 }));
+  const resumed = state(old, noOnboarding, 4);
+  assert.equal(resumed.roundSequence.length, 30, 'gespeicherte Antworten bleiben erhalten');
+  assert.equal(nextCard(resumed), null, 'eine bereits längere Runde wird nicht weiter verlängert');
+  assert.equal(canResumeRound(resumed), false);
+  assert.deepEqual(progress(resumed), { answered: 30, total: 30, percent: 100 });
 });
 
 test('Rundenstatus: vorzeitig beendet bleibt „begonnen“, nach dem Fortsetzen bis zum Limit „abgeschlossen“', () => {

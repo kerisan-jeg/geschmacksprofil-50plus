@@ -26,7 +26,7 @@ Erstellt mit Claude Code im Auftrag des Teams (26.10.2026); alle Aussagen sind a
 | `RULE_VERSION` (src/logic/engine.js) | demo-0.8 (28.10.2026: demo-0.7; vorher demo-0.6) |
 | `ROUND_FLOW` | staged-v1 |
 | Kartenkatalog `src/data/catalog.json` | 209 Karten: 13 Gruppen, 36 Untergruppen, 96 konkrete Lebensmittel, 64 Gerichte (42 neue am 29.10.2026); SHA-256 `57eb2766…ce38c7` (am 26.10.2026: 167 Karten, `d69605d9…f88161`) |
-| Standardkonfiguration | 13 Karten je Runde (Maximum 15) in Runde 1 bis 3, Runde 4 ohne Limit, 4 Runden, adaptive Auswahl, 6 Kontrollkarten, Skala Runde 1 mit drei Begriffen, Fotos, Anmeldung mit Vornamen an |
+| Standardkonfiguration | 13 Karten je Runde (Maximum 15) in allen vier Runden, Runde 4 mit den passendsten Gerichten anhand der Vorrunden (`demo-0.9`), adaptive Auswahl, 6 Kontrollkarten, Skala Runde 1 mit drei Begriffen, Fotos, Anmeldung mit Vornamen an |
 | Tests | 318 am 29.10.2026, alle bestanden (`npm test`); am 26.10.2026 waren es 314 vorhandene plus 26 neue |
 
 Die vollständigen Prüfsummen und ein Vorschlag zum Einfrieren der Studienversion stehen in [09_Studienbereitschaft.md](09_Studienbereitschaft.md).

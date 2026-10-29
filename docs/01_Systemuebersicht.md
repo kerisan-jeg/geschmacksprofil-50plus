@@ -19,7 +19,7 @@ Es gibt keine Datenbank, kein Backend, kein maschinelles Lernen und keine Produk
 | 5 | SummaryScreen | „Stimmt das so?“: alle festen Regeln, „Ändern“ je Frage, „Stimmt so“ |
 | 6 | RoundScreen | Runde 1: Lebensmittelgruppen (bis 13 Karten) |
 | 7 | CompleteScreen | Abschluss mit Zählung der Antworten, Profilstand, Rundenübersicht, „Weiter mit Runde 2“ |
-| 8 | RoundScreen / CompleteScreen | Runde 2: Untergruppen und Kontrollkarten; Runde 3: einzelne Lebensmittel; Runde 4: alle passenden Gerichte ohne Kartenlimit, nach zehn Gerichten „Runde beenden“ (seit dem 28.10.2026) |
+| 8 | RoundScreen / CompleteScreen | Runde 2: Untergruppen und Kontrollkarten; Runde 3: einzelne Lebensmittel; Runde 4: die 13 passendsten erlaubten Gerichte anhand der Vorrunden; alle Runden enden beim Kartenlimit oder wenn keine Karte mehr übrig ist |
 | 9 | ProfileScreen | „Mein Profil“: Antwortkategorien, Profilstand, Vermutungen, Ausschlüsse; Bearbeiten möglich. Das Alltagsprofil (PracticalScreen) ist seit dem 28.10.2026 entfernt |
 
 Zusätzlich: WelcomeBackScreen (gespeicherter Stand auf demselben Gerät), IntroScreen (Tutorial, standardmässig aus), AdminScreen (`?admin=1`: Sitzungen, Export, „Neue Testperson starten“).

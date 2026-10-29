@@ -4,18 +4,12 @@
 
 export const APP_VERSION = '0.11.0-demo';
 
-// Karten pro Runde (ROUND_CARD_LIMIT). Fortschrittsanzeigen leiten ihre Werte davon ab.
+// Karten pro Runde, einschliesslich Gerichte in Runde 4. Fortschrittsanzeigen leiten ihre Werte davon ab.
 export const ROUND_CARD_LIMIT = 13;
 export const ROUND_FLOW = 'staged-v1';
 
 // Vorgabe des Dozenten: höchstens vier Swipe-Runden, unabhängig vom Kartenlimit.
 export const MAX_ROUNDS = 4;
-
-// Gerichte (Runde 4, Teamentscheid 28.10.2026): Es kommen alle Gerichte, die zu den Angaben und Antworten passen
-// (src/logic/engine.js → openDishes), ohne Kartenlimit. Nach so vielen bewerteten Gerichten fragt die App, ob die
-// Person weitere Gerichte sehen oder die Runde beenden will; danach bleibt „Runde beenden“ unter den Knöpfen sichtbar.
-// Ab dieser Zahl gilt Runde 4 in der Rundenübersicht als abgeschlossen (fortsetzen bleibt möglich).
-export const DISH_ROUND_END_AFTER = 10;
 
 // Kartenauswahl (src/logic/selection.js): 'adaptive' wählt je nach den bisherigen Antworten (nurec v0.2,
 // Kap. 4 und 6), 'fixed' zeigt die feste Reihenfolge von Version 0.6 (Vergleich im Pilot, ?selection=fixed).

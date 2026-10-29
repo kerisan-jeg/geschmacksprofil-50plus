@@ -106,6 +106,23 @@ test('Die nächste Karte liegt sichtbar dahinter', async () => {
   await unmount();
 });
 
+test('Runde 4 zeigt nach zehn Antworten Karte 11 von 13 ohne Nachfrage und endet nach Karte 13', async () => {
+  const dishIds = index.cards.filter((card) => card.stage === 4).slice(0, 13).map((card) => card.id);
+  const view = (count) => h(RoundScreen, {
+    round: deriveRoundState({ index, onboarding, diets, round: 4, events: dishIds.slice(0, count).map((cardId) => ({ cardId, response: LIKE, round: 4 })) }),
+    config, canUndo: true, onAnswer: spy(), onUndo: spy(), onEndRound: spy(),
+  });
+  const { container, rerender, unmount } = await render(view(10));
+  assert.equal(container.querySelector('.progress-text').textContent, 'Karte 11 von 13');
+  assert.equal(document.querySelector('[role="dialog"]'), null, 'kein Angebot, die Runde über das Limit zu verlängern');
+  await rerender(view(12));
+  assert.equal(container.querySelector('.progress-text').textContent, 'Karte 13 von 13');
+  assert.equal(container.querySelector('.deck-behind'), null, 'keine vierzehnte Karte im Stapel');
+  await rerender(view(13));
+  assert.equal(container.querySelector('.swipe-card'), null);
+  await unmount();
+});
+
 test('Runde 2 zeigt Fisch ohne Meeresfrüchte im Etikett, auch im Stapel und nach einem Bildfehler', async () => {
   const rules = { ...onboarding, exclusions: [{ type: 'animalOrigin', value: 'seafood' }] };
   const firstRound = Array.from({ length: 10 }, (_, i) => `F${String(i + 1).padStart(2, '0')}`)

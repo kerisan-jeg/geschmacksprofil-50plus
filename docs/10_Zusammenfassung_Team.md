@@ -24,7 +24,7 @@ Alles läuft im Browser, ohne Server. Die Person beantwortet drei Fragen (Ernäh
 - **Runde 1** ist für alle gleich: alle erlaubten Gruppen in Katalogreihenfolge.
 - **Runde 2** reagiert auf die Antwort zur Gruppe: „Kenne ich nicht“ → eine Klärungskarte (höchstens zwei); „Eher ungern“ → eine plausible Ausnahme (Hülsenfrüchte → Sojaprodukte), die übrigen Untergruppen nur, wenn ganz am Schluss Platz bleibt; „Eher gern“ oder „Sehr gern“ → zwei Kontrast-Untergruppen (Obst → Beeren und Zitrusfrüchte). Die sechs Kontrollkarten beenden Runde 2.
 - **Runde 3** vertieft nur, was in Runde 2 bewertet wurde: bis zwei Lebensmittel je positiver Untergruppe, drei bei „Mag ich sehr“, zuerst Ausnahmen und Unterschiede, negative Zweige zuletzt. Nie gefragte Untergruppen werden nicht vertieft, sondern vermutet.
-- **Runde 4** zeigt alle erlaubten Gerichte (64 im Katalog seit dem 29.10.2026), sortiert nach den bisherigen Zutatenbewertungen (passendste zuerst, abgelehnte Zutaten zuletzt), ohne Kartenlimit und ohne Geschmacksfilter; „Runde beenden“ steht von der ersten Karte an bereit, nach zehn Gerichten fragt die App nach. Gerichtsantworten verändern nichts an den Zutaten.
+- **Runde 4** wählt die 13 passendsten erlaubten Gerichte aus dem gesamten Katalog (64 Gerichte) anhand der Zutatenbewertungen aus Runde 1 bis 3. Konkrete Angaben haben Vorrang vor Untergruppen und Gruppen. Sie teilt dasselbe Kartenlimit wie die Vorrunden und endet automatisch beim Limit oder wenn weniger erlaubte Gerichte übrig sind (Korrektur 29.10.2026, `demo-0.9`). „Runde beenden“ steht von Anfang an bereit; die Nachfrage nach zehn Gerichten entfällt. Gerichtsantworten verändern nichts an den Zutaten.
 - „Vertrage ich nicht“ schliesst die Karte in allen weiteren Runden aus. „Mag ich nicht“ schliesst nie aus.
 
 ## Warum werden die jeweiligen Karten ausgewählt?
@@ -41,7 +41,7 @@ Vier getrennte Teile: (1) die direkten Antworten je Karte in vier Kategorien, (2
 
 ## Warum erscheinen oft nur etwa sieben Gerichte?
 
-Es gab keine feste Sieben: Bis zum 28.10.2026 hatte der Katalog 22 Gerichte, 15 davon mit Laktose und Milcheiweiss getaggt (vorsichtig, auch Butter und Rahm); wer Laktose oder Milcheiweiss angab, sah genau sieben. Seit dem 29.10.2026 hat der Katalog 64 Gerichte, in Runde 4 gibt es weder Kartenlimit noch Geschmacksfilter: ohne Einschränkung 64, bei Laktose oder Milcheiweiss 32, Gluten 29, vegetarisch 32, vegan 12. Die Person beendet die Runde, wenn sie genug hat.
+Es gab keine feste Sieben: Bis zum 28.10.2026 hatte der Katalog 22 Gerichte, 15 davon mit Laktose und Milcheiweiss getaggt (vorsichtig, auch Butter und Rahm); wer Laktose oder Milcheiweiss angab, sah genau sieben. Seit dem 29.10.2026 hat der Katalog 64 Gerichte: ohne Einschränkung 64 erlaubt, bei Laktose oder Milcheiweiss 32, Gluten 29, vegetarisch 32, vegan 12. Seit der Korrektur `demo-0.9` wählt Runde 4 daraus höchstens 13, bei vegan daher höchstens 12. Ausschlüsse bleiben vorrangig.
 
 ## Welche Probleme müssen wir vor der Befragung lösen?
 

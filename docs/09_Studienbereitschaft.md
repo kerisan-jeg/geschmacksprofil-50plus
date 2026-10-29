@@ -69,7 +69,7 @@ Fehlend oder nur ausserhalb der App: die subjektive Einschätzung der Person zum
 |---|---|
 | Version | ein Git-Tag, eine veröffentlichte Adresse (GitHub Pages), keine Deployments während der Studie |
 | Adresse | ohne URL-Parameter; Ausnahme nur bei geplantem Vergleich, dann je Gruppe ein fester Link |
-| Konfiguration | Limit 13 (Runde 1 bis 3; Runde 4 ohne Limit), adaptiv, 6 Kontrollkarten, `r1scale` 3, Fotos, `GROUP_IMAGES` nach Entscheid, Tutorial aus, Anmeldung mit Vornamen an |
+| Konfiguration | Limit 13 in allen vier Runden (auch Gerichte), adaptiv, 6 Kontrollkarten, `r1scale` 3, Fotos, `GROUP_IMAGES` nach Entscheid, Tutorial aus, Anmeldung mit Vornamen an |
 | Gerät | gleiche Geräteklasse und Browser für alle, Schrift 100 %, WLAN für Bilder |
 | Ablauf | Einführung in einem Satz, Wischrichtungen nicht erklären, laut denken, bis zum Abschluss der letzten Runde, Kurzinterview, Export am Ende des Tages ([messkonzept.md](messkonzept.md), Abschnitt 8) |
 | Testleitung | vor jeder Person „Neue Testperson starten“, Teilnehmer-Nr. eintragen, nach der Studie „Alle Daten löschen“ |

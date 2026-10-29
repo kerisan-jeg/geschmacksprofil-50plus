@@ -24,7 +24,7 @@ flowchart TD
   E -- "ja" --> R1["Runde 1: Lebensmittelgruppen, bis 13 Karten"]
   R1 --> C["Abschluss: Antworten gezählt, Profilstand, Rundenübersicht"]
   C --> M{"nextRoundNumber(): gibt es eine weitere Runde mit Karten?"}
-  M -- "ja" --> RN["Runde 2: Untergruppen und Kontrollkarten<br/>Runde 3: einzelne Lebensmittel<br/>Runde 4: alle passenden Gerichte ohne Limit"]
+  M -- "ja" --> RN["Runde 2: Untergruppen und Kontrollkarten<br/>Runde 3: einzelne Lebensmittel<br/>Runde 4: die 13 passendsten Gerichte"]
   RN --> C
   M -- "nein" --> P["Mein Profil: Dashboard"]
   C -- "Mein Profil ansehen" --> P
@@ -76,10 +76,9 @@ flowchart TD
   B -- "Runde 2" --> D["Je Gruppe nach ihrer Antwort:<br/>Kenne ich nicht → eine Klärungskarte<br/>Eher ungern → die Ausnahme<br/>Eher gern oder Sehr gern → zwei Kontraste"]
   D --> D2["Gruppen wechseln sich ab, 7 Plätze,<br/>danach die 6 Kontrollkarten"]
   B -- "Runde 3" --> E["Lebensmittel aus Ausnahmen, Unterschieden und Favoriten,<br/>dann bis 2 je gern bewertete Untergruppe,<br/>zuletzt bis 2 je negativem Zweig"]
-  B -- "Runde 4" --> F["Alle erlaubten Gerichte,<br/>nach Zutaten-Zuneigung sortiert, ohne Kartenlimit"]
-  C & D2 & E --> G["Ausgeschlossene und beantwortete Karten entfernen,<br/>auf das Kartenlimit kürzen"]
+  B -- "Runde 4" --> F["Erlaubte Gerichte nach Zutaten-Zuneigung<br/>aus Runde 1 bis 3 sortieren"]
+  C & D2 & E & F --> G["Ausgeschlossene und beantwortete Karten entfernen,<br/>auf die verbleibenden Plätze im Kartenlimit kürzen"]
   G --> H["Erste Karte anzeigen, zweite dahinter"]
-  F --> H
 ```
 
 ## Diagramm C: Verarbeitung einer Swipe-Entscheidung
@@ -139,7 +138,7 @@ flowchart LR
     C5["negative Untergruppen → bis 2, ganz am Schluss"]
   end
   subgraph R4["Runde 4: Gerichte"]
-    D1["alle erlaubten Gerichte,<br/>nach Zuneigung sortiert, ohne Kartenlimit"]
+    D1["die 13 passendsten erlaubten Gerichte,<br/>nach Zutaten-Zuneigung aus Runde 1 bis 3"]
   end
   MOD["Präferenzmodell: direkte Werte −1, +1, +2;<br/>Vermutungen für Unbewertetes, halbiert je Stufe"]
   O -- "isVisible() in jeder Runde" --> R1

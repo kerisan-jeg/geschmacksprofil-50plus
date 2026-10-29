@@ -54,7 +54,7 @@ import AdminScreen from './screens/AdminScreen.jsx';
 // Ablauf „Profil erstellen“: Begrüssung → Anmeldung (nur Vorname) → Über dich → Fragebogen (Stufe 0) →
 // Zusammenfassung → höchstens vier Runden mit Abschluss (Tutorial vor Runde 1 nur mit TUTORIAL_ENABLED).
 // Die Karten wählt src/logic/selection.js je nach Antwort; die Kontrollkarten (Messkonzept, docs/messkonzept.md)
-// kommen am Ende von Runde 2. Runde 3 enthält konkrete Lebensmittel, Runde 4 alle passenden Gerichte ohne Limit.
+// kommen am Ende von Runde 2. Runde 3 enthält konkrete Lebensmittel, Runde 4 die passendsten Gerichte im selben Kartenlimit.
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
 // Lebensmittel für die Suche: handgepflegte Schweizer Begriffe, dann die Schweizer Nährwertdatenbank (BLV).

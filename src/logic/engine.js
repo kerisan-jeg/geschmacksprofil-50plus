@@ -9,7 +9,7 @@
 //
 // Alle Funktionen sind rein (kein Zufall, keine Uhrzeit).
 
-import { cardLimit, DISH_ROUND_END_AFTER, MAX_ROUNDS, PREFERENCE_MODEL } from '../config.js';
+import { cardLimit, MAX_ROUNDS, PREFERENCE_MODEL } from '../config.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, RESPONSE_SEMANTICS, RESPONSES, UNDO, UNFAMILIAR, isTasteSignal } from './answers.js';
 import { ANSWER, DIET_CHANGED, EXCLUSION_ADDED, EXCLUSION_REMOVED, HOLDOUT_DRAWN, RATING_CHANGED, SOURCE_PROFILE, eventType, isProfileEvent } from './events.js';
 import { annotateCard, buildExclusions, displayCardTitle, isVisible } from './filter.js';
@@ -23,10 +23,10 @@ import { SOURCE_SWIPE } from './stage0.js';
 // demo-0.5: je Runde eine Ebene, Gerichte in Runde 4, maximal 15 Karten; Kontrollen in Runde 2.
 // demo-0.6: Dozentenfeedback 19.10.2026: negative Gruppe ist kein Ausschluss (NEGATIVE_GROUP_POLICY 'last',
 //           Quote Runde 3), Gesten und Begriffe je Runde (r1scale), Restriktionen mit Fleischarten.
-// demo-0.7: Teamentscheid 28.10.2026: Runde 4 ohne Kartenlimit mit allen passenden Gerichten (Affinität aus der
-//           nächsten direkten Bewertung je Zutat, keine Gerichte mit mehr Abneigung als Zuneigung), Abschluss der
-//           Runde durch die Person (DISH_ROUND_END_AFTER). Runden 1 bis 3 unverändert.
-export const RULE_VERSION = 'demo-0.8';
+// demo-0.7/0.8: Runde 4 ohne Kartenlimit, nach Zutatenaffinität sortiert.
+// demo-0.9: Runde 4 teilt das Kartenlimit der Vorrunden (Standard 13). Aus allen erlaubten Gerichten werden
+//           die passendsten nach den Zutatenbewertungen aus Runde 1 bis 3 ausgewählt.
+export const RULE_VERSION = 'demo-0.9';
 
 // Antwort-Ereignis (so wird es auch protokolliert, siehe logging/logger.js):
 // { cardId, stage, parentId, round, positionInRound, response, timestamp, responseTimeMs,
@@ -204,9 +204,8 @@ export function dishAffinity(state, card) {
   return scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : 0;
 }
 
-// Gerichte, die zur Person passen und noch bewertet werden können: sichtbar (Ausschlüsse wirken auch hier),
-// noch offen und mit Affinität von mindestens 0 (nicht mehr Abneigung als Zuneigung unter den Zutaten).
-// Sortiert nach Affinität, bei Gleichstand in Katalogreihenfolge. Es gibt kein Kartenlimit und keine Füllkarten.
+// Alle erlaubten, noch offenen Gerichte, sortiert nach Zutatenaffinität aus den Vorrunden,
+// bei Gleichstand in Katalogreihenfolge. selectNextCards wählt daraus nur die besten verbleibenden Plätze.
 export function openDishes(state) {
   return state.index.cards
     .filter((card) => card.stage === 4 && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions))
@@ -215,22 +214,17 @@ export function openDishes(state) {
     .map(({ card }) => card);
 }
 
-// Runde 4: Hat die Person genug Gerichte gesehen, um die Runde beenden zu dürfen (DISH_ROUND_END_AFTER)?
-export function dishesEnoughSeen(state) {
-  return isDishRound(state.round) && answeredCount(state) >= DISH_ROUND_END_AFTER;
-}
-
 // Welche Karten in dieser Runde noch kommen.
 //
 // Auswahl: src/logic/selection.js (config.selection: 'adaptive' oder 'fixed'; ohne Angabe 'fixed').
-// Runden 1 bis 3 bleiben auf ihrer Ebene und haben höchstens 15 Karten. Kontrollkarten teilen das Budget
-// ihrer Ebene (normalerweise Untergruppen in Runde 2). Runde 4 zeigt alle passenden Gerichte ohne Limit;
-// die Person beendet sie selbst (RoundScreen, DISH_ROUND_END_AFTER).
+// Alle vier Runden bleiben auf ihrer Ebene und haben dasselbe Kartenlimit (Standard 13, höchstens 15).
+// Kontrollkarten teilen das Budget ihrer Ebene (normalerweise Untergruppen in Runde 2).
+// Runde 4 wählt die Gerichte mit der höchsten Zutatenaffinität aus den bisherigen Antworten.
 export function selectNextCards(state, config = {}) {
   if (!Number.isInteger(state.round) || state.round < 1 || state.round > MAX_ROUNDS) return [];
-  if (isDishRound(state.round)) return openDishes(state);
   const remaining = cardLimit(config) - answeredCount(state);
   if (remaining <= 0) return [];
+  if (isDishRound(state.round)) return openDishes(state).slice(0, remaining);
   const checks = openHoldout(state).filter((card) => card.stage === state.round);
   const main = rankedStageCards(state, config.selection)
     .slice(0, Math.max(0, remaining - checks.length))
@@ -298,13 +292,12 @@ export function isRoundComplete(state, config) {
 // Status einer Runde (Dozentenfeedback 19.10.2026, Korrektur nach AP1). state: deriveRoundState für diese Runde.
 //   open        noch keine Karte beantwortet
 //   started     begonnen, Karten offen (auch nach „Runde beenden“; das vorzeitige Ende steht als QUESTION_ABORTED im Log)
-//   completed   Kartenlimit erreicht oder keine Karte mehr, auch wenn die Runde vorher beendet und fortgesetzt wurde;
-//               Runde 4 (Gerichte) ausserdem ab DISH_ROUND_END_AFTER bewerteten Gerichten
+//   completed   Kartenlimit erreicht oder keine Karte mehr, auch wenn die Runde vorher beendet und fortgesetzt wurde
 //   unavailable keine Karte beantwortet und keine erlaubte Karte übrig (z. B. nach den Ausschlüssen)
 export const ROUND_STATUS = { OPEN: 'open', STARTED: 'started', COMPLETED: 'completed', UNAVAILABLE: 'unavailable' };
 
 export function roundStatus(state, config) {
-  const complete = isRoundComplete(state, config) || dishesEnoughSeen(state);
+  const complete = isRoundComplete(state, config);
   if (state.roundSequence.length === 0) return complete ? ROUND_STATUS.UNAVAILABLE : ROUND_STATUS.OPEN;
   return complete ? ROUND_STATUS.COMPLETED : ROUND_STATUS.STARTED;
 }
@@ -318,8 +311,8 @@ export function canResumeRound(state, config) {
   return !state.sequence.some((id) => state.answeredInRound[id] > state.round);
 }
 
-// Fortschritt der Runde. total ist in Runde 1 bis 3 höchstens das Rundenlimit (ROUND_CARD_LIMIT, config.roundCardLimit)
-// und kleiner, wenn nach den Ausschlüssen weniger Karten übrig sind; in Runde 4 die Zahl der passenden Gerichte.
+// Fortschritt der Runde. total ist in allen Runden höchstens das Rundenlimit (ROUND_CARD_LIMIT, config.roundCardLimit)
+// und kleiner, wenn nach den Ausschlüssen weniger Karten übrig sind. Bereits gespeicherte Antworten bleiben erhalten.
 // percent wird daraus abgeleitet.
 export function progress(state, config) {
   const answered = answeredCount(state);

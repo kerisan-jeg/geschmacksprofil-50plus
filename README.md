@@ -9,6 +9,8 @@ Version 0.8: vollständig nach dem nurec-Konzept v0.2 (Abgleich Kapitel für Kap
 
 **Version 0.11 (29.10.2026):** Runde 4 ohne Geschmacksfilter (alle erlaubten Gerichte, nach Zutaten-Zuneigung sortiert, „Runde beenden“ von der ersten Karte an), Katalog von 22 auf 64 Gerichte erweitert (42 neue mit Unsplash-Fotos, darunter viele ohne Milch und Gluten; neue Küchen griechisch, spanisch, orientalisch, indisch, japanisch, amerikanisch). Regelversion `demo-0.8`.
 
+**Korrektur vom 29.10.2026, Regelversion `demo-0.9`:** Auch Runde 4 hat wieder dasselbe Kartenlimit wie die Vorrunden: standardmässig 13 Gerichte, höchstens 15. Aus dem gesamten Katalog werden nach Ausschlüssen die Gerichte mit der höchsten Zutatenaffinität aus den Antworten der Runden 1 bis 3 ausgewählt. Konkrete Bewertungen haben Vorrang vor Untergruppen und Gruppen. Die Runde endet beim Limit oder wenn keine erlaubten Gerichte mehr übrig sind; die Nachfrage nach zehn Gerichten entfällt.
+
 Hinweis zur Eigenleistung: Auswahl, Modell, Dashboard, Stufe 3 und 4, Alltagsprofil (am 28.10.2026 wieder entfernt) und Auswertung hat Claude Code (KI) im Auftrag des Teams umgesetzt (15.10.2026; die Änderungen vom 28.10.2026 ebenso), auf Grundlage einer Rückmeldung zum Vorgehen und des nurec-Konzepts. Die Regeln folgen nurec v0.2 [D]; Rangfolge, Annahmen und Kriterium sind Vorschläge [V], die das Team bestätigt oder ändert. Wie die KI-Unterstützung in der Arbeit deklariert wird, mit Tibor klären.
 
 Quellenlabels in diesem Dokument: [A] Aufgabenstellung, [K] Aussagen von Tibor (Kickoff, Zwischencheck),
@@ -26,7 +28,7 @@ Die App hat zwei Bereiche: **Profil erstellen** und **Mein Profil**. Die untere 
 6. **Runde 1 – Lebensmittelgruppen:** nach „Stimmt so“ direkt die erste Karte. Standardmässig bis zu 13 Karten, damit alle 13 zulässigen Gruppen Platz haben; ausgeschlossene Gruppen entfallen. Vorher zieht die App die Kontrollkarten.
 7. **Abschluss:** kurze Übersicht (Anzahl je Antwort, Anzahl fester Regeln), Ausblick auf die nächsten Karten, „Weiter mit Runde 2“ und „Mein Profil ansehen“.
 8. **Runde 2 – Untergruppen, Runde 3 – konkrete Lebensmittel:** Die Auswahl vertieft auf jeder Runde eine Ebene. Ausnahmen, Kontraste und Favoriten bestimmen die Priorität. Auch bei gleichen positiven Untergruppenantworten werden in Runde 3 einzelne Lebensmittel geprüft; höchstens zwei pro positiver Untergruppe, bei „Mag ich sehr“ drei. Unbekanntes bekommt höchstens zwei Klärungskarten auf der nächsten Ebene. Die Kontrollkarten schliessen Runde 2 ab. Pro Runde sind standardmässig höchstens 13 und absolut nie mehr als 15 Karten möglich. Es gibt keine Füllkarten; leere Ebenen werden übersprungen.
-9. **Runde 4 – Gerichte:** ausschliesslich konkrete zulässige Gerichte (z. B. Pizza Margherita, Rösti mit Spiegelei), nach den bisherigen Zutatenbewertungen sortiert (passendste zuerst, abgelehnte Zutaten zuletzt), ohne Kartenlimit und ohne Geschmacksfilter (seit dem 29.10.2026); „Runde beenden“ steht von der ersten Karte an unter den Antwortknöpfen, nach zehn Gerichten fragt die App „Weitere Gerichte ansehen“ oder „Runde beenden“. Antworten bleiben eigenständige Gerichtsbewertungen und verändern keine Zutatenbewertung. Nach Runde 4 geht es zum Profil; es gibt keine zusätzliche Gerichte-Runde und keinen Knopf „Gerichte bewerten“. Die Zuordnung Runde = Ebene folgt der gezeigten Ablaufgrafik des Dozenten und der Teamvorgabe vom 18.10.2026; die kurzen Haltepunkte und getrennte Speicherung folgen nurec Kap. 3, 5 und 7.
+9. **Runde 4 – Gerichte:** standardmässig die 13 passendsten zulässigen Gerichte (z. B. Pizza Margherita, Rösti mit Spiegelei), ausgewählt und sortiert nach den Zutatenbewertungen aus Runde 1 bis 3. Konkrete Bewertungen haben Vorrang vor Untergruppen und Gruppen. Harte Ausschlüsse wirken vor der Auswahl; bleiben weniger erlaubte Gerichte, wird die Runde kürzer. Sie endet automatisch beim Kartenlimit; „Runde beenden“ ist jederzeit möglich. Antworten bleiben eigenständige Gerichtsbewertungen und verändern keine Zutatenbewertung. Nach Runde 4 geht es zum Profil; es gibt keine zusätzliche Gerichte-Runde und keinen Knopf „Gerichte bewerten“. Die Zuordnung Runde = Ebene folgt der gezeigten Ablaufgrafik des Dozenten und der Teamvorgabe vom 18.10.2026; die kurzen Haltepunkte und getrennte Speicherung folgen nurec Kap. 3, 5 und 7.
 10. **Mein Profil:** Dashboard nach nurec Anhang B (siehe unten). Das freiwillige Alltagsprofil (nurec Kap. 2.3) ist seit dem 28.10.2026 entfernt.
 
 Das **Mini-Tutorial** (drei kurze Schritte: Wischrichtungen, „Kenne ich nicht“ und „Vertrage ich nicht“, Rückgängig) ist im Code, aber standardmässig aus. Für einen Pilot-Vergleich `TUTORIAL_ENABLED = true` in `src/config.js` setzen; über die URL lässt es sich nicht einschalten.
@@ -142,13 +144,13 @@ Seit Version 0.8 gilt zusätzlich (nurec Kap. 2.2: harte Ausschlüsse wirken auf
 
 | Parameter | Wirkung | Standard |
 | --- | --- | --- |
-| `?limit=12` | Karten pro Runde in Runde 1 bis 3 (`ROUND_CARD_LIMIT`), gültig 4 bis 15; Runde 4 ohne Limit; ungültige Werte fallen auf den Standard zurück | 13 |
+| `?limit=12` | Karten pro Runde, einschliesslich Runde 4 (`ROUND_CARD_LIMIT`), gültig 4 bis 15; ungültige Werte fallen auf den Standard zurück | 13 |
 | `?admin=1` | Ansicht für die Testleitung | – |
 | `?selection=fixed` | feste Reihenfolge wie in Version 0.6 statt adaptiver Auswahl (Vergleich im Pilot) | adaptiv |
 | `?holdout=4` | Anzahl Kontrollkarten, gültig 0 bis 10 (0 = keine) | 6 |
 | `?r1scale=2` | Begriffe in Runde 1: 3 (Eher ungern / Eher gern / Sehr gern) oder 2 (ohne „Sehr gern“ und ohne Wischen nach oben) | 3 |
 
-Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Ungültige Werte fallen auf den Standard zurück, stehen aber als `ignoredParams` in der Sitzung und rot in der Admin-Ansicht. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `MAX_ROUNDS`, `SELECTION_MODE`, `HOLDOUT_CARDS`, `PREFERENCE_MODEL`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos), `AUTH_ENABLED` (an) und `DISH_ROUND_END_AFTER` (10, Hinweis in Runde 4) in `src/config.js`. Explizit gewählte Auswahlverfahren bleiben erhalten; alle Sitzungen halten die neue Stufenfolge und die Grenze von 15 Karten in Runde 1 bis 3 ein (Runde 4 ohne Limit).
+Kombinierbar, z. B. `?limit=6&admin=1`. Die effektiven Werte werden in jeder Sitzung gespeichert. Ungültige Werte fallen auf den Standard zurück, stehen aber als `ignoredParams` in der Sitzung und rot in der Admin-Ansicht. Begründung [V]: Kernfrage 2 [A] lässt sich so ohne neuen Build vergleichen. `?tutorial` wirkt seit dem 13.10. nicht mehr. Die Standardwerte stehen als `ROUND_CARD_LIMIT`, `MAX_ROUNDS`, `SELECTION_MODE`, `HOLDOUT_CARDS`, `PREFERENCE_MODEL`, `TUTORIAL_ENABLED` (aus), `IMAGE_STYLE` (Fotos) und `AUTH_ENABLED` (an) in `src/config.js`. Explizit gewählte Auswahlverfahren bleiben erhalten; alle Sitzungen halten die neue Stufenfolge und die Grenze von 15 Karten in allen vier Runden ein. Bereits gespeicherte Antworten längerer Runden bleiben erhalten.
 
 ## Protokoll und Export
 
@@ -211,7 +213,7 @@ src/
   logic/foodSearch.js    einheitliche Suche mit Synonymen, Mehrzahl, Tippfehlern, Kategorie und Hervorhebung
   logic/swipe.js         Wischgesten: Schwelle, Rückfederung, Deckkraft der Beschriftung
   logic/filter.js        isAllowed, isVisible, Hinweise auf Familienkarten
-  logic/engine.js        replay (Event-Log inkl. Profiländerungen), vier gestufte Runden, maximal 15 Karten in Runde 1 bis 3, Runde 4 alle passenden Gerichte, Kontrollkarten in Runde 2,
+  logic/engine.js        replay (Event-Log inkl. Profiländerungen), vier gestufte Runden mit je maximal 15 Karten, Runde 4 die passendsten Gerichte, Kontrollkarten in Runde 2,
                          Fortschritt, computeProfile, derivedEntries (Vermutungen)
   logic/selection.js     adaptive Kartenauswahl (Regeln nach nurec v0.2) und feste Reihenfolge zum Vergleich
   logic/preferences.js   Präferenzmodell: direkte Bewertungen und Vermutungen
@@ -256,10 +258,10 @@ Die Oberfläche ruft nur `nextCard(state, config)` auf, das intern `selectNextCa
 - Seit 0.9 (Dozentenfeedback): Eine Gruppe „Mag ich nicht“ schliesst ihre übrigen Untergruppen nicht mehr endgültig aus. Sie kommen ganz am Schluss der Runde (`stage2_after_negative`), in Runde 3 höchstens zwei konkrete Lebensmittel je negativer Untergruppe (`stage3_after_negative`, `NEGATIVE_GROUP_POLICY`, `NEGATIVE_GROUP_QUOTA_STAGE3`, vorläufig).
 - Innerhalb eines Rangs wechseln sich die Gruppen ab. Eine Kontrollkarte wird durch das nächste passende Kind ersetzt.
 - Massgebend ist die aktuelle direkte Bewertung, auch wenn sie im Profil geändert wurde. Harte Ausschlüsse wirken immer.
-- **Budget:** standardmässig bis zu 3 × 13 = 39 Karten in Runde 1 bis 3 plus alle erlaubten Gerichte in Runde 4 (höchstens 64); die absolute Grenze beträgt 15 pro Runde in Runde 1 bis 3. Die sechs Kontrollkarten teilen sich das Budget von Runde 2 mit den normalen Untergruppen. Weniger sinnvolle oder zulässige Karten verkürzen eine Runde.
-- **Gerichte** bilden ausschliesslich Runde 4. Harte Ausschlüsse gelten vor der Sortierung; Zutatenvorlieben bestimmen die Reihenfolge (alle erlaubten Gerichte, kein Kartenlimit, kein Geschmacksfilter; „Runde beenden“ jederzeit, nach `DISH_ROUND_END_AFTER` = 10 Gerichten fragt die App nach), werden aber nie als Gerichtsbewertung gespeichert. Es gibt keine fünfte oder nachgelagerte Gerichte-Runde.
+- **Budget:** standardmässig bis zu 4 × 13 = 52 Karten in vier Runden; die absolute Grenze beträgt 15 pro Runde. Die sechs Kontrollkarten teilen sich das Budget von Runde 2 mit den normalen Untergruppen. Weniger sinnvolle oder zulässige Karten verkürzen eine Runde.
+- **Gerichte** bilden ausschliesslich Runde 4. Harte Ausschlüsse gelten vor der Sortierung; Zutatenvorlieben aus Runde 1 bis 3 bestimmen die Auswahl und Reihenfolge der besten 13 Gerichte, werden aber nie als Gerichtsbewertung gespeichert. „Runde beenden“ ist jederzeit möglich, beim Kartenlimit endet die Runde automatisch. Es gibt keine fünfte oder nachgelagerte Gerichte-Runde.
 - **Feste Reihenfolge** (`?selection=fixed`): als Vergleich innerhalb derselben vier Ebenen, einschliesslich konkreter Lebensmittel in Runde 3. Auch sie hält Kontrollkarten bis zum Ende von Runde 2 zurück.
-- Bei jeder Änderung der Regeln `RULE_VERSION` erhöhen (heute `demo-0.8`); sie steht in jedem Ereignis. `roundFlow: staged-v1` kennzeichnet den neuen Ablauf. Alte Spielstände behalten Antworten und Ausschlüsse; das bisherige Standardlimit 10 wird auf 13, Limits über 15 werden auf 15 angepasst. Frühere G-Runden werden als Runde 4 fortgesetzt.
+- Bei jeder Änderung der Regeln `RULE_VERSION` erhöhen (heute `demo-0.9`); sie steht in jedem Ereignis. `roundFlow: staged-v1` kennzeichnet den neuen Ablauf. Alte Spielstände behalten Antworten und Ausschlüsse; das bisherige Standardlimit 10 wird auf 13, Limits über 15 werden auf 15 angepasst. Frühere G-Runden werden als Runde 4 fortgesetzt, soweit das Kartenlimit noch nicht erreicht ist.
 
 ## Präferenzmodell und Kontrollkarten
 

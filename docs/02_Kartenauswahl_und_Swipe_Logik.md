@@ -1,6 +1,6 @@
 # 02 Kartenauswahl und Swipe-Logik
 
-Stand 26.10.2026, Regeln `demo-0.6` (`src/logic/engine.js`), Auswahl `src/logic/selection.js`. Alles Beobachtung aus dem Code und aus ausgeführten Tests (`src/logic/selection.test.js`, `src/logic/engine.test.js`, neu `src/logic/studienszenarien.test.js`), Einschätzungen sind markiert.
+Stand 29.10.2026, Regeln `demo-0.9` (`src/logic/engine.js`), Auswahl `src/logic/selection.js`. Alles Beobachtung aus dem Code und aus ausgeführten Tests (`src/logic/selection.test.js`, `src/logic/engine.test.js`, `src/logic/studienszenarien.test.js`), Einschätzungen sind markiert.
 
 ## 1. Grundprinzip
 
@@ -21,7 +21,7 @@ Stand 26.10.2026, Regeln `demo-0.6` (`src/logic/engine.js`), Auswahl `src/logic/
 | Feste oder dynamische Anzahl? | Obergrenze fest (13), tatsächliche Anzahl dynamisch: so viele, wie Regeln und Ausschlüsse ergeben, höchstens das Limit. |
 | Zufällige Reihenfolge? | Nein. Innerhalb eines Rangs wechseln sich die Gruppen ab (`interleave()`), nach jeder Antwort ausgeglichen nach „wie viele Karten dieser Gruppe wurden in dieser Runde schon gefragt“ (`balance()`). |
 | Priorisierung nach bisherigen Entscheidungen? | Ja, ab Runde 2 vollständig: Rangfolge in Abschnitt 3. Massgebend ist die aktuelle direkte Bewertung je Karte, auch wenn sie im Profil geändert wurde (`selection.js → currentRating()`). |
-| Kriterien? | Bewertung der Gruppe (Runde 2), der Untergruppe (Runde 3), Zutatenvorlieben (Runde 4, nur Reihenfolge), Sichtbarkeit, Kontrollkartenstatus, Kartenlimit (Runde 1 bis 3). |
+| Kriterien? | Bewertung der Gruppe (Runde 2), der Untergruppe (Runde 3), Zutatenvorlieben (Runde 4, Auswahl und Reihenfolge), Sichtbarkeit, Kontrollkartenstatus, Kartenlimit (alle vier Runden). |
 | Ausschluss möglich? | Ja: Stufe 0, „Vertrage ich nicht“, Profil. Eine negative Bewertung schliesst nie aus. |
 | Mehrfach erscheinen? | Nein. |
 | Vorbereitung der nächsten Runde? | Keine eigene Vorbereitung. `nextRoundNumber()` prüft nach jeder Runde, welche der folgenden Runden noch Karten hätte; leere Ebenen werden übersprungen. Der Abschluss zeigt die ersten drei Titel der nächsten Runde (`nextRoundCards()`). |
@@ -87,13 +87,15 @@ Folge: Eine Untergruppe, die in Runde 2 nicht gefragt wurde (Kontrast gleich, Bu
 
 ## 5. Runde 4: Gerichte
 
-`engine.js → openDishes()` (seit dem 29.10.2026, Regelversion `demo-0.8`): alle sichtbaren, noch nicht beantworteten Gerichte, sortiert nach Zutaten-Zuneigung, bei Gleichstand Katalogreihenfolge; kein Gericht wird wegen des Geschmacks weggelassen (den Filter vom 28.10.2026 hat das Team nach dem Test wieder gestrichen, weil zu wenige Gerichte kamen). **Kein Kartenlimit:** `selectNextCards()` gibt in Runde 4 die ganze Liste zurück; `ROUND_CARD_LIMIT` gilt nur für Runde 1 bis 3. Zuneigung (`dishAffinity()`) = Mittelwert über die verknüpften Zutatenkarten (`ingredients`) der jeweils nächsten direkten Bewertung auf dem Weg nach oben im Baum (Zutat, sonst ihre Untergruppe, sonst ihre Gruppe): „Mag ich nicht“ −1, „Mag ich“ +1, „Mag ich sehr“ +2, ohne Bewertung 0 (`nearestTasteScore()`, ohne Abschwächung je Stufe). Gerichte mit überwiegend abgelehnten Zutaten kommen zuletzt. Beispiel: Reis „Sehr gern“ und Fleisch „Eher ungern“ bringen Pilzrisotto und Gemüsecurry nach vorn und Spaghetti Bolognese ans Ende (Test T19). Wer alle Gruppen ablehnt, sieht trotzdem alle erlaubten Gerichte, in Katalogreihenfolge (Test T07); nur harte Ausschlüsse lassen Runde 4 entfallen (Test T10).
+`engine.js → openDishes()` liefert alle sichtbaren, noch nicht beantworteten Gerichte, sortiert nach Zutaten-Zuneigung, bei Gleichstand Katalogreihenfolge. **Dasselbe Kartenlimit wie in den Vorrunden:** `selectNextCards()` nimmt daraus seit Regelversion `demo-0.9` nur die besten verbleibenden Plätze: `cardLimit(config) − answeredCount(state)`, standardmässig insgesamt 13 Gerichte. Die Zahl 64 beschreibt den Katalog, nicht die Länge der Runde.
 
-„Runde beenden“ steht in Runde 4 von der ersten Karte an unter den Antwortknöpfen (seit dem 29.10.2026); nach `DISH_ROUND_END_AFTER` (10) bewerteten Gerichten gilt die Runde als abgeschlossen (`roundStatus()`), und die App fragt einmal „Weitere Gerichte ansehen“ oder „Runde beenden“ (`RoundScreen.jsx`). Die Runde bleibt fortsetzbar, bis kein passendes Gericht mehr offen ist (`canResumeRound()`).
+Zuneigung (`dishAffinity()`) = Mittelwert über die verknüpften Zutatenkarten (`ingredients`) der jeweils nächsten direkten Bewertung auf dem Weg nach oben im Baum (Zutat aus Runde 3, sonst ihre Untergruppe aus Runde 2, sonst ihre Gruppe aus Runde 1): „Mag ich nicht“ −1, „Mag ich“ +1, „Mag ich sehr“ +2, ohne Bewertung 0 (`nearestTasteScore()`, ohne Abschwächung je Stufe). Konkrete Bewertungen haben Vorrang vor allgemeineren Angaben. „Kenne ich nicht“ ist kein Geschmackssignal. Beispiel: Reis „Sehr gern“ und Fleisch „Eher ungern“ bringen Pilzrisotto und Gemüsecurry in die Auswahl, Fleischgerichte rücken nach hinten (Test T19). Eine negative Vorliebe ist kein harter Ausschluss; auch bei durchgängiger Ablehnung kommen höchstens 13 Gerichte mit der jeweils besten Affinität.
+
+„Runde beenden“ steht weiterhin von der ersten Karte an unter den Antwortknöpfen bereit. Die Nachfrage nach zehn Gerichten entfällt. Die Runde gilt als abgeschlossen, sobald das Kartenlimit erreicht oder kein erlaubtes Gericht mehr übrig ist (`roundStatus()`). Eine vorzeitig beendete Runde lässt sich nur bis zu dieser Grenze fortsetzen (`canResumeRound()`). Bereits gespeicherte Antworten aus längeren Sitzungen bleiben erhalten, es kommen aber keine weiteren Karten hinzu.
 
 Eine Gerichtsantwort bleibt eine Gerichtsbewertung: Sie wird nie auf Zutaten übertragen, und Gerichte werden nie vermutet (`predictScores()` überspringt `DISH` und `COMPOSITE_FOOD`). Gerichte zählen nicht zum Profilstand. Nach Runde 4 gibt es keine weitere Runde.
 
-**Warum kamen oft nur etwa sieben Gerichte?** Bis zum 28.10.2026 hatte der Katalog 22 Gerichte, 15 davon mit den Tags `lactose` und `milk_protein` (konservativ getaggt, z. B. Butter in Rösti mit Spiegelei). Wer Laktose oder Milcheiweiss angab, sah genau 7. Seit dem 29.10.2026 hat der Katalog 64 Gerichte (42 neue, viele ohne Milch und Gluten): ohne Einschränkung 64, bei Laktose oder Milcheiweiss 32, bei „alles mit Gluten“ 29, vegetarisch 32, vegan 12 (Test T19). Ein Kartenlimit gibt es in Runde 4 nicht. Weitere Zahlen in [03_Filter_und_Ausschlusslogik.md](03_Filter_und_Ausschlusslogik.md), Abschnitt 10, zur früheren Frage nach zehn Gerichten [08_Anwendungslogik_Bewertung.md](08_Anwendungslogik_Bewertung.md), Abschnitt 5.
+**Warum kamen oft nur etwa sieben Gerichte?** Bis zum 28.10.2026 hatte der Katalog 22 Gerichte, 15 davon mit den Tags `lactose` und `milk_protein`. Bei Laktose oder Milcheiweiss blieben 7. Der erweiterte Katalog enthält 64 Gerichte: ohne Einschränkung 64 erlaubt, bei Laktose oder Milcheiweiss 32, bei „alles mit Gluten“ 29, vegetarisch 32, vegan 12 (Test T19). Runde 4 wählt daraus jetzt höchstens 13; bei vegan sind es daher höchstens 12. Ausschlüsse werden immer vor der Auswahl geprüft.
 
 ## 6. Wirkung jeder Antwort (4.2)
 
@@ -122,11 +124,11 @@ Zuordnung zu Gesten und Knöpfen: links = `DISLIKE`, rechts = `LIKE`, oben oder 
 | Wie geht die Anwendung mit unbekannten Lebensmitteln um? | „Kenne ich nicht“ ist keine Bewertung: kein Wert, keine Vermutung aus dieser Karte, keine Punkte. Die App versucht höchstens zwei Klärungen auf der nächsten Ebene (Runde 2) und je unbekannter Untergruppe bis zwei Lebensmittel (Runde 3). Bleibt alles unbekannt, bleibt der Zweig im Profil unter „Kennst du nicht“. |
 | Wie werden Präferenzen verschiedener Runden kombiniert? | Nicht verrechnet, sondern geschichtet: Jede Karte hat höchstens eine direkte Bewertung. Für unbewertete Karten gilt die nächste bewertete Karte darüber, pro Stufe halbiert (`preferences.js`). Eine konkrete Bewertung gilt immer vor einer vermuteten. Gerichte stehen ganz getrennt. |
 
-**Was keine Wirkung auf spätere Runden hat** (Beobachtung): „Sehr gern“ gegenüber „Eher gern“ auf einer Gruppe (gleiche Karten in Runde 2 und 3, nur Gerichte-Reihenfolge und Vermutungsstärke anders, Test T21); jede Antwort auf ein Lebensmittel der Stufe 3 (nur Gerichte-Reihenfolge und Profil); jede Antwort auf ein Gericht (nur Profil); Antworten auf Kontrollkarten (sie zählen aber als bewertete Untergruppe für Runde 3 und als Vorwissen für die Lernkurve nicht).
+**Grenzen und Wirkung auf spätere Runden:** „Sehr gern“ gegenüber „Eher gern“ auf einer Gruppe ergibt dieselben Karten in Runde 2 und 3, kann aber die Auswahl und Reihenfolge der Gerichte sowie die Vermutungsstärke verändern (Test T21). Antworten auf konkrete Lebensmittel der Stufe 3 beeinflussen die Gerichteauswahl und das Profil. Eine Gerichtsantwort wirkt nur auf das Profil. Kontrollkarten zählen als bewertete Untergruppen für Runde 3 und die Zutatenaffinität; als Vorwissen für die Lernkurve zählen sie nicht.
 
 ## 8. Ablaufbeispiele (4.4)
 
-Die drei Szenarien sind **tatsächlich ausgeführte Testfälle**: `src/test/szenarien.js` spielt sie wie die App ab, Test T23 in `src/logic/studienszenarien.test.js` prüft die Kartenfolge exakt, `node scripts/ablauf-beispiele.mjs` druckt sie. Konfiguration: Standard (Limit 13 für Runde 1 bis 3, adaptiv, 6 Kontrollkarten), Regeln `demo-0.8` (seit dem 29.10.2026: Runde 4 ohne Limit und ohne Geschmacksfilter, Katalog mit 64 Gerichten). Die Kontrollkarten hängen an der `sessionId` (`szenario-a`, `szenario-b`, `szenario-c`); mit einer anderen ID wären es andere Untergruppen.
+Die drei Szenarien sind **tatsächlich ausgeführte Testfälle**: `src/test/szenarien.js` spielt sie wie die App ab, Test T23 in `src/logic/studienszenarien.test.js` prüft die Kartenfolge exakt, `node scripts/ablauf-beispiele.mjs` druckt sie. Konfiguration: Standard (Limit 13 für alle vier Runden, adaptiv, 6 Kontrollkarten), Regeln `demo-0.9` (Runde 4 wählt die passendsten 13 aus dem Katalog mit 64 Gerichten). Die Kontrollkarten hängen an der `sessionId` (`szenario-a`, `szenario-b`, `szenario-c`); mit einer anderen ID wären es andere Untergruppen.
 
 ### Szenario A: Marianne, 68, keine Einschränkungen
 
@@ -160,15 +162,13 @@ Auswirkung: Der zweite Teil der Kontrastpaare (Schwein, Vollkornbrote) und das O
 | 4 | Walnüsse | `stage3_exception_detail` | Mag ich |
 | 5 bis 13 | Poulet, Lachs, Naturjoghurt, Zopf, Spaghetti, Basmatireis, Truthahn, Kabeljau, Skyr | `stage3_detail` (je positiver Untergruppe bis 2, Gruppen abwechselnd) | Mag ich |
 
-| Pos. | Runde 4 (alle 64 Gerichte, nach Zutaten-Zuneigung) | Zuneigung | Antwort |
+| Pos. | Runde 4 (13 ausgewählte Gerichte, nach Zutaten-Zuneigung) | Zuneigung | Antwort |
 |---|---|---|---|
 | 1 bis 5 | Birchermüesli, Ghackets mit Hörnli, Apfelwähe, Tofu-Gemüse-Pfanne, Poulet süss-sauer | 1.33 bis 1.25 (Zutaten mit „Mag ich“ und Obst „Sehr gern“) | Mag ich |
 | 6 | Pizza Margherita | 1.0 | Mag ich sehr |
-| 7 bis 54 | die übrigen Gerichte mit Zuneigung 1.0 in Katalogreihenfolge, von Spaghetti Bolognese bis Tacos | 1.0 | Mag ich |
-| 55 bis 59 | Pad Thai, Miesmuscheln, Garnelen, Paella, Couscous | 0.5 (Fisch unbekannt zählt 0) | Mag ich |
-| 60 bis 64 | Linsensuppe (0.33), Chili con Carne (0), Minestrone (0), Dal (0), Falafel mit Hummus (−0.33) | Hülsenfrüchte „Eher ungern“ | Chili: Kenne ich nicht, sonst Mag ich |
+| 7 bis 13 | Spaghetti Bolognese, Lasagne, Älplermagronen, Rösti mit Spiegelei, Zürcher Geschnetzeltes, Käsefondue, Raclette mit Gschwellti | 1.0 | Mag ich |
 
-Ergebnis: Profilstand 81 % (Stufe 1: 32.3 Punkte, weil Fisch unbekannt blieb; Stufe 2: 13.6, weil die meisten Kontrastpaare offen blieben; Stufe 3: 35, weil 12 Lebensmittel erreicht sind). Dashboard: Favorit Naturtofu („Mag ich sehr“), 14 weitere konkrete Favoriten; Hülsenfrüchte und Nüsse als „eher ungern“ mit Ausnahmen Sojaprodukte, Naturtofu, Tempeh, Baumnüsse, Haselnüsse, Walnüsse, Kerne und Samen; Küchentendenz Schweizer Küche eher gern (26 Gerichte), asiatisch (10), italienisch (9), französisch (5), chinesisch, griechisch und orientalisch (je 3). 97 Vermutungen (z. B. Beeren, Kernobst, Steinobst, Tropisches Obst „vermutlich gern“, weil Obst „Sehr gern“).
+Ergebnis: Profilstand 81 % (Stufe 1: 32.3 Punkte, weil Fisch unbekannt blieb; Stufe 2: 13.6, weil die meisten Kontrastpaare offen blieben; Stufe 3: 35, weil 12 Lebensmittel erreicht sind). Dashboard: 52 Antworten, darunter 13 Gerichte; Favorit Naturtofu („Mag ich sehr“), 14 weitere konkrete Favoriten; Hülsenfrüchte und Nüsse als „eher ungern“ mit Ausnahmen Sojaprodukte, Naturtofu, Tempeh, Baumnüsse, Haselnüsse, Walnüsse, Kerne und Samen; Küchentendenz Schweizer Küche eher gern (8 Gerichte), italienisch (3). 97 Vermutungen (z. B. Beeren, Kernobst, Steinobst, Tropisches Obst „vermutlich gern“, weil Obst „Sehr gern“).
 
 ### Szenario B: Peter, 74, vegetarisch und laktoseintolerant
 
@@ -188,7 +188,7 @@ Runde 1 zeigt 10 Gruppen: Fleisch, Fisch und Milchprodukte fehlen. Die Karte Bro
 | 3 bis 5 | Broccoli, Blumenkohl, Rosenkohl | `stage3_favorite` (Kohlgemüse „Mag ich sehr“) | Mag ich |
 | 6 bis 13 | Rote Linsen, Baguette, Spaghetti, Basmatireis, Erdbeeren, Grüne Linsen, Roggenknäcke, Hörnli | `stage3_detail` | Mag ich |
 
-Runde 4 zeigt **14** Gerichte (vegetarisch und laktosefrei; bis zum 28.10.2026 waren es vier): Frühlingsrollen (Kenne ich nicht), Ratatouille (Mag ich sehr), Gemüsecurry (Mag ich), dann Minestrone, Shakshuka, Ofengemüse, Tofu-Gemüse-Pfanne, Gemüsesuppe, Couscous, Linsensuppe, Penne all'arrabbiata, Falafel, Dal und Gebratener Reis (alle Kenne ich nicht). Reihenfolge: Frühlingsrollen und Ratatouille zuerst (Zuneigung 2.0, ihre Zutaten gehören zu „Gegartes Gemüse“ mit +2), dann absteigend bis 1.0.
+Runde 4 wählt **13 aus 14** erlaubten Gerichten (vegetarisch und laktosefrei): Frühlingsrollen (Kenne ich nicht), Ratatouille (Mag ich sehr), Gemüsecurry (Mag ich), dann Minestrone, Shakshuka, Ofengemüse, Tofu-Gemüse-Pfanne, Gemüsesuppe, Couscous, Linsensuppe, Penne all'arrabbiata, Falafel und Dal (alle Kenne ich nicht). Reihenfolge: Frühlingsrollen und Ratatouille zuerst (Zuneigung 2.0, ihre Zutaten gehören zu „Gegartes Gemüse“ mit +2), dann absteigend bis 1.0.
 
 Ergebnis: Profilstand 85 % (35 + 15 + 35), keine Küchentendenz (keine Küche erreicht drei bewertete Gerichte), 69 Vermutungen. Salat und Rohkost „eher ungern“ mit Ausnahmen Blattsalate, Rohes Fruchtgemüse, Tomaten, Gurke.
 
@@ -211,9 +211,9 @@ Die Ausnahmen für Obst, Gegartes Gemüse, Brot (gern) und Nüsse kamen nicht me
 | 3, 4 | Zopf, Toastbrot | `stage3_detail` (Helle Brote gefielen) | Mag ich nicht |
 | 5 bis 13 | Poulet, Lachs, Rote Linsen, Spaghetti, Basmatireis, Kopfsalat, Broccoli, Erdbeeren, Walnüsse | `stage3_after_negative` (je eine je negativer Untergruppe, Gruppen abwechselnd) | Mag ich nicht |
 
-Runde 4: **53** Gerichte (ohne Birchermüesli wegen Haselnuss und ohne die zehn Gerichte mit Ei als Zutat): zuerst Pizza Margherita (Mag ich nicht), Älplermagronen (Mag ich) und Raclette (Zuneigung je 1.0: Käse +1, Kartoffeln +1), dann elf Gerichte mit Zuneigung 0 (eine Zutat +1, eine −1: Zürcher Geschnetzeltes, Käsefondue, Wienerschnitzel, Eglifilets, Enchiladas, Kartoffelsalat, Poulet aus dem Ofen, Forelle, Miesmuscheln, Garnelen, Souvlaki), zuletzt 39 Gerichte mit überwiegend abgelehnten Zutaten (Hamburger −0.2 bis Tacos −1.0), alle Mag ich nicht. Nichts wird wegen des Geschmacks weggelassen; Ruth beendet die Runde, wenn sie genug hat.
+Runde 4 wählt **13 aus 53** erlaubten Gerichten (ohne Birchermüesli wegen Haselnuss und ohne die zehn Gerichte mit Ei als Zutat): zuerst Pizza Margherita (Mag ich nicht), Älplermagronen (Mag ich) und Raclette (Zuneigung je 1.0: Käse +1, Kartoffeln +1), dann zehn Gerichte mit Zuneigung 0 (eine Zutat +1, eine −1: Zürcher Geschnetzeltes, Käsefondue, Wienerschnitzel, Eglifilets, Enchiladas, Kartoffelsalat, Poulet aus dem Ofen, Forelle, Miesmuscheln, Garnelen), alle Mag ich nicht. Nach Karte 13 endet die Runde automatisch.
 
-Ergebnis: Profilstand 89 % trotz überwiegender Ablehnung (der Wert misst Erfassung, nicht Zustimmung). Favorit nur Kartoffeln; Küchentendenz Schweizer Küche eher ungern (20 Gerichte), italienisch (9), asiatisch (8), französisch, mexikanisch und griechisch (je 3). **Beobachtung (Befund B1):** Zopf (enthält Ei) kam in Runde 3 und Wienerschnitzel, Lasagne (beide mit Ei) in Runde 4, obwohl Ruth bei Eiern „Vertrage ich nicht“ gewählt hatte. Der Ausschluss wirkt über die Karte „Eier“ und über Gerichte, die diese Karte als Zutat verknüpfen (Rösti mit Spiegelei fehlt), nicht über das Allergen-Tag `egg`. Details in [03_Filter_und_Ausschlusslogik.md](03_Filter_und_Ausschlusslogik.md), Abschnitt 11.
+Ergebnis: Profilstand 89 % trotz überwiegender Ablehnung (der Wert misst Erfassung, nicht Zustimmung). Favorit nur Kartoffeln; Küchentendenz Schweizer Küche eher ungern (8 Gerichte). **Beobachtung (Befund B1):** Zopf (enthält Ei) kam in Runde 3 und Wienerschnitzel (mit Ei) in Runde 4, obwohl Ruth bei Eiern „Vertrage ich nicht“ gewählt hatte. Der Ausschluss wirkt über die Karte „Eier“ und über Gerichte, die diese Karte als Zutat verknüpfen (Rösti mit Spiegelei fehlt), nicht über das Allergen-Tag `egg`. Details in [03_Filter_und_Ausschlusslogik.md](03_Filter_und_Ausschlusslogik.md), Abschnitt 11.
 
 ## 9. Feste Reihenfolge (`?selection=fixed`)
 
@@ -223,5 +223,5 @@ Als Vergleich im Pilot: Runde 1 Gruppen in Katalogreihenfolge, Runde 2 die Unter
 
 - Runde 1 ist für alle gleich (bis auf Ausschlüsse). Erst ab Runde 2 wirkt die Antwort: unbekannt → klären, ungern → eine Ausnahme testen, gern → zwei Kontraste testen.
 - Runde 3 vertieft nur, was in Runde 2 bewertet wurde: zwei Lebensmittel je positiver Untergruppe, drei bei „Mag ich sehr“, Ausnahmen und Unterschiede zuerst, negative Zweige zuletzt.
-- Runde 4 ist eine sortierte Liste aller erlaubten Gerichte (64 im Katalog) ohne Kartenlimit und ohne Geschmacksfilter, keine adaptive Auswahl im engeren Sinn; „Runde beenden“ steht von Anfang an bereit, nach zehn Gerichten fragt die App nach.
+- Runde 4 wählt die 13 passendsten erlaubten Gerichte aus dem gesamten Katalog anhand der Zutatenbewertungen aus Runde 1 bis 3. Sie endet beim Kartenlimit oder bei weniger erlaubten Gerichten; „Runde beenden“ steht von Anfang an bereit.
 - Sieben normale Plätze in Runde 2 sind der Engpass des gesamten Verfahrens.

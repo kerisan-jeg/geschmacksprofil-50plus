@@ -2,7 +2,7 @@
 
 Geprüft bei 360 x 640 und 430 x 932 auf allen Bildschirmen inkl. Anmeldung mit Vornamen (seit dem 28.10.2026 ohne
 Handynummer und SMS), Zusatzangaben in Frage 2, Zusammenfassung mit „Ändern“, Runde 2 bis 4, Abschluss mit Profilstand,
-Gerichte-Runde ohne Limit mit Hinweis nach 10 Gerichten, Dashboard, Bewertung, Vermutungen der App, Allergien, Suche
+Gerichte-Runde mit 13 Karten, Dashboard, Bewertung, Vermutungen der App, Allergien, Suche
 und Bestätigung in „Mein Profil“ und „Willkommen zurück“:
   - kein horizontaler Scroll
   - Touch-Ziele >= 44 x 44 CSS-px
@@ -215,18 +215,16 @@ def run(p, W, H):
     nxt = pg.get_by_role('button', name='Weiter mit Runde 3')
     if nxt.count():
         nxt.click(); answer_until_complete(pg)
-    # Runde 4 (Gerichte) seit dem 28.10.2026 ohne Kartenlimit: nach 10 Gerichten fragt die App „Weitere Gerichte
-    # ansehen“ oder „Runde beenden“; danach steht „Runde beenden“ unter den Antwortknöpfen, solange Gerichte offen sind
+    # Runde 4 zeigt wie die Vorrunden bis zu 13 Karten und endet danach automatisch.
     pg.get_by_role('button', name='Weiter mit Runde 4').click(); check(pg, 'gerichte_runde', results, W)
     for position in range(10):
         round_fit(pg, f'Gericht {position + 1}')
         pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(120)
-    pg.wait_for_selector('.sheet'); check(pg, 'gerichte_hinweis', results, W)
-    pg.get_by_role('button', name='Weitere Gerichte ansehen').click(); pg.wait_for_timeout(200)
+    assert pg.locator('.sheet').count() == 0, 'Keine Nachfrage nach zehn Gerichten'
     round_fit(pg, 'Gericht 11 mit „Runde beenden“ unten')
     pg.get_by_role('button', name='Mag ich', exact=True).click(); pg.wait_for_timeout(120)
     check(pg, 'gerichte_weiter', results, W)
-    pg.locator('.round-exit').get_by_role('button', name='Runde beenden').click()
+    answer_until_complete(pg)
     pg.wait_for_selector('.screen-complete'); check(pg, 'gerichte_abschluss', results, W)
     pg.get_by_role('button', name='Mein Profil ansehen').click(); check(pg, 'profil', results, W)
     pg.locator('.answer-distribution details').filter(has=pg.locator('.taste-row')).first.locator('summary').click()

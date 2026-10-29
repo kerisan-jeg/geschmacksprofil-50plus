@@ -171,7 +171,7 @@ test('Nach Runde 1 geht es mit Runde 2 weiter; Rundennummer im Zustand und in de
   assert.deepEqual([back.screen, back.roundNumber], [SCREENS.COMPLETE, 2]);
 });
 
-test('Vier Runden steigen jeweils eine Ebene ab; Runden 1 bis 3 überschreiten auch mit alten Limits nie 15 Karten, Runde 4 zeigt alle passenden Gerichte', () => {
+test('Vier Runden steigen jeweils eine Ebene ab und überschreiten auch mit alten Limits nie 15 Karten', () => {
   for (const selection of ['fixed', 'adaptive']) for (const roundCardLimit of [4, 12, 13, 15, 30]) {
     let state = toRound(answered({ ...DEFAULT_CONFIG, roundCardLimit, selection, holdout: 0 }));
     const counts = new Map();
@@ -191,8 +191,8 @@ test('Vier Runden steigen jeweils eine Ebene ab; Runden 1 bis 3 überschreiten a
     }
     assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 4]);
     assert.deepEqual([...counts.keys()], [1, 2, 3, 4]);
-    for (const round of [1, 2, 3]) assert.ok(counts.get(round) <= Math.min(roundCardLimit, 15), `Runde ${round}`);
-    assert.equal(counts.get(4), 64, 'Runde 4 ohne Limit: alle 64 Gerichte, wenn alles „Mag ich“ ist');
+    for (const round of [1, 2, 3, 4]) assert.ok(counts.get(round) <= Math.min(roundCardLimit, 15), `Runde ${round}`);
+    assert.equal(counts.get(4), Math.min(roundCardLimit, 15), 'Gerichte teilen dasselbe Kartenlimit');
     assert.ok(model.roundOf(state).sequence.some((id) => index.get(id).stage === 4));
     assert.equal(run(state, { type: 'nextRound' }, { type: 'nextRound' }), state, 'weitere Klicks starten keine Runde');
     assert.equal(run(state, { type: 'tab', tab: TABS.PROFILE }).tab, TABS.PROFILE);
@@ -293,7 +293,7 @@ test('Gerichte sind Runde 4; startDishes kann weder vorher noch danach eine zus�
   assert.equal(state.screen, SCREENS.COMPLETE, 'Gerichte-Runde nach dem Kartenlimit fertig');
   assert.equal(run(state, { type: 'nextRound' }), state);
   assert.equal(run(state, { type: 'startDishes' }), state);
-  assert.equal(model.mainRoundOf(state).sequence.length, 12 + 64, 'alle Antworten im selben Log, Runde 4 mit allen Gerichten');
+  assert.equal(model.mainRoundOf(state).sequence.length, 16, 'vier Runden zu je vier Karten im selben Log');
 });
 
 test('Alte vierte Runde setzt mit Gerichten fort; gespeicherte Antworten und Ausschlüsse bleiben erhalten', () => {
