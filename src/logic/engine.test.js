@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { indexCatalog } from './catalog.js';
-import { buildProfile, canResumeRound, deriveRoundState, dishAffinity, openDishes, ROUND_STATUS, roundStatus, hasMoreCards, isRoundComplete, nextCard, nextRoundCards, presentCard, progress, replay, selectionReason, selectNextCards, tasteSignals } from './engine.js';
+import { buildProfile, canResumeRound, creationProgress, deriveRoundState, dishAffinity, openDishes, ROUND_STATUS, roundStatus, hasMoreCards, isRoundComplete, nextCard, nextRoundCards, presentCard, progress, replay, selectionReason, selectNextCards, tasteSignals } from './engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNDO, UNFAMILIAR } from './answers.js';
 import { deriveOnboarding, emptyAnswers } from './stage0.js';
 
@@ -49,6 +49,60 @@ test('Das Rundenlimit begrenzt die Karten', () => {
   assert.deepEqual(progress(state(events.slice(0, 1)), { roundCardLimit: 4 }), { answered: 1, total: 4, percent: 25 });
   assert.deepEqual(progress(state(events.slice(0, 1)), { roundCardLimit: 8 }), { answered: 1, total: 8, percent: 13 });
   assert.equal(isRoundComplete(state(events), { roundCardLimit: 4 }), true);
+});
+
+test('Erstellungsfortschritt: vier Runden geben 25, 50, 75 und 100 %, auch bei unbekannten Lebensmitteln', () => {
+  for (const selection of ['fixed', 'adaptive']) for (const roundCardLimit of [4, 13]) for (const response of [LIKE, DISLIKE, UNFAMILIAR]) {
+    const config = { roundCardLimit, selection };
+    const events = [];
+    assert.deepEqual(creationProgress(state(events), config), { percent: 0, round: 1, complete: false });
+    let previous = 0;
+    for (let round = 1; round <= 4; round += 1) {
+      let card;
+      while ((card = nextCard(state(events, noOnboarding, round), config))) {
+        const before = creationProgress(state(events, noOnboarding, round), config);
+        assert.ok(before.percent >= previous && before.percent < 100, 'vor dem Abschluss noch unter 100 %');
+        previous = before.percent;
+        events.push(answer(card.id, response, { round }));
+      }
+      assert.deepEqual(creationProgress(state(events, noOnboarding, round), config), {
+        percent: round * 25, round, complete: round === 4,
+      }, `${selection}, Limit ${roundCardLimit}, ${response}, Runde ${round}`);
+      previous = round * 25;
+    }
+  }
+});
+
+test('Erstellungsfortschritt: Abbruch ist kein Abschluss; Fortsetzen, gespeicherte Stände und Rückgängig beachten das Limit', () => {
+  const config = { roundCardLimit: 4 };
+  const events = [];
+  for (let i = 0; i < 3; i += 1) events.push(answer(nextCard(state(events, noOnboarding, 4), config).id, UNFAMILIAR, { round: 4 }));
+  const partial = creationProgress(state(events, noOnboarding, 4), config);
+  assert.equal(partial.complete, false);
+  assert.ok(partial.percent >= 75 && partial.percent < 100);
+  events.push({ type: 'QUESTION_ABORTED', round: 4 });
+  assert.deepEqual(creationProgress(state(events, noOnboarding, 4), config), partial);
+  events.push(answer(nextCard(state(events, noOnboarding, 4), config).id, INTOLERANT, { round: 4 }));
+  const done = { percent: 100, round: 4, complete: true };
+  assert.deepEqual(creationProgress(state(events, noOnboarding, 4), config), done);
+  assert.deepEqual(creationProgress(state(JSON.parse(JSON.stringify(events)), noOnboarding, 4), config), done, 'nach dem Neuladen derselbe Stand');
+  assert.ok(creationProgress(state(events, noOnboarding, 4)).percent < 100, 'das tatsächliche Sitzungslimit ist massgebend');
+  events.push(answer(events.at(-1).cardId, UNDO, { round: 4 }));
+  assert.deepEqual(creationProgress(state(events, noOnboarding, 4), config), partial, 'Rückgängig öffnet den letzten Platz wieder');
+  const old = index.cards.filter((card) => card.stage === 4).slice(0, 30).map((card) => answer(card.id, LIKE, { round: 4 }));
+  assert.deepEqual(creationProgress(state(old, noOnboarding, 4), config), done, 'alte längere Sitzungen bleiben abgeschlossen');
+});
+
+test('Erstellungsfortschritt: weniger erlaubte Karten und leere Runden verhindern den Abschluss nicht', () => {
+  const vegan = { ...noOnboarding, diet: 'vegan' };
+  const events = [];
+  let card;
+  while ((card = nextCard(state(events, vegan, 4)))) events.push(answer(card.id, UNFAMILIAR, { round: 4 }));
+  assert.ok(events.length > 0 && events.length < 13, 'weniger als 13 vegane Gerichte');
+  assert.deepEqual(creationProgress(state(events, vegan, 4)), { percent: 100, round: 4, complete: true });
+  const excluded = { ...noOnboarding, exclusions: index.cards.filter((card) => card.stage === 1).map((card) => ({ type: 'card', value: card.id })) };
+  assert.equal(creationProgress(state([], excluded)).complete, true, 'keine offenen Karten nach den Ausschlüssen');
+  assert.equal(creationProgress(state([], excluded)).percent, 100);
 });
 
 test('Antworten werden gespeichert, offene Karten bleiben UNRATED', () => {

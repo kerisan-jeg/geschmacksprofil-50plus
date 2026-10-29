@@ -50,7 +50,11 @@ Beispiel (Obst → Beeren → Erdbeeren):
 
 Die Vermutungen gehen in die Kartenauswahl nicht ein (`selection.js` nutzt nur `currentRating()`), wohl aber in die Reihenfolge der Gerichte (Abschnitt 6) und in die Lernkurve.
 
-## 4. Profilstand „Profil aufgebaut“
+## 4. Sichtbarer Fortschritt und analytischer Erfassungsgrad
+
+Die Oberfläche zeigt unter „Dein Fortschritt“ den Ablauf der vier Swipe-Runden (`engine.js → creationProgress(state, config)`). Jede Runde trägt 25 Prozentpunkte bei. In der laufenden Runde zählt der Anteil beantworteter Karten, einschliesslich „Kenne ich nicht“ und „Vertrage ich nicht“. Beim Weitergehen zählen frühere Runden als durchlaufen. Nach Abschluss der vierten Runde werden 100 % angezeigt, auch bei einem angepassten Kartenlimit oder weniger erlaubten Gerichten. Sind wegen Ausschlüssen keine weiteren Karten vorhanden, ist der Ablauf ebenfalls abgeschlossen. Ein Abbruch mit offenen Karten erhöht den Fortschritt nicht; Rückgängig öffnet den letzten Platz wieder. Gespeicherte Sitzungen werden aus ihren Antworten neu berechnet.
+
+Die folgende Berechnung nach Anhang B2 bleibt als analytischer Erfassungsgrad erhalten; sie bestimmt die sichtbare Fortschrittsanzeige nicht mehr.
 
 `profileProgress(state)` nach nurec Anhang B2, Gewichte `PROFILE_PROGRESS = { stage1: 35, stage2: 30, stage3: 35, stage3Target: 12 }`:
 

@@ -1,4 +1,4 @@
-// Frage 1 nach dem Dozentenfeedback vom 19.10.2026: Ernährungsform, Einzelausschlüsse, Speisevorschriften.
+// Frage 1: Ernährungsform und Einzelausschlüsse; frühere Speisevorschriften bleiben lesbar.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -24,10 +24,10 @@ const visibleIds = (answers) => {
 };
 const withTag = (tag) => catalog.cards.filter((card) => card.animalOrigin.includes(tag)).map((card) => card.id);
 
-test('Frage 1 hat drei Teile; Teil A ist Pflicht, B und C sind freiwillig', () => {
+test('Ernährungsform ist Pflicht, Einzelausschlüsse sind freiwillig; frühere Speisevorschriften bleiben lesbar', () => {
   assert.equal(dietQuestion.type, 'diet');
-  assert.deepEqual(dietQuestion.options.map((option) => option.id), ['none', 'pescetarian', 'vegetarian', 'vegan']);
-  assert.equal(dietQuestion.options[0].label, 'Keine besondere Ernährungsform');
+  assert.deepEqual(dietQuestion.options.map((option) => option.id), ['pescetarian', 'vegetarian', 'vegan', 'none']);
+  assert.equal(dietQuestion.options.at(-1).label, 'Keine dieser Angaben passt');
   assert.equal(isAnswered(dietQuestion, empty.diet), false, 'ohne Ernährungsform nicht beantwortet');
   assert.equal(isAnswered(dietQuestion, { form: 'none', exclusions: [], rules: [] }), true);
   assert.deepEqual(dietQuestion.rules.map((rule) => rule.id), ['halal', 'kosher']);

@@ -83,7 +83,7 @@ export const REGISTER = {
   nameLabel: 'Vorname',
   nameError: 'Bitte gib deinen Vornamen ein.',
   nameNext: 'Weiter',
-  namePrivacy: 'Dein Vorname bleibt auf diesem Gerät. Die Testleitung sieht ihn, um deine Antworten zuzuordnen. Eine Handynummer brauchen wir nicht.',
+  namePrivacy: 'Dein Vorname bleibt auf diesem Gerät. Die Testleitung sieht ihn, um deine Antworten zuzuordnen.',
 };
 
 // Wiederkehrende Person auf demselben Gerät
@@ -97,8 +97,6 @@ export const WELCOME_BACK = {
 // Über dich: erster Schritt im Onboarding (Alter und Einwilligung; Vorname nur ohne Registrierung)
 export const ABOUT = {
   title: 'Über dich',
-  lead: 'Zwei kurze Angaben, dann geht es mit den Fragen weiter.',
-  leadNoAuth: 'Ein paar kurze Angaben, dann geht es mit den Fragen weiter.',
   firstName: 'Vorname',
   optional: 'freiwillig',
   firstNameHint: 'Damit wir dich persönlich ansprechen können.',
@@ -109,12 +107,9 @@ export const ABOUT = {
     { id: '70-79', label: '70 bis 79' },
     { id: '80+', label: '80 und älter' },
   ],
-  consent: 'Ich bin einverstanden, dass meine Antworten ohne Namen für dieses Studierendenprojekt ausgewertet werden.',
+  consent: 'Ich bin einverstanden, dass meine Antworten für dieses Studierendenprojekt gespeichert und ausgewertet werden.',
   errorAge: 'Bitte wähle deine Altersgruppe.',
   errorConsent: 'Bitte bestätige die Einwilligung, damit es weitergehen kann.',
-  leadDetails: 'Für die Testleitung',
-  participantCode: 'Teilnehmer-Nr.',
-  participantPlaceholder: 'z. B. T07',
   submit: 'Weiter',
   privacy: 'Deine Angaben bleiben auf diesem Gerät.',
 };
@@ -138,18 +133,13 @@ export const QUESTIONS = {
   backToSummary: 'Zurück zur Übersicht',
 };
 
-// Frage 1: Ernährungsform, Einzelausschlüsse, Speisevorschriften (Dozentenfeedback 19.10.2026).
+// Frage 1: Ernährungsform und Einzelausschlüsse; Speisevorschriften nur noch aus früheren Sitzungen.
 // Die Fragen selbst stehen in src/data/stage0.json. Keine Frage nach Religion, keine Aussage wie „geeignet“.
 export const DIET = {
   coveredBy: (form) => `Schon durch „${form}“ abgedeckt`,
-  rulesNote: 'Halal und koscher betreffen auch Zubereitung und Herkunft. Das können wir nicht prüfen. Wir lassen nur weg, was du hier bestätigst.',
-  suggestTitle: (rules) => `Oft weggelassen bei ${rules.join(' und ')}. Was gilt für dich?`,
-  suggestNone: 'Bestätigst du nichts, schliessen wir deswegen nichts aus.',
   rulesLine: (rules) => `Speisevorschrift: ${rules.join(', ')}`,
   rulesEffect: 'Weggelassen wird nur, was du bestätigt hast.',
   addTitle: 'Lässt du etwas immer weg?',
-  // Teil C zugeklappt (Teamentscheid 28.10.2026): Die Zeile nennt gewählte Vorschriften, sonst nur die Frage
-  rulesSummary: (title, rules) => (rules.length > 0 ? `${title} · ${rules.join(', ')}` : title),
 };
 
 // Onboarding (Stufe 0): Allergien und „Nie vorschlagen“
@@ -305,7 +295,6 @@ export const COMPLETE = {
   leadEnded: (count) => `Du hast ${plural(count, 'Karte', 'Karten')} beantwortet.`,
   leadEmpty: 'Nach deinen Angaben gab es in dieser Runde keine passenden Karten.',
   leadComplete: 'Deine Profilerstellung ist abgeschlossen.',
-  nextHint: (titles) => `Als Nächstes zum Beispiel: ${titles.join(', ')}.`,
   nextRound: (round) => `Weiter mit Runde ${round}`,
   overviewTitle: 'So hast du bisher geantwortet',
   rules: (count) => `${plural(count, 'feste Regel', 'feste Regeln')} aus deinen Angaben`,
@@ -317,13 +306,13 @@ export const COMPLETE = {
   leadDishesEnded: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet. Deine bisherigen Antworten sind gespeichert.`,
 };
 
-// Profilstand „Profil aufgebaut“ (nurec v0.2, Anhang B2): ein Erfassungsgrad, keine Trefferquote
+// Fortschritt der vier Swipe-Runden, am Ende 100 %.
 export const PROGRESS = {
-  title: 'Profil aufgebaut',
+  title: 'Dein Fortschritt',
   value: (percent) => `${percent} %`,
-  valueText: (percent) => `${percent} Prozent deines Profils aufgebaut`,
-  note: 'Zeigt, wie viel von deinem Geschmack erfasst ist, nicht wie genau Vorschläge sind.',
-  stages: ['Erste Antworten', 'Stufe 1 abgeschlossen: Gruppen', 'Stufe 2 abgeschlossen: Unterschiede und Ausnahmen'],
+  valueText: (percent) => `${percent} Prozent der Profilerstellung abgeschlossen`,
+  round: (number, total) => `Runde ${number} von ${total}`,
+  complete: 'Profilerstellung abgeschlossen',
   nextTitle: 'Nächster sinnvoller Schritt',
   next: {
     continue: 'Weiter mit der Profilerstellung',

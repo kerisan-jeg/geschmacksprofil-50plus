@@ -6,7 +6,8 @@
 //   - wo noch Geschmacksinformation fehlt („Kenne ich nicht“ getrennt von „noch nicht gefragt“),
 //   - Feinheiten (roh gegenüber gegart, nur wenn getrennt beantwortet) und Gerichte (Stufe 4, separat).
 //
-// Profilstand (B2): „Profil aufgebaut“ in Prozent ist ein Erfassungsgrad, keine Trefferquote. Punkte:
+// Analytischer Erfassungsgrad (B2), keine Trefferquote. Der sichtbare Rundenfortschritt wird separat
+// in engine.js → creationProgress berechnet und erreicht nach Abschluss der vier Runden 100 %. Punkte hier:
 //   Stufe 1  bis 35  Anteil der zulässigen Gruppen mit ausdrücklicher Geschmacksantwort
 //   Stufe 2  bis 30  Anteil der Zweige, deren Ausnahme bzw. Kontrastpaar beantwortet ist (Teilpunkte je Karte);
 //                    nach „Kenne ich nicht“ zählt der Zweig, sobald ein Kind eine Geschmacksantwort hat

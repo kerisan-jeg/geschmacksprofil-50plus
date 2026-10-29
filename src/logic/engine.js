@@ -320,6 +320,21 @@ export function progress(state, config) {
   return { answered, total, percent: total === 0 ? 100 : Math.round((answered / total) * 100) };
 }
 
+// Sichtbarer Fortschritt der Profilerstellung: jede der vier Runden zählt gleich viel.
+// Frühere Runden gelten beim Weitergehen als durchlaufen. In der aktuellen Runde zählt jede Antwort,
+// auch „Kenne ich nicht“ und „Vertrage ich nicht“. Vorzeitig beenden erhöht den Wert nicht.
+// Leere spätere Runden werden wie im Ablauf übersprungen; ohne weitere Karten ist die Erstellung fertig.
+export function creationProgress(state, config = {}) {
+  const { answered, total } = progress(state, config);
+  const fraction = total === 0 ? 1 : Math.min(1, answered / total);
+  const complete = isRoundComplete(state, config) && !hasMoreCards(state, config);
+  return {
+    percent: complete ? 100 : Math.min(99, Math.round(((state.round - 1 + fraction) / MAX_ROUNDS) * 100)),
+    round: state.round,
+    complete,
+  };
+}
+
 // Stufe-1-Karten, die nach Stufe 0 überhaupt in Frage kommen (für die Vorschau vor dem Start).
 export function eligibleFamilies(state) {
   return state.index.cards.filter((card) => card.stage === 1 && isVisible(card, state.index, state.exclusions));

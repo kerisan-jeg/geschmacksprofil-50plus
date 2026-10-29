@@ -54,32 +54,32 @@
       "covers": "0.4",
       "type": "diet",
       "source": "Ernährungsweise",
-      "title": "Wie isst du?",
-      "hint": "Nur was du immer einhältst. Isst du meistens vegetarisch, aber nicht immer, wähle „Keine besondere Ernährungsform“.",
+      "title": "Was isst du nicht?",
+      "hint": "Wähle nur aus, was du nie isst.",
       "options": [
         {
-          "id": "none",
-          "label": "Keine besondere Ernährungsform"
-        },
-        {
           "id": "pescetarian",
-          "label": "Pescetarisch",
-          "detail": "Kein Fleisch, aber Fisch"
+          "label": "Kein Fleisch, aber Fisch",
+          "detail": "Pescetarisch"
         },
         {
           "id": "vegetarian",
-          "label": "Vegetarisch",
-          "detail": "Kein Fleisch und kein Fisch"
+          "label": "Kein Fleisch und kein Fisch",
+          "detail": "Vegetarisch"
         },
         {
           "id": "vegan",
-          "label": "Vegan",
-          "detail": "Nichts vom Tier"
+          "label": "Nichts vom Tier",
+          "detail": "Vegan (auch keine Milch, Eier oder Honig)"
+        },
+        {
+          "id": "none",
+          "label": "Keine dieser Angaben passt"
         }
       ],
-      "formTitle": "Ernährungsform",
-      "exclusionsTitle": "Lässt du etwas immer weg?",
-      "exclusionsHint": "Freiwillig. Egal aus welchem Grund, du musst nichts begründen.",
+      "formTitle": "Wähle eine Antwort",
+      "exclusionsTitle": "Was isst du sonst nie?",
+      "exclusionsHint": "Freiwillig. Du kannst mehrere auswählen.",
       "exclusions": [
         {
           "key": "animalOrigin:pork",
@@ -125,8 +125,6 @@
           "suggestOnly": true
         }
       ],
-      "rulesTitle": "Hältst du eine Speisevorschrift ein?",
-      "rulesHint": "Freiwillig.",
       "rules": [
         {
           "id": "halal",
@@ -154,7 +152,7 @@
       "type": "allergens",
       "source": "Allergie oder Unverträglichkeit",
       "title": "Gibt es etwas, das du nicht verträgst?",
-      "hint": "Zum Beispiel eine Allergie, eine Unverträglichkeit oder eine ärztliche Vorgabe wie bei Zöliakie.",
+      "hint": "Zum Beispiel eine Allergie oder Unverträglichkeit.",
       "gate": [
         {
           "id": "yes",
@@ -166,7 +164,7 @@
         }
       ],
       "detailTitle": "Was verträgst du nicht?",
-      "detailHint": "Tippe alles an, was zutrifft. Die Liste hilft beim Erinnern und ersetzt keine Diagnose."
+      "detailHint": "Tippe alles an, was du nicht verträgst."
     },
     {
       "id": "never",
@@ -174,7 +172,7 @@
       "type": "never",
       "source": "Nie vorschlagen",
       "title": "Gibt es etwas Weiteres, das wir dir nie vorschlagen dürfen?",
-      "hint": "Egal aus welchem Grund, du musst nichts begründen. Was du einfach nicht magst, kannst du später beim Wischen angeben.",
+      "hint": "Was du gern oder ungern isst, fragen wir später.",
       "gate": [
         {
           "id": "yes",
@@ -186,7 +184,6 @@
         }
       ],
       "detailTitle": "Was sollen wir weglassen?",
-      "detailHint": "Tippe auf ein Beispiel oder suche nach einem Lebensmittel.",
       "quickPicks": [
         {
           "key": "animalOrigin:seafood",

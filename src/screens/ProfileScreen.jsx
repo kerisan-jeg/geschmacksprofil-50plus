@@ -20,8 +20,8 @@ import Sheet from '../components/Sheet.jsx';
 import { ANSWER_META } from '../components/answerMeta.js';
 import { allPhotos } from '../lib/images.js';
 import { allergenLabel } from '../logic/allergens.js';
-import { derivedEntries, presentCard } from '../logic/engine.js';
-import { buildDashboard, profileProgress } from '../logic/dashboard.js';
+import { creationProgress, derivedEntries, presentCard } from '../logic/engine.js';
+import { buildDashboard } from '../logic/dashboard.js';
 import { ANSWER_ORDER, DISLIKE } from '../logic/answers.js';
 import { buildExclusions, displayCardTitle } from '../logic/filter.js';
 import { buildFoodIndex } from '../logic/foodSearch.js';
@@ -135,6 +135,7 @@ export function exclusionsForHit(hit, { allergens, index, restrictions }) {
 // round: Zustand der Profilerstellung (auch während einer Gerichte-Runde).
 export default function ProfileScreen({
   round,
+  config = {},
   onboarding,
   account,
   index,
@@ -176,7 +177,7 @@ export default function ProfileScreen({
   }
 
   const derived = derivedEntries(round);
-  const progress = profileProgress(round);
+  const progress = creationProgress(round, config);
   const board = buildDashboard(round, { cuisines: cuisineData.cuisines });
   const hasTaste = board.summary.total > 0;
   const titleOf = (id) => index.get(id) ? displayCardTitle(index.get(id), index, round.exclusions) : id;

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { AUTH_ENABLED, DEFAULT_CONFIG, resolveConfig, TUTORIAL_ENABLED } from '../config.js';
 import { indexCatalog } from '../logic/catalog.js';
 import { LIKE } from '../logic/answers.js';
-import { nextCard } from '../logic/engine.js';
+import { creationProgress, nextCard } from '../logic/engine.js';
 import { AUTH_COMPLETED, AUTH_STARTED, EXCLUSION_ADDED } from '../logic/events.js';
 import { createAppModel, creationSteps, firstScreen, isNavVisible, screenAfterSummary, SCREENS, TABS } from './model.js';
 
@@ -185,6 +185,7 @@ test('Vier Runden steigen jeweils eine Ebene ab und überschreiten auch mit alte
         state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: card.id, response: LIKE, round: state.roundNumber } });
       }
       assert.equal(state.screen, SCREENS.COMPLETE);
+      assert.equal(creationProgress(model.roundOf(state), state.config).percent, state.roundNumber * 25, 'Fortschritt folgt den vier Runden');
       const next = run(state, { type: 'nextRound' });
       if (next === state) break;
       state = next;

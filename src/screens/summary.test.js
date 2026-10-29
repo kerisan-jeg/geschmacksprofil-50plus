@@ -146,7 +146,7 @@ test('„Ja“ in Frage 2 und 3 öffnet Auswahl und vollständige Suche; Zurück
   await unmount();
 });
 
-test('Frage 1: Abgedecktes ist gesperrt, Speisevorschrift zeigt ehrlichen Hinweis und einzelne Vorschläge', async () => {
+test('Frage 1: Abgedecktes ist gesperrt, Einzelausschlüsse bleiben wählbar, keine Speisevorschriften', async () => {
   const { DIET } = await import('../labels.js');
   let latest = null;
   function Questionnaire() {
@@ -173,21 +173,15 @@ test('Frage 1: Abgedecktes ist gesperrt, Speisevorschrift zeigt ehrlichen Hinwei
   const fish = input('diet-exclusions', 'animalOrigin:fish');
   assert.equal(fish.disabled, true);
   assert.equal(fish.checked, true);
-  assert.ok(fish.closest('label').textContent.includes(DIET.coveredBy('Vegetarisch')));
+  assert.ok(fish.closest('label').textContent.includes(DIET.coveredBy('Kein Fleisch und kein Fisch')));
   assert.equal(input('diet-exclusions', 'animalOrigin:gelatin'), null, 'Gelatine nur als Vorschlag');
   await click(input('diet-form', 'none'));
   assert.equal(input('diet-exclusions', 'animalOrigin:fish').disabled, false);
-  // Teil C ist zugeklappt (28.10.2026): erst öffnen, dann wählen; die Zeile nennt die gewählte Vorschrift
-  const details = container.querySelector('details.diet-rules');
-  assert.ok(details && !details.open, 'Speisevorschriften zugeklappt');
-  assert.equal(details.querySelector('summary').textContent, DIET.rulesSummary(definition.questions[0].rulesTitle, []));
-  await click(input('diet-rules', 'halal'));
-  assert.equal(details.querySelector('summary').textContent, DIET.rulesSummary(definition.questions[0].rulesTitle, ['Halal']));
-  assert.ok(container.textContent.includes(DIET.rulesNote));
-  assert.deepEqual(latest.exclusions, [], 'Halal allein schliesst nichts aus');
-  await click(input('diet-suggest', 'animalOrigin:gelatin'));
-  assert.deepEqual(latest, { form: 'none', exclusions: ['animalOrigin:gelatin'], rules: ['halal'] });
-  assert.ok(input('diet-exclusions', 'animalOrigin:gelatin').checked, 'bestätigt erscheint es auch in Teil B');
+  assert.equal(container.querySelector('details.diet-rules'), null, 'Speisevorschriften entfernt');
+  assert.doesNotMatch(container.textContent, /Speisevorschrift|Halal|Koscher/i);
+  await click(input('diet-exclusions', 'animalOrigin:pork'));
+  assert.deepEqual(latest, { form: 'none', exclusions: ['animalOrigin:pork'], rules: [] });
+  assert.ok(input('diet-exclusions', 'animalOrigin:pork').checked, 'einzelne Lebensmittel bleiben ausschliessbar');
   assert.doesNotMatch(container.textContent, /geeignet|sicher für/i);
   await unmount();
 });

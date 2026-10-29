@@ -1,9 +1,9 @@
 import { ArrowRight } from 'lucide-react';
+import { MAX_ROUNDS } from '../config.js';
 import { PROGRESS } from '../labels.js';
 
-// Profilstand nach nurec v0.2, Anhang B2: „Profil aufgebaut“ in Prozent, die höchste abgeschlossene Stufe und
-// (im Profil) der nächste sinnvolle Schritt. Der Prozentwert ist ein Erfassungsgrad, keine Trefferquote: Das steht
-// direkt darunter. Er wird in src/logic/dashboard.js berechnet (35/30/35) und sinkt durch neue Antworten nie.
+// Fortschritt der vier Swipe-Runden (engine.js → creationProgress), nach dem Abschluss 100 %.
+// Der aktuelle Rundenschritt und (im Profil) die nächste Aktion stehen darunter.
 // next: { type: 'continue' | 'round' | 'done', number?, titles? } oder null.
 export default function ProfileStatus({ progress, next = null, onNext }) {
   const nextText = next ? (next.type === 'round' ? PROGRESS.next.round(next.number, next.titles ?? []) : PROGRESS.next[next.type]) : null;
@@ -31,8 +31,7 @@ export default function ProfileStatus({ progress, next = null, onNext }) {
       >
         <span className="status-fill" style={{ '--value': `${progress.percent}%` }} />
       </div>
-      <p className="status-stage">{PROGRESS.stages[progress.stage]}</p>
-      <p className="note">{PROGRESS.note}</p>
+      <p className="status-stage">{progress.complete ? PROGRESS.complete : PROGRESS.round(progress.round, MAX_ROUNDS)}</p>
       {nextText && (
         <div className="status-next">
           <p className="status-next-title">{PROGRESS.nextTitle}</p>

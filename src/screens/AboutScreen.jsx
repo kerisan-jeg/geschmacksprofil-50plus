@@ -12,7 +12,6 @@ export default function AboutScreen({ person, askName, firstName: initialName = 
   const [firstName, setFirstName] = useState(initialName);
   const [ageGroup, setAgeGroup] = useState(person.ageGroup);
   const [consent, setConsent] = useState(person.consent);
-  const [participantCode, setParticipantCode] = useState(person.participantCode);
   const [showError, setShowError] = useState(false);
   const ageRef = useRef(null);
   const consentRef = useRef(null);
@@ -35,7 +34,7 @@ export default function AboutScreen({ person, askName, firstName: initialName = 
       return;
     }
     onSubmit({
-      person: { ageGroup, consent: true, participantCode: participantCode.trim().toUpperCase().slice(0, 20) },
+      person: { ...person, ageGroup, consent: true },
       firstName: askName ? firstName.trim().slice(0, 30) : null,
     });
   }
@@ -46,7 +45,6 @@ export default function AboutScreen({ person, askName, firstName: initialName = 
 
       <div className="stack">
         <h1>{ABOUT.title}</h1>
-        <p className="lead">{askName ? ABOUT.leadNoAuth : ABOUT.lead}</p>
       </div>
 
       <form className="form" onSubmit={handleSubmit} noValidate>
@@ -97,24 +95,6 @@ export default function AboutScreen({ person, askName, firstName: initialName = 
             </p>
           )}
         </div>
-
-        <details className="lead-details">
-          <summary>{ABOUT.leadDetails}</summary>
-          <div className="field">
-            <label htmlFor="participant-code">{ABOUT.participantCode}</label>
-            <input
-              id="participant-code"
-              className="input"
-              type="text"
-              autoComplete="off"
-              autoCapitalize="characters"
-              placeholder={ABOUT.participantPlaceholder}
-              maxLength={20}
-              value={participantCode}
-              onChange={(event) => setParticipantCode(event.target.value)}
-            />
-          </div>
-        </details>
 
         <div className="action-bar">
           <button type="submit" className="button-primary">

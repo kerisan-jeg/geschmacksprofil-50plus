@@ -1,8 +1,9 @@
 import { useContext } from 'react';
-import { ArrowRight, CircleCheck, Lock } from 'lucide-react';
+import { ArrowRight, CircleCheck, ListChecks, Lock } from 'lucide-react';
 import CreationSteps from '../components/CreationSteps.jsx';
 import Avatar from '../components/Avatar.jsx';
 import ProfileStatus from '../components/ProfileStatus.jsx';
+import ProfileDisclosure from '../components/ProfileDisclosure.jsx';
 import RoundOverview from '../components/RoundOverview.jsx';
 import TopBar from '../components/TopBar.jsx';
 import { metaFor, ScaleConfigContext } from '../components/answerMeta.js';
@@ -16,7 +17,7 @@ const ROWS = [PREFER, LIKE, DISLIKE, UNFAMILIAR, INTOLERANT];
 // Abschluss nach jeder Runde (nurec v0.2, Kap. 3: „Kurze Runde beenden und Profilstand sichern“):
 // kurze Übersicht, „Profil aufgebaut“ (Anhang B2), dann weiter, solange eine weitere Runde erlaubt ist, oder
 // „Mein Profil ansehen“. Gerichte gehören zu Runde 4. Das Alltagsprofil gibt es seit dem 28.10.2026 nicht mehr.
-// Zahlen sind reine Zählungen der Antworten; der Prozentwert ist ein Erfassungsgrad (siehe ProfileStatus).
+// Zahlen sind reine Zählungen der Antworten; der Prozentwert zeigt den Ablauf der vier Runden (siehe ProfileStatus).
 // Runde 4 schliesst mit Gerichten ab. nextNumber berücksichtigt übersprungene leere Ebenen;
 // nextTitles sind die Karten dieser nächsten Runde, leer nach dem endgültigen Abschluss.
 export default function CompleteScreen({
@@ -71,16 +72,6 @@ export default function CompleteScreen({
 
       {progress && <ProfileStatus progress={progress} />}
 
-      {rounds && (
-        <section className="panel" aria-labelledby="rounds-title">
-          <h2 id="rounds-title" className="panel-title">
-            {ROUNDS.title}
-          </h2>
-          <RoundOverview rounds={rounds} current={round.round} onResume={onResumeRound} />
-          {rounds.some((entry) => entry.canResume) && <p className="note">{ROUNDS.resumeNote}</p>}
-        </section>
-      )}
-
       {Object.values(counts).some((count) => count > 0) && (
         <section className="panel" aria-labelledby="overview-title">
           <h2 id="overview-title" className="panel-title">
@@ -103,6 +94,13 @@ export default function CompleteScreen({
         </section>
       )}
 
+      {rounds && (
+        <ProfileDisclosure id="rounds-title" title={ROUNDS.title} icon={ListChecks}>
+          <RoundOverview rounds={rounds} current={round.round} onResume={onResumeRound} />
+          {rounds.some((entry) => entry.canResume) && <p className="note">{ROUNDS.resumeNote}</p>}
+        </ProfileDisclosure>
+      )}
+
       {ruleCount > 0 && !dishMode && (
         <p className="note note-with-icon">
           <Lock aria-hidden="true" />
@@ -111,7 +109,7 @@ export default function CompleteScreen({
       )}
 
       <div className="action-bar">
-        <p className="fineprint">{more ? COMPLETE.nextHint(nextTitles.slice(0, 3)) : COMPLETE.profileHint}</p>
+        {!more && <p className="fineprint">{COMPLETE.profileHint}</p>}
         {more && (
           <button type="button" className="button-primary" onClick={onNextRound}>
             {COMPLETE.nextRound(nextNumber ?? round.round + 1)}

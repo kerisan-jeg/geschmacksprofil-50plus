@@ -25,13 +25,13 @@ function render(round, nextTitles, extra = {}) {
   );
 }
 
-test('Abschluss von Runde 1: „Weiter mit Runde 2“ mit Ausblick auf die nächsten Karten', () => {
+test('Abschluss von Runde 1: „Weiter mit Runde 2“ ohne Kartenvorschau', () => {
   const round = deriveRoundState({ index, onboarding: null, diets, events: ids.map((cardId) => ({ cardId, response: 'LIKE', round: 1 })), round: 1 });
   const nextTitles = nextRoundCards(round, config).map((card) => card.title);
   const html = render(round, nextTitles);
   assert.ok(html.includes(COMPLETE.kickerDone(1)));
   assert.ok(html.includes(COMPLETE.nextRound(2)));
-  assert.ok(html.includes(COMPLETE.nextHint(nextTitles.slice(0, 3))));
+  assert.ok(!html.includes('Als Nächstes zum Beispiel'));
   assert.ok(nextRoundCards(round, config).every((card) => card.stage === 2), 'nur Untergruppen als nächster Schritt');
   assert.ok(html.includes(COMPLETE.toProfile));
   assert.ok(html.includes(COMPLETE.leadDone(10)));

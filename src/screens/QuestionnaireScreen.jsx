@@ -45,7 +45,7 @@ export default function QuestionnaireScreen({ definition, questions, step, answe
     onStep(editing ? questions.length : step + 1);
   }
 
-  let kicker = step === 0 && firstName ? QUESTIONS.hello(firstName) : QUESTIONS.kicker;
+  let kicker = step === 0 ? (firstName ? QUESTIONS.hello(firstName) : QUESTIONS.kicker) : null;
   if (editing) kicker = QUESTIONS.editKicker;
   const errorText = question.type !== 'single' && answer?.gate === 'yes' ? QUESTIONS.errorDetails : QUESTIONS.errorChoose;
   const percent = Math.round((step / questions.length) * 100);
@@ -65,7 +65,7 @@ export default function QuestionnaireScreen({ definition, questions, step, answe
       />
 
       <div className="stack">
-        <p className="kicker">{kicker}</p>
+        {kicker && <p className="kicker">{kicker}</p>}
         <h1 id={`q-${question.id}`} ref={headingRef} tabIndex={-1}>
           {question.title}
         </h1>
@@ -92,7 +92,7 @@ export default function QuestionnaireScreen({ definition, questions, step, answe
                 <h2 id={`d-${question.id}`} className="title-section">
                   {question.detailTitle}
                 </h2>
-                <p className="note">{question.detailHint}</p>
+                {question.detailHint && <p className="note">{question.detailHint}</p>}
               </div>
               {question.type === 'allergens' && (
                 <AllergenPicker data={allergens} catalogIndex={catalogIndex} foods={foods} answer={answer} redundancy={redundancy} onChange={update} />

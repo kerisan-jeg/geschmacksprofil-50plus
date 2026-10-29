@@ -10,7 +10,7 @@ import { labelShown, scaleVariant } from './logic/scale.js';
 import { roundOverview } from './logic/rounds.js';
 import { indexCatalog } from './logic/catalog.js';
 import { UNDO } from './logic/answers.js';
-import { buildProfile, eligibleFamilies, hasMoreCards, isDishRound, isHoldoutCard, nextCard, nextRoundCards, nextRoundNumber, RULE_VERSION, selectionReason, selectNextCards } from './logic/engine.js';
+import { buildProfile, creationProgress, eligibleFamilies, hasMoreCards, isDishRound, isHoldoutCard, nextCard, nextRoundCards, nextRoundNumber, RULE_VERSION, selectionReason, selectNextCards } from './logic/engine.js';
 import {
   ANSWER,
   AUTH_COMPLETED,
@@ -28,7 +28,6 @@ import {
   RATING_CHANGED,
   SOURCE_PROFILE,
 } from './logic/events.js';
-import { profileProgress } from './logic/dashboard.js';
 import { drawHoldout } from './logic/holdout.js';
 import { createRedundancyCheck } from './logic/stage0.js';
 import { displayCardTitle } from './logic/filter.js';
@@ -98,7 +97,7 @@ function App() {
   // Laufende Runde (Profilerstellung oder Gerichte) und die Profilerstellung selbst (für Dashboard und „Weiter mit Runde N“)
   const round = useMemo(() => (onboarding ? MODEL.roundOf(state) : null), [onboarding, events, roundNumber, roundMode, dishRound]); // eslint-disable-line react-hooks/exhaustive-deps
   const mainRound = useMemo(() => (onboarding ? MODEL.mainRoundOf(state) : null), [onboarding, events, roundNumber]); // eslint-disable-line react-hooks/exhaustive-deps
-  const progress = useMemo(() => (mainRound ? profileProgress(mainRound) : null), [mainRound]);
+  const progress = useMemo(() => (mainRound ? creationProgress(mainRound, config) : null), [mainRound, config]);
   const moreRounds = Boolean(mainRound) && hasMoreCards(mainRound, config);
   // Rundenübersicht (Verbesserung 7): Status je Runde aus dem Event-Log
   const rounds = useMemo(() => (onboarding ? roundOverview({ index: INDEX, onboarding, diets: stage0.diets, events, config }) : null), [onboarding, events, config]);
@@ -442,6 +441,7 @@ function App() {
           {tab === TABS.PROFILE && navVisible ? (
             <ProfileScreen
               round={mainRound}
+              config={config}
               onboarding={onboarding}
               account={account}
               index={INDEX}

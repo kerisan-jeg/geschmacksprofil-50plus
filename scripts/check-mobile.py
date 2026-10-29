@@ -147,15 +147,13 @@ def run(p, W, H):
     pg.get_by_label('Vorname').fill('Test')
     pg.get_by_role('button', name='Weiter', exact=True).click()
     pg.wait_for_selector('.screen-about'); check(pg, 'ueber_dich', results, W)
-    pg.get_by_text('Für die Testleitung').click()
     pg.get_by_text('60 bis 69').click()
     pg.get_by_text('Ich bin einverstanden').click(); pg.get_by_role('button', name='Weiter', exact=True).click()
     check(pg, 'frage1', results, W)
-    # Frage 1 in drei Teilen (Dozentenfeedback 19.10.): Form, Einzelausschluss, Speisevorschrift mit Vorschlägen
-    pg.get_by_text('Keine besondere Ernährungsform', exact=True).click()
+    # Frage 1: Ernährungsweise und einzelne Ausschlüsse, ohne Speisevorschriften.
+    pg.get_by_text('Keine dieser Angaben passt', exact=True).click()
     pg.get_by_text('Kein Schweinefleisch', exact=True).click()
-    pg.get_by_text('Halal', exact=True).click()
-    pg.get_by_text('Keine Gelatine', exact=True).scroll_into_view_if_needed(); check(pg, 'frage1_teile', results, W)
+    pg.get_by_text('Kein Schweinefleisch', exact=True).scroll_into_view_if_needed(); check(pg, 'frage1_teile', results, W)
     pg.get_by_role('button', name='Weiter', exact=True).click()
     pg.get_by_text('Ja', exact=True).click()
     assert pg.locator('.allergen-picker .tile').count() == 6

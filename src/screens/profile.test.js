@@ -55,6 +55,16 @@ test('„Mein Profil“ zeigt die Vermutungen getrennt, mit Begründung und ohne
   await view.unmount();
 });
 
+test('Profil zeigt nach der vierten Runde 100 %, auch mit abweichendem Kartenlimit und unbekannten Gerichten', async () => {
+  const config = { roundCardLimit: 4 };
+  const events = index.cards.filter((card) => card.stage === 4).slice(0, 4).map((card) => ({ cardId: card.id, response: 'UNFAMILIAR', round: 4 }));
+  const round = deriveRoundState({ index, onboarding, diets: stage0.diets, events, round: 4 });
+  const view = await render(h(ProfileScreen, { round, config, onboarding, index, allergens, foods: [], dietOptions, steps: [], onChange: {} }));
+  assert.equal(view.container.querySelector('.profile-status [role="progressbar"]').getAttribute('aria-valuenow'), '100');
+  assert.ok(view.container.querySelector('.status-value').textContent.includes('100 %'));
+  await view.unmount();
+});
+
 test('Tippen auf eine Vermutung öffnet die Bewertung; die Antwort ersetzt die Vermutung', async () => {
   const view = await setup();
   await click(view.container.querySelector('[aria-labelledby="insights-title"] > summary'));
@@ -124,7 +134,7 @@ test('Dashboard: Profilstand, Antwortkategorien, Gruppen, Ausnahmen und Offenes 
     })
   );
   const text = view.container.textContent;
-  assert.ok(text.includes(PROGRESS.title) && text.includes(PROGRESS.note), 'Erfassungsgrad, ehrlich beschriftet');
+  assert.ok(text.includes(PROGRESS.title), 'Profilstand ist beschriftet');
   assert.ok(view.container.querySelector('[role="progressbar"]').getAttribute('aria-valuenow') > 0);
   assert.ok(text.includes(PROGRESS.next.round(2, ['Obst'])));
   assert.ok(text.includes('Naturtofu'), 'bestätigter Favorit bleibt erreichbar');

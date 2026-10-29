@@ -65,7 +65,8 @@ export const PREFERENCE_MODEL = {
   stageWeights: STAGE_WEIGHTS,
 };
 
-// Profilstand „Profil aufgebaut“ (nurec v0.2, Anhang B2): ein Erfassungsgrad, keine Trefferquote.
+// Analytischer Erfassungsgrad (nurec v0.2, Anhang B2), keine Trefferquote. Der sichtbare Fortschritt der vier
+// Runden wird separat in engine.js → creationProgress berechnet und nutzt diese Gewichte nicht.
 // Punkte je Stufe nach dem Entwurf 35/30/35 [D]; stage3Target ist eine Annahme [V]: so viele konkrete Lebensmittel
 // mit Bewertung geben die vollen 35 Punkte (kein Pflichtziel 100 %). Im Pilot anpassen.
 export const PROFILE_PROGRESS = { stage1: 35, stage2: 30, stage3: 35, stage3Target: 12 };
