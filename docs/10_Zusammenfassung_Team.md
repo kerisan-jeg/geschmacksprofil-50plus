@@ -2,7 +2,7 @@
 
 Kurzfassung der Analyse vom 26.10.2026 (Commit `60bc8c5`, Regeln `demo-0.6`) zur Vorbereitung auf das Gespräch mit dem Dozenten, nachgeführt am 28.10.2026 (Regeln `demo-0.7`). Details und Belege in den Dokumenten 01 bis 09.
 
-## Was sich am 28.10.2026 geändert hat (Teamentscheide)
+## Was sich am 28. und 29.10.2026 geändert hat (Teamentscheide)
 
 - **Anmeldung nur mit dem Vornamen:** keine Handynummer, kein SMS-Code, kein Firebase. Der Vorname steht als `participantName` in der Sitzung und im Export, damit die Testleitung die Antworten zuordnen kann (abschaltbar mit `PRIVACY.logParticipantName`). Das gehört in den Einwilligungstext.
 - **Über dich:** Die Einwilligung ist ein Kästchen mit kleinem Text unter den Altersfeldern, weiterhin Pflicht.
@@ -10,8 +10,9 @@ Kurzfassung der Analyse vom 26.10.2026 (Commit `60bc8c5`, Regeln `demo-0.6`) zur
 - **Frage 2:** ohne „Ich bin mir nicht sicher, ob es weitere gibt“, ohne „ärztlich oder fachlich festgestellt“, ohne „Ganz meiden / Kleine Mengen gehen“. Laktose ist immer ein voller Ausschluss. „Vertrage ich nicht“ bleibt beim Wischen in allen vier Runden.
 - **Frage 3:** ohne Marken und Herkunft.
 - **Alltagsprofil** („Alltag ergänzen“) entfernt.
-- **Runde 4 (Gerichte):** kein Kartenlimit mehr; alle erlaubten Gerichte, deren Zutaten im Mittel nicht abgelehnt wurden, sortiert nach dieser Zuneigung. Nach zehn Gerichten fragt die App „Weitere Gerichte ansehen“ oder „Runde beenden“; „Runde beenden“ steht dann auch unter den Antwortknöpfen. Wer alles ablehnt, bekommt keine Gerichte.
-- **Bilder:** Egli und Chili con Carne haben neue Fotos ohne Rahm bzw. Käse, Mehrkornknäcke zeigt das Knäckebrot-Foto ohne Butter, Kerne und Samen ein Foto ohne Mandel: Diese Karten zeigten bei Laktose, Milcheiweiss, vegan bzw. Nussallergie den Platzhalter, weil das Foto Ausgeschlossenes zeigte. Alle 154 Karten ausser den Gruppen haben ein Foto; Gruppenbilder bestehen weiterhin aus Teilen, von denen einzelne bei Ausschlüssen wegfallen können.
+- **Runde 4 (Gerichte):** kein Kartenlimit mehr; alle erlaubten Gerichte, sortiert nach den Zutatenbewertungen (passendste zuerst). Der Geschmacksfilter vom 28.10. ist seit dem 29.10.2026 wieder weg, weil das Team im Test nur sieben Gerichte sah; „Runde beenden“ steht von der ersten Karte an unter den Antwortknöpfen, nach zehn Gerichten fragt die App „Weitere Gerichte ansehen“ oder „Runde beenden“.
+- **Katalog (29.10.2026):** 42 neue Gerichte mit Unsplash-Fotos, neu 64 statt 22, darunter viele ohne Milch und Gluten (Laktose: 32 statt 7, vegan: 12 statt 4). Neue Küchen griechisch, spanisch, orientalisch, indisch, japanisch, amerikanisch. Alle neuen Gerichte sind Team-Ergänzungen [V] mit konservativen Tags und mit nurec zu prüfen (Liste in [bilder-a16.md](bilder-a16.md), Nachtrag 29.10.).
+- **Bilder:** Egli und Chili con Carne haben neue Fotos ohne Rahm bzw. Käse, Mehrkornknäcke zeigt das Knäckebrot-Foto ohne Butter, Kerne und Samen ein Foto ohne Mandel: Diese Karten zeigten bei Laktose, Milcheiweiss, vegan bzw. Nussallergie den Platzhalter, weil das Foto Ausgeschlossenes zeigte. Alle Karten ausser den Gruppen haben ein Foto; Gruppenbilder bestehen weiterhin aus Teilen, von denen einzelne bei Ausschlüssen wegfallen können.
 
 
 ## Wie funktioniert unsere Anwendung eigentlich?
@@ -23,7 +24,7 @@ Alles läuft im Browser, ohne Server. Die Person beantwortet drei Fragen (Ernäh
 - **Runde 1** ist für alle gleich: alle erlaubten Gruppen in Katalogreihenfolge.
 - **Runde 2** reagiert auf die Antwort zur Gruppe: „Kenne ich nicht“ → eine Klärungskarte (höchstens zwei); „Eher ungern“ → eine plausible Ausnahme (Hülsenfrüchte → Sojaprodukte), die übrigen Untergruppen nur, wenn ganz am Schluss Platz bleibt; „Eher gern“ oder „Sehr gern“ → zwei Kontrast-Untergruppen (Obst → Beeren und Zitrusfrüchte). Die sechs Kontrollkarten beenden Runde 2.
 - **Runde 3** vertieft nur, was in Runde 2 bewertet wurde: bis zwei Lebensmittel je positiver Untergruppe, drei bei „Mag ich sehr“, zuerst Ausnahmen und Unterschiede, negative Zweige zuletzt. Nie gefragte Untergruppen werden nicht vertieft, sondern vermutet.
-- **Runde 4** zeigt seit dem 28.10.2026 alle erlaubten Gerichte, die zu den bisherigen Zutatenbewertungen passen (im Mittel nicht abgelehnt), sortiert nach dieser Zuneigung und ohne Kartenlimit; nach zehn Gerichten bietet die App „Runde beenden“ an. Gerichtsantworten verändern nichts an den Zutaten.
+- **Runde 4** zeigt alle erlaubten Gerichte (64 im Katalog seit dem 29.10.2026), sortiert nach den bisherigen Zutatenbewertungen (passendste zuerst, abgelehnte Zutaten zuletzt), ohne Kartenlimit und ohne Geschmacksfilter; „Runde beenden“ steht von der ersten Karte an bereit, nach zehn Gerichten fragt die App nach. Gerichtsantworten verändern nichts an den Zutaten.
 - „Vertrage ich nicht“ schliesst die Karte in allen weiteren Runden aus. „Mag ich nicht“ schliesst nie aus.
 
 ## Warum werden die jeweiligen Karten ausgewählt?
@@ -36,11 +37,11 @@ Vier getrennte Teile: (1) die direkten Antworten je Karte in vier Kategorien, (2
 
 ## Was haben wir erfolgreich getestet?
 
-318 Tests (Stand 28.10.2026, darunter die 26 Studienszenarien T01 bis T23) laufen grün: normale Nutzung, eine Allergie, mehrere Ausschlüsse, vegetarisch und vegan, halal, überwiegend positiv, negativ und unbekannt, verschiedene Antworten über Runden, stark eingeschränkte Gerichte, Wiederholbarkeit, Profilkonsistenz, keine Karten übrig, „Vertrage ich nicht“, Rückgängig, Kontrollkarten, Anzahl Gerichte, drei vollständige Ablaufbeispiele. Der Build läuft. Nicht getestet: echte Nutzung durch Personen ab 50, echte Geräte.
+318 Tests (Stand 29.10.2026, darunter die 26 Studienszenarien T01 bis T23) laufen grün: normale Nutzung, eine Allergie, mehrere Ausschlüsse, vegetarisch und vegan, halal, überwiegend positiv, negativ und unbekannt, verschiedene Antworten über Runden, stark eingeschränkte Gerichte, Wiederholbarkeit, Profilkonsistenz, keine Karten übrig, „Vertrage ich nicht“, Rückgängig, Kontrollkarten, Anzahl Gerichte, drei vollständige Ablaufbeispiele. Der Build läuft. Nicht getestet: echte Nutzung durch Personen ab 50, echte Geräte.
 
 ## Warum erscheinen oft nur etwa sieben Gerichte?
 
-Es gibt keine feste Sieben. Der Katalog hat 22 Gerichte, aber 15 davon sind mit Laktose und Milcheiweiss getaggt (vorsichtig, auch Butter und Rahm). Wer Laktose oder Milcheiweiss angibt, sieht höchstens sieben. Gluten acht, vegan vier. Seit dem 28.10.2026 gibt es in Runde 4 kein Kartenlimit mehr: Ohne Einschränkung kommen bis zu 22 Gerichte, aber nur solche, deren Zutaten im Mittel nicht abgelehnt wurden; nach zehn Gerichten fragt die App, ob es weitergehen soll.
+Es gab keine feste Sieben: Bis zum 28.10.2026 hatte der Katalog 22 Gerichte, 15 davon mit Laktose und Milcheiweiss getaggt (vorsichtig, auch Butter und Rahm); wer Laktose oder Milcheiweiss angab, sah genau sieben. Seit dem 29.10.2026 hat der Katalog 64 Gerichte, in Runde 4 gibt es weder Kartenlimit noch Geschmacksfilter: ohne Einschränkung 64, bei Laktose oder Milcheiweiss 32, Gluten 29, vegetarisch 32, vegan 12. Die Person beendet die Runde, wenn sie genug hat.
 
 ## Welche Probleme müssen wir vor der Befragung lösen?
 

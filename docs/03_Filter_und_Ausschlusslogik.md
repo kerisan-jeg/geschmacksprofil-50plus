@@ -94,7 +94,7 @@ Laktose entfernt die ganze Gruppe Milchprodukte (auch Hartkäse und Weichkäse, 
 
 ## 7. Fehlende oder unvollständige Zutateninformationen
 
-- 34 Karten tragen `todo` (unsichere Zuordnung, bewusst konservativ getaggt). 15 der 22 Gerichte haben `ingredientData: partial`. Konservativ heisst: Im Zweifel ist das Tag gesetzt, die Karte fällt eher weg.
+- 54 Karten tragen `todo` (unsichere Zuordnung, bewusst konservativ getaggt). 35 der 64 Gerichte haben `ingredientData: partial`. Konservativ heisst: Im Zweifel ist das Tag gesetzt, die Karte fällt eher weg.
 - Erdnuss, Honig und Gelatine haben keine eigene Karte. Eine Erdnussallergie wirkt nur auf Pad Thai (Tag `peanut`); „Keine Gelatine“ wirkt heute auf keine Karte (Test in `filter.test.js` mit künstlichen Karten zeigt, dass die Regel bereitsteht).
 - Eingetippte Notizen (Status „prüfen“) wirken nur über Wortvergleich auf Stufe 3 und 4 und schliessen nie eine Gruppe aus; die App sagt das in der Zusammenfassung und im Profil (`ONBOARDING.allergyNoteEffect`).
 - „Kleine Mengen gehen“ (Laktose) und das Unsicherheits-Kästchen in Frage 2 gibt es seit dem 28.10.2026 nicht mehr; Laktose ist ein vollständiger Ausschluss (nurec 0.3; Test `stage0.test.js`), alte Antworten mit diesen Feldern bleiben wirkungslos.

@@ -34,7 +34,7 @@ test('Feste Auswahl hält jede Runde auf einer Ebene und begrenzt direkte Aufruf
   // Jede Runde bleibt auf ihrer Ebene; Runden 1 bis 3 höchstens 15 Karten, Runde 4 alle passenden Gerichte (28.10.2026)
   for (let round = 1; round <= 4; round += 1) {
     const offered = selectNextCards(state([], noOnboarding, round), { roundCardLimit: 100 });
-    assert.ok(round === 4 ? offered.length === 22 : offered.length <= 15, `Runde ${round}: ${offered.length}`);
+    assert.ok(round === 4 ? offered.length === 64 : offered.length <= 15, `Runde ${round}: ${offered.length}`);
     assert.ok(offered.every((card) => card.stage === round));
   }
   assert.equal(selectionReason(state([]), index.get('F01')), 'stage1_fixed_order');
@@ -242,7 +242,7 @@ test('Runde 4 bleibt spielbar, zeigt alle passenden Gerichte ohne Limit und biet
   const fourth = state(events, noOnboarding, 4);
   assert.equal(hasMoreCards(third), true);
   assert.deepEqual(nextRoundCards(third, config), selectNextCards(fourth, config));
-  assert.equal(selectNextCards(fourth, config).length, 22, 'kein Kartenlimit in Runde 4 (Teamentscheid 28.10.2026)');
+  assert.equal(selectNextCards(fourth, config).length, 64, 'kein Kartenlimit in Runde 4 (Teamentscheid 28.10.2026); 64 Gerichte seit dem 29.10.2026');
   assert.equal(isRoundComplete(fourth, config), false);
   assert.equal(hasMoreCards(fourth), false);
   assert.deepEqual(nextRoundCards(fourth, config), []);
@@ -250,7 +250,7 @@ test('Runde 4 bleibt spielbar, zeigt alle passenden Gerichte ohne Limit und biet
   const ten = state([...events, ...selectNextCards(fourth, config).slice(0, 10).map((card) => answer(card.id, LIKE, { round: 4 }))], noOnboarding, 4);
   assert.equal(roundStatus(ten, config), ROUND_STATUS.COMPLETED);
   assert.equal(canResumeRound(ten, config), true);
-  assert.equal(selectNextCards(ten, config).length, 12);
+  assert.equal(selectNextCards(ten, config).length, 54);
 
   events.push(...selectNextCards(fourth, config).map((card) => answer(card.id, LIKE, { round: 4 })));
   const done = state(events, noOnboarding, 4);
@@ -272,11 +272,11 @@ test('Gerichte werden nach zulässigen Vorlieben sortiert und übertragen keine 
   const offered = selectNextCards(fourth, { roundCardLimit: 15 });
   assert.ok(offered.every((card) => card.stage === 4));
   assert.ok(offered.findIndex((card) => card.id === 'D10') < offered.findIndex((card) => card.id === 'D01'), 'Reisvorliebe priorisiert Pilzrisotto');
-  // Nur passende Gerichte (28.10.2026): Mit mehr Abneigung als Zuneigung unter den Zutaten fällt ein Gericht weg
+  // Kein Geschmacksfilter (29.10.2026): Gerichte mit abgelehnten Zutaten kommen trotzdem, nur später
   const meatHater = state([answer('F01', DISLIKE, { round: 1 }), answer('F09', LIKE, { round: 1 })], noOnboarding, 4);
   const ids = selectNextCards(meatHater, config).map((card) => card.id);
-  assert.ok(ids.includes('D05') && ids.includes('D12'), 'Rösti (Kartoffeln) und Schnitzel (Kalb und Kartoffeln, ausgeglichen) bleiben');
-  assert.ok(!ids.includes('D02') && !ids.includes('D16'), 'Bolognese und Poulet-Curry (Fleisch überwiegt) kommen nicht');
+  assert.equal(ids.length, 64, 'alle erlaubten Gerichte');
+  assert.ok(ids.indexOf('D05') < ids.indexOf('D02') && ids.indexOf('D12') < ids.indexOf('D16'), 'Rösti und Schnitzel (Kartoffeln) vor Bolognese und Poulet-Curry (Fleisch überwiegt)');
   const vegetarian = state([], { ...noOnboarding, diet: 'vegetarian' }, 4);
   assert.ok(selectNextCards(vegetarian, { roundCardLimit: 15 }).every((card) => !card.animalOrigin.some((origin) => ['meat', 'pork', 'fish', 'seafood'].includes(origin))));
   const after = state([answer('D01', PREFER, { round: 4 })], noOnboarding, 4);

@@ -30,7 +30,10 @@ test('Jedes Gericht hat Esskulturen aus der Tabelle; Currys bleiben „asiatisch
   assert.deepEqual(index.get('D16').cuisines, ['asian']);
   // Jede Küche der Tabelle hat mindestens ein Gericht (direkt oder über eine Unterküche)
   for (const cuisine of table) assert.ok(dishes.some((dish) => cuisinesOf(dish, table).includes(cuisine.id)), cuisine.id);
-  assert.ok(!JSON.stringify(table).match(/indisch|Herkunft der Person|Nationalität:/i));
+  // Seit dem 29.10.2026 gibt es „Indische Küche“ (Dal, Chicken Tikka Masala) als Unterküche von Asiatisch; die allgemeinen
+  // Currys (D15, D16) bleiben „asiatisch“. Nie eine Herkunft oder Nationalität der Person.
+  assert.ok(!JSON.stringify(table).match(/Herkunft der Person|Nationalität:/i));
+  assert.deepEqual(table.find((cuisine) => cuisine.id === 'indian')?.parent, 'asian');
 });
 
 test('Die vier Zusatzgerichte: vollständige Tags, ingredientData, eigene Illustration als Bild', () => {

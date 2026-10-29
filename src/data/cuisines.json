@@ -36,6 +36,33 @@
       "id": "chinese",
       "label": "Chinesische Küche",
       "parent": "asian"
+    },
+    {
+      "id": "greek",
+      "label": "Griechische Küche"
+    },
+    {
+      "id": "spanish",
+      "label": "Spanische Küche"
+    },
+    {
+      "id": "oriental",
+      "label": "Orientalische Küche",
+      "note": "Naher Osten und Nordafrika (Falafel, Couscous, Shakshuka), Zuordnung als Annahme [V]"
+    },
+    {
+      "id": "indian",
+      "label": "Indische Küche",
+      "parent": "asian"
+    },
+    {
+      "id": "japanese",
+      "label": "Japanische Küche",
+      "parent": "asian"
+    },
+    {
+      "id": "american",
+      "label": "Amerikanische Küche"
     }
   ]
 }

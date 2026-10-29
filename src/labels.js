@@ -262,7 +262,7 @@ export const ROUND = {
   endRound: 'Runde beenden',
   // Runde 4 (Gerichte, Teamentscheid 28.10.2026): nach DISH_ROUND_END_AFTER Gerichten weiter oder beenden
   dishPromptTitle: (count) => `${count} Gerichte bewertet`,
-  dishPromptIntro: 'Du kannst weitere Gerichte ansehen oder die Runde beenden. Es kommen nur Gerichte, die zu deinen Angaben und Antworten passen.',
+  dishPromptIntro: 'Du kannst weitere Gerichte ansehen oder die Runde beenden. Es kommen alle Gerichte, die zu deinen Angaben passen, die passendsten zuerst.',
   moreDishes: 'Weitere Gerichte ansehen',
   cardOf: (position, total) => ({ strong: `Karte ${position}`, rest: ` von ${total}` }),
   progressLabel: 'Fortschritt der Runde',

@@ -93,8 +93,9 @@ test('Eingetippter Text wird eingetragen: keine Karte fällt weg, das Wort versc
 
 test('Frage 2: Suche findet auch Lebensmittel, die kein Allergen sind', () => {
   const tomato = searchIntolerances(allergens, index, 'Tomate');
-  // Zuerst das Lebensmittel (schliesst alle Tomaten aus), dann die konkrete Karte „Rohe Tomaten“
-  assert.deepEqual(tomato.map((hit) => hit.key), ['food:Tomate', 'card:F10.2.1']);
+  // Zuerst das Lebensmittel (schliesst alle Tomaten aus), dann Gerichte mit Tomate im Namen (seit dem 29.10.2026:
+  // Tomatensuppe, Gnocchi mit Tomatensauce), dann die konkrete Karte „Rohe Tomaten“
+  assert.deepEqual(tomato.map((hit) => hit.key), ['food:Tomate', 'card:D26', 'card:D48', 'card:F10.2.1']);
   const answers = answersWith({ intolerances: yes2({ items: ['food:Tomate', 'card:F05.3'] }) });
   const result = derive(answers);
   assert.deepEqual(result.exclusions.map(({ type, value }) => [type, value]), [['food', 'Tomate'], ['card', 'F05.3']]);

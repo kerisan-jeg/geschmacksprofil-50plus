@@ -6,7 +6,7 @@ Stand 21.10.2026. Ergänzt [bilder-a15.md](bilder-a15.md). Gemini wird für Kart
 
 | | Karten |
 |---|---|
-| Karten ausser Gruppen | 154 |
+| Karten ausser Gruppen | 154 (seit dem 29.10.2026: 196) |
 | mit Foto | **127** (60 aus A15, **67 neu**) |
 | ohne passendes Foto (Platzhalter, Liste unten) | **27** |
 | Gruppen | 13, unverändert mit dem neutralen Teller |
@@ -86,11 +86,11 @@ Die gleiche Liste steht maschinenlesbar in `src/data/image-credits.json` (`witho
 
 ## Prüfseite
 
-`docs/bilder-review.html` zeigt alle 167 Karten als Raster mit Bild, Karten-ID, Name, alt-Text, shows, foods, Quelle (mit Link zum Foto) und TODOs, dazu die Prüfliste und die Liste ohne Bild; Filter „Nur TODO“ und „Nur ohne Bild“. Nur lokal für das Team, in der App nicht verlinkt (sie liegt in `docs/`, nicht in `public/`). Lokal im Browser öffnen; neu erzeugen mit `python scripts/prepare-card-images.py review`.
+`docs/bilder-review.html` zeigt alle Karten (209 seit dem 29.10.2026) als Raster mit Bild, Karten-ID, Name, alt-Text, shows, foods, Quelle (mit Link zum Foto) und TODOs, dazu die Prüfliste und die Liste ohne Bild; Filter „Nur TODO“ und „Nur ohne Bild“. Nur lokal für das Team, in der App nicht verlinkt (sie liegt in `docs/`, nicht in `public/`). Lokal im Browser öffnen; neu erzeugen mit `python scripts/prepare-card-images.py review`.
 
 ## Nachtrag 21.10.2026: Bilder auf allen Karten
 
-Wunsch des Teams nach A16: „überall Bilder“. Seither zeigt **jede der 167 Karten ein Foto**.
+Wunsch des Teams nach A16: „überall Bilder“. Seither zeigt **jede Karte ein Foto** (167 Karten, seit dem 29.10.2026 209).
 
 **Gruppen (Runde 1):** Die 13 Gruppen zeigen wieder Fotos statt des neutralen Tellers: je drei vorhandene Fotos, zusammengesetzt wie das frühere Bildraster (erstes gross links). Das ändert Verbesserung 4 aus dem Dozentenfeedback (Tibor: in Runde 1 keine Beispiele, auch nicht im Bild). Der Teller bleibt als Option: `GROUP_IMAGES = false` in src/config.js. Mit Tibor besprechen (siehe docs/dozentenfeedback-2026-10-19.md, „Noch offen“).
 
@@ -134,7 +134,7 @@ Die Liste „ohne passendes Bild“ (`withoutPhoto`) ist leer.
 
 ## Nachtrag 28.10.2026: Karten, die je nach Profil kein Bild zeigten
 
-Alle 154 Karten ausser den Gruppen haben ein Foto (`withoutPhoto` ist leer). Ein Foto wird aber durch den Platzhalter ersetzt, wenn es etwas zeigt, das die Person ausgeschlossen hat (`shows`, `foods`). Vier Karten waren davon betroffen, obwohl die Karte selbst erlaubt war („Egli hat kein Bild“); sie haben seit dem 28.10.2026 andere Fotos (`python scripts/prepare-card-images.py stock F02.1.3 D11 F06.3.2 F13.2` und `groups F13`):
+Alle Karten ausser den Gruppen haben ein Foto (`withoutPhoto` ist leer). Ein Foto wird aber durch den Platzhalter ersetzt, wenn es etwas zeigt, das die Person ausgeschlossen hat (`shows`, `foods`). Vier Karten waren davon betroffen, obwohl die Karte selbst erlaubt war („Egli hat kein Bild“); sie haben seit dem 28.10.2026 andere Fotos (`python scripts/prepare-card-images.py stock F02.1.3 D11 F06.3.2 F13.2` und `groups F13`):
 
 | Karte | vorher | neu | Platzhalter vorher bei |
 |---|---|---|---|
@@ -148,6 +148,10 @@ Weiterhin profilabhängig (geprüft mit allen Ernährungsformen und Allergenen, 
 - Gruppenbilder bestehen aus drei Teilen; Teile mit Ausgeschlossenem fallen weg, die übrigen bleiben: Kartoffeln (Püree mit Milch) bei Laktose, Milcheiweiss und vegan; Pasta bei vegan und Eiern (Bandnudeln); Reis und andere Getreide bei Gluten (Couscous); Fisch und Meeresfrüchte bei Fisch, Krebstieren und Meeresfrüchten; Nüsse und Samen bei Mandeln und „alle Nüsse“.
 - Platzhalter trotz sichtbarer Karte: Pasta (Gruppe) bei „alles mit Gluten“ (alle drei Teile sind Weizenpasta, die Karte bleibt wegen der Pasta aus Hülsenfrüchten sichtbar); Zürcher Geschnetzeltes bei Eiern (Ersatzbild mit Bandnudeln); Paranüsse bei Haselnuss- oder Mandelallergie und Baumnüsse bei Mandelallergie (Ersatzbilder mit gemischten Nüssen). Dafür bräuchte es eigene Fotos (Zürcher Geschnetzeltes mit Rösti, reine Paranüsse, Baumnüsse ohne Mandeln) oder einen glutenfreien Teil im Gruppenbild Pasta.
 - Vegetarisch, pescetarisch, Soja, Sellerie, Sesam und Haselnuss (ausser Paranüsse): keine betroffene Karte.
+
+## Nachtrag 29.10.2026: 42 neue Gerichte mit Fotos
+
+Für die Katalogerweiterung (Runde 4, neu 64 Gerichte) kamen 42 Unsplash-Fotos dazu: je Gericht eine öffentliche Suchseite, Kontaktbogen mit bis zu vier freien Kandidaten, Prüfung im 4:3-Ausschnitt, Nachweise wie bisher in `src/data/image-credits.json` (Fotograf, Profil, Link, Datum, APA 7), Bilder mit `python scripts/prepare-card-images.py stock D23 … D67`. 32 der neuen Fotos tragen ein `todo` (Ersatzbilder oder nicht sicher erkennbare Zutaten, z. B. rohe weisse Spargeln für „Spargeln mit Sauce hollandaise“, Apfelkuchen statt Wähe, Rindseintopf für Boeuf bourguignon, kurze Pasta mit Hackfleischsauce für Ghackets mit Hörnli). Vier geplante Gerichte entfielen, weil es kein passendes freies Foto gab oder das Foto schon für eine andere Karte vergeben war: Spaghetti aglio e olio, Gemüselasagne, Quiche Lorraine, Gyros (stattdessen Souvlaki). Beilagen im Bild stehen in `shows` und `foods` (z. B. Brot neben der Kürbissuppe, Toast bei der Omelette): Wer sie ausschliesst, sieht dort den Platzhalter. Alle 209 Karten zeigen ein Foto; Prüfseite `docs/bilder-review.html`.
 
 ## Offen
 

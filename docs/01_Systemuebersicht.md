@@ -43,7 +43,7 @@ Der Zustand einer Runde wird nie gespeichert, sondern bei jedem Rendern aus dem 
 
 ### 3.2 Datenmodell der Karten
 
-`src/data/catalog.json` enthält 167 Karten in einem Baum über `parentId` und `children`:
+`src/data/catalog.json` enthält 209 Karten (seit dem 29.10.2026, davon 64 Gerichte) in einem Baum über `parentId` und `children`:
 
 | Stufe | Anzahl | Beispiel | Besonderheit |
 |---|---|---|---|

@@ -163,7 +163,7 @@ test('Gerichte sind Karten der Stufe 4 („Lasagne · Gericht“); Gerichte der 
     const hit = top(dish);
     assert.deepEqual([hit?.key, hit?.category], [key, 'Gericht'], dish);
   }
-  for (const dish of ['Cordon bleu', 'Saltimbocca']) {
+  for (const dish of ['Pizokel', 'Saltimbocca']) {
     assert.ok(!searchFoods(full, dish).some((hit) => hit.label.startsWith(dish.split(' ')[0])), dish);
   }
   // Beschreibungen auf Gerichten und konkreten Karten sind keine eigenen Lebensmittel

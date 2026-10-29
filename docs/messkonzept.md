@@ -145,7 +145,7 @@ Dazu Dauer je Abschnitt (`trace`), Antwortzeiten, Rückgängig, `inputMethod` un
 
 ## 9. Offene Abgrenzungen
 
-- **Gerichte (Stufe 4):** bilden gemäss Teamvorgabe Runde 4 (22 Gerichte im Katalog; seit dem 28.10.2026 ohne Rundenlimit, aber nur Gerichte, deren Zutaten im Mittel nicht abgelehnt wurden). Ihre Reihenfolge nutzt Zutatenvorlieben, ihre Bewertungen bleiben eigenständig. Es gibt keine Runde ausserhalb der vier Stufen. Die Messung der Vorhersage deckt nur Lebensmittel ab.
+- **Gerichte (Stufe 4):** bilden gemäss Teamvorgabe Runde 4 (64 Gerichte im Katalog seit dem 29.10.2026; ohne Rundenlimit und ohne Geschmacksfilter, sortiert nach Zutatenvorlieben). Ihre Reihenfolge nutzt Zutatenvorlieben, ihre Bewertungen bleiben eigenständig. Es gibt keine Runde ausserhalb der vier Stufen. Die Messung der Vorhersage deckt nur Lebensmittel ab.
 - **Eigenleistung und KI:** Die adaptive Auswahl, das Präferenzmodell, Stufe 3 und 4, das Dashboard, das Alltagsprofil (am 28.10.2026 wieder entfernt) und die Auswertung wurden mit Claude Code (KI) umgesetzt, im Auftrag des Teams (15.10.2026). Mit Tibor klären, wie das in der Arbeit deklariert wird. Die fachlichen Entscheide (Regeln, Annahmen, Kriterium) bleiben Teamentscheide.
 - **Einwilligung (Frage F4):** Die Kontrollkarten ändern nichts an den Daten, die gespeichert werden. Die Einwilligung muss aber die Auswertung abdecken.
 

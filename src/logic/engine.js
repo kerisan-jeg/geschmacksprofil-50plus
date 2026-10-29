@@ -26,7 +26,7 @@ import { SOURCE_SWIPE } from './stage0.js';
 // demo-0.7: Teamentscheid 28.10.2026: Runde 4 ohne Kartenlimit mit allen passenden Gerichten (Affinität aus der
 //           nächsten direkten Bewertung je Zutat, keine Gerichte mit mehr Abneigung als Zuneigung), Abschluss der
 //           Runde durch die Person (DISH_ROUND_END_AFTER). Runden 1 bis 3 unverändert.
-export const RULE_VERSION = 'demo-0.7';
+export const RULE_VERSION = 'demo-0.8';
 
 // Antwort-Ereignis (so wird es auch protokolliert, siehe logging/logger.js):
 // { cardId, stage, parentId, round, positionInRound, response, timestamp, responseTimeMs,
@@ -211,7 +211,6 @@ export function openDishes(state) {
   return state.index.cards
     .filter((card) => card.stage === 4 && !isDone(state, card.id) && isVisible(card, state.index, state.exclusions))
     .map((card, position) => ({ card, position, score: dishAffinity(state, card) }))
-    .filter(({ score }) => score >= 0)
     .sort((a, b) => b.score - a.score || a.position - b.position)
     .map(({ card }) => card);
 }

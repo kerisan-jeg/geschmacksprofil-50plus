@@ -38,7 +38,7 @@ const finishQuestions = (state) => run(state, { type: 'step', to: stage0.questio
 const toRound = (state) => run(finishQuestions(state), { type: 'confirmSummary' });
 
 function finishRound(state) {
-  for (let i = 0; state.screen === SCREENS.ROUND && i < 40; i += 1) {
+  for (let i = 0; state.screen === SCREENS.ROUND && i < 100; i += 1) {
     const card = nextCard(model.roundOf(state), state.config);
     assert.ok(card);
     state = run(state, { type: 'event', event: { type: 'ANSWER', cardId: card.id, stage: card.stage, response: LIKE, round: state.roundNumber } });
@@ -192,7 +192,7 @@ test('Vier Runden steigen jeweils eine Ebene ab; Runden 1 bis 3 überschreiten a
     assert.deepEqual([state.screen, state.roundNumber], [SCREENS.COMPLETE, 4]);
     assert.deepEqual([...counts.keys()], [1, 2, 3, 4]);
     for (const round of [1, 2, 3]) assert.ok(counts.get(round) <= Math.min(roundCardLimit, 15), `Runde ${round}`);
-    assert.equal(counts.get(4), 22, 'Runde 4 ohne Limit: alle 22 Gerichte, wenn alles „Mag ich“ ist');
+    assert.equal(counts.get(4), 64, 'Runde 4 ohne Limit: alle 64 Gerichte, wenn alles „Mag ich“ ist');
     assert.ok(model.roundOf(state).sequence.some((id) => index.get(id).stage === 4));
     assert.equal(run(state, { type: 'nextRound' }, { type: 'nextRound' }), state, 'weitere Klicks starten keine Runde');
     assert.equal(run(state, { type: 'tab', tab: TABS.PROFILE }).tab, TABS.PROFILE);
@@ -293,7 +293,7 @@ test('Gerichte sind Runde 4; startDishes kann weder vorher noch danach eine zus�
   assert.equal(state.screen, SCREENS.COMPLETE, 'Gerichte-Runde nach dem Kartenlimit fertig');
   assert.equal(run(state, { type: 'nextRound' }), state);
   assert.equal(run(state, { type: 'startDishes' }), state);
-  assert.equal(model.mainRoundOf(state).sequence.length, 12 + 22, 'alle Antworten im selben Log, Runde 4 mit allen passenden Gerichten');
+  assert.equal(model.mainRoundOf(state).sequence.length, 12 + 64, 'alle Antworten im selben Log, Runde 4 mit allen Gerichten');
 });
 
 test('Alte vierte Runde setzt mit Gerichten fort; gespeicherte Antworten und Ausschlüsse bleiben erhalten', () => {

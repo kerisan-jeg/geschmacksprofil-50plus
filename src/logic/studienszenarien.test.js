@@ -60,7 +60,7 @@ test('T01 Normale Nutzung ohne Einschränkungen: vier Runden, je Runde eine Eben
   assert.equal(inRound(session, 1).length, 13, 'alle 13 Gruppen in Runde 1');
   assert.deepEqual(inRound(session, 2).slice(-6).map((event) => event.phase), Array(6).fill(PHASE_HOLDOUT), 'sechs Kontrollkarten am Ende von Runde 2');
   assert.equal(inRound(session, 2).filter((event) => event.phase === PHASE_MAIN).length, 7, 'Runde 2: 7 normale Karten plus 6 Kontrollkarten');
-  assert.equal(inRound(session, 4).length, 22, 'Runde 4 ohne Limit (28.10.2026): alle 22 Gerichte, weil nichts abgelehnt wurde');
+  assert.equal(inRound(session, 4).length, 64, 'Runde 4 ohne Limit (28.10.2026): alle 64 Gerichte (Katalog seit dem 29.10.2026)');
 });
 
 test('T02 Eine Allergie (Haselnuss): keine Karte mit Haselnuss, Nüsse bleiben mit Hinweis, Birchermüesli fällt weg', () => {
@@ -71,7 +71,7 @@ test('T02 Eine Allergie (Haselnuss): keine Karte mit Haselnuss, Nüsse bleiben m
   assert.deepEqual(presentCard(state([], hazelnut), index.get('F13')).notes, ['Ohne Haselnüsse']);
   assert.ok(!ids(answers(session)).includes('D17'), 'Birchermüesli (Haselnuss) kommt nie');
   const fourth = state([], hazelnut, 4);
-  assert.equal(openDishes(fourth).length, 21, 'genau ein Gericht fällt weg');
+  assert.equal(openDishes(fourth).length, 63, 'genau ein Gericht von 64 fällt weg');
 });
 
 test('T03 Mehrere Ausschlüsse (Laktose, alles mit Gluten, Eier): konsequent in allen Runden, nur drei Gerichte', () => {
@@ -80,7 +80,7 @@ test('T03 Mehrere Ausschlüsse (Laktose, alles mit Gluten, Eier): konsequent in 
   const session = simulateSession({ index, diets, config, respond: () => LIKE, sessionId: 'T03', onboarding: multi });
   assertNoTag(session, tags, 'T03');
   assert.equal(inRound(session, 1).length, 10, 'Eier, Brot und Pasta entfallen als Gruppen');
-  assert.deepEqual(ids(inRound(session, 4)).sort(), ['D11', 'D15', 'D22'], 'Chili con Carne, Gemüsecurry, Ratatouille');
+  assert.deepEqual(ids(inRound(session, 4)).sort(), ['D11', 'D15', 'D22', 'D23', 'D25', 'D31', 'D32', 'D38', 'D39', 'D40', 'D42', 'D44', 'D60'], 'Chili con Carne, Gemüsecurry, Ratatouille und zehn der neuen Gerichte ohne Milch, Gluten und Ei');
   assert.equal(hasMoreCards(state(session.events, multi, 4), config), false);
 });
 
@@ -89,12 +89,12 @@ test('T04 Vegetarisch und vegan: keine Karte mit Fleisch oder Fisch; vegan auch 
   const veg = simulateSession({ index, diets, config, respond: () => LIKE, sessionId: 'T04v', onboarding: vegetarian });
   assertNoTag(veg, ['meat', 'pork', 'beef', 'poultry', 'fish', 'seafood', 'gelatin'], 'vegetarisch');
   assert.equal(inRound(veg, 1).length, 11);
-  assert.equal(inRound(veg, 4).length, 12, 'alle 12 vegetarischen Gerichte, weniger als das Limit');
+  assert.equal(inRound(veg, 4).length, 32, 'alle 32 vegetarischen Gerichte');
   const vegan = onboarding({ form: 'vegan' });
   const vg = simulateSession({ index, diets, config, respond: () => LIKE, sessionId: 'T04vg', onboarding: vegan });
   assertNoTag(vg, ['meat', 'pork', 'beef', 'poultry', 'fish', 'seafood', 'dairy', 'egg', 'honey', 'gelatin'], 'vegan');
   assert.equal(inRound(vg, 1).length, 9);
-  assert.deepEqual(ids(inRound(vg, 4)).sort(), ['D15', 'D18', 'D20', 'D22']);
+  assert.deepEqual(ids(inRound(vg, 4)).sort(), ['D15', 'D18', 'D20', 'D22', 'D23', 'D25', 'D31', 'D46', 'D58', 'D59', 'D60', 'D62']);
 });
 
 test('T05 Speisevorschrift halal: ohne Bestätigung keine Wirkung; bestätigte Vorschläge wirken wie Einzelausschlüsse', () => {
@@ -134,9 +134,8 @@ test('T07 Überwiegend negativ: eine Ausnahme je Gruppe, negative Zweige ganz am
   const third = inRound(session, 3);
   assert.ok(third.every((event) => event.selectionReason === REASONS.AFTER_NEGATIVE_DETAIL));
   assert.ok(Object.values(Object.groupBy(third, (event) => event.parentId)).every((list) => list.length <= NEGATIVE_GROUP_QUOTA_STAGE3));
-  // Runde 4 (28.10.2026): nur Gerichte, die zum Profil passen. Wer alle Gruppen ablehnt, bekommt kein Gericht; die Sitzung endet nach Runde 3
-  assert.equal(inRound(session, 4).length, 0, 'kein passendes Gericht');
-  assert.equal(nextRoundNumber(state(session.events, NO_ONBOARDING, 3), config), null, 'Runde 4 entfällt');
+  // Runde 4 (29.10.2026): alle erlaubten Gerichte kommen, auch bei durchgängiger Ablehnung; die Reihenfolge folgt der Zutaten-Zuneigung
+  assert.equal(inRound(session, 4).length, 64, 'alle Gerichte, kein Geschmacksfilter');
   const final = state(session.events, NO_ONBOARDING, 4);
   assert.equal(eligibleFamilies(final).length, 13, '„Mag ich nicht“ schliesst keine Gruppe aus');
   assert.deepEqual(buildProfile(final).intolerant, []);
@@ -176,8 +175,8 @@ test('T09 Verschiedene Antworten in aufeinanderfolgenden Runden: Kontrast versch
 
 test('T10 Stark eingeschränkte Gerichte: zwei Gerichte bei vegan und Gluten, null Gerichte → Runde 4 entfällt', () => {
   const veganGluten = onboarding({ form: 'vegan', allergenIds: ['wheat', 'spelt', 'rye', 'barley', 'oats'] });
-  assert.deepEqual(openDishes(state([], veganGluten, 4)).map((card) => card.id), ['D15', 'D22']);
-  const none = onboarding({ form: 'vegan', allergenIds: ['celery', 'wheat', 'soy'], neverKeys: ['card:F11.3'] });
+  assert.deepEqual(openDishes(state([], veganGluten, 4)).map((card) => card.id), ['D15', 'D22', 'D23', 'D25', 'D31', 'D60']);
+  const none = onboarding({ form: 'vegan', allergenIds: ['celery', 'wheat', 'soy'], neverKeys: ['card:F11.3', 'card:F08'] });
   assert.deepEqual(openDishes(state([], none, 4)), [], 'kein Gericht übrig');
   const session = simulateSession({ index, diets, config, respond: () => LIKE, sessionId: 'T10', onboarding: none });
   assert.equal(Math.max(...answers(session).map((event) => event.round)), 3, 'die Sitzung endet nach Runde 3');
@@ -256,8 +255,8 @@ test('T15 Ist-Zustand (Befund B1): „Vertrage ich nicht“ wirkt über die Kart
   }
   assert.equal(isVisible(index.get('D05'), index, viaSwipe.exclusions), false, 'Rösti mit Spiegelei ist über die Zutat F03 verknüpft und fällt weg');
   const milk = state([{ cardId: 'F04', response: INTOLERANT, round: 1, excludedCardIds: ['F04'] }], NO_ONBOARDING, 4);
-  assert.equal(openDishes(milk).length, 14, 'Milchprodukte beim Wischen: 14 Gerichte, davon 7 mit Milch-Tag (Butter, Rahm)');
-  assert.equal(openDishes(state([], onboarding({ allergenIds: ['lactose'] }), 4)).length, 7, 'Laktose im Onboarding: 7 Gerichte');
+  assert.equal(openDishes(milk).length, 46, 'Milchprodukte beim Wischen: 46 Gerichte, davon 14 mit Milch-Tag (Butter, Rahm, Käse ohne eigene Zutatenkarte)');
+  assert.equal(openDishes(state([], onboarding({ allergenIds: ['lactose'] }), 4)).length, 32, 'Laktose im Onboarding: 32 Gerichte');
 });
 
 test('T16 Negative Gruppe ist kein Ausschluss (Kürbis-Beispiel): Untergruppen und Lebensmittel bleiben erreichbar', () => {
@@ -306,22 +305,25 @@ test('T18 Kontrollkarten: geschichtet gezogen, am Ende von Runde 2; wird eine vo
 
 // ---------- T19 bis T22: Gerichte, Budget, Wirkungslose Unterschiede, Klärungskette ----------
 
-test('T19 Anzahl Gerichte: ohne Limit alle 22, bei Laktose oder Milcheiweiss genau 7, Reihenfolge nach Zutatenvorlieben, nur passende', () => {
-  assert.equal(catalog.cards.filter((card) => card.stage === 4).length, 22);
-  assert.equal(selectNextCards(state([], NO_ONBOARDING, 4), config).length, 22, 'Runde 4 ohne Kartenlimit (28.10.2026)');
-  assert.equal(selectNextCards(state([], NO_ONBOARDING, 4), { ...config, roundCardLimit: 5 }).length, 22, 'das Limit gilt nur für Runde 1 bis 3');
+test('T19 Anzahl Gerichte: ohne Limit alle 64, bei Laktose oder Milcheiweiss 32, Reihenfolge nach Zutatenvorlieben', () => {
+  assert.equal(catalog.cards.filter((card) => card.stage === 4).length, 64, '22 Gerichte bis zum 28.10.2026, 42 neue am 29.10.2026');
+  assert.equal(selectNextCards(state([], NO_ONBOARDING, 4), config).length, 64, 'Runde 4 ohne Kartenlimit (28.10.2026)');
+  assert.equal(selectNextCards(state([], NO_ONBOARDING, 4), { ...config, roundCardLimit: 5 }).length, 64, 'das Limit gilt nur für Runde 1 bis 3');
   const lactose = openDishes(state([], onboarding({ allergenIds: ['lactose'] }), 4)).map((card) => card.id);
-  assert.deepEqual(lactose.sort(), ['D11', 'D12', 'D15', 'D18', 'D19', 'D20', 'D22']);
+  assert.deepEqual(lactose.sort(), ['D11', 'D12', 'D15', 'D18', 'D19', 'D20', 'D22', 'D23', 'D25', 'D27', 'D31', 'D32', 'D35', 'D37', 'D38', 'D39', 'D40', 'D42', 'D43', 'D44', 'D46', 'D53', 'D54', 'D57', 'D58', 'D59', 'D60', 'D62', 'D63', 'D64', 'D65', 'D66']);
   assert.deepEqual(openDishes(state([], onboarding({ allergenIds: ['milk_protein'] }), 4)).map((card) => card.id).sort(), lactose);
-  assert.equal(catalog.cards.filter((card) => card.stage === 4 && card.allergens.includes('lactose')).length, 15, '15 von 22 Gerichten tragen Laktose');
-  assert.equal(openDishes(state([], onboarding({ allergenIds: ['wheat', 'spelt', 'rye', 'barley', 'oats'] }), 4)).length, 8);
-  assert.equal(openDishes(state([], onboarding({ form: 'vegetarian' }), 4)).length, 12);
+  assert.equal(catalog.cards.filter((card) => card.stage === 4 && card.allergens.includes('lactose')).length, 32, '32 von 64 Gerichten tragen Laktose');
+  assert.equal(openDishes(state([], onboarding({ allergenIds: ['wheat', 'spelt', 'rye', 'barley', 'oats'] }), 4)).length, 29);
+  assert.equal(openDishes(state([], onboarding({ form: 'vegetarian' }), 4)).length, 32);
   // Reihenfolge: Reis „Mag ich sehr“ und Fleisch „Mag ich nicht“ bringen Reisgerichte nach vorn, Fleischgerichte nach hinten
   const taste = index.cards.filter((card) => card.stage === 1).map((card) => ({ cardId: card.id, response: card.id === 'F08' ? PREFER : card.id === 'F01' ? DISLIKE : LIKE, round: 1 }));
   const ordered = openDishes(state(taste, NO_ONBOARDING, 4)).map((card) => card.id);
   assert.ok(ordered.indexOf('D15') < ordered.indexOf('D12'), 'Gemüsecurry mit Reis vor Wienerschnitzel');
-  assert.ok(ordered.includes('D10') && !ordered.includes('D02'), 'Pilzrisotto bleibt, Bolognese (Fleisch überwiegt) passt nicht mehr zum Profil');
-  assert.ok(ordered.every((id) => dishAffinity(state(taste, NO_ONBOARDING, 4), index.get(id)) >= 0), 'kein Gericht mit überwiegender Abneigung');
+  assert.ok(ordered.indexOf('D02') > ordered.indexOf('D10'), 'Bolognese (Fleisch überwiegt) hinter Pilzrisotto');
+  assert.equal(ordered[0], 'D10', 'Pilzrisotto (Reis sehr gern) zuerst');
+  const affinity = ordered.map((id) => dishAffinity(state(taste, NO_ONBOARDING, 4), index.get(id)));
+  assert.ok(affinity.every((score, i) => i === 0 || score <= affinity[i - 1]), 'nach Zuneigung absteigend, abgelehnte Zutaten zuletzt');
+  assert.equal(ordered.length, 64, 'kein Geschmacksfilter (29.10.2026): alle erlaubten Gerichte kommen');
   assert.deepEqual(openDishes(state([], NO_ONBOARDING, 4)).map((card) => card.id).slice(0, 3), ['D01', 'D02', 'D03'], 'ohne Antworten Katalogreihenfolge');
 });
 
@@ -365,26 +367,26 @@ test('T22 Ist-Zustand (Befund B2): nach „Kenne ich nicht“ auf Gruppe und bei
   ]);
 });
 
-// ---------- T23: Die drei Ablaufbeispiele der Dokumentation, exakt wie protokolliert (Regeln demo-0.7) ----------
+// ---------- T23: Die drei Ablaufbeispiele der Dokumentation, exakt wie protokolliert (Regeln demo-0.8, 64 Gerichte) ----------
 
 const EXPECTED = {
   A: [
     ['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', 'F13'],
     ['F02.1', 'F05.4', 'F13.1', 'F01.1', 'F04.1', 'F06.1', 'F07.1', 'F12.4', 'F08.1', 'F06.3', 'F13.2', 'F07.2', 'F04.2'],
     ['F05.4.1', 'F13.1.1', 'F05.4.2', 'F13.1.2', 'F01.1.1', 'F02.1.1', 'F04.1.1', 'F06.1.1', 'F07.1.1', 'F08.1.1', 'F01.1.2', 'F02.1.2', 'F04.1.2'],
-    ['D17', 'D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07', 'D08', 'D09', 'D10', 'D12', 'D13', 'D14', 'D15', 'D16', 'D20', 'D21', 'D22', 'D19', 'D11', 'D18'],
+    ['D17', 'D35', 'D51', 'D62', 'D64', 'D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07', 'D08', 'D09', 'D10', 'D12', 'D13', 'D14', 'D15', 'D16', 'D20', 'D21', 'D22', 'D24', 'D25', 'D26', 'D27', 'D28', 'D29', 'D30', 'D31', 'D32', 'D33', 'D34', 'D36', 'D37', 'D38', 'D39', 'D40', 'D41', 'D46', 'D47', 'D48', 'D50', 'D53', 'D54', 'D55', 'D56', 'D57', 'D61', 'D63', 'D65', 'D66', 'D67', 'D19', 'D42', 'D43', 'D44', 'D59', 'D23', 'D11', 'D18', 'D60', 'D58'],
   ],
   B: [
     ['F03', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', 'F13'],
     ['F10.2', 'F05.1', 'F06.1', 'F07.1', 'F08.1', 'F11.1', 'F12.1', 'F06.3', 'F12.3', 'F11.2', 'F07.2', 'F10.1', 'F08.2'],
     ['F10.2.1', 'F10.2.2', 'F11.1.1', 'F11.1.2', 'F11.1.3', 'F05.1.1', 'F06.1.3', 'F07.1.1', 'F08.1.1', 'F12.1.1', 'F05.1.2', 'F06.3.1', 'F07.1.2'],
-    ['D20', 'D22', 'D15', 'D18'],
+    ['D20', 'D22', 'D15', 'D18', 'D27', 'D31', 'D62', 'D25', 'D59', 'D23', 'D46', 'D58', 'D60', 'D63'],
   ],
   C: [
     ['F01', 'F02', 'F03', 'F04', 'F05', 'F06', 'F07', 'F08', 'F09', 'F10', 'F11', 'F12', 'F13'],
     ['F01.1', 'F02.2', 'F04.2', 'F05.4', 'F07.1', 'F08.1', 'F10.2', 'F05.1', 'F11.2', 'F04.3', 'F12.1', 'F01.2', 'F06.1'],
     ['F04.2.1', 'F04.2.2', 'F06.1.1', 'F06.1.2', 'F01.1.1', 'F02.1.1', 'F05.1.1', 'F07.1.1', 'F08.1.1', 'F10.1.1', 'F11.1.1', 'F12.1.1', 'F13.1.2'],
-    ['D01', 'D04', 'D08', 'D06', 'D07', 'D12', 'D13', 'D21'],
+    ['D01', 'D04', 'D08', 'D06', 'D07', 'D12', 'D13', 'D21', 'D32', 'D39', 'D41', 'D42', 'D43', 'D57', 'D66', 'D03', 'D23', 'D30', 'D33', 'D37', 'D48', 'D58', 'D25', 'D31', 'D56', 'D02', 'D09', 'D10', 'D11', 'D14', 'D15', 'D16', 'D18', 'D20', 'D22', 'D24', 'D26', 'D35', 'D38', 'D40', 'D44', 'D46', 'D47', 'D50', 'D53', 'D55', 'D59', 'D60', 'D61', 'D62', 'D64', 'D65', 'D67'],
   ],
 };
 
@@ -402,9 +404,9 @@ test('T23 Ablaufbeispiele: Kennzahlen, die in der Dokumentation stehen', () => {
   assert.deepEqual(a.holdout, ['F12.4', 'F08.1', 'F06.3', 'F13.2', 'F07.2', 'F04.2']);
   assert.deepEqual([a.progress.percent, b.progress.percent, c.progress.percent], [81, 85, 89]);
   assert.deepEqual([a.derived.length, b.derived.length, c.derived.length], [97, 69, 102]);
-  assert.deepEqual(a.dashboard.cuisines.map((entry) => [entry.id, entry.direction, entry.rated]), [['swiss', LIKE, 9], ['italian', LIKE, 5], ['asian', LIKE, 4]]);
-  assert.deepEqual(c.dashboard.cuisines.map((entry) => [entry.id, entry.direction, entry.rated]), [['swiss', DISLIKE, 5]]);
-  assert.deepEqual([a.rounds[3].cards.length, b.rounds[3].cards.length, c.rounds[3].cards.length], [22, 4, 8], 'Runde 4 ohne Limit, nur passende Gerichte');
+  assert.deepEqual(a.dashboard.cuisines.map((entry) => [entry.id, entry.direction, entry.rated]), [['swiss', LIKE, 26], ['italian', LIKE, 9], ['french', LIKE, 5], ['asian', LIKE, 10], ['chinese', LIKE, 3], ['greek', LIKE, 3], ['oriental', LIKE, 3]]);
+  assert.deepEqual(c.dashboard.cuisines.map((entry) => [entry.id, entry.direction, entry.rated]), [['swiss', DISLIKE, 20], ['italian', DISLIKE, 9], ['french', DISLIKE, 3], ['mexican', DISLIKE, 3], ['asian', DISLIKE, 8], ['greek', DISLIKE, 3]]);
+  assert.deepEqual([a.rounds[3].cards.length, b.rounds[3].cards.length, c.rounds[3].cards.length], [64, 14, 53], 'Runde 4 ohne Limit: alle erlaubten Gerichte (Katalog mit 64 Gerichten seit dem 29.10.2026)');
   assert.deepEqual(b.dashboard.cuisines, [], 'vier Gerichte reichen für keine Küchentendenz');
   assert.deepEqual(c.profile.intolerant, ['F03']);
   assert.deepEqual(b.rounds[0].cards.find((card) => card.id === 'F06').notes, ['Ohne Zopf', 'und 2 weitere']);

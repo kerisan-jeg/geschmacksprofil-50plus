@@ -8,7 +8,7 @@ import SegmentedProgress from '../components/SegmentedProgress.jsx';
 import RoundOverview from '../components/RoundOverview.jsx';
 import Sheet from '../components/Sheet.jsx';
 import TopBar from '../components/TopBar.jsx';
-import { collapseIntolerance, dishesEnoughSeen, intoleranceOptions, isDishRound, presentCard, progress, selectNextCards } from '../logic/engine.js';
+import { collapseIntolerance, intoleranceOptions, isDishRound, presentCard, progress, selectNextCards } from '../logic/engine.js';
 import { DISLIKE, INTOLERANT, LIKE, PREFER, UNFAMILIAR } from '../logic/answers.js';
 import { allowsPrefer, scaleVariant } from '../logic/scale.js';
 import { cardVisual, ImageFilterContext, ImageStyleContext, imageUrls } from '../lib/images.js';
@@ -227,7 +227,7 @@ export default function RoundScreen({ round, config, canUndo, onAnswer, onUndo, 
 
       <AnswerButtons variant={variant} intent={intent} onAnswer={(answer) => cardRef.current?.commit(answer, 'button')} onIntolerant={handleIntolerant} />
 
-      {dishRound && dishesEnoughSeen(round) && (
+      {dishRound && Boolean(card) && (
         <div className="round-exit">
           <button type="button" className="button-secondary" onClick={() => onEndRound(imageInfo())}>
             <X aria-hidden="true" />

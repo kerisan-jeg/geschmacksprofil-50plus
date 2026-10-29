@@ -86,7 +86,7 @@ Die Oberfläche (`ProfileScreen.jsx`) zeigt zuerst die Anzahl Antworten und vier
 
 ## 6. Gerichte
 
-Auswahl und Reihenfolge in Runde 4 (`engine.js → openDishes()`, seit dem 28.10.2026): Zutaten-Zuneigung = Mittelwert über die verknüpften Zutatenkarten (`ingredients`) der jeweils nächsten direkten Bewertung im Baum (−1, +1, +2; ohne Bewertung 0, keine Abschwächung je Stufe); nur Gerichte mit Zuneigung ≥ 0, absteigend, gleiche Werte in Katalogreihenfolge, ohne Kartenlimit. Beispiel aus Szenario B: Frühlingsrollen und Ratatouille zuerst, weil ihre Zutaten zu „Gegartes Gemüse“ (+2) gehören. Die Antwort auf ein Gericht ist eine eigene Bewertung und bleibt es; Gerichte zählen nicht zum Profilstand.
+Reihenfolge in Runde 4 (`engine.js → openDishes()`): Zutaten-Zuneigung = Mittelwert über die verknüpften Zutatenkarten (`ingredients`) der jeweils nächsten direkten Bewertung im Baum (−1, +1, +2; ohne Bewertung 0, keine Abschwächung je Stufe); alle erlaubten Gerichte absteigend nach Zuneigung, gleiche Werte in Katalogreihenfolge, ohne Kartenlimit und ohne Geschmacksfilter (seit dem 29.10.2026). Beispiel aus Szenario B: Frühlingsrollen und Ratatouille zuerst, weil ihre Zutaten zu „Gegartes Gemüse“ (+2) gehören. Die Antwort auf ein Gericht ist eine eigene Bewertung und bleibt es; Gerichte zählen nicht zum Profilstand.
 
 ## 7. Änderungen im Profil
 
