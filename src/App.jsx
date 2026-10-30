@@ -3,7 +3,7 @@ import catalog from './data/catalog.json';
 import stage0 from './data/stage0.json';
 import allergens from './data/allergens.json';
 import foodList from './data/foods.json';
-import { cardLimit, isAdminMode, normalizeConfig, resolveConfig } from './config.js';
+import { cardLimit, isAdminMode, normalizeConfig, resolveConfig, SYNC } from './config.js';
 import { ImageFilterContext, ImageStyleContext } from './lib/images.js';
 import { ScaleConfigContext } from './components/answerMeta.js';
 import { labelShown, scaleVariant } from './logic/scale.js';
@@ -34,7 +34,8 @@ import { displayCardTitle } from './logic/filter.js';
 import { mergeFoods } from './logic/foodSearch.js';
 import { summarySections } from './logic/profile.js';
 import { createLogger, storageAvailable } from './logging/logger.js';
-import { createAppModel, creationSteps, hasProgress, isNavVisible, ROUND_MODES, SCREENS, TABS } from './app/model.js';
+import { createSync } from './sync/sync.js';
+import { canStartSurvey, createAppModel, creationSteps, hasProgress, isNavVisible, ROUND_MODES, SCREENS, TABS } from './app/model.js';
 import { clearAppState, loadAccount, loadAppState, saveAccount, saveAppState, signOutLocally } from './storage/local.js';
 import BottomNav from './components/BottomNav.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
@@ -49,11 +50,15 @@ import RoundScreen from './screens/RoundScreen.jsx';
 import CompleteScreen from './screens/CompleteScreen.jsx';
 import ProfileScreen from './screens/ProfileScreen.jsx';
 import AdminScreen from './screens/AdminScreen.jsx';
+import SurveyScreen from './screens/SurveyScreen.jsx';
+import FinishScreen from './screens/FinishScreen.jsx';
 
 // Ablauf „Profil erstellen“: Begrüssung → Anmeldung (nur Vorname) → Über dich → Fragebogen (Stufe 0) →
 // Zusammenfassung → höchstens vier Runden mit Abschluss (Tutorial vor Runde 1 nur mit TUTORIAL_ENABLED).
 // Die Karten wählt src/logic/selection.js je nach Antwort; die Kontrollkarten (Messkonzept, docs/messkonzept.md)
 // kommen am Ende von Runde 2. Runde 3 enthält konkrete Lebensmittel, Runde 4 die passendsten Gerichte im selben Kartenlimit.
+// Zum Schluss (29.10.2026): kurze Befragung und Abschlussbestätigung, die erst nach erfolgreicher Übertragung an die
+// zentrale Speicherung bestätigt (src/sync/sync.js; ohne Konfiguration bleibt alles lokal).
 // Daneben „Mein Profil“ als zweiter Bereich der unteren Navigation. Zustandswechsel: app/model.js.
 const INDEX = indexCatalog(catalog.cards);
 // Lebensmittel für die Suche: handgepflegte Schweizer Begriffe, dann die Schweizer Nährwertdatenbank (BLV).
@@ -87,13 +92,16 @@ function boot() {
 
 function App() {
   const [initial] = useState(boot);
+  // Zentrale Speicherung: Jede gespeicherte Änderung der Sitzung wird gebündelt übertragen (erst ab der Einwilligung).
+  const [sync] = useState(() => createSync(SYNC));
+  const [syncStatus, setSyncStatus] = useState(() => sync.getStatus());
   // Ein Protokoll pro Testperson; nach einem Neuladen geht dieselbe Sitzung weiter.
   const [logger, setLogger] = useState(() =>
-    createLogger(initial.config, { resumeSessionId: initial.saved?.sessionId ?? null, seedEvents: initial.saved?.state?.events ?? [] })
+    createLogger(initial.config, { resumeSessionId: initial.saved?.sessionId ?? null, seedEvents: initial.saved?.state?.events ?? [], onChange: sync.schedule })
   );
   const [storageOk] = useState(() => storageAvailable());
   const [state, dispatch] = useReducer(MODEL.reducer, initial, ({ config, account, saved }) => MODEL.initialState(config, { account, saved }));
-  const { screen, tab, config, account, person, registration, answers, step, editing, onboarding, events, roundNumber, roundMode, dishRound, endedEarly } = state;
+  const { screen, tab, config, account, person, registration, answers, step, editing, onboarding, events, roundNumber, roundMode, dishRound, endedEarly, surveyDone } = state;
   // Laufende Runde (Profilerstellung oder Gerichte) und die Profilerstellung selbst (für Dashboard und „Weiter mit Runde N“)
   const round = useMemo(() => (onboarding ? MODEL.roundOf(state) : null), [onboarding, events, roundNumber, roundMode, dishRound]); // eslint-disable-line react-hooks/exhaustive-deps
   const mainRound = useMemo(() => (onboarding ? MODEL.mainRoundOf(state) : null), [onboarding, events, roundNumber]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -106,6 +114,14 @@ function App() {
   // Bilder zeigen nie, was die Person ausgeschlossen hat (siehe allowedPhotos in lib/images.js).
   const imageFilter = useMemo(() => (round ? { index: INDEX, exclusions: round.exclusions } : null), [round]);
   const firstName = account?.firstName ?? '';
+
+  // Zustand der zentralen Speicherung (Abschlussbestätigung); wieder online: offene Übertragung nachholen.
+  useEffect(() => sync.subscribe(setSyncStatus), [sync]);
+  useEffect(() => {
+    const retry = () => sync.flush();
+    window.addEventListener('online', retry);
+    return () => window.removeEventListener('online', retry);
+  }, [sync]);
 
   useEffect(() => {
     logger.trace('screen', screen === SCREENS.QUESTIONS ? { screen, step, tab } : { screen, tab });
@@ -250,6 +266,16 @@ function App() {
     dispatch({ type: 'end' });
   }
 
+  // ---------- Befragung und Abschluss (29.10.2026) ----------
+
+  // Befragung abgeschickt: in die Sitzung, sofort übertragen; die Abschlussbestätigung wartet auf das Ergebnis.
+  function handleSurveySubmit(values) {
+    logger.setSurvey(values);
+    logger.trace('survey_submitted');
+    dispatch({ type: 'surveySubmitted' });
+    sync.flush(logger.session);
+  }
+
   // Nächster sinnvoller Schritt für „Mein Profil“ (Anhang B1)
   function nextStep() {
     if (!mainRound) return null;
@@ -331,21 +357,21 @@ function App() {
   function handleSignOut() {
     logger.trace('sign_out');
     signOutLocally();
-    setLogger(createLogger(CONFIG));
+    setLogger(createLogger(CONFIG, { onChange: sync.schedule }));
     dispatch({ type: 'signOut', config: CONFIG });
   }
 
   function handleRestart() {
     logger.trace('restart');
     clearAppState();
-    setLogger(createLogger(config));
+    setLogger(createLogger(config, { onChange: sync.schedule }));
     dispatch({ type: 'restart' });
   }
 
   function renderCreate() {
     switch (screen) {
       case SCREENS.START:
-        return <StartScreen storageAvailable={storageOk} onStart={handleStart} />;
+        return <StartScreen storageAvailable={storageOk} syncEnabled={sync.enabled} onStart={handleStart} />;
       case SCREENS.REGISTER_NAME:
         return (
           <RegisterNameScreen
@@ -362,6 +388,7 @@ function App() {
           <AboutScreen
             person={person}
             askName={!config.auth}
+            syncEnabled={sync.enabled}
             firstName={firstName}
             onSubmit={handleAbout}
           />
@@ -412,6 +439,18 @@ function App() {
             onNavigate={handleNavigate}
           />
         );
+      case SCREENS.SURVEY:
+        return <SurveyScreen firstName={firstName} onSubmit={handleSurveySubmit} onBack={() => dispatch({ type: 'surveyCancel' })} />;
+      case SCREENS.FINISH:
+        return (
+          <FinishScreen
+            firstName={firstName}
+            sessionId={logger.session.sessionId}
+            sync={syncStatus}
+            onRetry={() => sync.flush(logger.session)}
+            onToProfile={() => handleTab(TABS.PROFILE)}
+          />
+        );
       default:
         return (
           <CompleteScreen
@@ -450,6 +489,8 @@ function App() {
               dietOptions={STAGE0_FOR_PROFILE}
               steps={steps}
               next={nextStep()}
+              survey={{ available: canStartSurvey(state), done: surveyDone, sessionId: logger.session.sessionId }}
+              onSurvey={() => dispatch({ type: 'survey' })}
               canSignOut={Boolean(account)}
               onCreate={() => handleTab(TABS.CREATE)}
               onNext={handleNextStep}

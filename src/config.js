@@ -2,7 +2,7 @@
 // Alles, was im Pilot variiert werden soll (Wortlaut, Schwellen, Funktionen), steht hier.
 // Gestaltung (Farben, Abstände, Animationsdauern) steht in src/theme/tokens.css.
 
-export const APP_VERSION = '0.11.0-demo';
+export const APP_VERSION = '0.12.0-demo';
 
 // Karten pro Runde, einschliesslich Gerichte in Runde 4. Fortschrittsanzeigen leiten ihre Werte davon ab.
 export const ROUND_CARD_LIMIT = 13;
@@ -98,6 +98,17 @@ export const IMAGE_LOAD_TIMEOUT_MS = 3000;
 // Konto auf dem Gerät und, mit PRIVACY.logParticipantName, als participantName in der Sitzung für die Testleitung.
 // false: Die App startet direkt beim Onboarding („Über dich“), der Vorname ist dort freiwillig.
 export const AUTH_ENABLED = true;
+
+// Zentrale Speicherung (Vorschlag vom 29.10.2026, src/sync/sync.js, docs/zentrale-speicherung.md): Adresse und
+// öffentlicher Schlüssel einer PostgREST-Datenbank (z. B. Supabase, Projekt in der EU). Beide Werte kommen beim Build aus
+// den Repository-Variablen VITE_SYNC_URL und VITE_SYNC_KEY (.github/workflows/deploy.yml), lokal aus .env.local.
+// Ohne beide Werte bleibt alles auf dem Gerät wie bisher, und die Bildschirme sagen das.
+const ENV = import.meta.env ?? {};
+export const SYNC = {
+  url: String(ENV.VITE_SYNC_URL ?? '').trim().replace(/\/$/, ''),
+  key: String(ENV.VITE_SYNC_KEY ?? '').trim(),
+  table: 'sessions',
+};
 
 // Standardwerte für den Testablauf (A10). URL-Parameter überschreiben sie, z. B.
 //   ?limit=12          Karten pro Runde (ROUND_CARD_LIMIT), gültig 4 bis 15; Runde 4 (Gerichte) hat kein Limit
@@ -202,11 +213,12 @@ export const FEATURES = {
 // Speisevorschriften (halal, koscher) werden standardmässig nicht protokolliert (Teamentscheid 19.10.2026): kleine
 // Stichprobe, möglicher Rückschluss auf Religion, kaum Nutzen für die Auswertung (docs/dozentenfeedback-2026-10-19.md).
 // Die Wirkung bleibt: Bestätigte Ausschlüsse (z. B. Schweinefleisch) stehen wie alle Ausschlüsse im Protokoll.
-// Vorname (Teamentscheid 28.10.2026): Die Anmeldung speichert den Vornamen als participantName in der Sitzung, damit
-// die Testleitung die Sitzung einer Person zuordnen kann. Das ist ein Personendatum; die Einwilligung muss es nennen.
-// Mit false bleibt der Vorname nur im Konto auf dem Gerät und fehlt in Sitzung und Export.
+// Vorname: Am 28.10.2026 wollte das Team den Vornamen als participantName in der Sitzung. Mit der zentralen Speicherung
+// (29.10.2026) bleibt er wieder auf dem Gerät: Sitzung, Export und Datenbank tragen statt des Namens die zufällige
+// Teilnahmenummer (sessionId), die auch die Befragung verbindet. true: der Vorname steht wieder in Sitzung und Export,
+// und damit auch in der zentralen Datenbank; dann muss die Einwilligung ihn nennen.
 export const PRIVACY = {
   logExclusionValues: true,
   logDietaryRules: false,
-  logParticipantName: true,
+  logParticipantName: false,
 };

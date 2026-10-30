@@ -3,12 +3,14 @@ import { Download, FileJson, Trash2, UserPlus } from 'lucide-react';
 import EmptyState from '../components/EmptyState.jsx';
 import { deleteAllSessions, downloadText, listSessions } from '../logging/logger.js';
 import { sessionsToCsv, sessionsToJson, summarizeSession } from '../logging/export.js';
-import { resolveConfig } from '../config.js';
+import { resolveConfig, SYNC } from '../config.js';
+import { isSyncConfigured, loadSyncRecords } from '../sync/sync.js';
 import { signOutLocally } from '../storage/local.js';
 import { ADMIN } from '../labels.js';
 
 // Ansicht für die Testleitung (A9). Nur über ?admin=1 erreichbar und nirgends verlinkt.
-// Alles bleibt auf diesem Gerät; Export als JSON (alles) und CSV (eine Zeile pro Ereignis).
+// Sitzungen dieses Geräts mit Export als JSON (alles) und CSV (eine Zeile pro Ereignis). Mit zentraler Speicherung
+// (29.10.2026) steht je Sitzung, ob sie übertragen ist; der Gesamtexport aller Geräte läuft über npm run export:zentral.
 
 function formatDate(iso) {
   try {
@@ -43,6 +45,9 @@ export default function AdminScreen() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const config = resolveConfig(window.location.search);
   const summaries = sessions.map(summarizeSession);
+  const syncOn = isSyncConfigured(SYNC);
+  const syncRecords = loadSyncRecords();
+  const synced = summaries.filter((summary) => syncRecords[summary.sessionId]?.okAt).length;
   const eventCount = sessions.reduce((sum, session) => sum + (session.events?.length ?? 0), 0);
 
   return (
@@ -67,6 +72,7 @@ export default function AdminScreen() {
             {ADMIN.ignoredNext(config.ignoredParams)}
           </p>
         )}
+        <p className="note">{ADMIN.sync({ enabled: syncOn, synced, total: sessions.length })}</p>
       </div>
 
       <button
@@ -127,6 +133,8 @@ export default function AdminScreen() {
               </span>
               {summary.ignoredParams.length > 0 && <span className="form-error">{ADMIN.ignored(summary.ignoredParams)}</span>}
               <span className="note">{ADMIN.checks(summary.checks)}</span>
+              {syncOn && <span className="note">{ADMIN.synced(syncRecords[summary.sessionId], formatDate(syncRecords[summary.sessionId]?.okAt))}</span>}
+              {summary.survey && <span className="note">{ADMIN.survey}</span>}
             </li>
           ))}
         </ul>

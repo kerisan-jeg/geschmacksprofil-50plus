@@ -71,8 +71,17 @@ export const START = {
   lead: 'Wir zeigen dir Lebensmittel auf Karten. Bei jeder Karte sagst du mit einem Wisch oder einem Tipp, wie gern du sie isst.',
   steps: ['Kurz anmelden mit deinem Vornamen', 'Drei Fragen zu Allergien und Ernährung', 'Karten wischen oder tippen'],
   pause: 'Aufhören kannst du jederzeit.',
+  // Kurze Studieninformation (Vorschlag 29.10.2026)
+  studyTitle: 'Worum geht es?',
+  study: [
+    'Ein Studierendenprojekt der ZHAW für nurec prüft, mit wie wenigen Fragen die App deinen Geschmack erfasst.',
+    'Du brauchst etwa 15 Minuten. Du kannst jederzeit aufhören; schon gegebene Antworten bleiben erhalten.',
+    'Gespeichert werden deine Altersgruppe, deine Angaben zu Ernährung und Unverträglichkeiten, deine Antworten zu den Karten und die kurze Befragung am Schluss. Nicht dein Vorname.',
+  ],
   start: 'Los geht’s',
-  fineprint: 'Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten bleiben auf diesem Gerät.',
+  fineprint: 'Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten gehen ohne deinen Namen an das Projektteam.',
+  // Ohne zentrale Speicherung (nicht eingerichtet)
+  fineprintLocal: 'Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten bleiben auf diesem Gerät.',
   storageBlocked: 'Dein Browser erlaubt hier kein Speichern. Die App funktioniert, aber beim Schliessen gehen deine Antworten verloren.',
 };
 
@@ -83,7 +92,7 @@ export const REGISTER = {
   nameLabel: 'Vorname',
   nameError: 'Bitte gib deinen Vornamen ein.',
   nameNext: 'Weiter',
-  namePrivacy: 'Dein Vorname bleibt auf diesem Gerät. Die Testleitung sieht ihn, um deine Antworten zuzuordnen.',
+  namePrivacy: 'Dein Vorname bleibt auf diesem Gerät und wird nicht übermittelt. Eine Handynummer brauchen wir nicht.',
 };
 
 // Wiederkehrende Person auf demselben Gerät
@@ -107,11 +116,21 @@ export const ABOUT = {
     { id: '70-79', label: '70 bis 79' },
     { id: '80+', label: '80 und älter' },
   ],
-  consent: 'Ich bin einverstanden, dass meine Antworten für dieses Studierendenprojekt gespeichert und ausgewertet werden.',
+  consent: 'Ich bin einverstanden, dass meine Antworten ohne meinen Namen an das Projektteam der ZHAW übermittelt und für dieses Studierendenprojekt ausgewertet werden.',
+  // Ohne zentrale Speicherung (nicht eingerichtet)
+  consentLocal: 'Ich bin einverstanden, dass meine Antworten ohne Namen für dieses Studierendenprojekt ausgewertet werden.',
   errorAge: 'Bitte wähle deine Altersgruppe.',
   errorConsent: 'Bitte bestätige die Einwilligung, damit es weitergehen kann.',
+  dataTitle: 'Was wird gespeichert?',
+  dataLines: [
+    'Deine Altersgruppe und eine zufällige Teilnahmenummer.',
+    'Deine Angaben zu Ernährungsform, Allergien und Unverträglichkeiten.',
+    'Jede Antwort zu einer Karte mit Zeitpunkt, dazu die kurze Befragung am Schluss.',
+    'Nicht gespeichert: dein Vorname. Er bleibt auf diesem Gerät.',
+  ],
   submit: 'Weiter',
-  privacy: 'Deine Angaben bleiben auf diesem Gerät.',
+  privacy: 'Dein Vorname bleibt auf diesem Gerät. Alles andere geht ohne Namen an das Projektteam.',
+  privacyLocal: 'Deine Angaben bleiben auf diesem Gerät.',
 };
 
 // Profil-Knopf oben rechts (Kreis mit Initiale)
@@ -306,6 +325,79 @@ export const COMPLETE = {
   leadDishesEnded: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet. Deine bisherigen Antworten sind gespeichert.`,
 };
 
+// Kurze Befragung zum Schluss (Vorschlag 29.10.2026): Auswahlwerte 1 bis 5 bzw. 1 bis 3, gespeichert als Zahl.
+export const SURVEY = {
+  kicker: 'Fast geschafft',
+  title: (name) => (name ? `${name}, wie war es für dich?` : 'Wie war es für dich?'),
+  lead: 'Fünf kurze Fragen zum Schluss. Es gibt keine falschen Antworten.',
+  scales: [
+    {
+      id: 'ease',
+      question: 'Wie einfach war die Anwendung zu bedienen?',
+      options: [
+        { id: 1, label: 'Sehr schwierig' },
+        { id: 2, label: 'Eher schwierig' },
+        { id: 3, label: 'Mittel' },
+        { id: 4, label: 'Eher einfach' },
+        { id: 5, label: 'Sehr einfach' },
+      ],
+    },
+    {
+      id: 'clarity',
+      question: 'Wie verständlich waren die Antwortmöglichkeiten?',
+      options: [
+        { id: 1, label: 'Gar nicht verständlich' },
+        { id: 2, label: 'Eher nicht verständlich' },
+        { id: 3, label: 'Teils, teils' },
+        { id: 4, label: 'Eher verständlich' },
+        { id: 5, label: 'Sehr verständlich' },
+      ],
+    },
+    {
+      id: 'fit',
+      question: 'Wie gut beschreibt das angezeigte Profil deinen Geschmack?',
+      options: [
+        { id: 1, label: 'Gar nicht' },
+        { id: 2, label: 'Eher nicht' },
+        { id: 3, label: 'Teils, teils' },
+        { id: 4, label: 'Eher gut' },
+        { id: 5, label: 'Sehr gut' },
+      ],
+    },
+    {
+      id: 'length',
+      question: 'Wie empfandest du die Länge?',
+      options: [
+        { id: 1, label: 'Zu kurz' },
+        { id: 2, label: 'Gerade richtig' },
+        { id: 3, label: 'Zu lang' },
+      ],
+    },
+  ],
+  remarks: 'Was war unklar oder hat dir gefehlt?',
+  optional: 'freiwillig',
+  remarksPlaceholder: 'Deine Anmerkung',
+  errorMissing: 'Bitte wähle eine Antwort.',
+  submit: 'Absenden',
+  fineprint: 'Mit „Absenden“ schliesst du die Teilnahme ab.',
+};
+
+// Abschlussbestätigung: erst nach erfolgreicher Übertragung an die zentrale Speicherung (src/sync/sync.js).
+export const FINISH = {
+  kicker: 'Abschluss',
+  sendingTitle: 'Einen Moment …',
+  sending: 'Deine Antworten werden an das Projektteam übermittelt.',
+  title: (name) => (name ? `Vielen Dank, ${name}!` : 'Vielen Dank!'),
+  ok: 'Deine Antworten sind beim Projektteam angekommen. Du kannst die Seite jetzt schliessen.',
+  errorTitle: 'Noch nicht übermittelt',
+  error: 'Die Übermittlung hat nicht geklappt. Bitte prüfe die Internetverbindung und versuche es noch einmal. Deine Antworten sind auf diesem Gerät gespeichert.',
+  retry: 'Erneut senden',
+  local: 'Deine Antworten sind auf diesem Gerät gespeichert. Eine zentrale Speicherung ist nicht eingerichtet.',
+  codeTitle: 'Deine Teilnahmenummer',
+  codeHint: 'Mit dieser Nummer findet das Projektteam deine Antworten, zum Beispiel wenn du sie löschen lassen möchtest.',
+  toProfile: 'Zu meinem Profil',
+};
+
 // Fortschritt der vier Swipe-Runden, am Ende 100 %.
 export const PROGRESS = {
   title: 'Dein Fortschritt',
@@ -418,12 +510,17 @@ export const PROFILE = {
   continueAction: 'Weiter mit dem Profil',
   restart: 'Von vorn beginnen',
   restartTitle: 'Wirklich von vorn beginnen?',
-  restartText: 'Deine Antworten in dieser App werden zurückgesetzt. Für die Auswertung bleiben sie auf diesem Gerät gespeichert.',
+  restartText: 'Deine Antworten in dieser App werden zurückgesetzt. Deine bisherigen Antworten für die Auswertung bleiben erhalten.',
   restartConfirm: 'Ja, von vorn beginnen',
   signOut: 'Abmelden',
   signOutTitle: 'Abmelden?',
-  signOutText: 'Dein Profil wird von diesem Gerät gelöscht. Für die Auswertung bleiben deine Antworten auf diesem Gerät gespeichert.',
+  signOutText: 'Dein Profil wird von diesem Gerät gelöscht. Deine bisherigen Antworten für die Auswertung bleiben erhalten.',
   signOutConfirm: 'Ja, abmelden',
+  // Kurze Befragung am Schluss (29.10.2026)
+  surveyTitle: 'Kurze Befragung',
+  surveyText: 'Zum Schluss fünf kurze Fragen, wie du die Anwendung erlebt hast. Etwa eine Minute.',
+  surveyAction: 'Zur Befragung',
+  surveyDone: (code) => `Befragung abgeschlossen. Deine Teilnahmenummer: ${code}.`,
   // Bearbeiten
   editRating: 'Bewertung ändern',
   editRatingFor: (title) => `${title}: Bewertung ändern`,
@@ -474,6 +571,13 @@ export const ADMIN = {
   exportCsv: 'Export CSV (Ereignisse)',
   empty: 'Noch keine Sitzungen auf diesem Gerät.',
   noCode: 'ohne Nr.',
+  // Zentrale Speicherung (29.10.2026)
+  sync: ({ enabled, synced, total }) =>
+    enabled
+      ? `Zentrale Speicherung eingerichtet: ${synced} von ${plural(total, 'Sitzung', 'Sitzungen')} auf diesem Gerät übertragen. Gesamtexport aller Geräte: npm run export:zentral.`
+      : 'Keine zentrale Speicherung eingerichtet (VITE_SYNC_URL fehlt): Antworten bleiben auf diesem Gerät.',
+  synced: (record, when) => (record?.okAt ? `Zentral übertragen: ${when}` : record?.error ? `Noch nicht übertragen (${record.error})` : 'Noch nicht übertragen'),
+  survey: 'Befragung abgeschlossen',
   // Teilnehmer-Nr. und Vorname aus der Anmeldung (Teamentscheid 28.10.2026)
   participant: (code, name) => (name ? `${code} · ${name}` : code),
   finished: (duration) => `fertig, ${duration}`,

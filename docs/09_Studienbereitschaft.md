@@ -34,7 +34,8 @@ Stand 26.10.2026. Grundlage: Dokumente 01 bis 08, Testläufe vom 26.10.2026, [me
 5. Studien-URL ohne weitere Parameter festlegen; die Testleitung prüft in `?admin=1` die Zeile „Nächste Testperson startet mit …“ und dass keine ignorierten Parameter gemeldet werden.
 6. Auf jedem Gerät „Alle Daten löschen“, dann je Person „Neue Testperson starten“ und Teilnehmer-Nr. vergeben (Pilot `P01…`, Hauptstudie `T01…`).
 7. Manueller Durchlauf mit der eingefrorenen Version auf dem Studiengerät (Registrierung, drei Fragen, vier Runden, Profil, Export), Ergebnis im Studienprotokoll festhalten.
-8. Export-Ablauf üben: `?admin=1 → Export JSON (alles)`, Datei sicher ablegen, `npm run auswertung` einmal mit einem Testexport laufen lassen.
+8. Export-Ablauf üben: `npm run export:zentral` (alle Geräte, braucht den service_role key in `.env.local`) oder je Gerät `?admin=1 → Export JSON (alles)`, Datei sicher ablegen, `npm run auswertung` einmal mit einem Testexport laufen lassen.
+9. Zentrale Speicherung einrichten (Supabase-Projekt in der EU, Tabelle `sessions`, Repository-Variablen `VITE_SYNC_URL` und `VITE_SYNC_KEY`; Anleitung in [zentrale-speicherung.md](zentrale-speicherung.md)) und im Pilot mit 5 bis 10 Personen prüfen, dass jede Sitzung in der Tabelle ankommt und `finished` nach der Befragung wahr ist. Ohne die Variablen bleibt alles auf dem Gerät.
 
 **P3, nach der Studie:** B2, B5, B7, B8, Katalog, Migrationscode, Alternativen aus [08](08_Anwendungslogik_Bewertung.md).
 
@@ -54,12 +55,13 @@ Nicht protokolliert: Vorname, Telefonnummer (nur gekürzt im Konto auf dem Gerä
 
 Vorhanden: Antworten mit Position, Grund und Zeit; Kontrollkarten mit Ziehung und Antworten; Konfiguration je Sitzung; Vermutungen am Ende; Abbrüche; Rückgängig; Eingabemethode. Damit sind Lernkurve, Vergleichswerte, Pilot-Kennzahlen und das Kriterium aus dem Messkonzept berechenbar.
 
-Fehlend oder nur ausserhalb der App: die subjektive Einschätzung der Person zum Profil (Kurzinterview), Beobachtungsbogen, Gerätetyp, Test-Retest. Empfehlung: Interview und Beobachtung mit der Teilnehmer-Nr. verknüpfen, nie mit Namen.
+Seit dem 30.10.2026 in der App: die subjektive Einschätzung (kurze Befragung nach dem Profil: Bedienung, Verständlichkeit, Passung, Länge, offene Anmerkung; in der Sitzung als `survey`, in der CSV als `survey…`-Spalten). Fehlend oder nur ausserhalb der App: Beobachtungsbogen, Gerätetyp, Test-Retest. Empfehlung: Interview und Beobachtung mit der Teilnehmer-Nr. verknüpfen, nie mit Namen.
 
 ### Datensparsamkeit und Pseudonymisierung
 
-- Pseudonym ist die Teilnehmer-Nr. der Testleitung; `sessionId` ist zufällig. Seit dem 28.10.2026 steht zusätzlich der Vorname (`participantName`) in der Sitzung und im Export, damit die Testleitung die Antworten zuordnen kann (Teamentscheid); mit `PRIVACY.logParticipantName = false` bleibt er nur im Konto auf dem Gerät.
-- Ausschlüsse (Allergien) und bestätigte Vorschläge bei halal oder koscher sind Gesundheits- bzw. potenziell weltanschauliche Daten. Mit `PRIVACY.logExclusionValues = false` bleiben nur Typ und Herkunft; dann ist der Vorfilter nicht mehr auswertbar, aber die Lernkurve bleibt. **Offen:** Einwilligungstext (Frage F4) muss Gesundheitsdaten, lokale Speicherung, Export und den Vornamen im Export (`participantName`, seit dem 28.10.2026) nennen; einen SMS-Versand an Google gibt es nicht mehr.
+- Pseudonym ist die Teilnehmer-Nr. der Testleitung; `sessionId` ist zufällig und steht als Teilnahmenummer auf der Abschlussbestätigung. Der Vorname bleibt seit dem 30.10.2026 auf dem Gerät (`PRIVACY.logParticipantName = false`; vom 28. bis 29.10. war er in Sitzung und Export).
+- Zentrale Speicherung (seit dem 30.10.2026): Die ganze Sitzung geht nach der Einwilligung laufend an eine Supabase-Datenbank (EU-Region wählen). Der öffentliche Schlüssel im Build erlaubt nur Einfügen und das Überschreiben der eigenen Zeile (Token je Sitzung), kein Lesen; das Team liest mit dem service_role key über `npm run export:zentral`. Löschung auf Wunsch über die Teilnahmenummer. Details in [zentrale-speicherung.md](zentrale-speicherung.md).
+- Ausschlüsse (Allergien) und bestätigte Vorschläge bei halal oder koscher sind Gesundheits- bzw. potenziell weltanschauliche Daten. Mit `PRIVACY.logExclusionValues = false` bleiben nur Typ und Herkunft; dann ist der Vorfilter nicht mehr auswertbar, aber die Lernkurve bleibt. **Offen:** Einwilligungstext (Frage F4) muss Gesundheitsdaten, die Übermittlung an die zentrale Datenbank des Teams (Speicherort, Aufbewahrung) und die Auswertung nennen; der Text in der App vom 30.10.2026 ist ein Vorschlag und mit Tibor abzustimmen. Einen SMS-Versand an Google gibt es nicht mehr, der Vorname wird nicht übertragen.
 - Die Altersgruppe ist die einzige demografische Angabe; mit kleiner Stichprobe und Teilnehmer-Nr. ist Re-Identifikation durch die Testleitung möglich, durch Dritte nicht ohne die Liste.
 - Exporte nie ins Repository (`auswertung/` steht in `.gitignore`), Geräte nach der Studie mit „Alle Daten löschen“ bereinigen.
 

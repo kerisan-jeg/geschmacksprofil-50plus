@@ -14,6 +14,8 @@
 // Wiederkehrende Person auf demselben Gerät: welcome-back, dann weiter, wo sie war.
 // Bereich „Mein Profil“: eigener Tab, der Ablauf oben bleibt dabei an seiner Stelle stehen.
 // Das Alltagsprofil (Kap. 2.3) ist seit dem 28.10.2026 nicht mehr Teil des Prototyps.
+// Zum Schluss (29.10.2026): vom Profil oder Abschluss zur kurzen Befragung (survey) und zur Abschlussbestätigung
+// (finish), die erst nach erfolgreicher Übertragung an die zentrale Speicherung bestätigt (src/sync/sync.js).
 //
 // Das Event-Log (events) bleibt die einzige Quelle der Wahrheit (A8): Antworten beim Wischen,
 // Profiländerungen und die Ereignisse der Anmeldung stehen darin. Der Zustand der Runde und des
@@ -35,6 +37,8 @@ export const SCREENS = {
   INTRO: 'intro',
   ROUND: 'round',
   COMPLETE: 'complete',
+  SURVEY: 'survey',
+  FINISH: 'finish',
 };
 
 // DISHES bleibt nur für die Migration früherer separater Gerichte-Runden erhalten.
@@ -62,8 +66,13 @@ export function firstScreen(config) {
 // Weg nach vorn, und in der Runde haben Karte und Knöpfe den ganzen Bildschirm. „Mein Profil“ ist
 // vorher über den runden Knopf oben rechts erreichbar; dort führt die Leiste zurück.
 export function isNavVisible(state) {
-  if (BEFORE_ONBOARDING.includes(state.screen)) return false;
-  return state.tab === TABS.PROFILE || state.screen === SCREENS.COMPLETE;
+  if (BEFORE_ONBOARDING.includes(state.screen) || state.screen === SCREENS.SURVEY) return false;
+  return state.tab === TABS.PROFILE || state.screen === SCREENS.COMPLETE || state.screen === SCREENS.FINISH;
+}
+
+// Die Befragung steht offen, sobald mindestens eine Runde abgeschlossen oder beendet ist (Abschluss oder danach).
+export function canStartSurvey(state) {
+  return Boolean(state.onboarding) && (state.screen === SCREENS.COMPLETE || state.screen === SCREENS.FINISH);
 }
 
 // Nach „Stimmt so“: Tutorial nur, wenn es eingeschaltet ist (TUTORIAL_ENABLED), sonst direkt die erste Karte.
@@ -81,7 +90,7 @@ export function hasProgress(state) {
 // Die Zusammenfassung schliesst die Fragen ab und gehört deshalb noch zu ihnen.
 export function creationSteps(state, round) {
   const editingQuestions = state.screen === SCREENS.QUESTIONS || state.screen === SCREENS.SUMMARY || !state.onboarding;
-  const roundDone = Boolean(state.onboarding) && state.screen === SCREENS.COMPLETE;
+  const roundDone = Boolean(state.onboarding) && [SCREENS.COMPLETE, SCREENS.SURVEY, SCREENS.FINISH].includes(state.screen);
   const { answered, total } = round ? progress(round, state.config) : { answered: 0, total: 0 };
   let roundState = 'open';
   if (roundDone) roundState = 'done';
@@ -128,6 +137,8 @@ export function createAppModel({ index, stage0, allergens }) {
       roundMode: ROUND_MODES.MAIN,
       dishRound: 0,
       endedEarly: false,
+      // Kurze Befragung am Schluss abgeschickt (dann folgt die Abschlussbestätigung)
+      surveyDone: false,
       resume: null,
     };
     if (!saved?.state) return base;
@@ -224,6 +235,14 @@ export function createAppModel({ index, stage0, allergens }) {
         return { ...state, events: [...state.events, action.event] };
       case 'end':
         return { ...state, screen: SCREENS.COMPLETE, endedEarly: true };
+      // ---------- Befragung und Abschluss (29.10.2026) ----------
+      case 'survey':
+        return canStartSurvey(state) && !state.surveyDone ? { ...state, tab: TABS.CREATE, screen: SCREENS.SURVEY } : state;
+      // Zurück aus der Befragung: zum Profil, von dem aus sie meist aufgerufen wird.
+      case 'surveyCancel':
+        return state.screen === SCREENS.SURVEY ? { ...state, screen: SCREENS.COMPLETE, tab: TABS.PROFILE } : state;
+      case 'surveySubmitted':
+        return state.screen === SCREENS.SURVEY ? { ...state, surveyDone: true, screen: SCREENS.FINISH, tab: TABS.CREATE } : state;
       case 'restart':
         return { ...initialState(state.config), account: state.account, screen: state.account ? SCREENS.ABOUT : firstScreen(state.config) };
       // Abmelden: alles zurück auf Anfang, mit der aktuellen Konfiguration für die nächste Person.

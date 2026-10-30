@@ -6,7 +6,8 @@ import { APP, START } from '../labels.js';
 const HERO_IDS = ['F06', 'F12', 'F03'];
 const STEP_ICONS = [UserRound, ListChecks, Hand];
 
-export default function StartScreen({ onStart, storageAvailable = true }) {
+// syncEnabled: zentrale Speicherung eingerichtet (src/sync/sync.js); davon hängt ab, wohin die Antworten gehen.
+export default function StartScreen({ onStart, storageAvailable = true, syncEnabled = false }) {
   const heroCards = HERO_IDS.map((id) => catalog.cards.find((card) => card.id === id));
 
   return (
@@ -48,6 +49,17 @@ export default function StartScreen({ onStart, storageAvailable = true }) {
         <p className="note">{START.pause}</p>
       </div>
 
+      <section className="study-info" aria-labelledby="study-title">
+        <h2 id="study-title" className="panel-title">
+          {START.studyTitle}
+        </h2>
+        {START.study.map((line) => (
+          <p key={line} className="note">
+            {line}
+          </p>
+        ))}
+      </section>
+
       {!storageAvailable && (
         <p className="notice notice-warn" role="status">
           <TriangleAlert aria-hidden="true" />
@@ -59,7 +71,7 @@ export default function StartScreen({ onStart, storageAvailable = true }) {
         <button type="button" className="button-primary" onClick={onStart}>
           {START.start}
         </button>
-        <p className="fineprint">{START.fineprint}</p>
+        <p className="fineprint">{syncEnabled ? START.fineprint : START.fineprintLocal}</p>
       </div>
     </main>
   );

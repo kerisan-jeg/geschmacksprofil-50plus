@@ -144,9 +144,12 @@ export default function ProfileScreen({
   dietOptions,
   steps,
   next = null,
+  // Kurze Befragung am Schluss (29.10.2026): { available, done, sessionId }
+  survey = null,
   canSignOut,
   onCreate,
   onNext,
+  onSurvey,
   onRestart,
   onSignOut,
   onChange,
@@ -301,6 +304,25 @@ export default function ProfileScreen({
       </section>
 
       <ProfileStatus progress={progress} next={next} onNext={onNext} />
+
+      {survey?.available && (
+        <section className="panel survey-panel" aria-labelledby="survey-title">
+          <h2 id="survey-title" className="panel-title">
+            {PROFILE.surveyTitle}
+          </h2>
+          {survey.done ? (
+            <p className="note">{PROFILE.surveyDone(survey.sessionId)}</p>
+          ) : (
+            <>
+              <p>{PROFILE.surveyText}</p>
+              <button type="button" className="button-primary" onClick={onSurvey}>
+                {PROFILE.surveyAction}
+                <ChevronRight aria-hidden="true" />
+              </button>
+            </>
+          )}
+        </section>
+      )}
 
       <ProfileDisclosure id="insights-title" title={PROFILE.insightsTitle} icon={Sparkles} description={PROFILE.insightsLead}>
         <p className="note">{PROFILE.answerMeaning}</p>

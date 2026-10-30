@@ -23,8 +23,9 @@ export const EVENT_FIELDS = [
 // (fromPrediction, predictedScore) und die Auswahl der Sitzung (selection, holdout).
 // Seit Version 0.8: kind (Entitätstyp, nurec Kap. 8), phase dish (Gerichte), alternatives (nicht gezeigte Kandidaten,
 // Anhang B3.2) und QUESTION_ABORTED (Abbruch, Kap. 6).
-// Seit Version 0.10 (28.10.2026): participantName (Vorname aus der Anmeldung, für die Testleitung); die Spalten
+// Seit Version 0.10 (28.10.2026): participantName (Vorname, nur mit PRIVACY.logParticipantName); die Spalten
 // practical, uncertaintyFlag und sms gibt es nicht mehr (Alltagsprofil, Unsicherheits-Flag und SMS entfernt).
+// Seit Version 0.12 (29.10.2026): survey* (kurze Befragung am Schluss, je Sitzung wiederholt).
 export const CSV_COLUMNS = [
   ...EVENT_FIELDS,
   'round',
@@ -52,6 +53,11 @@ export const CSV_COLUMNS = [
   'previousDiet',
   'participantCode',
   'participantName',
+  'surveyEase',
+  'surveyClarity',
+  'surveyFit',
+  'surveyLength',
+  'surveyRemarks',
   'ageGroup',
   'diet',
   'dietOriginal',
@@ -81,6 +87,11 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
     const shared = {
       participantCode: session.participantCode,
       participantName: session.participantName ?? null,
+      surveyEase: session.survey?.ease ?? null,
+      surveyClarity: session.survey?.clarity ?? null,
+      surveyFit: session.survey?.fit ?? null,
+      surveyLength: session.survey?.length ?? null,
+      surveyRemarks: session.survey?.remarks ?? null,
       ageGroup: session.onboarding?.ageGroup ?? null,
       // Alte Sitzungen („Kein Schweinefleisch“ als Ernährungsweise): diet ist die Ernährungsform wie heute
       // gelesen, dietOriginal der damals gespeicherte Wert (nur bei solchen Sitzungen gefüllt).
@@ -139,6 +150,8 @@ export function summarizeSession(session) {
     participantName: session.participantName ?? null,
     startedAt: session.startedAt,
     finished: Boolean(session.endedAt),
+    // Befragung am Schluss abgeschlossen (29.10.2026)
+    survey: Boolean(session.survey?.submittedAt),
     durationMs,
     // Gültige Antworten nach dem Abspielen des Logs (rückgängig gemachte zählen nicht)
     answers: played.sequence.length,

@@ -4,7 +4,7 @@
 //   geschmacksprofil:account  Vorname (seit dem 28.10.2026 ohne Handynummer).
 //   geschmacksprofil:app      Stand der App (Fragebogen, Event-Log, Bildschirm), damit nach einem
 //                             Neuladen oder beim nächsten Öffnen dort weitergeht, wo die Person war.
-// Der Vorname steht zusätzlich als participantName in der Sitzung (PRIVACY.logParticipantName), sonst nirgends.
+// Der Vorname bleibt hier; in der Sitzung steht er nur mit PRIVACY.logParticipantName (seit dem 29.10.2026 aus).
 
 export const ACCOUNT_KEY = 'geschmacksprofil:account';
 export const APP_STATE_KEY = 'geschmacksprofil:app';
@@ -59,7 +59,7 @@ export function clearAccount() {
 }
 
 // Stand der App. Nur Felder, die zum Weitermachen nötig sind; die laufende Eingabe des Vornamens nicht.
-const PERSISTED = ['screen', 'tab', 'config', 'person', 'answers', 'step', 'editing', 'onboarding', 'events', 'roundNumber', 'roundMode', 'dishRound', 'endedEarly'];
+const PERSISTED = ['screen', 'tab', 'config', 'person', 'answers', 'step', 'editing', 'onboarding', 'events', 'roundNumber', 'roundMode', 'dishRound', 'endedEarly', 'surveyDone'];
 
 export function saveAppState(state, sessionId) {
   const snapshot = Object.fromEntries(PERSISTED.map((key) => [key, state[key]]));

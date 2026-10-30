@@ -4,7 +4,7 @@ Kurzfassung der Analyse vom 26.10.2026 (Commit `60bc8c5`, Regeln `demo-0.6`) zur
 
 ## Was sich am 28. und 29.10.2026 geändert hat (Teamentscheide)
 
-- **Anmeldung nur mit dem Vornamen:** keine Handynummer, kein SMS-Code, kein Firebase. Der Vorname steht als `participantName` in der Sitzung und im Export, damit die Testleitung die Antworten zuordnen kann (abschaltbar mit `PRIVACY.logParticipantName`). Das gehört in den Einwilligungstext.
+- **Anmeldung nur mit dem Vornamen:** keine Handynummer, kein SMS-Code, kein Firebase. Der Vorname stand vom 28. bis 29.10. als `participantName` in Sitzung und Export; seit dem 30.10.2026 bleibt er auf dem Gerät (`PRIVACY.logParticipantName = false`), weil die Sitzungen jetzt zentral gesammelt werden.
 - **Über dich:** Die Einwilligung ist ein Kästchen mit kleinem Text unter den Altersfeldern, weiterhin Pflicht.
 - **Frage 1:** Die Speisevorschriften (Halal, Koscher) sind zugeklappt; erst öffnen, dann wählen.
 - **Frage 2:** ohne „Ich bin mir nicht sicher, ob es weitere gibt“, ohne „ärztlich oder fachlich festgestellt“, ohne „Ganz meiden / Kleine Mengen gehen“. Laktose ist immer ein voller Ausschluss. „Vertrage ich nicht“ bleibt beim Wischen in allen vier Runden.
@@ -14,10 +14,18 @@ Kurzfassung der Analyse vom 26.10.2026 (Commit `60bc8c5`, Regeln `demo-0.6`) zur
 - **Katalog (29.10.2026):** 42 neue Gerichte mit Unsplash-Fotos, neu 64 statt 22, darunter viele ohne Milch und Gluten (Laktose: 32 statt 7, vegan: 12 statt 4). Neue Küchen griechisch, spanisch, orientalisch, indisch, japanisch, amerikanisch. Alle neuen Gerichte sind Team-Ergänzungen [V] mit konservativen Tags und mit nurec zu prüfen (Liste in [bilder-a16.md](bilder-a16.md), Nachtrag 29.10.).
 - **Bilder:** Egli und Chili con Carne haben neue Fotos ohne Rahm bzw. Käse, Mehrkornknäcke zeigt das Knäckebrot-Foto ohne Butter, Kerne und Samen ein Foto ohne Mandel: Diese Karten zeigten bei Laktose, Milcheiweiss, vegan bzw. Nussallergie den Platzhalter, weil das Foto Ausgeschlossenes zeigte. Alle Karten ausser den Gruppen haben ein Foto; Gruppenbilder bestehen weiterhin aus Teilen, von denen einzelne bei Ausschlüssen wegfallen können.
 
+## Was am 30.10.2026 dazukam (Vorschlag vom 29.10.)
+
+- **Zentrale Speicherung:** Die Sitzung geht nach der Einwilligung laufend an eine Datenbank des Teams (Supabase/PostgREST), auch bei Abbruch bleiben die Daten erhalten. Der öffentliche Schlüssel im Build kann nur schreiben, gelesen wird nur mit dem Team-Schlüssel über `npm run export:zentral`. **Offen:** Supabase-Projekt anlegen und die beiden Repository-Variablen setzen (Anleitung in [zentrale-speicherung.md](zentrale-speicherung.md)); bis dahin bleibt alles auf dem Gerät, und die App sagt das.
+- **Kurze Befragung** nach dem Profil: Bedienung, Verständlichkeit der Antwortmöglichkeiten, Passung des Profils, Länge (je Auswahl) und „Was war unklar oder hat dir gefehlt?“ (frei). Erreichbar, sobald eine Runde abgeschlossen oder beendet ist.
+- **Abschlussbestätigung** mit Teilnahmenummer; „Vielen Dank“ erst, wenn die Übertragung gelungen ist, sonst „Erneut senden“.
+- **Texte:** Studieninformation auf dem Startbildschirm, Einwilligung nennt die Übermittlung an das Projektteam, „Was wird gespeichert?“ aufklappbar. „Deine Angaben bleiben auf diesem Gerät“ steht nur noch, wenn keine zentrale Speicherung eingerichtet ist. Der Vorname bleibt auf dem Handy; App-Daten und Befragung hängen über die Teilnahmenummer zusammen.
+- **Nächster Schritt:** begleiteter Pilottest mit 5 bis 10 Personen ab 50, dabei prüfen, dass jede Sitzung in der Tabelle ankommt.
+
 
 ## Wie funktioniert unsere Anwendung eigentlich?
 
-Alles läuft im Browser, ohne Server. Die Person beantwortet drei Fragen (Ernährungsform, Allergien, „Nie vorschlagen“), bestätigt die Regeln und wischt dann vier Runden: Gruppen, Untergruppen, einzelne Lebensmittel, Gerichte. Jede Antwort ist ein Ereignis in einem Protokoll; aus diesem Protokoll berechnet die App bei jedem Schritt neu, welche Karte als Nächstes kommt und wie das Profil aussieht. Nichts wird überschrieben, Rückgängig ist ein eigenes Ereignis. Die ganze Logik steht in `src/logic/` als reine Funktionen und ist mit 340 Tests abgedeckt.
+Alles läuft im Browser; einen eigenen Server gibt es nicht, nur die Datenbank, an die die Sitzung seit dem 30.10.2026 übertragen wird. Die Person beantwortet drei Fragen (Ernährungsform, Allergien, „Nie vorschlagen“), bestätigt die Regeln und wischt dann vier Runden: Gruppen, Untergruppen, einzelne Lebensmittel, Gerichte. Jede Antwort ist ein Ereignis in einem Protokoll; aus diesem Protokoll berechnet die App bei jedem Schritt neu, welche Karte als Nächstes kommt und wie das Profil aussieht. Nichts wird überschrieben, Rückgängig ist ein eigenes Ereignis. Die ganze Logik steht in `src/logic/` als reine Funktionen und ist mit 340 Tests abgedeckt.
 
 ## Wie beeinflusst eine Swipe-Entscheidung die folgenden Runden?
 

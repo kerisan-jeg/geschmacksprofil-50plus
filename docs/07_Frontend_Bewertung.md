@@ -67,7 +67,7 @@ Einschätzung: technisch über dem Üblichen. Offen bleibt die kognitive Last: d
 
 ### Überflüssige Interaktionen (Einschätzung)
 
-- Die Anmeldung vor dem Swipen ist seit dem 28.10.2026 nur noch der Vorname (keine Handynummer, kein SMS-Code); sie kostet wenige Sekunden und gibt der Testleitung die Zuordnung (`participantName`). Abschaltbar mit `AUTH_ENABLED = false`.
+- Die Anmeldung vor dem Swipen ist seit dem 28.10.2026 nur noch der Vorname (keine Handynummer, kein SMS-Code); sie kostet wenige Sekunden und dient seit dem 30.10.2026 nur noch der Ansprache (der Vorname wird nicht übertragen; Zuordnung über die Teilnahmenummer). Abschaltbar mit `AUTH_ENABLED = false`.
 - Marken und Herkunft in Frage 3 und das Alltagsprofil (beide ohne Wirkung auf die Karten) sind seit dem 28.10.2026 entfernt.
 - Die Zusammenfassung vor Runde 1 ist von nurec gefordert; sie kostet einen Bildschirm.
 

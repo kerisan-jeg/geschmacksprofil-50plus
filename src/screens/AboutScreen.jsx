@@ -7,8 +7,9 @@ import { ABOUT } from '../labels.js';
 // „Über dich“: erster Schritt im Onboarding. Alter und Einwilligung sind Pflicht (Rückmeldung Team, 12.10.).
 // Mit Anmeldung kennen wir den Vornamen schon. Ohne Anmeldung (AUTH_ENABLED = false) ist er hier freiwillig.
 // Die Einwilligung steht als kleine Schrift mit Kästchen unter den Altersfeldern (Teamentscheid 28.10.2026),
-// bleibt aber Pflicht. Die Altersgruppe geht in die Auswertung.
-export default function AboutScreen({ person, askName, firstName: initialName = '', onSubmit, onBack }) {
+// bleibt aber Pflicht. Die Altersgruppe geht in die Auswertung. Mit zentraler Speicherung (syncEnabled) nennt die
+// Einwilligung die Übermittlung an das Projektteam; „Was wird gespeichert?“ zählt die Daten auf (Studieninformation).
+export default function AboutScreen({ person, askName, firstName: initialName = '', onSubmit, onBack, syncEnabled = false }) {
   const [firstName, setFirstName] = useState(initialName);
   const [ageGroup, setAgeGroup] = useState(person.ageGroup);
   const [consent, setConsent] = useState(person.consent);
@@ -86,7 +87,7 @@ export default function AboutScreen({ person, askName, firstName: initialName = 
         <div className="field" ref={consentRef}>
           <label className="consent-line">
             <input type="checkbox" name="consent" checked={consent} onChange={() => setConsent(!consent)} />
-            <span className="note">{ABOUT.consent}</span>
+            <span className="note">{syncEnabled ? ABOUT.consent : ABOUT.consentLocal}</span>
           </label>
           {showError && missing.consent && (
             <p className="form-error" role="alert">
@@ -96,13 +97,22 @@ export default function AboutScreen({ person, askName, firstName: initialName = 
           )}
         </div>
 
+        <details className="lead-details">
+          <summary>{ABOUT.dataTitle}</summary>
+          <ul className="data-lines">
+            {ABOUT.dataLines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </details>
+
         <div className="action-bar">
           <button type="submit" className="button-primary">
             {ABOUT.submit}
           </button>
           <p className="privacy-line">
             <Lock aria-hidden="true" />
-            {ABOUT.privacy}
+            {syncEnabled ? ABOUT.privacy : ABOUT.privacyLocal}
           </p>
         </div>
       </form>

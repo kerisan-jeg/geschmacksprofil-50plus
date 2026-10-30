@@ -28,6 +28,10 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+        env:
+          # Zentrale Speicherung (docs/zentrale-speicherung.md): Repository-Variablen; fehlen sie, bleibt alles lokal
+          VITE_SYNC_URL: ${{ vars.VITE_SYNC_URL }}
+          VITE_SYNC_KEY: ${{ vars.VITE_SYNC_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

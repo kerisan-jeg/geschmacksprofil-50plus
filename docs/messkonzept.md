@@ -113,13 +113,13 @@ Die Stufen sind den Runden fest zugeordnet: Familien → Untergruppen → konkre
 1. Testgerät vorbereiten: `?admin=1` öffnen, „Neue Testperson starten“ drücken und eine Teilnehmer-Nr. vergeben (T01, T02, …). Wer kein eigenes Handy nutzt, bekommt `?sms=sim`.
 2. Einführung in einem Satz. Die Wischrichtungen nicht erklären, damit sich die Verständlichkeit prüfen lässt. Die Person bitten, laut zu denken.
 3. Die Person macht alles bis zum Abschluss der letzten Runde. Die Testleitung beobachtet und notiert.
-4. Kurzinterview:
+4. Kurzinterview (die ersten vier Punkte fragt seit dem 30.10.2026 die App selbst in der kurzen Befragung nach dem Profil: Bedienung, Verständlichkeit, Passung, Länge, offene Anmerkung; im Export als `survey`):
    - Waren „Kenne ich nicht“, „Mag ich nicht“ und „Vertrage ich nicht“ klar?
    - Passten die Bilder?
    - War es zu lang?
    - War die Zusammenfassung hilfreich?
    - Stimmen die Vermutungen in „Mein Profil“?
-5. Am Ende des Tages in `?admin=1` „Export JSON (alles)“ wählen und die Datei sicher ablegen, nie ins Repo.
+5. Am Ende des Tages `npm run export:zentral` ausführen (alle Geräte, siehe `docs/zentrale-speicherung.md`) oder je Gerät in `?admin=1` „Export JSON (alles)“ wählen; die Datei sicher ablegen, nie ins Repo.
 
 **Beobachtungsbogen:** Start und Ende, wo Hilfe nötig war, Verwechslungen (z. B. „Mag ich nicht“ statt „Vertrage ich nicht“), Abbruch, Kommentare.
 

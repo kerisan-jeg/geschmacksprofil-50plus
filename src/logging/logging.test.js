@@ -64,7 +64,9 @@ test('Logger speichert erst nach der Anmeldung, dann Onboarding, Ereignisse und 
   logger.trace('screen', { screen: 'start' });
   assert.equal(listSessions().length, 0, 'keine leere Sitzung');
   logger.start({ participantCode: 'T01', ageGroup: '60-69' });
+  PRIVACY.logParticipantName = true; // Vorname nur für diesen Test protokollieren (Standard seit dem 29.10.2026: aus)
   logger.setParticipantName(' Annelies ');
+  PRIVACY.logParticipantName = false;
   logger.setOnboarding({
     diet: 'vegan',
     exclusions: [{ type: 'allergen', value: 'hazelnut', source: 'onboarding', origin: 'intolerances', label: 'Haselnuss' }],

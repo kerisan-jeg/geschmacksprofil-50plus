@@ -12,17 +12,19 @@ Es gibt keine Datenbank, kein Backend, kein maschinelles Lernen und keine Produk
 
 | Schritt | Bildschirm (`src/screens/`) | Was passiert |
 |---|---|---|
-| 1 | StartScreen | Einführung in drei Sätzen |
-| 2 | RegisterName | Anmeldung nur mit dem Vornamen (nur mit `AUTH_ENABLED = true`, Standard); seit dem 28.10.2026 ohne Handynummer und SMS-Code. Der Vorname steht als `participantName` in der Sitzung und im Export für die Testleitung (`PRIVACY.logParticipantName`) |
-| 3 | AboutScreen | Altersgruppe (Pflicht), Einwilligung als Kästchen mit kleinem Text unter den Altersfeldern (Pflicht), Teilnehmer-Nr. (für die Testleitung) |
+| 1 | StartScreen | Einführung in drei Sätzen und kurze Studieninformation (was gespeichert und übertragen wird; seit dem 30.10.2026) |
+| 2 | RegisterName | Anmeldung nur mit dem Vornamen (nur mit `AUTH_ENABLED = true`, Standard); seit dem 28.10.2026 ohne Handynummer und SMS-Code. Der Vorname bleibt seit dem 30.10.2026 auf dem Gerät (`PRIVACY.logParticipantName = false`) und dient nur der Ansprache |
+| 3 | AboutScreen | Altersgruppe (Pflicht), Einwilligung als Kästchen mit kleinem Text unter den Altersfeldern (Pflicht; nennt die Übermittlung an das Projektteam, aufklappbar „Was wird gespeichert?“); das Feld Teilnehmer-Nr. ist seit dem 29.10.2026 entfernt |
 | 4 | QuestionnaireScreen | Stufe 0: drei Fragen, je ein Bildschirm (Ernährungsform mit Einzelausschlüssen und zugeklappten Speisevorschriften; Allergien und Unverträglichkeiten ohne Zusatzangaben; „Nie vorschlagen“ ohne Marken und Herkunft; Stand 28.10.2026) |
 | 5 | SummaryScreen | „Stimmt das so?“: alle festen Regeln, „Ändern“ je Frage, „Stimmt so“ |
 | 6 | RoundScreen | Runde 1: Lebensmittelgruppen (bis 13 Karten) |
 | 7 | CompleteScreen | Abschluss mit Zählung der Antworten, Profilstand, Rundenübersicht, „Weiter mit Runde 2“ |
 | 8 | RoundScreen / CompleteScreen | Runde 2: Untergruppen und Kontrollkarten; Runde 3: einzelne Lebensmittel; Runde 4: die 13 passendsten erlaubten Gerichte anhand der Vorrunden; alle Runden enden beim Kartenlimit oder wenn keine Karte mehr übrig ist |
-| 9 | ProfileScreen | „Mein Profil“: Antwortkategorien, Profilstand, Vermutungen, Ausschlüsse; Bearbeiten möglich. Das Alltagsprofil (PracticalScreen) ist seit dem 28.10.2026 entfernt |
+| 9 | ProfileScreen | „Mein Profil“: Antwortkategorien, Profilstand, Vermutungen, Ausschlüsse; Bearbeiten möglich. Das Alltagsprofil (PracticalScreen) ist seit dem 28.10.2026 entfernt. Nach einer abgeschlossenen Runde: „Zur Befragung“ |
+| 10 | SurveyScreen | Kurze Befragung (seit dem 30.10.2026): vier Pflichtfragen mit Auswahl (Bedienung, Verständlichkeit, Passung des Profils, Länge) und eine freiwillige Anmerkung; ohne Leiste |
+| 11 | FinishScreen | Abschlussbestätigung mit Teilnahmenummer (`sessionId`); „Vielen Dank“ erst nach erfolgreicher Übertragung an die zentrale Speicherung, sonst „Erneut senden“ |
 
-Zusätzlich: WelcomeBackScreen (gespeicherter Stand auf demselben Gerät), IntroScreen (Tutorial, standardmässig aus), AdminScreen (`?admin=1`: Sitzungen, Export, „Neue Testperson starten“).
+Zusätzlich: WelcomeBackScreen (gespeicherter Stand auf demselben Gerät), IntroScreen (Tutorial, standardmässig aus), AdminScreen (`?admin=1`: Sitzungen, Übertragungsstand, Export, „Neue Testperson starten“). Die zentrale Speicherung (`src/sync/sync.js`, Upsert je Sitzung an PostgREST/Supabase) ist in [zentrale-speicherung.md](zentrale-speicherung.md) beschrieben.
 
 ## 3. Architektur in Schichten
 

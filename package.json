@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --import ./scripts/test-setup.mjs --test \"src/**/*.test.js\"",
-    "auswertung": "node --import ./scripts/test-setup.mjs scripts/evaluate.mjs"
+    "auswertung": "node --import ./scripts/test-setup.mjs scripts/evaluate.mjs",
+    "export:zentral": "node --import ./scripts/test-setup.mjs scripts/export-sessions.mjs"
   },
   "dependencies": {
     "@fontsource-variable/atkinson-hyperlegible-next": "^5.3.0",

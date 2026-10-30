@@ -869,3 +869,10 @@
 .dialog-text {
   line-height: var(--line-height-snug);
 }
+
+/* Mehrzeilige Eingabe (Befragung am Schluss) */
+.input.textarea {
+  height: auto;
+  min-height: calc(var(--size-touch) * 2.5);
+  resize: vertical;
+}

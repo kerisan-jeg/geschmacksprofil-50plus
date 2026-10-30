@@ -1,6 +1,7 @@
-// Protokoll pro Testperson (A9). Gespeichert wird nur im Browser (localStorage), es gibt kein
-// Backend und keine Netzwerkanfrage. Jeder Speicherzugriff steht in try/catch: Ist der Speicher
-// nicht verfügbar (z. B. privater Modus), bleibt die Sitzung im Arbeitsspeicher und die App läuft weiter.
+// Protokoll pro Testperson (A9). Gespeichert wird im Browser (localStorage); nach jedem Speichern meldet der Logger die
+// Sitzung an onChange, worüber die zentrale Speicherung sie überträgt (src/sync/sync.js, seit dem 29.10.2026). Jeder
+// Speicherzugriff steht in try/catch: Ist der Speicher nicht verfügbar (z. B. privater Modus), bleibt die Sitzung im
+// Arbeitsspeicher und die App läuft weiter.
 //
 // Sitzung:  sessionId, participantCode, participantName, startedAt, endedAt, appVersion, ruleVersion, config,
 //           onboarding { ageGroup, diet, exclusions (mit source), freeTextNotes },
@@ -8,9 +9,9 @@
 //           AUTH_STARTED/AUTH_COMPLETED), trace (Bildschirme).
 // Ereignis: sessionId, cardId, stage, parentId, positionInRound, response, timestamp,
 //           responseTimeMs, inputMethod, selectionReason (+ excludedCardIds, ruleVersion).
-// Datenschutz: Der Vorname steht seit dem 28.10.2026 als participantName in der Sitzung und im Export, damit die
-// Testleitung die Sitzung zuordnen kann (Teamentscheid; abschaltbar mit PRIVACY.logParticipantName). Eine
-// Handynummer wird nicht mehr erhoben.
+// Datenschutz: Der Vorname bleibt auf dem Gerät (PRIVACY.logParticipantName, seit dem 29.10.2026 standardmässig aus);
+// Sitzung, Export und Datenbank tragen die zufällige Teilnahmenummer (sessionId). syncToken ist das Geheimnis, mit dem
+// nur dieses Gerät seine Zeile in der zentralen Datenbank überschreiben darf. survey ist die kurze Befragung am Schluss.
 
 import { APP_VERSION, PRIVACY } from '../config.js';
 import { RULE_VERSION } from '../logic/engine.js';
@@ -38,6 +39,17 @@ export function storageAvailable() {
   } catch {
     return false;
   }
+}
+
+// Geheimnis je Sitzung für die zentrale Speicherung (x-session-token, src/sync/sync.js).
+function newToken() {
+  try {
+    const bytes = globalThis.crypto?.getRandomValues?.(new Uint8Array(16));
+    if (bytes) return [...bytes].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  } catch {
+    // weiter unten
+  }
+  return `${Math.random().toString(16).slice(2)}${Date.now().toString(16)}`;
 }
 
 function newSessionId() {
@@ -111,10 +123,11 @@ function eventForLog(event) {
 // resumeSessionId: Sitzung nach einem Neuladen fortsetzen (gleiche Person, gleiches Protokoll).
 // seedEvents: Ereignisse aus dem gespeicherten Stand, falls die Sitzung noch nicht gespeichert war
 // (z. B. Neuladen zwischen Registrierung und Einwilligung), damit AUTH_STARTED nicht verloren geht.
-export function createLogger(config, { resumeSessionId = null, seedEvents = [] } = {}) {
+export function createLogger(config, { resumeSessionId = null, seedEvents = [], onChange = null } = {}) {
   const existing = resumeSessionId ? loadSession(resumeSessionId) : null;
   const session = existing ?? {
     sessionId: resumeSessionId ?? newSessionId(),
+    syncToken: newToken(),
     participantCode: null,
     participantName: null,
     startedAt: new Date().toISOString(),
@@ -124,9 +137,11 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [] }
     config: { ...config },
     onboarding: null,
     profile: null,
+    survey: null,
     events: [],
     trace: [],
   };
+  if (!session.syncToken) session.syncToken = newToken();
   if (!existing && seedEvents.length > 0) session.events = seedEvents.map((event) => eventForLog({ ...event, sessionId: session.sessionId }));
   if (existing && config.roundFlow && existing.config?.roundFlow !== config.roundFlow) {
     session.configHistory = [...(session.configHistory ?? []), { config: session.config, ruleVersion: session.ruleVersion }];
@@ -143,6 +158,8 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [] }
     } catch {
       // Speicher voll oder gesperrt: Sitzung bleibt im Arbeitsspeicher.
     }
+    // Zentrale Speicherung: erst ab der Einwilligung (stored), nie vorher.
+    onChange?.(session);
   }
 
   return {
@@ -190,6 +207,11 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [] }
     // Profil nach Änderungen in „Mein Profil“ aktuell halten, ohne das Ende der Runde zu verschieben.
     updateProfile(profile) {
       session.profile = { ...profile, exclusions: (profile.exclusions ?? []).map(exclusionForLog) };
+      persist();
+    },
+    // Kurze Befragung am Schluss (29.10.2026): vier Auswahlfragen und eine freiwillige Anmerkung.
+    setSurvey({ ease, clarity, fit, length, remarks }) {
+      session.survey = { ease, clarity, fit, length, remarks: String(remarks ?? '').trim().slice(0, 500) || null, submittedAt: new Date().toISOString() };
       persist();
     },
   };

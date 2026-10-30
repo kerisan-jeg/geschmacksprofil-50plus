@@ -15,19 +15,20 @@ Erstellt mit Claude Code im Auftrag des Teams (26.10.2026); alle Aussagen sind a
 | [08_Anwendungslogik_Bewertung.md](08_Anwendungslogik_Bewertung.md) | Befunde B1 bis B10, Grenzen, Alternativen |
 | [09_Studienbereitschaft.md](09_Studienbereitschaft.md) | Checkliste, Prioritäten vor der Studie, Daten, Versionierung, Pilot gegenüber Hauptstudie |
 | [10_Zusammenfassung_Team.md](10_Zusammenfassung_Team.md) | Kurzfassung für das Gespräch mit dem Dozenten |
+| [zentrale-speicherung.md](zentrale-speicherung.md) | Zentrale Speicherung (Supabase), kurze Befragung, Abschlussbestätigung, Einrichtung und Export (30.10.2026) |
 
 ## Analysierter Stand
 
 | | Wert |
 |---|---|
 | Git-Commit | `60bc8c5` (main, 24.10.2026, „CSS-Konflikt beheben und Antwortknöpfe wieder sichtbar machen“) |
-| Nachgeführt | 28.10.2026 (Teamentscheide): Anmeldung nur mit Vornamen, Einwilligung als Kästchen, Speisevorschriften zugeklappt, Frage 2 und 3 ohne Zusatzangaben, Alltagsprofil entfernt, Runde 4 ohne Kartenlimit mit nur passenden Gerichten, Egli- und Chili-Foto ersetzt. 29.10.2026: Geschmacksfilter in Runde 4 wieder entfernt, „Runde beenden“ von Anfang an, Katalog von 22 auf 64 Gerichte erweitert; Kurzfassung in [10_Zusammenfassung_Team.md](10_Zusammenfassung_Team.md) |
-| `APP_VERSION` (src/config.js) | 0.11.0-demo (28.10.2026: 0.10.0-demo; vorher 0.9.0-demo) |
+| Nachgeführt | 28.10.2026 (Teamentscheide): Anmeldung nur mit Vornamen, Einwilligung als Kästchen, Speisevorschriften zugeklappt, Frage 2 und 3 ohne Zusatzangaben, Alltagsprofil entfernt, Runde 4 ohne Kartenlimit mit nur passenden Gerichten, Egli- und Chili-Foto ersetzt. 29.10.2026: Geschmacksfilter in Runde 4 wieder entfernt, „Runde beenden“ von Anfang an, Katalog von 22 auf 64 Gerichte erweitert. 30.10.2026: zentrale Speicherung (Supabase/PostgREST, `src/sync/`), kurze Befragung und Abschlussbestätigung, Vorname bleibt auf dem Gerät; siehe [zentrale-speicherung.md](zentrale-speicherung.md). Kurzfassung in [10_Zusammenfassung_Team.md](10_Zusammenfassung_Team.md) |
+| `APP_VERSION` (src/config.js) | 0.12.0-demo (29.10.2026: 0.11.0-demo; 28.10.2026: 0.10.0-demo; vorher 0.9.0-demo) |
 | `RULE_VERSION` (src/logic/engine.js) | demo-0.8 (28.10.2026: demo-0.7; vorher demo-0.6) |
 | `ROUND_FLOW` | staged-v1 |
 | Kartenkatalog `src/data/catalog.json` | 209 Karten: 13 Gruppen, 36 Untergruppen, 96 konkrete Lebensmittel, 64 Gerichte (42 neue am 29.10.2026); SHA-256 `57eb2766…ce38c7` (am 26.10.2026: 167 Karten, `d69605d9…f88161`) |
 | Standardkonfiguration | 13 Karten je Runde (Maximum 15) in allen vier Runden, Runde 4 mit den passendsten Gerichten anhand der Vorrunden (`demo-0.9`), adaptive Auswahl, 6 Kontrollkarten, Skala Runde 1 mit drei Begriffen, Fotos, Anmeldung mit Vornamen an |
-| Tests | 318 am 29.10.2026, alle bestanden (`npm test`); am 26.10.2026 waren es 314 vorhandene plus 26 neue |
+| Tests | 332 am 30.10.2026, alle bestanden (`npm test`; 318 am 29.10.2026); am 26.10.2026 waren es 314 vorhandene plus 26 neue |
 
 Die vollständigen Prüfsummen und ein Vorschlag zum Einfrieren der Studienversion stehen in [09_Studienbereitschaft.md](09_Studienbereitschaft.md).
 
