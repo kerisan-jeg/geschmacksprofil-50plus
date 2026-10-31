@@ -9,7 +9,10 @@
 // erneut versucht; lokal ist sie ohnehin gespeichert (logging/logger.js). Der Zustand ist beobachtbar (subscribe), und
 // die letzte erfolgreiche Übertragung je Sitzung steht in localStorage (Admin-Ansicht, Abschluss nach einem Neuladen).
 // Schutz: Jede Sitzung trägt ein zufälliges Token (syncToken). Die Datenbank erlaubt das Überschreiben einer Zeile nur
-// mit demselben Token (Header x-session-token) und das Lesen nur mit dem Schlüssel des Teams (nie in der App).
+// mit demselben Token (Header x-session-token). Auch Lesen ist auf dieses Token begrenzt; der Gesamtexport braucht
+// den geheimen Schlüssel des Teams (nie in der App).
+
+import { apiHeaders } from './headers.js';
 
 export const SYNC_STATES = { OFF: 'off', IDLE: 'idle', PENDING: 'pending', SENDING: 'sending', OK: 'ok', ERROR: 'error' };
 export const SYNC_RECORDS_KEY = 'geschmacksprofil:sync';
@@ -109,8 +112,7 @@ export function createSync({
     const response = await fetchFn(endpoint, {
       method: 'POST',
       headers: {
-        apikey: key,
-        Authorization: `Bearer ${key}`,
+        ...apiHeaders(key),
         'Content-Type': 'application/json',
         Prefer: 'resolution=merge-duplicates,return=minimal',
         'x-session-token': session.syncToken ?? '',

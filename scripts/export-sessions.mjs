@@ -11,6 +11,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { sessionsToCsv, sessionsToJson } from '../src/logging/export.js';
+import { apiHeaders } from '../src/sync/headers.js';
 
 function readEnvFile(file) {
   if (!existsSync(file)) return {};
@@ -33,7 +34,7 @@ function parseArgs(argv) {
 
 const options = parseArgs(process.argv.slice(2));
 const envFile = readEnvFile(path.resolve('.env.local'));
-const url = (process.env.SYNC_URL || envFile.SYNC_URL || envFile.VITE_SYNC_URL || '').replace(/\/$/, '');
+const url = (process.env.SYNC_URL || process.env.VITE_SYNC_URL || envFile.SYNC_URL || envFile.VITE_SYNC_URL || '').replace(/\/$/, '');
 const serviceKey = process.env.SYNC_SERVICE_KEY || envFile.SYNC_SERVICE_KEY || '';
 if (!url || !serviceKey) {
   console.error('Fehlt: SYNC_URL und SYNC_SERVICE_KEY (Umgebung oder .env.local). Siehe docs/zentrale-speicherung.md.');
@@ -44,7 +45,7 @@ const PAGE = 500;
 const sessions = [];
 for (let from = 0; ; from += PAGE) {
   const response = await fetch(`${url}/rest/v1/${options.table}?select=data,updated_at&order=started_at.asc`, {
-    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, Range: `${from}-${from + PAGE - 1}`, 'Range-Unit': 'items' },
+    headers: { ...apiHeaders(serviceKey), Range: `${from}-${from + PAGE - 1}`, 'Range-Unit': 'items' },
   });
   if (!response.ok && response.status !== 206) {
     console.error(`Abfrage fehlgeschlagen: HTTP ${response.status} ${await response.text()}`);

@@ -1,6 +1,6 @@
 # Zentrale Speicherung und Abschlussbefragung
 
-Stand 30.10.2026. Umsetzung des Vorschlags vom 29.10.2026: Die Antworten bleiben nicht mehr nur auf dem Smartphone der Testperson, sondern gehen nach der Einwilligung laufend an eine zentrale Datenbank des Teams. Dazu kommt eine kurze Befragung am Schluss und eine Abschlussbestätigung, die erst nach erfolgreicher Übertragung erscheint.
+Stand 31.10.2026. Die zentrale Anbindung nach dem Vorschlag vom 29.10.2026 ist im Code umgesetzt. **Eine Datenbank entsteht dadurch noch nicht:** Erst wenn das Supabase-Projekt eingerichtet ist und beide Verbindungsvariablen im Build stehen, werden Antworten nach der Einwilligung zentral übertragen. Ohne diese Einrichtung bleiben sie auf dem Gerät. Dazu kommen eine kurze Befragung am Schluss und eine Abschlussbestätigung, die bei aktiver zentraler Speicherung erst nach erfolgreicher Übertragung erscheint.
 
 ## Ablauf für die Teilnehmenden
 
@@ -25,47 +25,45 @@ Ohne Verbindung bleibt die Sitzung lokal gespeichert; die App versucht es nach 5
 
 Gespeichert werden weiterhin Gesundheitsdaten (Allergien, Unverträglichkeiten). Der Einwilligungstext in der App nennt die Übermittlung an das Projektteam; die Studieninformation auf dem Startbildschirm und „Was wird gespeichert?“ unter der Einwilligung zählen die Daten auf.
 
-## Einrichtung (einmalig, etwa 20 Minuten)
+## Nächste Schritte: Wer übernimmt was?
 
-Die App spricht eine PostgREST-Schnittstelle an. Vorgesehen ist **Supabase** (kostenloser Tarif, keine Kreditkarte, Projekt in der EU wählbar), es geht aber jede PostgREST-Datenbank.
+Das Team-Projekt `geschmacksprofil-50plus` ist unter `https://dfzpnkumksztmvtpdfem.supabase.co` in **Paris (`eu-west-3`, EU)** eingerichtet. Die Tabelle `sessions` ist über die API erreichbar; Einfügen, Aktualisieren, Befragung und die Sperre fremder Zugriffe wurden am 31.10.2026 erfolgreich gegen diese Datenbank geprüft. `VITE_SYNC_URL` und `VITE_SYNC_KEY` sind lokal und als GitHub-Actions-Variablen gesetzt. Die Schritte unten dokumentieren die Einrichtung und eine spätere Wiederholung; eine direkte Verknüpfung von Supabase mit dem GitHub-Repository ist nicht erforderlich.
 
-1. **Projekt anlegen:** supabase.com → New project, Region *Frankfurt (eu-central-1)* oder *Zürich*, Datenbankpasswort sicher ablegen.
-2. **Tabelle und Regeln anlegen:** SQL Editor → New query → den Block unten ausführen.
-3. **Schlüssel kopieren:** Settings → API: *Project URL* und *anon public key* (öffentlich, steht später im Build der App). Den *service_role key* nur für den Export des Teams aufbewahren, nie in die App und nie ins Repository.
-4. **Repository-Variablen setzen:** GitHub → Settings → Secrets and variables → Actions → Variables: `VITE_SYNC_URL` (Project URL, z. B. `https://abcd1234.supabase.co`) und `VITE_SYNC_KEY` (anon key). Der nächste Push auf `main` baut die App damit (`.github/workflows/deploy.yml`). Lokal dieselben Werte in `.env.local` (steht in `.gitignore`).
-5. **Prüfen:** App im Browser öffnen, eine Testsitzung durchspielen, in Supabase unter Table Editor → `sessions` die Zeile sehen; in `?admin=1` steht „Zentral übertragen“.
+| Schritt | Zuständigkeit |
+|---|---|
+| Supabase-Konto anmelden und ein Team-Projekt auswählen oder anlegen | Team; Kontozugang bleibt beim Team |
+| Datenbanktabelle und Zugriffsregeln einrichten | Mit verbundenem Supabase-Zugang kann Codex das übernehmen; alternativ SQL unten selbst ausführen |
+| Öffentliche Verbindungsdaten lokal und in GitHub setzen | Codex kann das nach Verbindung zum richtigen Projekt übernehmen |
+| Änderungen veröffentlichen und Übertragung prüfen | Codex kann das nach der Datenbankeinrichtung übernehmen |
+| Studieninformation, Aufbewahrung und Einwilligung mit Tibor abstimmen | Team, vor dem Einsatz mit echten Testpersonen |
 
-```sql
-create table public.sessions (
-  id text primary key,
-  token text not null,
-  participant_code text,
-  app_version text,
-  rule_version text,
-  started_at timestamptz,
-  ended_at timestamptz,
-  finished boolean not null default false,
-  events integer not null default 0,
-  updated_at timestamptz not null default now(),
-  data jsonb not null
-);
+## Einrichtung
 
-alter table public.sessions enable row level security;
+1. **Projekt anlegen:** [Supabase Dashboard](https://supabase.com/dashboard) → New project, Name z. B. `geschmacksprofil-50plus`. Als konkrete EU-Region **Paris (`eu-west-3`, im Team-Projekt gewählt)** oder **Frankfurt (`eu-central-1`)** wählen. Zürich (`eu-central-2`) liegt in der Schweiz und ist keine EU-Region. Das Datenbankpasswort im Passwortmanager des Teams ablegen. Die [Supabase-Dokumentation zu Regionen](https://supabase.com/docs/guides/platform/regions) beschreibt die Auswahl.
+2. **Tabelle und Regeln anlegen:** SQL Editor → New query → den gesamten Inhalt von [`supabase/migrations/20261031000000_sessions.sql`](../supabase/migrations/20261031000000_sessions.sql) einfügen → Run. Die Datei kann auch auf einer nach dem früheren SQL eingerichteten Tabelle ausgeführt werden; Sitzungsdaten werden dabei nicht gelöscht.
+3. **Regeln prüfen:** Im SQL Editor den gesamten Inhalt von [`supabase/tests/sessions.sql`](../supabase/tests/sessions.sql) ausführen. Der Test arbeitet mit künstlichen Zeilen und nimmt seine Änderungen am Schluss mit `ROLLBACK` zurück. Er prüft Einfügen, Aktualisieren, Lesen und verweigerte fremde Zugriffe.
+4. **Öffentliche Verbindungsdaten holen:** Project URL aus dem Connect-Dialog und den **Publishable Key** (`sb_publishable_…`) aus Settings → API Keys kopieren. Ein älterer `anon`-JWT funktioniert ebenfalls. Der geheime **Secret Key** (`sb_secret_…`, früher `service_role`) wird nur für den Gesamtexport und optional das Aufräumen des Verbindungstests benötigt; niemals als `VITE_`-Variable setzen. Siehe [Supabase API keys](https://supabase.com/docs/guides/getting-started/api-keys).
+5. **Lokal konfigurieren:** Im Projektordner `.env.example` nach `.env.local` kopieren und die beiden öffentlichen Werte eintragen. Ein bestehendes `.env.local` ergänzen, statt es zu überschreiben.
 
--- Testpersonen (anon key): eine neue Zeile anlegen …
-create policy "anon_insert" on public.sessions
-  for insert to anon with check (true);
+   ```dotenv
+   VITE_SYNC_URL=https://DEINE-PROJEKT-ID.supabase.co
+   VITE_SYNC_KEY=sb_publishable_DEIN-OEFFENTLICHER-SCHLUESSEL
+   ```
 
--- … und nur die eigene Zeile überschreiben (gleiches Token im Header x-session-token)
-create policy "anon_update_own" on public.sessions
-  for update to anon
-  using (token = current_setting('request.headers', true)::json ->> 'x-session-token')
-  with check (token = current_setting('request.headers', true)::json ->> 'x-session-token');
+6. **Verbindung prüfen:** `npm run check:zentral`. Das Skript prüft mit künstlichen Sitzungen dieselbe Übertragung wie die App: Einfügen, erneutes Speichern, Befragung und Sperre fremder Zugriffe. Mit `SYNC_SERVICE_KEY` in `.env.local` räumt es seine Testzeilen danach auf; andernfalls nennt es die IDs zum Löschen im Table Editor. Schlüssel und Teilnehmerdaten werden nicht ausgegeben. Dieser API-Test ersetzt den anschliessenden Browser-Test nicht.
+7. **GitHub konfigurieren:** Im [Repository unter Actions → Variables](https://github.com/kerisan-jeg/geschmacksprofil-50plus/settings/variables/actions) zwei Repository-Variablen setzen: `VITE_SYNC_URL` und `VITE_SYNC_KEY`, mit denselben öffentlichen Werten wie lokal. Dafür braucht es einen GitHub-Zugang mit Schreibrecht für Actions-Variablen. Der geheime Export-Schlüssel wird dort nicht gebraucht.
+8. **Veröffentlichen:** Die vorbereiteten Codeänderungen auf `main` übernehmen. Dadurch startet `.github/workflows/deploy.yml`. Falls der richtige Code bereits veröffentlicht ist und nur Variablen ergänzt wurden: Actions → „Deploy auf GitHub Pages“ → Run workflow → `main`. Das Setzen der Variablen allein ändert eine bereits gebaute App nicht.
+9. **Im Browser prüfen:** Die veröffentlichte App neu laden und eine künstliche Teilnahme inklusive Befragung durchspielen. In Supabase unter Table Editor → `sessions` muss genau diese Teilnahmenummer erscheinen, `finished = true` sein und `data.survey` die Befragung enthalten. In der App zeigt `?admin=1` für die Sitzung „Zentral übertragen“. Eine zweite Teilnahme auf einem anderen Gerät muss als zweite Zeile in derselben Tabelle ankommen. Die Admin-Ansicht zeigt weiterhin nur das jeweilige Gerät.
 
--- Kein select für anon: niemand kann mit dem öffentlichen Schlüssel Daten lesen.
-```
+## Zugriffsregeln
 
-Die App schickt `POST /rest/v1/sessions` mit `Prefer: resolution=merge-duplicates,return=minimal`; der Konfliktfall ist ein Update und unterliegt der zweiten Regel. Gelesen wird nur mit dem service_role key.
+Die App schickt `POST /rest/v1/sessions` mit `Prefer: resolution=merge-duplicates,return=minimal`; beim nächsten Speichern wird die vorhandene Zeile aktualisiert. Das Gerät muss sein zufälliges Sitzungstoken im Header `x-session-token` mitsenden.
+
+- Einfügen ist nur erlaubt, wenn das Token in der Zeile zum nichtleeren Header passt.
+- Lesen und Aktualisieren sind auf Sitzungen mit diesem Token begrenzt. Der öffentliche Projektschlüssel allein gibt keine Sitzungen frei.
+- Die begrenzte Leseregel ist auch für das Aktualisieren nötig. Das frühere SQL ohne SELECT-Regel reicht dafür nicht aus; siehe [Supabase RLS: UPDATE policies](https://supabase.com/docs/guides/database/postgres/row-level-security#update-policies).
+- Löschen und Tabellenoperationen sind für die App nicht erlaubt. Der Gesamtexport aller Geräte braucht den geheimen Schlüssel des Teams.
+- Publishable- und Secret-Schlüssel werden nur im Header `apikey` gesendet; ältere JWT-Schlüssel zusätzlich als `Authorization: Bearer …`.
 
 ## Export für die Auswertung
 
@@ -73,7 +71,7 @@ Die App schickt `POST /rest/v1/sessions` mit `Prefer: resolution=merge-duplicate
 SYNC_URL=https://abcd1234.supabase.co SYNC_SERVICE_KEY=… npm run export:zentral
 ```
 
-oder beide Werte in `.env.local` (`VITE_SYNC_URL`, `SYNC_SERVICE_KEY`). Das Skript `scripts/export-sessions.mjs` holt alle Zeilen und schreibt `auswertung/sitzungen-<datum>.json` (alles) und `auswertung/ereignisse-<datum>.csv` (eine Zeile pro Ereignis, mit den Spalten `surveyEase`, `surveyClarity`, `surveyFit`, `surveyLength`, `surveyRemarks`). Danach wie bisher `npm run auswertung -- auswertung/sitzungen-<datum>.json` für die Lernkurve. Die Admin-Ansicht auf einem Gerät exportiert weiterhin nur die Sitzungen dieses Geräts.
+Unter PowerShell beide Werte in `.env.local` setzen (`VITE_SYNC_URL`, `SYNC_SERVICE_KEY`), dann `npm run export:zentral` ausführen. Der geheime Schlüssel kann ein aktueller Secret Key oder ein älterer `service_role`-JWT sein. Das Skript `scripts/export-sessions.mjs` holt alle Zeilen und schreibt `auswertung/sitzungen-<datum>.json` (alles) und `auswertung/ereignisse-<datum>.csv` (eine Zeile pro Ereignis, mit den Spalten `surveyEase`, `surveyClarity`, `surveyFit`, `surveyLength`, `surveyRemarks`). Danach wie bisher `npm run auswertung -- auswertung/sitzungen-<datum>.json` für die Lernkurve. Die Admin-Ansicht auf einem Gerät exportiert weiterhin nur die Sitzungen dieses Geräts. Die Verbindungstest-Zeilen mit `app_version = setup-check` vor der Auswertung entfernen.
 
 Alternativ zeigt Supabase die Tabelle im Table Editor (CSV-Export dort enthält `data` als JSON-Text).
 
@@ -81,11 +79,18 @@ Alternativ zeigt Supabase die Tabelle im Table Editor (CSV-Export dort enthält 
 
 - Gespeichert: Teilnahmenummer, Altersgruppe, Ernährungsform, Ausschlüsse (Allergien: Gesundheitsdaten), alle Antworten mit Zeitpunkten, Profil, Bildschirmwechsel, Befragung. Nicht gespeichert: Vorname, Handynummer, Geräte- oder Netzwerkadressen durch die App (Supabase protokolliert Zugriffe serverseitig nach seinen Bedingungen).
 - Löschung auf Wunsch: Zeile mit der Teilnahmenummer im Table Editor löschen. Nach der Studie: Tabelle exportieren, Projekt löschen oder pausieren.
-- Der anon key im Build erlaubt nur Einfügen und das Überschreiben der eigenen Zeile. Missbrauch (Müllzeilen) wäre möglich, aber ohne Nutzen; die Testleitung notiert je Person die Teilnahmenummer von der Abschlussbestätigung (das Eingabefeld Teilnehmer-Nr. gibt es seit dem 29.10.2026 nicht mehr, `participant_code` bleibt leer).
+- Der öffentliche Schlüssel im Build erlaubt nur mit passendem Sitzungstoken Einfügen sowie Lesen und Überschreiben der eigenen Zeile. Er ist keine Anmeldung und verhindert keine künstlichen Müllzeilen. Die Testleitung notiert je Person die Teilnahmenummer von der Abschlussbestätigung (das Eingabefeld Teilnehmer-Nr. gibt es seit dem 29.10.2026 nicht mehr, `participant_code` bleibt leer).
 - Ohne gesetzte Variablen (z. B. lokal) verhält sich die App wie bisher: alles bleibt auf dem Gerät, die Texte sagen das („Deine Antworten bleiben auf diesem Gerät“).
 
 ## Offen für das Team
 
-1. Supabase-Projekt anlegen und die beiden Variablen setzen (Schritte 1 bis 5).
+1. Vor dem Pilot die veröffentlichte App auf den vorgesehenen Testgeräten öffnen und den Ablauf einschliesslich Abschlussbestätigung prüfen (Schritt 9).
 2. Einwilligungstext und Studieninformation mit Tibor abstimmen (Frage F4: Gesundheitsdaten, Speicherort EU, Aufbewahrung).
 3. Pilottest mit 5 bis 10 Personen ab 50, dabei prüfen, dass jede Sitzung in der Tabelle ankommt (`finished` wahr, Befragung ausgefüllt).
+
+## Prüfstand 31.10.2026
+
+- `npm test`: 341 Tests bestanden. `npm run build`: erfolgreich.
+- Migration und `supabase/tests/sessions.sql` lokal mit PostgreSQL über PGlite geprüft: eigene Sitzung einfügen und aktualisieren, fremde Zugriffe sperren, Testdaten zurückrollen. Erneutes Ausführen der Migration erhält vorhandene Sitzungen. Der Test erkennt die frühere fehlende SELECT-Regel.
+- `npm run check:zentral` gegen das Team-Projekt: erfolgreich. Neue Sitzungen, Aktualisierung und Abschlussbefragung kommen an; Lesen und Überschreiben fremder Sitzungen, Einfügen ohne passendes Token und Löschen mit App-Rechten werden gesperrt. Die künstlichen Testzeilen tragen `app_version = setup-check`; vor der Auswertung im Table Editor löschen.
+- Der Browser-Test der veröffentlichten App ist in Schritt 9 beschrieben; API-Test und lokale SQL-Prüfung ergänzen ihn.
