@@ -434,7 +434,7 @@ export function formatSummary(result, { steps = [0, 5, 10, 13, 15, 20, 25, 30, 3
   lines.push(`  Anteil „Kenne ich nicht“ (Mittel je Person): ${percent(mean(pilots.map((entry) => entry.unfamiliarShare).filter((value) => value != null)))}`);
   lines.push(`  Klärungskarten nach „Kenne ich nicht“: ${total('clarifications')}, davon erkannt: ${total('clarified')}`);
   lines.push(`  Antworten mit Vermutung vorher: ${total('guessed')}, bestätigt (eher redundant): ${total('redundant')}, widersprüchlich (neue Hinweise): ${total('contradictions')}`);
-  lines.push(`  Gerichte bewertet (Stufe 4, freiwillig): ${total('dishes')}`);
+  lines.push(`  Gerichte bewertet (Stufe 4, freiwillig): ${datas.reduce((sum, data) => sum + data.dishes, 0)}`);
   lines.push('');
   lines.push('Annahmen im Vergleich (alle Antworten der normalen Auswahl):');
   for (const variant of variants) {

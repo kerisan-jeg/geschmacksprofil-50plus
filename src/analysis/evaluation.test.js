@@ -189,3 +189,18 @@ test('Pilot-Kennzahlen (nurec Kap. 10): Abbrüche, „Kenne ich nicht“, erkann
   const text = formatSummary(evaluate([session('pilot', events)], { index, diets, resamples: 50 }));
   assert.ok(text.includes('Pilot-Kennzahlen'));
 });
+
+test('Textzusammenfassung zählt Gerichte über alle Sitzungen und berücksichtigt Rückgängig', () => {
+  const result = evaluate([
+    session('gerichte-a', [
+      answer('D01', LIKE, { round: 4, phase: 'dish' }),
+      answer('D02', PREFER, { round: 4, phase: 'dish' }),
+      answer('D02', UNDO, { round: 4, phase: 'dish' }),
+    ]),
+    session('gerichte-b', [answer('D03', DISLIKE, { round: 4, phase: 'dish' })]),
+    session('ohne-gerichte', [answer('F12', LIKE)]),
+  ], { index, diets, resamples: 10 });
+
+  assert.deepEqual(sessionRows(index, result.datas).map((row) => row.dishes), [1, 1, 0]);
+  assert.ok(formatSummary(result).includes('Gerichte bewertet (Stufe 4, freiwillig): 2'));
+});
