@@ -429,7 +429,7 @@ export function formatSummary(result, { steps = [0, 5, 10, 13, 15, 20, 25, 30, 3
   const minutes = (ms) => (ms == null ? '–' : `${(ms / 60000).toFixed(1).replace('.', ',')} min`);
   lines.push('');
   lines.push('Pilot-Kennzahlen (nurec v0.2, Kap. 10):');
-  lines.push(`  Dauer einer Runde (Median): ${minutes(median(pilots.map((entry) => entry.medianRoundMs).filter((value) => value != null)))}`);
+  lines.push(`  Zeit zwischen normalen Karten je Runde (Median; ohne Kontrollkarten/Gerichte): ${minutes(median(pilots.map((entry) => entry.medianRoundMs).filter((value) => value != null)))}`);
   lines.push(`  Abbrüche („Runde beenden“ mit offener Karte): ${total('aborted')}`);
   lines.push(`  Anteil „Kenne ich nicht“ (Mittel je Person): ${percent(mean(pilots.map((entry) => entry.unfamiliarShare).filter((value) => value != null)))}`);
   lines.push(`  Klärungskarten nach „Kenne ich nicht“: ${total('clarifications')}, davon erkannt: ${total('clarified')}`);

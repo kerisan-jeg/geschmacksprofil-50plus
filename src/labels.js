@@ -4,6 +4,8 @@
 // Sprache: Du-Form, Schweizer Rechtschreibung (ss statt ß), kurze Sätze.
 // Fragebogentexte (Fragen, Optionen) stehen als Daten in src/data/stage0.json.
 
+import { SURVEY_SCALES, SURVEY_VERSION } from './study/survey.js';
+
 const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
 
 // Antworten auf einer Karte. Intern bleiben DISLIKE / LIKE / PREFER / UNFAMILIAR / INTOLERANT.
@@ -325,56 +327,14 @@ export const COMPLETE = {
   leadDishesEnded: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet. Deine bisherigen Antworten sind gespeichert.`,
 };
 
-// Kurze Befragung zum Schluss (Vorschlag 29.10.2026): Auswahlwerte 1 bis 5 bzw. 1 bis 3, gespeichert als Zahl.
+// Studienbefragung v2: sechs Auswahlfragen und ein freiwilliger Text. Die Wischfrage erlaubt „nicht ausprobiert“.
 export const SURVEY = {
+  version: SURVEY_VERSION,
   kicker: 'Fast geschafft',
   title: (name) => (name ? `${name}, wie war es für dich?` : 'Wie war es für dich?'),
-  lead: 'Fünf kurze Fragen zum Schluss. Es gibt keine falschen Antworten.',
-  scales: [
-    {
-      id: 'ease',
-      question: 'Wie einfach war die Anwendung zu bedienen?',
-      options: [
-        { id: 1, label: 'Sehr schwierig' },
-        { id: 2, label: 'Eher schwierig' },
-        { id: 3, label: 'Mittel' },
-        { id: 4, label: 'Eher einfach' },
-        { id: 5, label: 'Sehr einfach' },
-      ],
-    },
-    {
-      id: 'clarity',
-      question: 'Wie verständlich waren die Antwortmöglichkeiten?',
-      options: [
-        { id: 1, label: 'Gar nicht verständlich' },
-        { id: 2, label: 'Eher nicht verständlich' },
-        { id: 3, label: 'Teils, teils' },
-        { id: 4, label: 'Eher verständlich' },
-        { id: 5, label: 'Sehr verständlich' },
-      ],
-    },
-    {
-      id: 'fit',
-      question: 'Wie gut beschreibt das angezeigte Profil deinen Geschmack?',
-      options: [
-        { id: 1, label: 'Gar nicht' },
-        { id: 2, label: 'Eher nicht' },
-        { id: 3, label: 'Teils, teils' },
-        { id: 4, label: 'Eher gut' },
-        { id: 5, label: 'Sehr gut' },
-      ],
-    },
-    {
-      id: 'length',
-      question: 'Wie empfandest du die Länge?',
-      options: [
-        { id: 1, label: 'Zu kurz' },
-        { id: 2, label: 'Gerade richtig' },
-        { id: 3, label: 'Zu lang' },
-      ],
-    },
-  ],
-  remarks: 'Was war unklar oder hat dir gefehlt?',
+  lead: 'Sechs kurze Fragen und eine freiwillige Anmerkung zum Schluss. Es gibt keine falschen Antworten.',
+  scales: SURVEY_SCALES,
+  remarks: 'Was war unklar oder würdest du verbessern?',
   optional: 'freiwillig',
   remarksPlaceholder: 'Deine Anmerkung',
   errorMissing: 'Bitte wähle eine Antwort.',
@@ -396,6 +356,9 @@ export const FINISH = {
   codeTitle: 'Deine Teilnahmenummer',
   codeHint: 'Mit dieser Nummer findet das Projektteam deine Antworten, zum Beispiel wenn du sie löschen lassen möchtest.',
   toProfile: 'Zu meinem Profil',
+  surveyStatus: 'Befragung abgeschickt',
+  roundsStatus: (count, total) => `Runden abgeschlossen: ${count} von ${total}`,
+  emptyRounds: (count) => `${plural(count, 'Runde', 'Runden')} ohne passende Karten`,
 };
 
 // Fortschritt der vier Swipe-Runden, am Ende 100 %.
@@ -518,7 +481,7 @@ export const PROFILE = {
   signOutConfirm: 'Ja, abmelden',
   // Kurze Befragung am Schluss (29.10.2026)
   surveyTitle: 'Kurze Befragung',
-  surveyText: 'Zum Schluss fünf kurze Fragen, wie du die Anwendung erlebt hast. Etwa eine Minute.',
+  surveyText: 'Zum Schluss sechs kurze Fragen und eine freiwillige Anmerkung, wie du die Anwendung erlebt hast.',
   surveyAction: 'Zur Befragung',
   surveyDone: (code) => `Befragung abgeschlossen. Deine Teilnahmenummer: ${code}.`,
   // Bearbeiten
@@ -580,8 +543,9 @@ export const ADMIN = {
   survey: 'Befragung abgeschlossen',
   // Teilnehmer-Nr. und Vorname aus der Anmeldung (Teamentscheid 28.10.2026)
   participant: (code, name) => (name ? `${code} · ${name}` : code),
-  finished: (duration) => `fertig, ${duration}`,
-  unfinished: 'nicht beendet',
+  finished: (duration) => `letzter Rundenabschluss nach ${duration}`,
+  unfinished: 'noch kein Rundenabschluss',
+  completion: ({ roundsCompleted, surveySubmitted, studyCompleted }) => `Runden abgeschlossen: ${roundsCompleted} von 4 · Befragung ${surveySubmitted ? 'abgeschickt' : 'offen'} · Studienablauf ${studyCompleted === true ? 'vollständig' : studyCompleted === null ? 'zeitlich unklar' : 'nicht vollständig'}`,
   duration: (minutes, seconds) => `${minutes}:${String(seconds).padStart(2, '0')} min`,
   details: ({ answers, undos, sessionId }) => `${answers} Antworten, ${undos} × Rückgängig · ${sessionId}`,
   // Effektive Konfiguration der Sitzung (so wie sie lief). r1scale folgt mit Arbeitspaket 2.

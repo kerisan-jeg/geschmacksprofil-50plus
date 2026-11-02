@@ -135,6 +135,7 @@ export default function AdminScreen() {
               <span className="note">{ADMIN.checks(summary.checks)}</span>
               {syncOn && <span className="note">{ADMIN.synced(syncRecords[summary.sessionId], formatDate(syncRecords[summary.sessionId]?.okAt))}</span>}
               {summary.survey && <span className="note">{ADMIN.survey}</span>}
+              <span className="note">{ADMIN.completion(summary.completion)}</span>
             </li>
           ))}
         </ul>

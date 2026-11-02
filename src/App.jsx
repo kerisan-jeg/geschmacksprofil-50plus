@@ -35,6 +35,7 @@ import { mergeFoods } from './logic/foodSearch.js';
 import { summarySections } from './logic/profile.js';
 import { createLogger, storageAvailable } from './logging/logger.js';
 import { createSync } from './sync/sync.js';
+import { sessionCompletion } from './study/completion.js';
 import { canStartSurvey, createAppModel, creationSteps, hasProgress, isNavVisible, ROUND_MODES, SCREENS, TABS } from './app/model.js';
 import { clearAppState, loadAccount, loadAppState, saveAccount, saveAppState, signOutLocally } from './storage/local.js';
 import BottomNav from './components/BottomNav.jsx';
@@ -158,6 +159,10 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [screen]);
 
+  useEffect(() => {
+    if (onboarding && screen !== SCREENS.WELCOME_BACK) logger.setCompletion(rounds);
+  }, [rounds, logger, onboarding, screen]);
+
   // ---------- Ereignisse ----------
 
   // Ereignis ohne Antwort beim Wischen (Anmeldung, Profil): ins Protokoll und ins Event-Log.
@@ -271,6 +276,7 @@ function App() {
   // Befragung abgeschickt: in die Sitzung, sofort übertragen; die Abschlussbestätigung wartet auf das Ergebnis.
   function handleSurveySubmit(values) {
     logger.setSurvey(values);
+    logger.setCompletion(rounds);
     logger.trace('survey_submitted');
     dispatch({ type: 'surveySubmitted' });
     sync.flush(logger.session);
@@ -447,6 +453,7 @@ function App() {
             firstName={firstName}
             sessionId={logger.session.sessionId}
             sync={syncStatus}
+            completion={sessionCompletion(logger.session, rounds)}
             onRetry={() => sync.flush(logger.session)}
             onToProfile={() => handleTab(TABS.PROFILE)}
           />

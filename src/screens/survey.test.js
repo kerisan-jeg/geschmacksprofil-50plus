@@ -14,23 +14,25 @@ const { default: FinishScreen } = await import('./FinishScreen.jsx');
 const { SURVEY, FINISH } = await import('../labels.js');
 const { SYNC_STATES } = await import('../sync/sync.js');
 
-test('Befragung: vier Auswahlfragen sind Pflicht, die Anmerkung freiwillig; Absenden liefert Zahlen', async () => {
+test('Befragung v2: sechs Pflichtfragen, freiwilliger Text und Nicht-ausprobiert als eigene Antwort', async () => {
   const submitted = [];
   const { container, unmount } = await render(createElement(SurveyScreen, { firstName: 'Anna', onSubmit: (values) => submitted.push(values), onBack() {} }));
   const text = container.textContent;
   for (const scale of SURVEY.scales) assert.ok(text.includes(scale.question), scale.id);
-  assert.equal(container.querySelectorAll('[role="radiogroup"]').length, 4);
-  assert.equal(container.querySelectorAll('input[type="radio"]').length, 5 + 5 + 5 + 3);
+  assert.equal(container.querySelectorAll('[role="radiogroup"]').length, 6);
+  assert.equal(container.querySelectorAll('input[type="radio"]').length, 5 + 6 + 5 + 5 + 5 + 3);
   assert.ok(container.querySelector('textarea#survey-remarks'));
   // Ohne Antworten: Fehlermeldung je offener Frage, nichts abgeschickt
   await click(buttonByText(container, SURVEY.submit));
   // Die Fehlermeldung erscheint im nächsten Frame (requestAnimationFrame)
   await act(async () => new Promise((resolve) => setTimeout(resolve, 40)));
-  assert.equal(container.querySelectorAll('[role="alert"]').length, 4);
+  assert.equal(container.querySelectorAll('[role="alert"]').length, 6);
   assert.deepEqual(submitted, []);
-  // Alle vier wählen, Anmerkung eintippen
+  // Sechs Antworten wählen, auch „nicht ausprobiert“ ist eine gültige Pflichtantwort.
   await click(container.querySelector('input[name="survey-ease"][value="5"]'));
-  await click(container.querySelector('input[name="survey-clarity"][value="4"]'));
+  await click(container.querySelector('input[name="survey-swipeClarity"][value="not_tried"]'));
+  await click(container.querySelector('input[name="survey-effort"][value="2"]'));
+  await click(container.querySelector('input[name="survey-repetition"][value="3"]'));
   await click(container.querySelector('input[name="survey-fit"][value="3"]'));
   await click(container.querySelector('input[name="survey-length"][value="2"]'));
   const textarea = container.querySelector('textarea');
@@ -39,8 +41,18 @@ test('Befragung: vier Auswahlfragen sind Pflicht, die Anmerkung freiwillig; Abse
     textarea.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
   });
   await click(buttonByText(container, SURVEY.submit));
-  assert.deepEqual(submitted, [{ ease: 5, clarity: 4, fit: 3, length: 2, remarks: 'Die Bilder waren toll' }]);
+  assert.deepEqual(submitted, [{ version: 'study-v2', ease: 5, swipeClarity: 'not_tried', effort: 2, repetition: 3, fit: 3, length: 2, remarks: 'Die Bilder waren toll' }]);
   await unmount();
+});
+
+test('Abschluss zeigt Befragungs- und Rundenabschluss getrennt', () => {
+  const html = renderToStaticMarkup(createElement(FinishScreen, {
+    firstName: 'Anna', sessionId: 'test', sync: { enabled: true, state: SYNC_STATES.OK },
+    completion: { surveySubmitted: true, roundsCompleted: 1, rounds: [1, 2, 3, 4].map((round) => ({ round, empty: false })) },
+    onRetry() {}, onToProfile() {},
+  }));
+  assert.ok(html.includes('Befragung abgeschickt'));
+  assert.ok(html.includes('Runden abgeschlossen: 1 von 4'));
 });
 
 test('Abschlussbestätigung: erst nach erfolgreicher Übertragung „Vielen Dank“; vorher Warten, bei Fehler „Erneut senden“', async () => {

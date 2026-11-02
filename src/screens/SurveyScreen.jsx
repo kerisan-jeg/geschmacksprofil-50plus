@@ -4,7 +4,7 @@ import ChoiceList from '../components/ChoiceList.jsx';
 import TopBar, { BackButton } from '../components/TopBar.jsx';
 import { SURVEY } from '../labels.js';
 
-// Kurze Befragung zum Schluss (Vorschlag 29.10.2026): vier Fragen mit Auswahl (Pflicht) und eine offene Frage
+// Studienbefragung v2: sechs Fragen mit Auswahl (Pflicht) und eine offene Frage
 // (freiwillig). Die Antworten gehen als survey in die Sitzung; die Teilnahmenummer der Sitzung verbindet sie mit den
 // Antworten zu den Karten.
 export default function SurveyScreen({ firstName, onSubmit, onBack }) {
@@ -29,7 +29,7 @@ export default function SurveyScreen({ firstName, onSubmit, onBack }) {
       requestAnimationFrame(() => setShowError(true));
       return;
     }
-    onSubmit({ ...values, remarks: remarks.trim().slice(0, 500) });
+    onSubmit({ version: SURVEY.version, ...values, remarks: remarks.trim().slice(0, 500) });
   }
 
   return (

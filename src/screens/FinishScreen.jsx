@@ -6,7 +6,7 @@ import { FINISH } from '../labels.js';
 // Datenbank gelungen ist. Vorher heisst es „Einen Moment“, bei einem Fehler gibt es „Erneut senden“. Ohne zentrale
 // Speicherung (nicht eingerichtet) bleibt alles auf dem Gerät, und das steht so da.
 // sync: Zustand aus src/sync/sync.js ({ enabled, state, lastError }).
-export default function FinishScreen({ firstName, sessionId, sync, onRetry, onToProfile }) {
+export default function FinishScreen({ firstName, sessionId, sync, completion, onRetry, onToProfile }) {
   const sending = sync.enabled && [SYNC_STATES.IDLE, SYNC_STATES.PENDING, SYNC_STATES.SENDING].includes(sync.state);
   const failed = sync.enabled && sync.state === SYNC_STATES.ERROR;
   const done = !sync.enabled || sync.state === SYNC_STATES.OK;
@@ -48,6 +48,14 @@ export default function FinishScreen({ firstName, sessionId, sync, onRetry, onTo
         <p className="finish-code num">{sessionId}</p>
         <p className="note">{FINISH.codeHint}</p>
       </section>
+
+      {completion && (
+        <section className="panel stack-tight">
+          <p className="note">{FINISH.surveyStatus}</p>
+          <p className="note">{FINISH.roundsStatus(completion.roundsCompleted, completion.rounds.length)}</p>
+          {completion.rounds.some((entry) => entry.empty) && <p className="note">{FINISH.emptyRounds(completion.rounds.filter((entry) => entry.empty).length)}</p>}
+        </section>
+      )}
 
       <div className="action-bar">
         {failed && (

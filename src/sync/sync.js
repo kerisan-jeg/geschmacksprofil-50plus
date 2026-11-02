@@ -13,6 +13,7 @@
 // den geheimen Schlüssel des Teams (nie in der App).
 
 import { apiHeaders } from './headers.js';
+import { sessionCompletion } from '../study/completion.js';
 
 export const SYNC_STATES = { OFF: 'off', IDLE: 'idle', PENDING: 'pending', SENDING: 'sending', OK: 'ok', ERROR: 'error' };
 export const SYNC_RECORDS_KEY = 'geschmacksprofil:sync';
@@ -62,10 +63,10 @@ export function sessionRow(session, now = new Date()) {
     rule_version: session.ruleVersion ?? null,
     started_at: session.startedAt ?? null,
     ended_at: session.endedAt ?? null,
-    finished: Boolean(session.survey?.submittedAt),
+    finished: Boolean(session.survey?.submittedAt), // Legacy: nur Befragung. Eindeutige Merkmale unter data.completion.
     events: session.events?.length ?? 0,
     updated_at: now.toISOString(),
-    data: session,
+    data: { ...session, completion: sessionCompletion(session) },
   };
 }
 

@@ -2,6 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createSync, isSyncConfigured, loadSyncRecords, sessionRow, SYNC_RECORDS_KEY, SYNC_STATES } from './sync.js';
+import { sessionCompletion } from '../study/completion.js';
 
 function fakeStorage() {
   const data = new Map();
@@ -79,7 +80,7 @@ test('Änderungen werden gebündelt: zwei Meldungen, ein Upsert mit Token, Kennz
   assert.equal(row.finished, false);
   assert.equal(row.events, 2, 'der Stand beim Senden, nicht der erste');
   assert.equal(row.updated_at, '2026-10-29T10:05:00.000Z');
-  assert.deepEqual(row.data, current);
+  assert.deepEqual(row.data, { ...current, completion: sessionCompletion(current) });
   assert.equal(sync.getStatus().state, SYNC_STATES.OK);
   assert.equal(sync.getStatus().dirty, false);
   assert.equal(loadSyncRecords(store).abc123.okAt, '2026-10-29T10:05:00.000Z', 'letzte Übertragung je Sitzung gemerkt');

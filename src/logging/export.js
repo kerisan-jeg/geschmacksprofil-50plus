@@ -3,6 +3,8 @@
 import { replay } from '../logic/engine.js';
 import { dietAnswer, isLegacyDiet } from '../logic/stage0.js';
 import { HOLDOUT_DRAWN } from '../logic/events.js';
+import { surveyVersion } from '../study/survey.js';
+import { sessionCompletion } from '../study/completion.js';
 
 // Pflichtfelder pro Ereignis (A9) und Sitzungsangaben, die in jeder CSV-Zeile wiederholt werden.
 export const EVENT_FIELDS = [
@@ -58,6 +60,15 @@ export const CSV_COLUMNS = [
   'surveyFit',
   'surveyLength',
   'surveyRemarks',
+  'surveyVersion',
+  'surveySwipeClarity',
+  'surveyEffort',
+  'surveyRepetition',
+  'surveySubmittedAt',
+  'surveySubmitted',
+  'roundsCompleted',
+  'allRoundsCompleted',
+  'studyCompleted',
   'ageGroup',
   'diet',
   'dietOriginal',
@@ -92,6 +103,12 @@ export function sessionsToCsv(sessions, { delimiter = ',' } = {}) {
       surveyFit: session.survey?.fit ?? null,
       surveyLength: session.survey?.length ?? null,
       surveyRemarks: session.survey?.remarks ?? null,
+      surveyVersion: surveyVersion(session.survey) ?? session.surveyVersion ?? null,
+      surveySwipeClarity: session.survey?.swipeClarity ?? null,
+      surveyEffort: session.survey?.effort ?? null,
+      surveyRepetition: session.survey?.repetition ?? null,
+      surveySubmittedAt: session.survey?.submittedAt ?? null,
+      ...Object.fromEntries(['surveySubmitted', 'roundsCompleted', 'allRoundsCompleted', 'studyCompleted'].map((key) => [key, sessionCompletion(session)[key]])),
       ageGroup: session.onboarding?.ageGroup ?? null,
       // Alte Sitzungen („Kein Schweinefleisch“ als Ernährungsweise): diet ist die Ernährungsform wie heute
       // gelesen, dietOriginal der damals gespeicherte Wert (nur bei solchen Sitzungen gefüllt).
@@ -152,6 +169,7 @@ export function summarizeSession(session) {
     finished: Boolean(session.endedAt),
     // Befragung am Schluss abgeschlossen (29.10.2026)
     survey: Boolean(session.survey?.submittedAt),
+    completion: sessionCompletion(session),
     durationMs,
     // Gültige Antworten nach dem Abspielen des Logs (rückgängig gemachte zählen nicht)
     answers: played.sequence.length,

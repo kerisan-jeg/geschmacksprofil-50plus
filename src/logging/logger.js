@@ -15,6 +15,8 @@
 
 import { APP_VERSION, PRIVACY } from '../config.js';
 import { RULE_VERSION } from '../logic/engine.js';
+import { submittedSurvey, SURVEY_VERSION } from '../study/survey.js';
+import { sessionCompletion } from '../study/completion.js';
 
 export const STORAGE_PREFIX = 'geschmacksprofil:session:';
 
@@ -138,6 +140,7 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [], 
     onboarding: null,
     profile: null,
     survey: null,
+    surveyVersion: SURVEY_VERSION,
     events: [],
     trace: [],
   };
@@ -153,6 +156,7 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [], 
 
   function persist() {
     if (!stored) return;
+    session.completion = sessionCompletion(session);
     try {
       storage()?.setItem(STORAGE_PREFIX + session.sessionId, JSON.stringify(session));
     } catch {
@@ -209,9 +213,16 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [], 
       session.profile = { ...profile, exclusions: (profile.exclusions ?? []).map(exclusionForLog) };
       persist();
     },
-    // Kurze Befragung am Schluss (29.10.2026): vier Auswahlfragen und eine freiwillige Anmerkung.
-    setSurvey({ ease, clarity, fit, length, remarks }) {
-      session.survey = { ease, clarity, fit, length, remarks: String(remarks ?? '').trim().slice(0, 500) || null, submittedAt: new Date().toISOString() };
+    setCompletion(rounds) {
+      const completion = sessionCompletion(session, rounds);
+      if (JSON.stringify(completion) === JSON.stringify(session.completion)) return;
+      session.completion = completion;
+      persist();
+    },
+    // Die Fragefassung wird mitgespeichert, damit alte und neue Verständlichkeitsfragen getrennt bleiben.
+    setSurvey(values) {
+      session.survey = submittedSurvey(values);
+      session.surveyVersion = session.survey.version;
       persist();
     },
   };

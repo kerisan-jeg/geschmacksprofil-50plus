@@ -5,6 +5,9 @@ Erstellt mit Claude Code im Auftrag des Teams (26.10.2026); alle Aussagen sind a
 
 | Dokument | Inhalt |
 |---|---|
+| [studienauswertung.md](studienauswertung.md) | Aktueller Ablauf ab Version 0.13: erweiterte Befragung, getrennte Abschlussmerkmale und automatischer Studienbericht mit `npm run studie` |
+| [abgleich-frontend-tests-backend.md](abgleich-frontend-tests-backend.md) | Historischer technischer Abgleich von Version 0.12 vor den Studienanpassungen: Tests, Build, Supabase-Zugriffsregeln und Live-Browsertest |
+| [studie-verstehen.md](studie-verstehen.md) | Einstieg für das Team: Was gespeichert und untersucht wird, wie die Daten zu verstehen sind und welche Studienbedingungen festzulegen sind (02.11.2026) |
 | [01_Systemuebersicht.md](01_Systemuebersicht.md) | Aufbau, Ablauf, Datenmodell, Begriffe, Konfiguration |
 | [02_Kartenauswahl_und_Swipe_Logik.md](02_Kartenauswahl_und_Swipe_Logik.md) | Welche Karten wann kommen, Wirkung jeder Antwort, Zusammenspiel der Runden, drei ausgeführte Ablaufbeispiele |
 | [03_Filter_und_Ausschlusslogik.md](03_Filter_und_Ausschlusslogik.md) | Allergien, Ernährungsformen, Speisevorschriften, Notizen, „Vertrage ich nicht“; Lücken |

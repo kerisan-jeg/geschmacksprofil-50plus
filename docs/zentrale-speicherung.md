@@ -1,12 +1,12 @@
 # Zentrale Speicherung und Abschlussbefragung
 
-Stand 31.10.2026. Die zentrale Anbindung nach dem Vorschlag vom 29.10.2026 ist im Code umgesetzt. **Eine Datenbank entsteht dadurch noch nicht:** Erst wenn das Supabase-Projekt eingerichtet ist und beide Verbindungsvariablen im Build stehen, werden Antworten nach der Einwilligung zentral übertragen. Ohne diese Einrichtung bleiben sie auf dem Gerät. Dazu kommen eine kurze Befragung am Schluss und eine Abschlussbestätigung, die bei aktiver zentraler Speicherung erst nach erfolgreicher Übertragung erscheint.
+Stand 02.11.2026. Die zentrale Anbindung nach dem Vorschlag vom 29.10.2026 ist im Code umgesetzt. **Eine Datenbank entsteht dadurch noch nicht:** Erst wenn das Supabase-Projekt eingerichtet ist und beide Verbindungsvariablen im Build stehen, werden Antworten nach der Einwilligung zentral übertragen. Ohne diese Einrichtung bleiben sie auf dem Gerät. Dazu kommen eine kurze Befragung am Schluss und eine Abschlussbestätigung, die bei aktiver zentraler Speicherung erst nach erfolgreicher Übertragung erscheint.
 
 ## Ablauf für die Teilnehmenden
 
-Link öffnen → Studieninformation auf dem Startbildschirm → Vorname → Altersgruppe und Einwilligung („Was wird gespeichert?“ aufklappbar) → drei Fragen → bis zu vier Runden → Mein Profil → kurze Befragung (fünf Fragen) → Abschlussbestätigung mit Teilnahmenummer.
+Link öffnen → Studieninformation auf dem Startbildschirm → Vorname → Altersgruppe und Einwilligung („Was wird gespeichert?“ aufklappbar) → drei Fragen → bis zu vier Runden → Mein Profil → sechs Auswahlfragen und eine freiwillige Anmerkung → Abschlussbestätigung mit Teilnahmenummer und getrenntem Befragungs-/Rundenstatus.
 
-- Die Befragung ist vom Profil und vom Abschluss jeder Runde aus erreichbar, sobald mindestens eine Runde abgeschlossen oder beendet ist („Kurze Befragung“ im Profil). Vier Fragen mit Auswahl sind Pflicht (Bedienung, Verständlichkeit, Passung des Profils, Länge), die offene Frage („Was war unklar oder hat dir gefehlt?“) ist freiwillig.
+- Die Befragung ist vom Profil aus erreichbar, sobald mindestens eine Runde abgeschlossen oder beendet ist. Seit Version 0.13 sind sechs Auswahlfragen Pflicht (Bedienung, Wischverständlichkeit, Anstrengung, Wiederholung, Profilpassung, Länge); der Verbesserungshinweis ist freiwillig. „Nicht ausprobiert“ ist bei der Wischfrage eine eigene Antwort.
 - Die Abschlussbestätigung zeigt „Vielen Dank“ erst, wenn die letzte Übertragung gelungen ist. Vorher steht „Einen Moment“, bei einem Fehler „Noch nicht übermittelt“ mit „Erneut senden“. Darunter steht die Teilnahmenummer (die zufällige `sessionId`), mit der das Team eine Sitzung findet, zum Beispiel für eine Löschung.
 - Der Vorname bleibt auf dem Gerät (`PRIVACY.logParticipantName = false`). App-Daten und Befragung hängen über die Teilnahmenummer zusammen, nicht über den Namen.
 
@@ -19,7 +19,7 @@ Nach jeder gespeicherten Änderung der Sitzung (Antwort, Profiländerung, Runden
 | `id` | `sessionId` (Teilnahmenummer, 12 Hexzeichen) |
 | `token` | zufälliges Geheimnis des Geräts (`syncToken`); nur wer es kennt, darf die Zeile überschreiben |
 | `participant_code`, `app_version`, `rule_version`, `started_at`, `ended_at`, `finished`, `events`, `updated_at` | Kennzahlen für die Übersicht; `finished` wird mit der Befragung wahr |
-| `data` | die ganze Sitzung als JSON, identisch mit dem lokalen Export (Onboarding, Ereignisse, Profil, `trace`, `survey`) |
+| `data` | die ganze Sitzung als JSON (Onboarding, Ereignisse, Profil, `trace`, versionierte `survey` und eindeutige Abschlussmerkmale in `completion`) |
 
 Ohne Verbindung bleibt die Sitzung lokal gespeichert; die App versucht es nach 5, 15 und dann alle 60 Sekunden erneut, und sobald das Gerät wieder online ist. Lokal bleibt alles wie bisher (`localStorage`, Admin-Ansicht `?admin=1`), die Admin-Ansicht zeigt je Sitzung, ob sie übertragen ist.
 
@@ -66,6 +66,10 @@ Die App schickt `POST /rest/v1/sessions` mit `Prefer: resolution=merge-duplicate
 - Publishable- und Secret-Schlüssel werden nur im Header `apikey` gesendet; ältere JWT-Schlüssel zusätzlich als `Authorization: Bearer …`.
 
 ## Export für die Auswertung
+
+Seit Version 0.13 erledigt **`npm run studie`** den Zentralexport und die Studienauswertung gemeinsam. Die Hauptdateien sind `zusammenfassung.txt`, `teilnahmen.csv`, `befragung.csv` und `befragung-zusammenfassung.csv`. Technische Tests werden automatisch aus der Auswertung ausgeschlossen. Details: [studienauswertung.md](studienauswertung.md).
+
+`finished` bleibt das ältere Kennzeichen „Befragung abgeschickt“. `data.completion.surveySubmitted`, `allRoundsCompleted` und `studyCompleted` unterscheiden Befragung, Runden und vollständigen Studienablauf. Diese Erweiterung nutzt die bestehende JSON-Spalte und benötigt keine Tabellenänderung.
 
 ```bash
 SYNC_URL=https://abcd1234.supabase.co SYNC_SERVICE_KEY=… npm run export:zentral

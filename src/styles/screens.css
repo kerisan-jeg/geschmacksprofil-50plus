@@ -34,6 +34,13 @@
   gap: var(--space-5);
 }
 
+/* Im längeren Studienfragebogen bleibt der Absenden-Bereich unter dem Freitext statt darüber zu liegen. */
+.screen-survey .action-bar {
+  position: static;
+  margin-bottom: 0;
+  background: none;
+}
+
 .lead-details {
   padding-top: var(--space-3);
   border-top: var(--border-hairline) solid var(--color-line);

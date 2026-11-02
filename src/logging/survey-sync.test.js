@@ -49,7 +49,7 @@ test('Befragung: in der Sitzung mit Zeitpunkt, in der CSV je Zeile wiederholt, i
   logger.recordEvent({ cardId: 'F01', response: 'LIKE', timestamp: '2026-10-29T10:00:00.000Z' });
   logger.setSurvey({ ease: 5, clarity: 4, fit: 3, length: 2, remarks: '  Super danke  ' });
   const { survey } = logger.session;
-  assert.deepEqual({ ...survey, submittedAt: null }, { ease: 5, clarity: 4, fit: 3, length: 2, remarks: 'Super danke', submittedAt: null });
+  assert.deepEqual({ ...survey, submittedAt: null }, { version: 'legacy-v1', ease: 5, clarity: 4, fit: 3, length: 2, remarks: 'Super danke', submittedAt: null });
   assert.match(survey.submittedAt, /^\d{4}-\d{2}-\d{2}T/);
   for (const column of ['surveyEase', 'surveyClarity', 'surveyFit', 'surveyLength', 'surveyRemarks']) assert.ok(CSV_COLUMNS.includes(column), column);
   const [header, row] = sessionsToCsv([logger.session]).trim().split('\r\n');
@@ -61,4 +61,24 @@ test('Befragung: in der Sitzung mit Zeitpunkt, in der CSV je Zeile wiederholt, i
   // Leere Anmerkung wird null
   logger.setSurvey({ ease: 1, clarity: 1, fit: 1, length: 1, remarks: '   ' });
   assert.equal(logger.session.survey.remarks, null);
+});
+
+test('Erweiterte Befragung und getrennte Abschlussmerkmale bleiben in Sitzung und Ereignisexport erhalten', () => {
+  const logger = createLogger({ roundCardLimit: 13 });
+  logger.start({ participantCode: 'T04', ageGroup: '60-69' });
+  logger.recordEvent({ type: 'ANSWER', cardId: 'F01', response: 'LIKE', round: 1 });
+  logger.setSurvey({ version: 'study-v2', ease: 4, swipeClarity: 'not_tried', effort: 2, repetition: 3, fit: 4, length: 2, remarks: 'Kommentar' });
+  assert.equal(logger.session.survey.version, 'study-v2');
+  assert.equal(logger.session.survey.effort, 2);
+  assert.equal(logger.session.survey.repetition, 3);
+  assert.equal(logger.session.completion.surveySubmitted, true);
+  assert.equal(logger.session.completion.allRoundsCompleted, false);
+  assert.equal(logger.session.completion.studyCompleted, false);
+  const [header, line] = sessionsToCsv([logger.session]).trim().split('\r\n');
+  const columns = header.split(',');
+  const values = line.split(',');
+  assert.equal(values[columns.indexOf('surveySwipeClarity')], 'not_tried');
+  assert.equal(values[columns.indexOf('surveyEffort')], '2');
+  assert.equal(values[columns.indexOf('surveyRepetition')], '3');
+  assert.equal(values[columns.indexOf('allRoundsCompleted')], 'false');
 });
