@@ -141,6 +141,7 @@ export function createLogger(config, { resumeSessionId = null, seedEvents = [], 
     profile: null,
     survey: null,
     surveyVersion: SURVEY_VERSION,
+    insightsTrackingVersion: 1,
     events: [],
     trace: [],
   };

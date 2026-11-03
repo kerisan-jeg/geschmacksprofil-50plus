@@ -3,6 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { CSV_COLUMNS, sessionsToCsv, summarizeSession } from './export.js';
+import { sessionRow } from '../sync/sync.js';
 
 function fakeStorage() {
   const data = new Map();
@@ -81,4 +82,27 @@ test('Erweiterte Befragung und getrennte Abschlussmerkmale bleiben in Sitzung un
   assert.equal(values[columns.indexOf('surveyEffort')], '2');
   assert.equal(values[columns.indexOf('surveyRepetition')], '3');
   assert.equal(values[columns.indexOf('allRoundsCompleted')], 'false');
+});
+
+test('Sichtungsprotokoll und gezielte Vermutungsfragen kommen unverändert im Datenbankobjekt und CSV an', () => {
+  const logger = createLogger({ roundCardLimit: 13 });
+  logger.start({ ageGroup: '60-69' });
+  logger.recordEvent({ type: 'ANSWER', cardId: 'F01', response: 'LIKE', round: 1 });
+  logger.trace('profile_insights_opened', { availablePredictions: 8 });
+  logger.setSurvey({ version: 'study-v3', ease: 4, swipeClarity: 4, effort: 2, repetition: 3, fit: 4, length: 2, insightsSeen: 'yes', insightsClarity: 5, insightsFit: 'not_assessable' });
+  const payload = sessionRow(logger.session);
+  assert.equal(payload.data.insightsTrackingVersion, 1);
+  assert.equal(payload.data.trace.at(-1).availablePredictions, 8);
+  assert.equal(payload.data.survey.version, 'study-v3');
+  assert.equal(payload.data.survey.insightsSeen, 'yes');
+  assert.equal(payload.data.survey.insightsClarity, 5);
+  assert.equal(payload.data.survey.insightsFit, 'not_assessable');
+  assert.equal(payload.finished, true);
+  assert.equal(payload.data.completion.studyCompleted, false);
+  const [header, line] = sessionsToCsv([logger.session]).trim().split('\r\n');
+  const columns = header.split(',');
+  const values = line.split(',');
+  assert.equal(values[columns.indexOf('surveyInsightsSeen')], 'yes');
+  assert.equal(values[columns.indexOf('surveyInsightsClarity')], '5');
+  assert.equal(values[columns.indexOf('surveyInsightsFit')], 'not_assessable');
 });

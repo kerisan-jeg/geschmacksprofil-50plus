@@ -3,7 +3,7 @@ import { replay } from '../logic/engine.js';
 import { roundOverview } from '../logic/rounds.js';
 import { eventType, ANSWER, PROFILE_EVENTS } from '../logic/events.js';
 import { sessionCompletion } from '../study/completion.js';
-import { LEGACY_SURVEY_VERSION, NOT_TRIED, SURVEY_VERSION, surveyIssues, surveyScales, surveyVersion } from '../study/survey.js';
+import { LEGACY_SURVEY_VERSION, NOT_ASSESSABLE, NOT_TRIED, SURVEY_FIELD_IDS, SURVEY_VERSION, surveyIssues, surveyQuestionApplies, surveyScales, surveyVersion } from '../study/survey.js';
 
 const timestamp = (value) => typeof value === 'string' && Number.isFinite(Date.parse(value)) ? Date.parse(value) : null;
 const earliest = (values) => values.filter((value) => timestamp(value) !== null).sort((a, b) => timestamp(a) - timestamp(b))[0] ?? null;
@@ -66,6 +66,10 @@ export function participantRows(sessions, { index, diets }) {
     const issues = session.survey?.submittedAt ? surveyIssues(session.survey) : [];
     const methodCount = (method) => validAnswers.filter((entry) => entry.inputMethod === method).length;
     const knownMethods = ['swipe', 'button', 'link', 'keyboard'];
+    const cutoff = timestamp(session.survey?.submittedAt) ?? Infinity;
+    const insightOpens = trace.filter((entry) => entry.type === 'profile_insights_opened' && timestamp(entry.at) !== null && timestamp(entry.at) <= cutoff);
+    const insightsTracked = session.insightsTrackingVersion === 1 || insightOpens.length > 0;
+    const reviews = events.filter((entry) => entry.type === 'RATING_CHANGED' && entry.fromPrediction === true && timestamp(entry.timestamp) !== null && timestamp(entry.timestamp) <= cutoff);
     const row = {
       sessionId: session.sessionId,
       participantCode: session.participantCode ?? null,
@@ -90,6 +94,11 @@ export function participantRows(sessions, { index, diets }) {
       keyboardCount: methodCount('keyboard'),
       unknownInputCount: validAnswers.filter((entry) => !knownMethods.includes(entry.inputMethod)).length,
       profileEdits: events.filter((entry) => PROFILE_EVENTS.includes(eventType(entry))).length,
+      insightsTracked,
+      insightsOpens: insightsTracked ? insightOpens.length : null,
+      insightsOpensWithPredictions: insightsTracked ? insightOpens.filter((entry) => entry.availablePredictions > 0).length : null,
+      insightsLastAvailable: insightOpens.at(-1)?.availablePredictions ?? null,
+      predictionReviews: new Set(reviews.map((entry) => entry.cardId)).size,
       usageStartedAt,
       timeStartSource: started ? 'Startknopf' : consent ? 'Einwilligung' : firstAnswer ? 'erste Kartenantwort' : 'nicht erfasst',
       profileCompletedAt: completion.profileCompletedAt,
@@ -108,12 +117,14 @@ export function participantRows(sessions, { index, diets }) {
       row['round' + round.round + 'DurationMs'] = elapsed(start, end);
     }
     const scales = surveyScales(version);
-    for (const id of ['ease', 'clarity', 'swipeClarity', 'effort', 'repetition', 'fit', 'length']) {
+    for (const id of SURVEY_FIELD_IDS) {
       const scale = scales.find((item) => item.id === id);
       const value = session.survey?.[id];
       const option = scale?.options.find((entry) => entry.id === value);
-      row['survey_' + id] = option ? value : null;
-      row['survey_' + id + '_label'] = !scale ? 'nicht erhoben in dieser Fragefassung' : value == null ? 'fehlend' : option?.label ?? 'ungültiger Wert';
+      const applies = scale && surveyQuestionApplies(scale, session.survey);
+      const filterKnown = !scale?.when || scales.find((entry) => entry.id === scale.when)?.options.some((entry) => entry.id === session.survey?.[scale.when]);
+      row['survey_' + id] = option && applies ? value : null;
+      row['survey_' + id + '_label'] = !scale ? 'nicht erhoben in dieser Fragefassung' : !filterKnown ? 'nicht bestimmbar (Sichtungsantwort fehlt oder ungültig)' : !applies ? 'nicht gefragt (Vermutungen nicht angesehen oder keine angezeigt)' : value == null ? 'fehlend' : option?.label ?? 'ungültiger Wert';
     }
     return row;
   });
@@ -125,15 +136,19 @@ export function surveyDistributions(sessions) {
   return versions.flatMap((version) => {
     const group = submitted.filter((session) => surveyVersion(session.survey) === version);
     return surveyScales(version).flatMap((scale) => {
-      const values = group.map((session) => session.survey[scale.id]);
-      const valid = values.filter((value) => scale.options.some((option) => option.id === value) && value !== NOT_TRIED).length;
+      const filter = scale.when && surveyScales(version).find((entry) => entry.id === scale.when);
+      const unresolved = filter ? group.filter((session) => !filter.options.some((option) => option.id === session.survey[filter.id])).length : 0;
+      const applicable = group.filter((session) => surveyQuestionApplies(scale, session.survey));
+      const values = applicable.map((session) => session.survey[scale.id]);
+      const valid = values.filter((value) => scale.options.some((option) => option.id === value) && ![NOT_TRIED, NOT_ASSESSABLE].includes(value)).length;
       const notTried = values.filter((value) => value === NOT_TRIED && scale.options.some((option) => option.id === NOT_TRIED)).length;
+      const notAssessed = values.filter((value) => value === NOT_ASSESSABLE && scale.options.some((option) => option.id === NOT_ASSESSABLE)).length;
       const missing = values.filter((value) => value == null).length;
-      const invalid = values.length - valid - notTried - missing;
+      const invalid = values.length - valid - notTried - notAssessed - missing;
       return scale.options.map((option) => {
         const count = values.filter((value) => value === option.id).length;
-        const share = option.id !== NOT_TRIED && valid ? count / valid : null;
-        return { version, questionId: scale.id, question: scale.question, value: option.id, answer: option.label, count, basis: group.length, valid, notTried, missing, invalid, share, percent: share === null ? null : Number((share * 100).toFixed(1)) };
+        const share = ![NOT_TRIED, NOT_ASSESSABLE].includes(option.id) && valid ? count / valid : null;
+        return { version, questionId: scale.id, question: scale.question, value: option.id, answer: option.label, count, basis: group.length, eligible: applicable.length, skipped: group.length - applicable.length - unresolved, unresolved, valid, notTried, notAssessed, missing, invalid, share, percent: share === null ? null : Number((share * 100).toFixed(1)) };
       });
     });
   });
@@ -146,14 +161,15 @@ export const PARTICIPANT_COLUMNS = [
   column('cardsAnswered', 'Gültig beantwortete Karten'), column('answerActions', 'Bewertungsaktionen'), column('undoCount', 'Rückgängig'), column('swipeCount', 'Wischantworten'), column('buttonCount', 'Antwortknöpfe'), column('linkCount', 'Vertrage-ich-nicht-Link'), column('keyboardCount', 'Tastaturantworten'), column('unknownInputCount', 'Eingabemethode unbekannt'),
   ...['LIKE', 'PREFER', 'DISLIKE', 'UNFAMILIAR', 'INTOLERANT'].map((key, index) => column(key, ['Mag ich / Eher gern', 'Mag ich sehr / Sehr gern', 'Mag ich nicht / Eher ungern', 'Kenne ich nicht', 'Vertrage ich nicht'][index])),
   column('profileEdits', 'Änderungen im Profil'), column('timeStartSource', 'Zeitbeginn ermittelt aus'), column('usageStartedAt', 'Beginn (ISO-Zeit)'), column('profileCompletedAt', 'Profil fertig (ISO-Zeit)'), column('surveySubmittedAt', 'Befragung abgeschickt (ISO-Zeit)'), column('profileDurationMs', 'Zeit bis alle Runden fertig (ms)'), column('totalDurationMs', 'Zeit bis Befragung abgeschickt (ms)'), column('medianAnswerMs', 'Mittlere Kartenantwortzeit Median (ms)'),
+  column('insightsTracked', 'Erfassung des Öffnens verfügbar'), column('insightsOpens', 'Protokollierte Öffnungen bis Befragung'), column('insightsOpensWithPredictions', 'Davon mit verfügbaren Vermutungen'), column('insightsLastAvailable', 'Verfügbare Vermutungen bei letzter Öffnung'), column('predictionReviews', 'Freiwillig bewertete Vermutungskarten bis Befragung'),
   ...[1, 2, 3, 4].flatMap((round) => [column('round' + round + 'Status', 'Runde ' + round + ' Status'), column('round' + round + 'Cards', 'Runde ' + round + ' Karten'), column('round' + round + 'DurationMs', 'Runde ' + round + ' verstrichene Zeit (ms)')]),
 ];
 export const SURVEY_COLUMNS = [
   column('sessionId', 'Teilnahmenummer'), column('surveyVersion', 'Fragebogen-Version'), column('surveySubmitted', 'Befragung abgeschickt'), column('surveySubmittedAt', 'Abgeschickt (ISO-Zeit)'), column('surveyValid', 'Werte vollständig und gültig'), column('surveyIssues', 'Fehlende oder ungültige Felder'),
-  ...['ease', 'clarity', 'swipeClarity', 'effort', 'repetition', 'fit', 'length'].flatMap((id) => [column('survey_' + id, id), column('survey_' + id + '_label', id + ' Antworttext')]),
+  ...SURVEY_FIELD_IDS.flatMap((id) => [column('survey_' + id, id), column('survey_' + id + '_label', id + ' Antworttext')]),
   column('surveyRemarks', 'Anmerkung'),
 ];
-export const DISTRIBUTION_COLUMNS = [column('version', 'Fragebogen-Version'), column('questionId', 'Fragenkennung'), column('question', 'Frage'), column('value', 'Antwortwert'), column('answer', 'Antwort'), column('count', 'Anzahl'), column('basis', 'Abgeschickte Befragungen dieser Fassung'), column('valid', 'Gültige Bewertungen'), column('notTried', 'Nicht ausprobiert'), column('missing', 'Fehlend'), column('invalid', 'Ungültig'), column('percent', 'Anteil an gültigen Bewertungen (%)')];
+export const DISTRIBUTION_COLUMNS = [column('version', 'Fragebogen-Version'), column('questionId', 'Fragenkennung'), column('question', 'Frage'), column('value', 'Antwortwert'), column('answer', 'Antwort'), column('count', 'Anzahl'), column('basis', 'Abgeschickte Befragungen dieser Fassung'), column('eligible', 'Für diese Frage vorgesehen'), column('skipped', 'Bedingt nicht gefragt'), column('unresolved', 'Filterantwort fehlt oder ungültig'), column('valid', 'Gültige Bewertungen'), column('notTried', 'Nicht ausprobiert'), column('notAssessed', 'Kann ich nicht beurteilen'), column('missing', 'Fehlend'), column('invalid', 'Ungültig'), column('percent', 'Anteil an gültigen Bewertungen (%)')];
 
 export function studyCsv(rows, columns) {
   const cell = (value) => {
@@ -183,7 +199,7 @@ export function formatStudySummary({ sessions, rows, distributions, selection },
     `  Alle Runden abgeschlossen: ${rows.filter((row) => row.allRoundsCompleted).length}.`,
     `  Runden vor dem Abschicken der Befragung vollständig: ${completed.length}.`,
     `  Davon ab 50 mit gültiger Befragung, alle Fragefassungen: ${eligible.length}.`,
-    `  Davon mit aktueller Fragefassung study-v2: ${target.length}. Aufgabenstellung: mindestens 30 Personen ab 50.`,
+    `  Davon mit aktueller Fragefassung ${SURVEY_VERSION}: ${target.length}. Aufgabenstellung: mindestens 30 Personen ab 50.`,
     '  Eine Sitzung ist ein Durchlauf. Wiederholte Durchläufe derselben Person müssen im Team gekennzeichnet werden.', '',
     'Abschlussstatus',
   ];
@@ -209,16 +225,26 @@ export function formatStudySummary({ sessions, rows, distributions, selection },
       const entries = distributions.filter((entry) => entry.version === version && entry.questionId === scale.id);
       const first = entries[0];
       lines.push(`    ${scale.question}`);
-      lines.push(`      Gültig bewertet: ${first.valid}; nicht ausprobiert: ${first.notTried}; fehlend: ${first.missing}; ungültig: ${first.invalid}.`);
-      for (const entry of entries.filter((entry) => entry.count && entry.value !== NOT_TRIED)) lines.push(`      ${entry.answer}: ${entry.count} von ${entry.valid} (${percent(entry.share)}).`);
+      lines.push(`      Für diese Frage vorgesehen: ${first.eligible}; bedingt nicht gefragt: ${first.skipped}.`);
+      if (first.unresolved) lines.push(`      Zuordnung wegen fehlender oder ungültiger Filterantwort unklar: ${first.unresolved}.`);
+      lines.push(`      Gültig bewertet: ${first.valid}; nicht ausprobiert: ${first.notTried}; nicht beurteilbar: ${first.notAssessed}; fehlend: ${first.missing}; ungültig: ${first.invalid}.`);
+      for (const entry of entries.filter((entry) => entry.count && ![NOT_TRIED, NOT_ASSESSABLE].includes(entry.value))) lines.push(`      ${entry.answer}: ${entry.count} von ${entry.valid} (${percent(entry.share)}).`);
       if (first.notTried) lines.push(`      Nicht ausprobiert: ${first.notTried}; zählt nicht als mittlere oder schlechte Bewertung.`);
+      if (first.notAssessed) lines.push(`      Kann ich nicht beurteilen: ${first.notAssessed}; wird separat gezählt und nicht als Bewertung verrechnet.`);
     }
     if (!surveyScales(version).length) lines.push('    Unbekannte Fragefassung: Werte nicht mit bekannten Fassungen vermischt.');
     if (version === LEGACY_SURVEY_VERSION) lines.push('    Diese ältere Fassung erfragte Anstrengung, Wiederholung und Wischverständlichkeit noch nicht ausdrücklich.');
   }
-  if (!submitted.some((row) => row.surveyVersion === SURVEY_VERSION)) lines.push('  Für die erweiterte Befragung study-v2 liegen noch keine abgeschickten Antworten vor.');
+  if (!submitted.some((row) => row.surveyVersion === SURVEY_VERSION)) lines.push(`  Für die aktuelle Befragung ${SURVEY_VERSION} liegen noch keine abgeschickten Antworten vor.`);
   lines.push(`  Freitextanmerkungen: ${submitted.filter((row) => row.surveyRemarks).length}; siehe befragung.csv. Inhaltlich im Team nach Themen ordnen.`,
     '  Die unterschiedlichen Bewertungsfragen und die Längenfrage werden nicht zu einer gemeinsamen Gesamtnote verrechnet.', '',
+    'Weitere Einblicke: Sichtung und Rückmeldung',
+    `  Laut Befragung angesehen: ${submitted.filter((row) => row.survey_insightsSeen === 'yes').length}; nicht angesehen: ${submitted.filter((row) => row.survey_insightsSeen === 'no').length}; keine Vermutungen angezeigt: ${submitted.filter((row) => row.survey_insightsSeen === 'no_predictions').length}.`,
+    `  Sitzungen mit protokollierter Öffnung vor Befragungsende: ${rows.filter((row) => row.insightsOpens > 0).length}; davon mit verfügbaren Vermutungen: ${rows.filter((row) => row.insightsOpensWithPredictions > 0).length}.`,
+    `  Sitzungen ohne Erfassung des Öffnens: ${rows.filter((row) => !row.insightsTracked).length}. Fehlende Erfassung bedeutet nicht, dass der Bereich nicht angesehen wurde.`,
+    `  Freiwillig bewertete Vermutungskarten bis Befragungsende: ${rows.reduce((sum, row) => sum + row.predictionReviews, 0)}.`,
+    '  Aufklappen belegt weder Lesen noch Verständnis. Selbstauskunft, Öffnungsprotokoll und die beiden gezielten Fragen werden getrennt betrachtet.',
+    '  Freiwillige Bewertungen betreffen selbst ausgewählte Karten und liefern keine unabhängige Trefferquote aller Vermutungen.', '',
     'Profilpassung und technische Zusatzprüfung',
     '  Die Passungsfrage oben beschreibt das persönliche Empfinden. Kontrollkarten prüfen dagegen einzelne Vorhersagen.');
   const checkRows = technical?.datas.filter((data) => data.checks.some((check) => ['LIKE', 'PREFER', 'DISLIKE'].includes(check.response))) ?? [];

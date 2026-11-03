@@ -4,9 +4,9 @@ Stand 02.11.2026. Die zentrale Anbindung nach dem Vorschlag vom 29.10.2026 ist i
 
 ## Ablauf für die Teilnehmenden
 
-Link öffnen → Studieninformation auf dem Startbildschirm → Vorname → Altersgruppe und Einwilligung („Was wird gespeichert?“ aufklappbar) → drei Fragen → bis zu vier Runden → Mein Profil → sechs Auswahlfragen und eine freiwillige Anmerkung → Abschlussbestätigung mit Teilnahmenummer und getrenntem Befragungs-/Rundenstatus.
+Link öffnen → Studieninformation auf dem Startbildschirm → Vorname → Altersgruppe und Einwilligung („Was wird gespeichert?“ aufklappbar) → drei Fragen → bis zu vier Runden → Mein Profil einschliesslich «Weitere Einblicke» → kurze Befragung → Abschlussbestätigung mit Teilnahmenummer und getrenntem Befragungs-/Rundenstatus.
 
-- Die Befragung ist vom Profil aus erreichbar, sobald mindestens eine Runde abgeschlossen oder beendet ist. Seit Version 0.13 sind sechs Auswahlfragen Pflicht (Bedienung, Wischverständlichkeit, Anstrengung, Wiederholung, Profilpassung, Länge); der Verbesserungshinweis ist freiwillig. „Nicht ausprobiert“ ist bei der Wischfrage eine eigene Antwort.
+- Die Befragung ist vom Profil aus erreichbar, sobald mindestens eine Runde abgeschlossen oder beendet ist. Seit Version 0.14 gibt es sechs allgemeine Fragen und eine Sichtungsfrage zu den Vermutungen. Nur nach bestätigter Sichtung folgen zwei Fragen zu Nachvollziehbarkeit und Passung. „Nicht ausprobiert“ und „Kann ich nicht beurteilen“ sind eigene Kategorien; der Verbesserungshinweis ist freiwillig. Fragefassung: `study-v3`; [Begründung jeder Frage](befragung-ziele-und-erkenntnisse.md).
 - Die Abschlussbestätigung zeigt „Vielen Dank“ erst, wenn die letzte Übertragung gelungen ist. Vorher steht „Einen Moment“, bei einem Fehler „Noch nicht übermittelt“ mit „Erneut senden“. Darunter steht die Teilnahmenummer (die zufällige `sessionId`), mit der das Team eine Sitzung findet, zum Beispiel für eine Löschung.
 - Der Vorname bleibt auf dem Gerät (`PRIVACY.logParticipantName = false`). App-Daten und Befragung hängen über die Teilnahmenummer zusammen, nicht über den Namen.
 

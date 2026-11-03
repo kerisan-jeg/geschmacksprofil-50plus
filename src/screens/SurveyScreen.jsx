@@ -3,16 +3,18 @@ import { CircleAlert, Send } from 'lucide-react';
 import ChoiceList from '../components/ChoiceList.jsx';
 import TopBar, { BackButton } from '../components/TopBar.jsx';
 import { SURVEY } from '../labels.js';
+import { activeSurveyScales, INSIGHT_FIELDS } from '../study/survey.js';
 
-// Studienbefragung v2: sechs Fragen mit Auswahl (Pflicht) und eine offene Frage
-// (freiwillig). Die Antworten gehen als survey in die Sitzung; die Teilnahmenummer der Sitzung verbindet sie mit den
-// Antworten zu den Karten.
+// Studienbefragung v3: sechs allgemeine Fragen, eine Sichtungsfrage und gegebenenfalls zwei Vermutungsfragen.
+// Die offene Anmerkung bleibt freiwillig. Die Antworten gehen als survey in die Sitzung;
+// die Teilnahmenummer verbindet sie mit den Antworten zu den Karten.
 export default function SurveyScreen({ firstName, onSubmit, onBack }) {
   const [values, setValues] = useState(() => Object.fromEntries(SURVEY.scales.map((scale) => [scale.id, null])));
   const [remarks, setRemarks] = useState('');
   const [showError, setShowError] = useState(false);
   const refs = useRef({});
-  const missing = SURVEY.scales.filter((scale) => values[scale.id] == null).map((scale) => scale.id);
+  const scales = activeSurveyScales(values, SURVEY.version);
+  const missing = scales.filter((scale) => values[scale.id] == null).map((scale) => scale.id);
 
   // Zur ersten fehlenden Antwort scrollen.
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function SurveyScreen({ firstName, onSubmit, onBack }) {
       </div>
 
       <form className="form" onSubmit={handleSubmit} noValidate>
-        {SURVEY.scales.map((scale) => (
+        {scales.map((scale) => (
           <fieldset
             key={scale.id}
             className="field-set"
@@ -56,7 +58,7 @@ export default function SurveyScreen({ firstName, onSubmit, onBack }) {
               name={`survey-${scale.id}`}
               options={scale.options}
               value={values[scale.id]}
-              onChange={(value) => setValues((previous) => ({ ...previous, [scale.id]: value }))}
+              onChange={(value) => setValues((previous) => ({ ...previous, ...(scale.id === 'insightsSeen' ? Object.fromEntries(INSIGHT_FIELDS.map((id) => [id, null])) : {}), [scale.id]: value }))}
               labelledBy={`survey-${scale.id}`}
             />
             {showError && values[scale.id] == null && (

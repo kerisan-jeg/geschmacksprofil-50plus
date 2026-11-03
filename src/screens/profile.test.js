@@ -24,12 +24,12 @@ const events = [
   { cardId: 'F02', response: 'DISLIKE', round: 1 },
 ];
 
-async function setup({ rules = onboarding, sessionEvents = events } = {}) {
+async function setup({ rules = onboarding, sessionEvents = events, extras = {} } = {}) {
   const calls = [];
   const round = deriveRoundState({ index, onboarding: rules, diets: stage0.diets, events: sessionEvents });
   const onChange = { confirmPrediction: (...args) => calls.push(args), rating() {}, addExclusions() {}, removeExclusions() {}, diet() {} };
   const view = await render(
-    h(ProfileScreen, { round, onboarding: rules, account: null, index, allergens, foods: [], dietOptions, steps: [], canSignOut: false, onCreate() {}, onRestart() {}, onSignOut() {}, onChange })
+    h(ProfileScreen, { round, onboarding: rules, account: null, index, allergens, foods: [], dietOptions, steps: [], canSignOut: false, onCreate() {}, onRestart() {}, onSignOut() {}, onChange, ...extras })
   );
   return { ...view, calls };
 }
@@ -52,6 +52,26 @@ test('„Mein Profil“ zeigt die Vermutungen getrennt, mit Begründung und ohne
   assert.ok(Boolean(more), '„Alle anzeigen“ vorhanden');
   await click(more);
   assert.ok(likely.querySelectorAll('.taste-row').length > 5, 'nach „Alle anzeigen“ alle sichtbar');
+  await view.unmount();
+});
+
+test('Vor der Befragung führt der Hinweis zu Weitere Einblicke und protokolliert das Aufklappen', async () => {
+  const opened = [];
+  const view = await setup({ extras: { survey: { available: true, done: false }, onSurvey() {}, onInsightsOpen: (details) => opened.push(details) } });
+  const disclosure = view.container.querySelector('[aria-labelledby="insights-title"]');
+  assert.equal(disclosure.open, false);
+  await click([...view.container.querySelectorAll('button')].find((node) => node.textContent === PROFILE.surveyInsights));
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(disclosure.open, true);
+  assert.equal(document.activeElement, disclosure.querySelector('summary'));
+  assert.equal(opened.length, 1);
+  assert.ok(opened[0].availablePredictions > 0);
+  await view.unmount();
+});
+
+test('Weitere Einblicke erklärt einen Stand ohne Vermutungen', async () => {
+  const view = await setup({ sessionEvents: [] });
+  assert.ok(view.container.textContent.includes(PROFILE.insightsEmpty));
   await view.unmount();
 });
 

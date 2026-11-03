@@ -14,19 +14,19 @@ const { default: FinishScreen } = await import('./FinishScreen.jsx');
 const { SURVEY, FINISH } = await import('../labels.js');
 const { SYNC_STATES } = await import('../sync/sync.js');
 
-test('Befragung v2: sechs Pflichtfragen, freiwilliger Text und Nicht-ausprobiert als eigene Antwort', async () => {
+test('Befragung v3: sechs allgemeine Fragen und Sichtung sind Pflicht; nicht gesehene Vermutungen bleiben unbewertet', async () => {
   const submitted = [];
   const { container, unmount } = await render(createElement(SurveyScreen, { firstName: 'Anna', onSubmit: (values) => submitted.push(values), onBack() {} }));
   const text = container.textContent;
-  for (const scale of SURVEY.scales) assert.ok(text.includes(scale.question), scale.id);
-  assert.equal(container.querySelectorAll('[role="radiogroup"]').length, 6);
-  assert.equal(container.querySelectorAll('input[type="radio"]').length, 5 + 6 + 5 + 5 + 5 + 3);
+  for (const scale of SURVEY.scales.filter((entry) => !entry.when)) assert.ok(text.includes(scale.question), scale.id);
+  assert.equal(container.querySelectorAll('[role="radiogroup"]').length, 7);
+  assert.equal(container.querySelectorAll('input[type="radio"]').length, 5 + 6 + 5 + 5 + 5 + 3 + 3);
   assert.ok(container.querySelector('textarea#survey-remarks'));
   // Ohne Antworten: Fehlermeldung je offener Frage, nichts abgeschickt
   await click(buttonByText(container, SURVEY.submit));
   // Die Fehlermeldung erscheint im nächsten Frame (requestAnimationFrame)
   await act(async () => new Promise((resolve) => setTimeout(resolve, 40)));
-  assert.equal(container.querySelectorAll('[role="alert"]').length, 6);
+  assert.equal(container.querySelectorAll('[role="alert"]').length, 7);
   assert.deepEqual(submitted, []);
   // Sechs Antworten wählen, auch „nicht ausprobiert“ ist eine gültige Pflichtantwort.
   await click(container.querySelector('input[name="survey-ease"][value="5"]'));
@@ -35,13 +35,32 @@ test('Befragung v2: sechs Pflichtfragen, freiwilliger Text und Nicht-ausprobiert
   await click(container.querySelector('input[name="survey-repetition"][value="3"]'));
   await click(container.querySelector('input[name="survey-fit"][value="3"]'));
   await click(container.querySelector('input[name="survey-length"][value="2"]'));
+  await click(container.querySelector('input[name="survey-insightsSeen"][value="no"]'));
   const textarea = container.querySelector('textarea');
   await act(async () => {
     Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, 'value').set.call(textarea, '  Die Bilder waren toll  ');
     textarea.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
   });
   await click(buttonByText(container, SURVEY.submit));
-  assert.deepEqual(submitted, [{ version: 'study-v2', ease: 5, swipeClarity: 'not_tried', effort: 2, repetition: 3, fit: 3, length: 2, remarks: 'Die Bilder waren toll' }]);
+  assert.deepEqual(submitted, [{ version: 'study-v3', ease: 5, swipeClarity: 'not_tried', effort: 2, repetition: 3, fit: 3, length: 2, insightsSeen: 'no', insightsClarity: null, insightsFit: null, remarks: 'Die Bilder waren toll' }]);
+  await unmount();
+});
+
+test('Vermutungsfragen erscheinen nach Ja; geänderte Sichtung löscht vorherige Bewertungen', async () => {
+  const { container, unmount } = await render(createElement(SurveyScreen, { onSubmit() {}, onBack() {} }));
+  await click(container.querySelector('input[name="survey-insightsSeen"][value="yes"]'));
+  assert.equal(container.querySelectorAll('[role="radiogroup"]').length, 9);
+  await click(container.querySelector('input[name="survey-insightsClarity"][value="4"]'));
+  await click(container.querySelector('input[name="survey-insightsFit"][value="not_assessable"]'));
+  await click(container.querySelector('input[name="survey-insightsSeen"][value="no_predictions"]'));
+  assert.equal(container.querySelectorAll('[role="radiogroup"]').length, 7);
+  assert.equal(container.querySelector('input[name="survey-insightsFit"]'), null);
+  await click(container.querySelector('input[name="survey-insightsSeen"][value="yes"]'));
+  assert.equal(container.querySelectorAll('input[name="survey-insightsFit"]:checked').length, 0);
+  assert.equal(container.querySelectorAll('input[name="survey-insightsClarity"]:checked').length, 0);
+  await click(buttonByText(container, SURVEY.submit));
+  await act(async () => new Promise((resolve) => setTimeout(resolve, 40)));
+  assert.equal(container.querySelectorAll('[role="alert"]').length, 8, 'Sichtung ist bereits beantwortet, die übrigen acht Fragen fehlen');
   await unmount();
 });
 

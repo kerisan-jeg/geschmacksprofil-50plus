@@ -119,3 +119,68 @@ test('Kontrollvergleich gewichtet jede Sitzung gleich, auch bei unterschiedlich 
   const text = formatStudySummary({ sessions, rows, selection, distributions: surveyDistributions(sessions) }, technical);
   assert.ok(text.includes('adaptive): 50 % (n=2 Sitzungen)'), 'Mittel von 100 % und 0 %, keine gepoolten 25 %');
 });
+
+test('Weitere Einblicke: Sichtungsfilter, Nicht-beurteilbar und alte Fassungen haben getrennte Bezugsgruppen', () => {
+  const current = (extra) => submittedSurvey({ version: 'study-v3', ease: 4, swipeClarity: 4, effort: 2, repetition: 1, fit: 5, length: 2, ...extra }, new Date(now));
+  const sessions = [
+    fullSession('seen', current({ insightsSeen: 'yes', insightsClarity: 4, insightsFit: 5 })),
+    fullSession('unsure', current({ insightsSeen: 'yes', insightsClarity: 3, insightsFit: 'not_assessable' })),
+    fullSession('unseen', current({ insightsSeen: 'no' })),
+    fullSession('empty', current({ insightsSeen: 'no_predictions' })),
+    fullSession('v2'),
+  ];
+  const distributions = surveyDistributions(sessions);
+  const fit = distributions.find((row) => row.questionId === 'insightsFit' && row.value === 5);
+  assert.equal(fit.basis, 4);
+  assert.equal(fit.eligible, 2);
+  assert.equal(fit.skipped, 2);
+  assert.equal(fit.valid, 1);
+  assert.equal(fit.notAssessed, 1);
+  assert.equal(fit.missing, 0);
+  assert.equal(fit.percent, 100, 'nur eine beurteilbare Bewertung; kein Mittelwert mit nicht gesehen');
+  const rows = participantRows(sessions, { index, diets });
+  assert.ok(rows.slice(0, 4).every((row) => row.surveyValid));
+  assert.equal(rows[2].survey_insightsFit, null);
+  assert.match(rows[2].survey_insightsFit_label, /nicht gefragt/);
+  assert.match(rows[4].survey_insightsFit_label, /nicht erhoben/);
+  assert.equal(rows[4].currentSurveyVersion, false);
+  const text = formatStudySummary({ sessions, rows, distributions, selection: selectStudySessions(sessions) });
+  assert.ok(text.includes('Laut Befragung angesehen: 2; nicht angesehen: 1; keine Vermutungen angezeigt: 1'));
+  assert.ok(text.includes('bedingt nicht gefragt: 2'));
+  assert.ok(text.includes('Fragefassung study-v2'));
+  assert.ok(text.includes('Fragefassung study-v3'));
+});
+
+test('Öffnungsprotokoll zählt nur vor der Befragung und ersetzt weder Selbstauskunft noch Verständnis', () => {
+  const session = fullSession('opened');
+  session.insightsTrackingVersion = 1;
+  session.trace.push(
+    { type: 'profile_insights_opened', at: '2026-10-15T09:30:00Z', availablePredictions: 8 },
+    { type: 'profile_insights_opened', at: '2026-10-15T09:40:00Z', availablePredictions: 0 },
+    { type: 'profile_insights_opened', at: '2026-10-15T10:10:00Z', availablePredictions: 5 },
+  );
+  session.events.push(
+    { type: 'RATING_CHANGED', fromPrediction: true, cardId: 'F12.1', rating: 'LIKE', predictedScore: 0.5, timestamp: '2026-10-15T09:31:00Z' },
+    { type: 'RATING_CHANGED', fromPrediction: true, cardId: 'F12.1', rating: 'PREFER', predictedScore: 0.5, timestamp: '2026-10-15T09:32:00Z' },
+    { type: 'RATING_CHANGED', fromPrediction: true, cardId: 'F12.2', rating: 'LIKE', predictedScore: 0.5, timestamp: '2026-10-15T10:11:00Z' },
+  );
+  const rows = participantRows([session, fullSession('old'), { ...fullSession('no-open'), insightsTrackingVersion: 1 }], { index, diets });
+  assert.equal(rows[0].insightsOpens, 2);
+  assert.equal(rows[0].insightsOpensWithPredictions, 1);
+  assert.equal(rows[0].insightsLastAvailable, 0);
+  assert.equal(rows[0].predictionReviews, 1, 'doppelte Bewertungen derselben Karte zählen einmal');
+  assert.equal(rows[1].insightsOpens, null, 'alte Daten enthalten keinen Beleg für null Öffnungen');
+  assert.equal(rows[2].insightsOpens, 0, 'neue Erfassung ohne Öffnung ist echte Null');
+});
+
+test('Fehlende Sichtungsantwort wird nicht mit bewusst übersprungenen Detailfragen gleichgesetzt', () => {
+  const sessions = ['no', null].map((insightsSeen, i) => fullSession('filter-' + i, { ...newSurvey(), version: 'study-v3', insightsSeen }));
+  const fit = surveyDistributions(sessions).find((row) => row.questionId === 'insightsFit');
+  assert.equal(fit.eligible, 0);
+  assert.equal(fit.skipped, 1);
+  assert.equal(fit.unresolved, 1);
+  const rows = participantRows(sessions, { index, diets });
+  assert.equal(rows[0].surveyValid, true);
+  assert.equal(rows[1].surveyValid, false);
+  assert.match(rows[1].survey_insightsFit_label, /Sichtungsantwort fehlt/);
+});

@@ -1,9 +1,9 @@
 import { ChevronDown } from 'lucide-react';
 
 // Native details/summary: standardmässig geschlossen, per Tastatur und Touch bedienbar.
-export default function ProfileDisclosure({ id, title, count, icon: Icon, tone, className = '', description, fraction, children }) {
+export default function ProfileDisclosure({ id, title, count, icon: Icon, tone, className = '', description, fraction, disclosureRef, onToggle, children }) {
   return (
-    <details className={`panel profile-disclosure${tone ? ` tone-${tone}` : ''} ${className}`} aria-labelledby={id}>
+    <details ref={disclosureRef} onToggle={onToggle} className={`panel profile-disclosure${tone ? ` tone-${tone}` : ''} ${className}`} aria-labelledby={id}>
       <summary className="profile-disclosure-summary">
         {Icon && <span className="group-icon"><Icon aria-hidden="true" /></span>}
         <span className="disclosure-text">

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import foodList from '../data/foods.json';
 import { CUISINE_MIN_RATED } from '../config.js';
 import cuisineData from '../data/cuisines.json';
@@ -150,6 +150,7 @@ export default function ProfileScreen({
   onCreate,
   onNext,
   onSurvey,
+  onInsightsOpen,
   onRestart,
   onSignOut,
   onChange,
@@ -157,6 +158,7 @@ export default function ProfileScreen({
   const [sheet, setSheet] = useState(null);
   const [confirm, setConfirm] = useState(null);
   const [draft, setDraft] = useState(null);
+  const insightsRef = useRef(null);
 
   const searchIndexes = useMemo(
     () => ({
@@ -203,6 +205,14 @@ export default function ProfileScreen({
   function close() {
     setSheet(null);
     setDraft(null);
+  }
+
+  function showInsights() {
+    const disclosure = insightsRef.current;
+    if (!disclosure) return;
+    disclosure.open = true;
+    disclosure.scrollIntoView?.({ block: 'start' });
+    disclosure.querySelector('summary')?.focus({ preventScroll: true });
   }
 
   function requestRemoval(section, item) {
@@ -315,6 +325,7 @@ export default function ProfileScreen({
           ) : (
             <>
               <p>{PROFILE.surveyText}</p>
+              <button type="button" className="button-secondary" onClick={showInsights}>{PROFILE.surveyInsights}</button>
               <button type="button" className="button-primary" onClick={onSurvey}>
                 {PROFILE.surveyAction}
                 <ChevronRight aria-hidden="true" />
@@ -324,8 +335,11 @@ export default function ProfileScreen({
         </section>
       )}
 
-      <ProfileDisclosure id="insights-title" title={PROFILE.insightsTitle} icon={Sparkles} description={PROFILE.insightsLead}>
+      <ProfileDisclosure id="insights-title" title={PROFILE.insightsTitle} icon={Sparkles} description={PROFILE.insightsLead} disclosureRef={insightsRef} onToggle={(event) => {
+        if (event.currentTarget.open) onInsightsOpen?.({ availablePredictions: derived.length });
+      }}>
         <p className="note">{PROFILE.answerMeaning}</p>
+        {!derived.length && <p className="note">{PROFILE.insightsEmpty}</p>}
         <DerivedTaste entries={derived} index={index} titleOf={titleOf} onSelect={(entry) => setSheet({ type: 'prediction', entry })} />
 
         {board.unasked.length > 0 && (

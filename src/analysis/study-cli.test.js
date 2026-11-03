@@ -43,22 +43,27 @@ test('Auswertung erzeugt wiederholbar alle Studien-Dateien und schliesst technis
   try {
     const old = { sessionId: 'old', events: [{ type: 'ANSWER', cardId: 'F01', response: 'LIKE', round: 1, inputMethod: 'button', timestamp: '2026-11-01T10:00:00Z' }], config: { roundCardLimit: 13 }, onboarding: { ageGroup: '60-69', diet: 'none', exclusions: [] }, survey: { ease: 4, clarity: 3, fit: 4, length: 2, submittedAt: '2026-11-01T10:05:00Z' } };
     const current = { ...old, sessionId: 'new', survey: { version: 'study-v2', ease: 5, swipeClarity: 'not_tried', effort: 2, repetition: 1, fit: 5, length: 2, remarks: 'Ein Kommentar', submittedAt: '2026-11-02T10:05:00Z' } };
+    const insights = { ...current, sessionId: 'insights', insightsTrackingVersion: 1, trace: [{ type: 'profile_insights_opened', at: '2026-11-02T10:04:00Z', availablePredictions: 10 }], survey: { ...current.survey, version: 'study-v3', insightsSeen: 'yes', insightsClarity: 4, insightsFit: 'not_assessable' } };
     const setup = { ...current, sessionId: 'setup', appVersion: 'setup-check', survey: { ...current.survey, remarks: 'Nur technischer Test' } };
     const exported = await exportCentralSessions({
       url: 'https://db.example.org', serviceKey: 'sb_secret_test', out: temp.dir,
-      fetchFn: async () => ({ ok: true, json: async () => [old, current, setup].map((data) => ({ data })) }),
+      fetchFn: async () => ({ ok: true, json: async () => [old, current, insights, setup].map((data) => ({ data })) }),
     });
     const options = { ...parseArgs([exported.jsonFile]), out: temp.dir, quiet: true };
     const result = runEvaluation(options);
-    assert.equal(result.rows.length, 2);
+    assert.equal(result.rows.length, 3);
     assert.equal(result.selection.excluded, 1);
     const survey = readFileSync(path.join(temp.dir, 'befragung.csv'), 'utf8');
     assert.equal((survey.match(/"old"/g) ?? []).length, 1);
     assert.equal((survey.match(/"new"/g) ?? []).length, 1);
+    assert.equal((survey.match(/"insights"/g) ?? []).length, 1);
+    assert.ok(survey.includes('Kann ich nicht beurteilen'));
+    assert.equal(result.rows.find((row) => row.sessionId === 'insights').insightsOpens, 1);
     assert.ok(!survey.includes('Nur technischer Test'));
     for (const file of ['zusammenfassung.txt', 'teilnahmen.csv', 'befragung-zusammenfassung.csv', 'kontrollkarten-zusammenfassung.txt', 'lernkurve.csv', 'kontrollkarten.csv', 'sitzungen.csv', 'varianten.csv']) assert.ok(existsSync(path.join(temp.dir, file)), file);
     assert.ok(result.summary.includes('Fragefassung legacy-v1'));
     assert.ok(result.summary.includes('Fragefassung study-v2'));
+    assert.ok(result.summary.includes('Fragefassung study-v3'));
     assert.ok(result.summary.includes('nicht ausprobiert: 1'));
     assert.equal(runEvaluation(options).summary, result.summary);
   } finally { temp.close(); }

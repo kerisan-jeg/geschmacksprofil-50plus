@@ -2,7 +2,7 @@
 // Alles, was im Pilot variiert werden soll (Wortlaut, Schwellen, Funktionen), steht hier.
 // Gestaltung (Farben, Abstände, Animationsdauern) steht in src/theme/tokens.css.
 
-export const APP_VERSION = '0.13.0-demo';
+export const APP_VERSION = '0.14.0-demo';
 
 // Karten pro Runde, einschliesslich Gerichte in Runde 4. Fortschrittsanzeigen leiten ihre Werte davon ab.
 export const ROUND_CARD_LIMIT = 13;

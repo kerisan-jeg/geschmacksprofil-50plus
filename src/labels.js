@@ -327,12 +327,12 @@ export const COMPLETE = {
   leadDishesEnded: (count) => `Du hast ${plural(count, 'Gericht', 'Gerichte')} bewertet. Deine bisherigen Antworten sind gespeichert.`,
 };
 
-// Studienbefragung v2: sechs Auswahlfragen und ein freiwilliger Text. Die Wischfrage erlaubt „nicht ausprobiert“.
+// Studienbefragung v3: gezielte Fragen zu den Vermutungen nur nach bestätigter Sichtung.
 export const SURVEY = {
   version: SURVEY_VERSION,
   kicker: 'Fast geschafft',
   title: (name) => (name ? `${name}, wie war es für dich?` : 'Wie war es für dich?'),
-  lead: 'Sechs kurze Fragen und eine freiwillige Anmerkung zum Schluss. Es gibt keine falschen Antworten.',
+  lead: 'Zum Schluss einige kurze Fragen und eine freiwillige Anmerkung. Zu den Vermutungen der App fragen wir nur nach, wenn du sie angesehen hast. Es gibt keine falschen Antworten.',
   scales: SURVEY_SCALES,
   remarks: 'Was war unklar oder würdest du verbessern?',
   optional: 'freiwillig',
@@ -395,6 +395,7 @@ export const PROFILE = {
   answerMeaning: '„Mag ich sehr“ bedeutet besonders gern. „Kenne ich nicht“ ist keine Geschmacksbewertung. Gruppen bewerten keine einzelnen Lebensmittel; Gerichte bewerten keine Zutaten.',
   insightsTitle: 'Weitere Einblicke',
   insightsLead: 'Vermutungen, offene Gruppen und Unterschiede bei der Zubereitung.',
+  insightsEmpty: 'Zurzeit gibt es keine zusätzlichen Vermutungen. Deine eigenen Bewertungen findest du unter «Dein Geschmack».',
   restrictionsSummary: (diet, count, notes) => `${diet} · ${plural(count, 'Ausschluss', 'Ausschlüsse')}${notes ? ` · ${plural(notes, 'Notiz zu prüfen', 'Notizen zu prüfen')}` : ''}`,
   // Dashboard nach nurec v0.2, Anhang B1 und B3
   favoritesTitle: 'Deine Favoriten',
@@ -481,7 +482,8 @@ export const PROFILE = {
   signOutConfirm: 'Ja, abmelden',
   // Kurze Befragung am Schluss (29.10.2026)
   surveyTitle: 'Kurze Befragung',
-  surveyText: 'Zum Schluss sechs kurze Fragen und eine freiwillige Anmerkung, wie du die Anwendung erlebt hast.',
+  surveyText: 'Zum Schluss fragen wir, wie du die App und die Vermutungen erlebt hast. Schau dir dafür auch «Weitere Einblicke» an.',
+  surveyInsights: 'Weitere Einblicke ansehen',
   surveyAction: 'Zur Befragung',
   surveyDone: (code) => `Befragung abgeschlossen. Deine Teilnahmenummer: ${code}.`,
   // Bearbeiten

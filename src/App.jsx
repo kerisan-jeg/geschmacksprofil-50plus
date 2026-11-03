@@ -498,6 +498,7 @@ function App() {
               next={nextStep()}
               survey={{ available: canStartSurvey(state), done: surveyDone, sessionId: logger.session.sessionId }}
               onSurvey={() => dispatch({ type: 'survey' })}
+              onInsightsOpen={(details) => logger.trace('profile_insights_opened', details)}
               canSignOut={Boolean(account)}
               onCreate={() => handleTab(TABS.CREATE)}
               onNext={handleNextStep}

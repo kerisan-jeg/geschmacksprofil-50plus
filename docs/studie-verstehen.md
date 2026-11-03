@@ -1,5 +1,7 @@
 # Was wir mit der App untersuchen – verständlich erklärt
 
+**Ergänzung vom 03.11.2026:** Die Befragung berücksichtigt ab Version 0.14 zusätzlich die Sichtung, Nachvollziehbarkeit und Passung der Vermutungen unter «Weitere Einblicke». Die aktuelle Übersicht aller Fragen mit ihrem Erkenntniszweck steht in [befragung-ziele-und-erkenntnisse.md](befragung-ziele-und-erkenntnisse.md); die einheitliche Durchführung in [testablauf-nutzerstudie.md](testablauf-nutzerstudie.md). Die folgenden Erläuterungen zur früheren Fassung bleiben als fachlicher Hintergrund erhalten.
+
 Stand: 02.11.2026. Grundlage: die vom Team mitgeteilte Aufgabenstellung und Prüfung des Codes. Die erweiterte Befragung, getrennte Abschlussmerkmale und der automatische Studienbericht sind ab Version 0.13 umgesetzt. Die Bedienungsanleitung steht in [studienauswertung.md](studienauswertung.md). Dieses Dokument erklärt die fachliche Bedeutung; Beobachtungsablauf und Studienbedingungen sind zusätzlich im Team festzulegen.
 
 ## 1. Was die Aufgabenstellung verlangt

@@ -5,7 +5,9 @@ Erstellt mit Claude Code im Auftrag des Teams (26.10.2026); alle Aussagen sind a
 
 | Dokument | Inhalt |
 |---|---|
-| [studienauswertung.md](studienauswertung.md) | Aktueller Ablauf ab Version 0.13: erweiterte Befragung, getrennte Abschlussmerkmale und automatischer Studienbericht mit `npm run studie` |
+| [befragung-ziele-und-erkenntnisse.md](befragung-ziele-und-erkenntnisse.md) | Übersicht für Tibor: jede Befragungsfrage mit Erkenntniszweck, Projektziel und Auswertung; Ergänzung zu «Weitere Einblicke» |
+| [testablauf-nutzerstudie.md](testablauf-nutzerstudie.md) | Einheitliche Testaufgabe, begleitete und selbständige Teilnahme sowie Beobachtung der Vermutungen |
+| [studienauswertung.md](studienauswertung.md) | Aktueller Ablauf ab Version 0.14: bedingte Fragen zu Vermutungen, getrennte Abschlussmerkmale und automatischer Studienbericht mit `npm run studie` |
 | [abgleich-frontend-tests-backend.md](abgleich-frontend-tests-backend.md) | Historischer technischer Abgleich von Version 0.12 vor den Studienanpassungen: Tests, Build, Supabase-Zugriffsregeln und Live-Browsertest |
 | [studie-verstehen.md](studie-verstehen.md) | Einstieg für das Team: Was gespeichert und untersucht wird, wie die Daten zu verstehen sind und welche Studienbedingungen festzulegen sind (02.11.2026) |
 | [01_Systemuebersicht.md](01_Systemuebersicht.md) | Aufbau, Ablauf, Datenmodell, Begriffe, Konfiguration |
