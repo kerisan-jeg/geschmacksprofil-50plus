@@ -1,42 +1,42 @@
-# Befragungsübersicht: Fragen und Projektziele
+# Abschlussbefragung: Erkenntnisinteresse und Projektziele
 
 Stand: 03.11.2026 · Prototyp 0.14
 
-Mit mindestens 30 Personen ab 50 Jahren möchten wir untersuchen, wie einfach die App zu bedienen ist, wie aufwendig der Ablauf empfunden wird und ob das Geschmacksprofil zu den eigenen Vorlieben passt.
+Die geplante Nutzerstudie umfasst mindestens 30 Personen ab 50 Jahren. Untersucht werden die Bedienbarkeit der Anwendung, der empfundene Aufwand und die persönliche Passung des erstellten Geschmacksprofils.
 
-## Allgemeine Fragen
+## 1. Allgemeine Bewertung der Anwendung
 
-| Frage | Welche Erkenntnis möchten wir gewinnen? | Bezug zum Projektziel |
+| Frage | Erkenntnisinteresse | Beitrag zum Projektziel |
 |---|---|---|
-| **1. Wie einfach war die App insgesamt zu bedienen?** | Wie die Person die Bedienung insgesamt erlebt. | Eine einfach bedienbare App für die Zielgruppe entwickeln. |
-| **2. Wie verständlich war für dich das Bewerten durch Wischen?** | Ob das Bewerten durch Wischen verständlich ist. | Die Eignung der Swipe-Mechanik für Personen ab 50 beurteilen. |
-| **3. Wie anstrengend war es, die Fragen und Karten zu beantworten?** | Wie belastend der Ablauf empfunden wird. | Vorlieben mit möglichst geringem Aufwand erfassen. |
-| **4. Wie häufig kamen dir Fragen oder Karten unnötig ähnlich oder wiederholt vor?** | Ob die Abfragen als unnötig wiederholend erlebt werden. | Anzahl und Auswahl der Abfragen verbessern. |
-| **5. Wie gut beschreibt das angezeigte Profil deinen Geschmack?** | Ob sich die Person im Ergebnis wiedererkennt. | Ein passendes und nachvollziehbares Geschmacksprofil darstellen. |
-| **6. Wie empfandest du die Länge?** | Ob der Umfang als zu kurz, passend oder zu lang empfunden wird. | Einen angemessenen Umfang für die Profilerstellung finden. |
+| **1. Wie einfach war die App insgesamt zu bedienen?** | Gesamteinschätzung der Bedienbarkeit. | Eine einfach bedienbare App für die Zielgruppe entwickeln. |
+| **2. Wie verständlich war für dich das Bewerten durch Wischen?** | Verständlichkeit des Bewertens durch Wischen. | Die Eignung der Swipe-Mechanik für Personen ab 50 beurteilen. |
+| **3. Wie anstrengend war es, die Fragen und Karten zu beantworten?** | Empfundene Anstrengung bei der Bearbeitung. | Vorlieben mit möglichst geringem Aufwand erfassen. |
+| **4. Wie häufig kamen dir Fragen oder Karten unnötig ähnlich oder wiederholt vor?** | Wahrgenommene Wiederholung ähnlicher Abfragen. | Anzahl und Auswahl der Abfragen verbessern. |
+| **5. Wie gut beschreibt das angezeigte Profil deinen Geschmack?** | Subjektive Übereinstimmung des Profils mit den eigenen Vorlieben. | Ein passendes und nachvollziehbares Geschmacksprofil darstellen. |
+| **6. Wie empfandest du die Länge?** | Bewertung des Umfangs als zu kurz, angemessen oder zu lang. | Einen angemessenen Umfang für die Profilerstellung finden. |
 
-## Weitere Einblicke
+## 2. Bewertung des Bereichs «Weitere Einblicke»
 
-Die folgenden Fragen beziehen sich gezielt auf die zusätzlichen Vermutungen der App. Die Fragen 8 und 9 erscheinen nur, wenn Frage 7 mit „Ja“ beantwortet wurde.
+Die Fragen beziehen sich auf die zusätzlichen Vermutungen der Anwendung. Die Fragen 8 und 9 werden nur nach einer bestätigten Sichtung in Frage 7 gestellt.
 
-| Frage | Welche Erkenntnis möchten wir gewinnen? | Bezug zum Projektziel |
+| Frage | Erkenntnisinteresse | Beitrag zum Projektziel |
 |---|---|---|
-| **7. Hast du dir unter «Weitere Einblicke» die Vermutungen der App angesehen?** | Ob die Person eine Grundlage für die anschliessende Bewertung hat. | Rückmeldungen nur auf tatsächlich angesehene Vermutungen beziehen. |
-| **8. Wie verständlich waren für dich die Begründungen zu den Vermutungen?** | Ob die Begründungen nachvollziehbar sind. | Vermutungen verständlich erklären. |
-| **9. Wie gut passen die Vermutungen unter «Weitere Einblicke» zu deinem Geschmack?** | Wie passend die Person die zusätzlichen Vermutungen erlebt. | Die persönliche Passung dieser Funktion beurteilen. |
+| **7. Hast du dir unter «Weitere Einblicke» die Vermutungen der App angesehen?** | Selbstauskunft zur Sichtung der Vermutungen als Grundlage der folgenden Bewertungen. | Rückmeldungen zu den Vermutungen auf eine ausreichende Bewertungsgrundlage stützen. |
+| **8. Wie verständlich waren für dich die Begründungen zu den Vermutungen?** | Nachvollziehbarkeit der angezeigten Begründungen. | Vermutungen verständlich erklären. |
+| **9. Wie gut passen die Vermutungen unter «Weitere Einblicke» zu deinem Geschmack?** | Subjektive Passung der zusätzlichen Vermutungen. | Die persönliche Passung dieser Funktion beurteilen. |
 
-## Freiwillige offene Frage
+## 3. Offene Rückmeldung
 
-| Frage | Welche Erkenntnis möchten wir gewinnen? | Bezug zum Projektziel |
+| Frage | Erkenntnisinteresse | Beitrag zum Projektziel |
 |---|---|---|
-| **Was war unklar oder würdest du verbessern?** | Weitere Probleme und Verbesserungsvorschläge erfassen. | Konkrete Gestaltungsempfehlungen ableiten. |
+| **Was war unklar oder würdest du verbessern?** | Erfassung weiterer Probleme und Verbesserungsvorschläge. Die Beantwortung ist freiwillig. | Konkrete Gestaltungsempfehlungen ableiten. |
 
-## Einordnung zu Tibors Hinweis
+## 4. Methodische Einordnung
 
-Bisher fragten wir nur nach der Passung des gesamten Profils. Damit liess sich nicht erkennen, wie die zusätzlichen Vermutungen beurteilt wurden. Diese Lücke greifen wir mit den Fragen 7 bis 9 auf.
+Die Fragen 5 und 9 unterscheiden zwischen der Gesamtbewertung des Profils und der Bewertung zusätzlicher Vermutungen. Beide erfassen subjektive Einschätzungen der Teilnehmenden.
 
-Ergänzend betrachten wir Nutzungsprotokolle und bei begleiteten Tests Beobachtungen. Kontrollkarten prüfen zusätzlich Vorhersagen für Untergruppen in Runde 2. Sie liefern keine allgemeine Trefferquote für sämtliche Vermutungen im fertigen Profil.
+Ergänzend werden Nutzungsprotokolle und Beobachtungen aus begleiteten Tests herangezogen. Die Kontrollkarten prüfen Vorhersagen zu Untergruppen in Runde 2. Sie erlauben keine Aussage über die Genauigkeit sämtlicher Vermutungen im fertigen Profil.
 
-## Auswertung
+## 5. Auswertung
 
-Wir zählen die Antworten pro Frage und Teilnahme. „Nicht ausprobiert“, „Kann ich nicht beurteilen“ und nicht gestellte Fragen werden separat berücksichtigt. Die subjektive Passung wird getrennt von der technischen Vorhersageprüfung ausgewertet; Kommentare ordnen wir nach Themen.
+Die Antworten werden je Frage und Teilnahme als Häufigkeiten ausgewertet. „Nicht ausprobiert“, „Kann ich nicht beurteilen“ und nicht gestellte Fragen werden separat berücksichtigt. Die subjektive Passung und die technische Vorhersageprüfung werden getrennt ausgewertet. Freitextkommentare werden nach Themen geordnet.
