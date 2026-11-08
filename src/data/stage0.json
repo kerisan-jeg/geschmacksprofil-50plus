@@ -55,7 +55,7 @@
       "type": "diet",
       "source": "Ernährungsweise",
       "title": "Wie ernährst du dich?",
-      "hint": "Wähle nur aus, was du nie isst.",
+      "hint": "Wähle die Antwort, die zu deiner Ernährung passt.",
       "options": [
         {
           "id": "pescetarian",
