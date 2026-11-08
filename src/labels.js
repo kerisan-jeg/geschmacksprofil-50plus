@@ -87,7 +87,7 @@ export const REGISTER = {
   nameLabel: 'Vorname',
   nameError: 'Bitte gib deinen Vornamen ein.',
   nameNext: 'Weiter',
-  namePrivacy: 'Dein Vorname bleibt auf diesem Gerät und wird nicht übermittelt. Eine Handynummer brauchen wir nicht.',
+  namePrivacy: 'Dein Vorname bleibt auf diesem Gerät und wird nicht übermittelt.',
 };
 
 // Wiederkehrende Person auf demselben Gerät
