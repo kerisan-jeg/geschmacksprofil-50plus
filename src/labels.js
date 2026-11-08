@@ -311,7 +311,7 @@ export const COMPLETE = {
   nextRound: (round) => `Weiter mit Runde ${round}`,
   overviewTitle: 'So hast du bisher geantwortet',
   rules: (count) => `${plural(count, 'feste Regel', 'feste Regeln')} aus deinen Angaben`,
-  profileHint: 'In deinem Profil siehst du alles im Detail.',
+  profileHint: 'In deinem Profil siehst du alles im Detail und schliesst die Teilnahme ab.',
   toProfile: 'Mein Profil ansehen',
   // Gerichte (Stufe 4, freiwillig)
   kickerDishes: 'Gerichte bewertet',
@@ -324,7 +324,7 @@ export const SURVEY = {
   version: SURVEY_VERSION,
   kicker: 'Fast geschafft',
   title: (name) => (name ? `${name}, wie war es für dich?` : 'Wie war es für dich?'),
-  lead: 'Zum Schluss einige kurze Fragen und eine freiwillige Anmerkung. Zu den Vermutungen der App fragen wir nur nach, wenn du sie angesehen hast. Es gibt keine falschen Antworten.',
+  lead: 'Noch ein paar kurze Fragen, dann bist du fertig. Es gibt keine falschen Antworten.',
   scales: SURVEY_SCALES,
   remarks: 'Was war unklar oder würdest du verbessern?',
   optional: 'freiwillig',
@@ -472,11 +472,11 @@ export const PROFILE = {
   signOutText: 'Dein Profil wird von diesem Gerät gelöscht. Deine bisherigen Antworten für die Auswertung bleiben erhalten.',
   signOutConfirm: 'Ja, abmelden',
   // Kurze Befragung am Schluss (29.10.2026)
-  surveyTitle: 'Kurze Befragung',
-  surveyText: 'Zum Schluss fragen wir, wie du die App und die Vermutungen erlebt hast. Schau dir dafür auch «Weitere Einblicke» an.',
+  surveyTitle: 'Teilnahme abschliessen',
+  surveyText: 'Schau dir noch «Weitere Einblicke» an. Danach beantwortest du ein paar kurze Fragen, und du bist fertig.',
   surveyInsights: 'Weitere Einblicke ansehen',
-  surveyAction: 'Zur Befragung',
-  surveyDone: (code) => `Befragung abgeschlossen. Deine Teilnahmenummer: ${code}.`,
+  surveyAction: 'Abschliessen',
+  surveyDone: (code) => `Teilnahme abgeschlossen. Deine Teilnahmenummer: ${code}.`,
   // Bearbeiten
   editRating: 'Bewertung ändern',
   editRatingFor: (title) => `${title}: Bewertung ändern`,

@@ -100,6 +100,15 @@ test('Bild geladen: alt-Text aus dem Katalog; zu langes Laden: Platzhalter, auch
   await second.unmount();
 });
 
+test('Vorschaubild (thumb): kein Zeitlimit, es lädt in zugeklappten Listen später noch nach', async () => {
+  const { container, unmount } = await render(h(Artwork, { card: index.get('F01.1'), size: 'thumb', timeoutMs: 20 }));
+  await act(async () => new Promise((resolve) => setTimeout(resolve, 60)));
+  assert.equal(container.querySelector('.artwork').dataset.state, 'loading');
+  await act(async () => container.querySelector('.artwork-photo').dispatchEvent(new window.Event('load')));
+  assert.equal(container.querySelector('.artwork').dataset.state, 'loaded');
+  await unmount();
+});
+
 test('Antwortzeit beginnt erst, wenn das Bild geladen ist; Antwort davor: keine Zeit, Bild nicht gezeigt', async () => {
   const round = roundTwo();
   const first = presentCard(round, selectNextCards(round, config)[0]);

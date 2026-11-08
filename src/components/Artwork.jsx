@@ -60,8 +60,9 @@ export default function Artwork({ card, size = 'card', className = '', onStatus,
 
   // Lädt das Bild zu lange, gilt der Platzhalter (auch auf langsamen Verbindungen bleibt die Karte bedienbar).
   // Der Zeitgeber läuft je Bild einmal (nicht bei jedem neuen Zeichnen, z. B. während des Ziehens).
+  // Vorschaubilder (thumb) laden verzögert, meist in zugeklappten Listen: ohne Zeitgeber, sonst blieben sie leer.
   useEffect(() => {
-    if (state !== 'loading') return undefined;
+    if (state !== 'loading' || size === 'thumb') return undefined;
     const timer = setTimeout(() => mark('timeout'), timeoutMs);
     return () => clearTimeout(timer);
   }, [state, key, timeoutMs]); // eslint-disable-line react-hooks/exhaustive-deps
