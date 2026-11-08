@@ -381,7 +381,6 @@ export const PROFILE = {
   tasteLead: 'Deine aktuellen Antworten. Tippe auf eine Kategorie für alle Details.',
   overviewTotal: 'Karten mit Antwort',
   overviewTypes: (groups, foods, dishes) => `${plural(groups, 'Gruppe', 'Gruppen')} · ${plural(foods, 'Lebensmittel', 'Lebensmittel')} · ${plural(dishes, 'Gericht', 'Gerichte')}`,
-  overviewNote: 'Anteil deiner aktuellen Antworten, ohne Vermutungen und Ausschlüsse. Mit weiteren Karten wächst die Momentaufnahme.',
   answerEmpty: 'Noch keine Antwort in dieser Kategorie.',
   answerKinds: { group: 'Lebensmittelgruppe', food: 'Lebensmittel', dish: 'Gericht' },
   answerMeaning: '„Mag ich sehr“ bedeutet besonders gern. „Kenne ich nicht“ ist keine Geschmacksbewertung. Gruppen bewerten keine einzelnen Lebensmittel; Gerichte bewerten keine Zutaten.',

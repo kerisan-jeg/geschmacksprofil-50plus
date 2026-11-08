@@ -310,7 +310,6 @@ export default function ProfileScreen({
             />
           ))}
         </div>
-        <p className="note">{PROFILE.overviewNote}</p>
       </section>
 
       <ProfileStatus progress={progress} next={next} onNext={onNext} />
