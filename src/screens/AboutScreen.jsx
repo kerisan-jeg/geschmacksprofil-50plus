@@ -75,7 +75,7 @@ export default function AboutScreen({ person, askName, firstName: initialName = 
 
         <fieldset className="field-set" ref={ageRef}>
           <legend id="age-label">{ABOUT.age}</legend>
-          <ChoiceList name="age" layout="grid" options={ABOUT.ageGroups} value={ageGroup} onChange={setAgeGroup} labelledBy="age-label" />
+          <ChoiceList name="age" options={ABOUT.ageGroups} value={ageGroup} onChange={setAgeGroup} labelledBy="age-label" />
           {showError && missing.age && (
             <p className="form-error" role="alert">
               <CircleAlert aria-hidden="true" />
