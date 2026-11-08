@@ -938,14 +938,6 @@
 
 /* ---------- Studieninformation, Befragung und Abschluss (29.10.2026) ---------- */
 
-.study-info {
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-4);
-  border-radius: var(--radius-m);
-  background: var(--color-surface-sunken);
-}
-
 .data-lines {
   display: grid;
   gap: var(--space-2);

@@ -49,17 +49,6 @@ export default function StartScreen({ onStart, storageAvailable = true, syncEnab
         <p className="note">{START.pause}</p>
       </div>
 
-      <section className="study-info" aria-labelledby="study-title">
-        <h2 id="study-title" className="panel-title">
-          {START.studyTitle}
-        </h2>
-        {START.study.map((line) => (
-          <p key={line} className="note">
-            {line}
-          </p>
-        ))}
-      </section>
-
       {!storageAvailable && (
         <p className="notice notice-warn" role="status">
           <TriangleAlert aria-hidden="true" />

@@ -73,13 +73,6 @@ export const START = {
   lead: 'Wir zeigen dir Lebensmittel auf Karten. Bei jeder Karte sagst du mit einem Wisch oder einem Tipp, wie gern du sie isst.',
   steps: ['Kurz anmelden mit deinem Vornamen', 'Drei Fragen zu Allergien und Ernährung', 'Karten wischen oder tippen'],
   pause: 'Aufhören kannst du jederzeit.',
-  // Kurze Studieninformation (Vorschlag 29.10.2026)
-  studyTitle: 'Worum geht es?',
-  study: [
-    'Ein Studierendenprojekt der ZHAW für nurec prüft, mit wie wenigen Fragen die App deinen Geschmack erfasst.',
-    'Du brauchst etwa 15 Minuten. Du kannst jederzeit aufhören; schon gegebene Antworten bleiben erhalten.',
-    'Gespeichert werden deine Altersgruppe, deine Angaben zu Ernährung und Unverträglichkeiten, deine Antworten zu den Karten und die kurze Befragung am Schluss. Nicht dein Vorname.',
-  ],
   start: 'Los geht’s',
   fineprint: 'Prototyp aus einem Studierendenprojekt der ZHAW für nurec. Deine Antworten gehen ohne deinen Namen an das Projektteam.',
   // Ohne zentrale Speicherung (nicht eingerichtet)
