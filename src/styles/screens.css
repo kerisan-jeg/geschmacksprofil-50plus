@@ -949,6 +949,11 @@
 .survey-panel {
   display: grid;
   gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.survey-panel .panel-title {
+  padding: 0;
 }
 
 .finish-code {
