@@ -15,7 +15,7 @@ const median = (values) => {
 };
 const truth = (value) => value === null || value === undefined ? 'unbekannt' : value ? 'ja' : 'nein';
 const roundNumber = (value) => typeof value === 'string' && value.startsWith('G') ? 4 : Number(value);
-const ageEligible = (value) => ['50-59', '60-69', '70-79', '80+'].includes(value) ? true : value == null || value === '' ? null : false;
+const ageEligible = (value) => ['50-59', '60-69', '70+', '70-79', '80+'].includes(value) ? true : value == null || value === '' ? null : false;
 
 export function lastActivity(session) {
   return latest([session.survey?.submittedAt, session.endedAt, session.startedAt, ...(session.events ?? []).map((entry) => entry.timestamp), ...(session.trace ?? []).map((entry) => entry.at)]);

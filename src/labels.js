@@ -115,8 +115,7 @@ export const ABOUT = {
   ageGroups: [
     { id: '50-59', label: '50 bis 59' },
     { id: '60-69', label: '60 bis 69' },
-    { id: '70-79', label: '70 bis 79' },
-    { id: '80+', label: '80 und älter' },
+    { id: '70+', label: '70 und älter' },
   ],
   consent: 'Ich bin einverstanden, dass meine Antworten ohne meinen Namen an das Projektteam der ZHAW übermittelt und für dieses Studierendenprojekt ausgewertet werden.',
   // Ohne zentrale Speicherung (nicht eingerichtet)

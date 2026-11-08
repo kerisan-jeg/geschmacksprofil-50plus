@@ -45,6 +45,19 @@ test('Eine Zeile pro Sitzung: vollständiger Ablauf und leere Anmeldung werden g
   assert.equal(rows[1].completionStatus, 'Begonnen ohne Kartenantworten');
 });
 
+test('Neue und frühere Altersgruppen ab 70 zählen weiterhin zur Zielgruppe der Studie', () => {
+  const session = fullSession('age');
+  const ageGroups = ['50-59', '60-69', '70+', '70-79', '80+', '40-49', null];
+  const sessions = ageGroups.map((ageGroup, i) => ({
+    ...session,
+    sessionId: 'age-' + i,
+    onboarding: { ...session.onboarding, ageGroup },
+  }));
+  const rows = participantRows(sessions, { index, diets });
+  assert.deepEqual(rows.map((row) => row.ageGroup), ageGroups);
+  assert.deepEqual(rows.map((row) => row.ageEligible), [true, true, true, true, true, false, null]);
+});
+
 test('Befragung zählt pro Teilnahme und Fragefassung, nicht pro Antwortereignis', () => {
   const old = fullSession('old', { ease: 4, clarity: 3, fit: 4, length: 2, submittedAt: now });
   const a = fullSession('a', newSurvey({ swipeClarity: NOT_TRIED }));
